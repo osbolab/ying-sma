@@ -1,0 +1,67 @@
+#include <thread>
+
+#include "CyclicBarrier.hh"
+
+namespace sma
+{
+
+CyclicBarrier::CyclicBarrier(std::size_t numThreads)
+  : numThreads(numThreads),
+  numWaiting(0),
+  numToLeave(0),
+  forceOpen(false)
+{
+}
+
+CyclicBarrier::CyclicBarrier(std::size_t numThreads, std::function<void()>&& onOpened)
+  : numThreads(numThreads),
+  onOpened(onOpened),
+  numWaiting(0),
+  numToLeave(0),
+  forceOpen(false)
+{
+}
+
+CyclicBarrier::~CyclicBarrier()
+{
+  // Force the barrier open so we don't destroy a locked mutex
+  forceOpen = true;
+  {
+    std::unique_lock<std::mutex> lock(mutex);
+    if (numWaiting + numToLeave > 0) {
+      open.notify_all();
+      closed.wait(lock, [&] { return numToLeave == 0; });
+    }
+  }
+}
+
+void CyclicBarrier::wait()
+{
+  std::unique_lock<std::mutex> lock(mutex);
+  // Wait for a recently opened barrier to close again
+  closed.wait(lock, [&] { return numToLeave == 0 || forceOpen; });
+  if (forceOpen) return;
+
+  ++numWaiting;
+  // The last waiting thread opens the barrier
+  if (numWaiting == numThreads) {
+    numToLeave = numThreads;
+    open.notify_all();
+  } else {
+    open.wait(lock, [&] { return numWaiting == numThreads || forceOpen; });
+  }
+
+  --numToLeave;
+  // The last leaving thread closes the barrier on its way out
+  if (numToLeave == 0) {
+    numWaiting = 0;
+    closed.notify_all();
+
+    if (onOpened) {
+      std::thread th(onOpened);
+      th.detach();
+    }
+  }
+}
+
+}

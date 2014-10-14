@@ -35,7 +35,12 @@ if (build_tests)
   add_subdirectory(${GTEST})
   #enable_testing()
   include_directories(${gtest_SOURCE_DIR}/include)
-
+  
+  add_executable(
+    ImNew
+    ${SRC}/imnew/imnew.cc
+  )
+  
   add_executable(
 	  MessageTest 
 	  ${SRC}/msg/Message.cc 
@@ -45,13 +50,14 @@ if (build_tests)
   target_link_libraries(MessageTest gtest_main)
 
   add_executable(
-    MessageQueueTest
+    BlockingQueueTest
     ${SRC}/msg/Message.cc
     ${INC}/msg/Message.hh
-    ${SRC}/msg/MessageQueue.cc
-    ${INC}/msg/MessageQueue.hh
-    ${TEST}/msg/MessageQueueTest.cc
+    ${INC}/BlockingQueue.hh
+    ${SRC}/CyclicBarrier.cc
+    ${INC}/CyclicBarrier.hh
+    ${TEST}/BlockingQueueTest.cc
   )
-  target_link_libraries(MessageQueueTest gtest_main)
+  target_link_libraries(BlockingQueueTest gtest_main)
 
 endif()

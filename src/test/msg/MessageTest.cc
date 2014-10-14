@@ -15,8 +15,10 @@ using std::vector;
 
 TEST(MesageTest, AssertionTrue) {
   string contents("Hello, world!");
-  Message msg = Message(reinterpret_cast<const uint8_t*>(contents.c_str()),
-                        contents.size() + 1);
+  Message msg = Message(
+    reinterpret_cast<const uint8_t*>(contents.c_str()),
+    contents.size() + 1
+  );
 
   const vector<const uint8_t> data = msg.getData();
 
