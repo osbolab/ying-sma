@@ -1,5 +1,4 @@
 #include <string>
-#include <cstdint>
 #include <cstdlib>
 #include <utility>
 #include <thread>
@@ -9,37 +8,28 @@
 
 #include "BlockingQueue.hh"
 #include "CyclicBarrier.hh"
-#include "msg/Message.hh"
 
 
 namespace sma
 {
 
 using std::string;
-using std::uint8_t;
-
-Message makeMessage()
-{
-  const string smsg = "Hello, world!";
-  const uint8_t* bytes = reinterpret_cast<const uint8_t*>(std::move(smsg.c_str()));
-  return Message(bytes, smsg.length() + 1);
-}
 
 TEST(Offer_Poll, AssertionTrue)
 {
-  auto mq = BlockingQueue<Message>(1);
-  Message msg = makeMessage();
+  auto mq = BlockingQueue<string>(1);
+  string msg("Hello, world!");
 
   ASSERT_TRUE(mq.offer(msg));
-  Message msg3;
-  ASSERT_TRUE(mq.poll(msg3));
-  ASSERT_EQ(msg, msg3);
+  string msg2;
+  ASSERT_TRUE(mq.poll(msg2));
+  ASSERT_EQ(msg, msg2);
 }
 
 TEST(Offer_Bound_Exceeded, AssertionTrue)
 {
-  auto mq = BlockingQueue<Message>(1);
-  Message msg = makeMessage();
+  auto mq = BlockingQueue<string>(1);
+  string msg("Hello, world!");
 
   ASSERT_TRUE(mq.offer(msg));
   ASSERT_FALSE(mq.offer(msg));
@@ -47,11 +37,11 @@ TEST(Offer_Bound_Exceeded, AssertionTrue)
 
 TEST(Pop_Uncontended, AssertionTrue)
 {
-  auto mq = BlockingQueue<Message>(1);
-  Message msg = makeMessage();
+  auto mq = BlockingQueue<string>(1);
+  string msg("Hello, world!");
 
   ASSERT_TRUE(mq.offer(msg));
-  Message msg2 = std::move(mq.take());
+  string msg2 = std::move(mq.take());
   ASSERT_EQ(msg, msg2);
 }
 
@@ -59,8 +49,8 @@ TEST(Concurrent_Producer_Consumer, AssertionTrue)
 {
   const std::size_t numThreads = 3;
 
-  BlockingQueue<Message> mq(numThreads);
-  Message msg = makeMessage();
+  auto mq = BlockingQueue<string>(numThreads);
+  string msg("Hello, world!");
 
   CyclicBarrier consumption(numThreads, [&] {
     CyclicBarrier production(numThreads);
@@ -79,7 +69,7 @@ TEST(Concurrent_Producer_Consumer, AssertionTrue)
   for (std::size_t i = 0; i < numThreads; ++i) {
     std::thread th([&] { 
       consumption.wait();
-      if (msg == mq.take()) ++successes;
+      if (mq.take() == msg) ++successes;
     });
     consumers.push_back(std::move(th));
   }

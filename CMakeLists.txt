@@ -1,18 +1,29 @@
 cmake_minimum_required(VERSION 2.8)
 
-option(build_tests "Build all tests." OFF)
+option(build_tests "Build all tests." ON)
+option(use_folders "Group projects in folders." ON)
 
-set(PROJ_NAME ying-sma)
-set(SRC		    src/main)
-set(INC		    include)
-set(TEST	    src/test)
-set(GTEST     lib/gtest-1.7.0)
+set_property(GLOBAL PROPERTY USE_FOLDERS ${use_folders})
+if (${use_folders})
+  message(STATUS "Using project folders")
+endif()
 
-project(${PROJ_NAME})
+set(PROJ          ying-sma)
+set(INC           include)
+set(SRC	          src/main)
+set(TEST          src/test)
+set(LIB_GTEST     lib/gtest-1.7.0)
+set(FOLDER_TEST   Test)
+
+set(PLATFORM  platform)
+
+project(${PROJ})
+
+# Must come here, depends on above settings
+include(cmake/macros.cmake REQUIRED)
 
 ############################################
 # COMPILE OPTIONS
-############################################
 
 add_definitions(-std=c++11)
 # add_definitions(-Wall)
@@ -22,42 +33,39 @@ if (MSVC)
   configure_msvc_runtime()
 endif()
 
+
 ############################################
 # OBJECTS
+
+object(Main "" ${SRC}/main.cc)
+
+object(CyclicBarrier ""
+  ${INC}/CyclicBarrier.hh
+  ${SRC}/CyclicBarrier.cc
+)
+
+object(BlockingQueue "" ${INC}/BlockingQueue.hh)
+test_object(BlockingQueue "" ${TEST}/BlockingQueueTest.cc)
+
+object(Message "msg"
+  ${INC}/msg/Message.hh 
+  ${SRC}/msg/Message.cc 
+)
+test_object(Message "msg" ${TEST}/msg/MessageTest.cc)
+
 ############################################
+# TARGETS
 
 include_directories(${INC})
 
-############################################
-# TESTS            (cmake -Dbuild_tests=ON)
-############################################
-if (build_tests)
-  add_subdirectory(${GTEST})
-  #enable_testing()
-  include_directories(${gtest_SOURCE_DIR}/include)
-  
-  add_executable(
-    ImNew
-    ${SRC}/imnew/imnew.cc
-  )
-  
-  add_executable(
-	  MessageTest 
-	  ${SRC}/msg/Message.cc 
-	  ${INC}/msg/Message.hh 
-    ${TEST}/msg/MessageTest.cc 
-  )
-  target_link_libraries(MessageTest gtest_main)
+add_test(BlockingQueue
+  CyclicBarrier
+)
 
-  add_executable(
-    BlockingQueueTest
-    ${SRC}/msg/Message.cc
-    ${INC}/msg/Message.hh
-    ${INC}/BlockingQueue.hh
-    ${SRC}/CyclicBarrier.cc
-    ${INC}/CyclicBarrier.hh
-    ${TEST}/BlockingQueueTest.cc
-  )
-  target_link_libraries(BlockingQueueTest gtest_main)
+add_test(Message)
 
-endif()
+add_exe(Main
+  CyclicBarrier
+  BlockingQueue
+  Message
+)
