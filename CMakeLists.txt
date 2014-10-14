@@ -78,6 +78,22 @@ object(Selector "channel"
 #-------------------------------------------
 # net
 
+object(Address "net"
+  ${INC}/net/Address.hh
+  ${SRC}/net/Address.cc
+)
+object(Ipv4Address "net"
+  ${INC}/net/Ipv4Address.hh
+  ${SRC}/net/Ipv4Address.cc
+)
+object(SocketAddress "net"
+  ${INC}/net/SocketAddress.hh
+  ${SRC}/net/SocketAddress.cc
+)
+test_object(SocketAddress "net"
+  ${TEST}/net/SocketAddressTest.cc
+)
+
 object(Packet "net"
   ${INC}/net/Packet.hh
   ${SRC}/net/Packet.cc
@@ -121,7 +137,13 @@ object(BsdSocketChannel "net"
 include_directories(${INC})
 
 add_test(BlockingQueue CyclicBarrier)
+
 add_test(Message)
+
+add_test(SocketAddress
+  Address
+  Ipv4Address
+)
 
 add_exe(Main
   Message
@@ -131,6 +153,9 @@ add_exe(Main
   BlockingQueue
   Sump
   Message
+  Address
+  Ipv4Address
+  SocketAddress
   Packet
   Socket
   UdpSocket
