@@ -26,7 +26,7 @@ TEST(Offer_Poll, AssertionTrue)
   ASSERT_EQ(msg, msg2);
 }
 
-TEST(Offer_Bound_Exceeded, AssertionTrue)
+TEST(Offer_Exceeds_Bounds, AssertionTrue)
 {
   auto mq = BlockingQueue<string>(1);
   string msg("Hello, world!");

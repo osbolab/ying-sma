@@ -1,5 +1,5 @@
-#ifndef MESSAGE_H_
-#define MESSAGE_H_
+#ifndef SMA_MESSAGE_H_
+#define SMA_MESSAGE_H_
 
 #include <cstdlib>
 #include <cstdint>
