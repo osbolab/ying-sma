@@ -11,7 +11,7 @@ namespace sma
 {
 
 template<class T>
-class BlockingQueue
+class BlockingQueue : public BlockingSource<T>
 {
 public:
   //! Create an unbounded queue.
@@ -33,10 +33,10 @@ public:
    * \param[out] item Contains the item retrieved if \a poll returned \a true.
    * \return \a true if an item was retrieved or \a false if none is available.
    */
-  bool poll(T& item);
+  bool poll(T& item) override;
 
   //! Retrieve the next available item, blocking until one is available.
-  T take();
+  T take() override;
 
 private:
   std::deque<T>             items;

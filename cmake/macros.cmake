@@ -3,12 +3,12 @@
 
 macro(object OBJ GROUP)
   file(GLOB O_${OBJ} ${ARGN})
-  source_group(main\\${GROUP} FILES ${O_${OBJ}})
+  source_group("main\\${GROUP}" FILES ${O_${OBJ}})
 endmacro(object)
 
 macro(test_object OBJ GROUP)
   file(GLOB O_${OBJ}Test ${ARGN})
-  source_group(test\\${GROUP} FILES ${O_${OBJ}Test})
+  source_group("test\\${GROUP}" FILES ${O_${OBJ}Test})
 endmacro(test_object)
 
 
