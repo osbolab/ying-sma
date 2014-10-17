@@ -1,5 +1,4 @@
-#ifndef BSDSOCKETCHANNEL_H_
-#define BSDSOCKETCHANNEL_H_
+#pragma once
 
 #include "channel/SelectableChannel.hh"
 #include "msg/Message.hh"
@@ -13,5 +12,3 @@ class BsdSocketChannel : SelectableChannel<Message>
 };
 
 }
-
-#endif

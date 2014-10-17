@@ -19,3 +19,24 @@ Compile and run by changing into the `ns-3.xx/build` directory and running `./wa
     
     # Enable c++11 extentions in source code
     APP_CPPFLAGS += -std=c++11
+
+### Sockets Layer
+#### Berkely Sockets
+    #ifdef __WIN32__
+    # include <winsock2.h>
+    # else
+    # include <sys/socket.h>
+    #endif
+
+##### Initialization
+
+    #ifdef __WIN32__
+      WORD versionWanted = MAKEWORD(1, 1);
+      WSADATA wsaData;
+      int success = WSAStartup(versionWanted, &wsaData);
+      assert(success != 0 && "Winsock version not supported");
+    #endif
+
+    socket()
+
+#### NS3

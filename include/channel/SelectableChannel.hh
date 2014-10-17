@@ -1,5 +1,4 @@
-#ifndef SELECTABLECHANNEL_H_
-#define SELECTABLECHANNEL_H_
+#pragma once
 
 #include "Channel.hh"
 #include "Selector.hh"
@@ -16,5 +15,3 @@ public:
 };
 
 }
-
-#endif

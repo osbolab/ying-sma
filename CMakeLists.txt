@@ -25,12 +25,11 @@ include(cmake/macros.cmake REQUIRED)
 ############################################
 # COMPILE OPTIONS
 
-#add_definitions(-std=c++11)
-# add_definitions(-Wall)
-
 if (MSVC)
   include(cmake/msvc.cmake REQUIRED)
   configure_msvc_runtime()
+else()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 ")
 endif()
 
 
@@ -46,12 +45,31 @@ object(CyclicBarrier ""
   ${SRC}/CyclicBarrier.cc
 )
 
-object(BlockingQueue "" ${INC}/BlockingQueue.hh)
-test_object(BlockingQueue "" ${TEST}/BlockingQueueTest.cc)
+object(BlockingQueue "" 
+  ${INC}/BlockingQueue.hh
+)
 
-object(Sump "" ${INC}/Sump.hh)
-object(Sink "" ${INC}/Sink.hh)
-object(BlockingSource "" ${INC}/BlockingSource.hh)
+test_object(BlockingQueue "" 
+  ${TEST}/BlockingQueueTest.cc
+)
+
+object(Sump "" 
+  ${INC}/Sump.hh
+)
+object(Sink "" 
+  ${INC}/Sink.hh
+)
+object(BlockingSource "" 
+  ${INC}/BlockingSource.hh
+)
+
+object(ObjectPool "memory"
+  ${INC}/memory/ObjectPool.hh
+  ${INC}/memory/pooled_ptr.hh
+)
+test_object(ObjectPool "memory" 
+  ${TEST}/memory/ObjectPoolTest.cc
+)
 
 #-------------------------------------------
 # msg
@@ -60,13 +78,20 @@ object(Message "msg"
   ${INC}/msg/Message.hh 
   ${SRC}/msg/Message.cc
 )
-test_object(Message "msg" ${TEST}/msg/MessageTest.cc)
+test_object(Message "msg" 
+  ${TEST}/msg/MessageTest.cc
+)
+
+object(Messenger "msg"
+  ${INC}/msg/Messenger.hh 
+)
 
 #-------------------------------------------
 # channel
 
 object(Channel "channel"
   ${INC}/channel/Channel.hh
+  ${SRC}/channel/Channel.cc
 )
 object(SelectableChannel "channel"
   ${INC}/channel/SelectableChannel.hh
@@ -82,9 +107,9 @@ object(Address "net"
   ${INC}/net/Address.hh
   ${SRC}/net/Address.cc
 )
-object(Ipv4Address "net"
-  ${INC}/net/Ipv4Address.hh
-  ${SRC}/net/Ipv4Address.cc
+object(InetAddress "net"
+  ${INC}/net/InetAddress.hh
+  ${SRC}/net/InetAddress.cc
 )
 object(SocketAddress "net"
   ${INC}/net/SocketAddress.hh
@@ -100,19 +125,15 @@ object(Packet "net"
 )
 object(Socket "net"
   ${INC}/net/Socket.hh
-  ${SRC}/net/Socket.cc
-)
-object(UdpSocket "net"
-  ${INC}/net/UdpSocket.hh
-  ${SRC}/net/UdpSocket.cc
+  ${INC}/net/SocketFactory.hh
 )
 
 #-------------------------------------------
 # net/ns3
 
-object(Ns3UdpSocketImpl "net"
-  ${INC}/net/Ns3UdpSocketImpl.hh
-  ${SRC}/net/Ns3UdpSocketImpl.cc
+object(Ns3Socket "net"
+  ${INC}/net/Ns3Socket.hh
+  ${SRC}/net/Ns3Socket.cc
 )
 
 #-------------------------------------------
@@ -120,14 +141,24 @@ object(Ns3UdpSocketImpl "net"
 
 object(BsdSocket "net"
   ${INC}/net/BsdSocket.hh
+  ${SRC}/net/BsdSocket.cc
 )
-object(BsdUdpSocketImpl "net"
-  ${INC}/net/BsdUdpSocketImpl.hh
-  ${SRC}/net/BsdUdpSocketImpl.cc
+object(BsdSocketFactory "net"
+  ${INC}/net/BsdSocketFactory.hh
+  ${SRC}/net/BsdSocketFactory.cc
 )
 object(BsdSocketChannel "net"
   ${INC}/net/BsdSocketChannel.hh
   ${SRC}/net/BsdSocketChannel.cc
+)
+
+object(Winsock "net"
+  ${INC}/net/Winsock.hh
+  ${SRC}/net/Winsock.cc
+)
+
+object(SocketsTest ""
+  ${SRC}/SocketsTest.cc
 )
 
 
@@ -143,27 +174,47 @@ add_test(Message)
 add_test(SocketAddress
   Address
   Ipv4Address
+  Winsock
 )
 
+add_test(ObjectPool)
+
 add_exe(Main
-  Message
+  # Utility
   CyclicBarrier
-  Sink
-  BlockingSource
-  BlockingQueue
-  Sump
+  ObjectPool
+
+  # Message queueing
   Message
-  Address
-  Ipv4Address
-  SocketAddress
+  Messenger
+  BlockingQueue
+
+  # Interfaces for connecting messaging to network  
+  Sink
+  Sump
+  BlockingSource
+  
+  # Cross-platform abstractions
+  Socket              # Interface
   Packet
-  Socket
-  UdpSocket
-  BsdSocket
-  BsdUdpSocketImpl
-  Ns3UdpSocketImpl
+  Address
+  InetAddress
+  SocketAddress
+
+  # Interfaces for abstracting platform-specific networking
   Channel
   SelectableChannel
   Selector
-  BsdSocketChannel
+
+  # BSD-specific networking
+  BsdSocket           # Berkely sockets implementation
+  BsdSocketChannel    # Abstraction
+  Winsock
+
+  # NS3-specific networking
+  # Ns3Socket
 )
+
+add_exe(SocketsTest
+  BsdSocket
+  Socket)

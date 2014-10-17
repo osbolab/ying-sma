@@ -1,9 +1,10 @@
-#ifndef PACKET_H_
-#define PACKET_H_
+#pragma once
 
 #include <cstdlib>
 #include <cstdint>
 #include <vector>
+
+#include "Address.hh"
 
 namespace sma
 {
@@ -14,9 +15,9 @@ public:
   Packet(std::size_t size);
 
 private:
+  const Address&            sender;
+  const Address&            recipient;
   std::vector<std::uint8_t> data;
 };
 
 }
-
-#endif

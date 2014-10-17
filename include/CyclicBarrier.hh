@@ -1,5 +1,4 @@
-#ifndef CYCLICBARRIER_H_
-#define CYCLICBARRIER_H_
+#pragma once
 
 #include <cstdlib>
 #include <cstdint>
@@ -36,5 +35,3 @@ private:
 };
 
 }
-
-#endif

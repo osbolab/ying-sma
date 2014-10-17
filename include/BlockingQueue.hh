@@ -1,10 +1,11 @@
-#ifndef BLOCKINGQUEUE_H_
-#define BLOCKINGQUEUE_H_
+#pragma once
 
 #include <mutex>
 #include <condition_variable>
 #include <deque>
 #include <utility>
+
+#include "BlockingSource.hh"
 
 
 namespace sma
@@ -124,5 +125,3 @@ T BlockingQueue<T>::take()
 }
 
 }
-
-#endif

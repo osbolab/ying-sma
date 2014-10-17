@@ -1,5 +1,4 @@
-#ifndef SMA_PUMP_H_
-#define SMA_PUMP_H_
+#pragma once
 
 #include <vector>
 #include <memory>
@@ -52,7 +51,7 @@ void Sump<T>::start()
   running = true;
   while (running) {
     const T item = std::move(source->take());
-    for (auto& iter = sinks.begin(); iter != sinks.end();) {
+    for (auto iter = sinks.begin(); iter != sinks.end();) {
       if ((*iter)->sink(item)) {
         ++iter;
       } else {
@@ -70,4 +69,3 @@ void Sump<T>::stop()
 }
 
 }
-#endif

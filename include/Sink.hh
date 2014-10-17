@@ -1,5 +1,4 @@
-#ifndef SMA_SINK_H_
-#define SMA_SINK_H_
+#pragma once
 
 namespace sma
 {
@@ -8,9 +7,7 @@ template<class T>
 class Sink
 {
 public:
-  virtual bool sink(const T& item) = 0;
+  virtual void sink(T item) = 0;
 };
 
 }
-
-#endif

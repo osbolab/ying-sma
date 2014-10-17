@@ -1,5 +1,4 @@
-#ifndef SELECTOR_H_
-#define SELECTOR_H_
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -24,5 +23,3 @@ private:
 };
 
 }
-
-#endif

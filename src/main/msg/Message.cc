@@ -1,59 +1,28 @@
-#include <utility>
-#include <vector>
-
 #include "msg/Message.hh"
+
 
 namespace sma
 {
 
-using std::size_t;
-using std::uint8_t;
-using std::vector;
+Message::Message() {}
+Message::Message(std::size_t len) : dataBytes(len) {}
+Message::Message(const std::vector<std::uint8_t>& copy) : dataBytes(copy) {}
+Message::Message(std::vector<std::uint8_t>&& move) : dataBytes(std::move(move)) {}
 
-Message::Message()
-{
-}
+bool Message::operator ==(const Message& other) const { return dataBytes == other.dataBytes; }
+bool Message::operator !=(const Message& other) const { return !(*this == other); }
 
-Message::Message(const uint8_t* data, size_t len)
-  : data(vector<const uint8_t>(data, data + len))
-{
-}
+const std::vector<std::uint8_t>& Message::data() const { return dataBytes; }
 
-Message::Message(const Message& copy)
-  : data(vector<const uint8_t>(copy.data))
-{
-}
 
-Message::Message(Message&& move)
-{
-  std::swap(data, move.data);
-}
+MutableMessage::MutableMessage() {}
+MutableMessage::MutableMessage(const Message& copy) : Message(copy.data()) {}
+MutableMessage::MutableMessage(std::size_t len) : Message(len) {}
+MutableMessage::MutableMessage(const std::vector<std::uint8_t>& copy) : Message(copy) {}
+MutableMessage::MutableMessage(std::vector<std::uint8_t>&& move) : Message(std::move(move)) {}
 
-Message& Message::operator=(const Message& copy)
-{
-  data = vector<const uint8_t>(copy.data);
-  return *this;
-}
+std::vector<std::uint8_t>& MutableMessage::data() { return dataBytes; }
 
-Message& Message::operator=(Message&& move)
-{
-  std::swap(data, move.data);
-  return *this;
-}
-
-const vector<const uint8_t>& Message::getData() const
-{
-  return data;
-}
-
-bool Message::operator ==(const Message& other) const
-{
-  return data == other.data;
-}
-
-bool Message::operator !=(const Message& other) const
-{
-  return !(*this == other);
-}
+const Message& MutableMessage::immutableView() const { return *this; }
 
 }

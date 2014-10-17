@@ -1,13 +1,12 @@
-#ifndef NS3SOCKET_H_
-#define NS3SOCKET_H_
+#pragma once
 
-#include "UdpSocket.hh"
+#include "Socket.hh"
 
 
 namespace sma
 {
 
-class Ns3UdpSocketImpl : public UdpSocket
+class Ns3UdpSocketImpl : public Socket
 {
 public:
 
@@ -15,5 +14,3 @@ private:
 };
 
 }
-
-#endif

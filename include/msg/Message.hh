@@ -1,5 +1,4 @@
-#ifndef SMA_MESSAGE_H_
-#define SMA_MESSAGE_H_
+#pragma once
 
 #include <cstdlib>
 #include <cstdint>
@@ -11,25 +10,37 @@ namespace sma
 class Message
 {
 public:
-  Message();
-  //! Create a new message with a copy of the given data as its contents.
-  Message(const std::uint8_t* data, std::size_t len);
+  typedef std::uint8_t  Type;
+  typedef std::string   Tag;
 
-  Message(const Message& copy);
-  Message(Message&& move);
+  Message(const std::vector<std::uint8_t>& copy);
+  Message(std::vector<std::uint8_t>&& move);
 
-  Message& operator =(const Message& copy);
-  Message& operator =(Message&& move);
-
-  const std::vector<const uint8_t>& getData() const;
+  const std::vector<std::uint8_t>& data() const;
 
   bool operator ==(const Message& other) const;
   bool operator !=(const Message& other) const;
 
-private:
-  std::vector<const uint8_t> data;
+protected:
+  Message();
+  Message(std::size_t len);
+
+protected:
+  std::vector<std::uint8_t> dataBytes;
+};
+
+class MutableMessage : public Message
+{
+public:
+  MutableMessage();
+  MutableMessage(const Message& copy);
+  MutableMessage(std::size_t len);
+  MutableMessage(const std::vector<std::uint8_t>& copy);
+  MutableMessage(std::vector<std::uint8_t>&& move);
+
+  std::vector<std::uint8_t>& data();
+
+  const Message& immutableView() const;
 };
 
 }
-
-#endif

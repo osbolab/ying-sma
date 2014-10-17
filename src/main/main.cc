@@ -13,7 +13,7 @@ using std::string;
 class PrintSink : public sma::Sink<string>
 {
 public:
-  virtual bool sink(const string& s) override
+  bool sink(string s) override
   {
     if (s.empty()) return false;
     std::cout << "Sunk: " << s << std::endl << std::flush;
@@ -21,29 +21,16 @@ public:
   }
 };
 
-class MyChannel : public sma::SelectableChannel<string>
+class MyChannel : public sma::Channel<string>
 {
 public:
-  virtual bool sink(const string& item) override
+  bool sink(string item) override
   {
-    return false;
+    this->item = string(std::move(item));
+    return true;
   }
 
-  virtual bool poll(string& item) override
-  {
-    return false;
-  }
-
-  virtual string take() override
-  {
-    return string();
-  }
-
-  virtual void select(sma::Selector<string>& selector) override
-  {
-    selector.select();
-  }
-
+  string item;
 };
 
 int main(int argc, const char** argv)

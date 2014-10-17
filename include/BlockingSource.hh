@@ -1,5 +1,4 @@
-#ifndef BLOCKINGSOURCE_H_
-#define BLOCKINGSOURCE_H_
+#pragma once
 
 namespace sma
 {
@@ -13,4 +12,3 @@ public:
 };
 
 }
-#endif

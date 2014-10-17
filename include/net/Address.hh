@@ -1,33 +1,26 @@
-#ifndef ADDRESS_H_
-#define ADDRESS_H_
+#pragma once
 
 #include <iostream>
-#include <cstdint>
 #include <vector>
 
 
 namespace sma
 {
 
-enum AddressType
-{
-  ADDR_IPV4
-};
-
 class Address
 {
 public:
-  virtual void print(std::ostream& os) const = 0;
-  friend std::ostream& operator << (std::ostream& os, const Address& addr);
+  enum Family { IPv4, };
+
+  virtual void print(std::ostream& os) const;
+  friend std::ostream& operator <<(std::ostream& os, const Address& addr);
+
+  const Family                      family;
+  const std::vector<unsigned char>  addr;
 
 protected:
-  Address(AddressType type, std::size_t len, const std::vector<std::uint8_t> addr);
-
-  const std::vector<std::uint8_t> addr;
-  const AddressType               type;
-  const std::size_t               len;
+  Address(const Family& family, const std::vector<unsigned char>& addr);
+  Address(const Family& family, std::vector<unsigned char>&& addr);
 };
 
 }
-
-#endif
