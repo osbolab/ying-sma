@@ -53,6 +53,13 @@ test_object(BlockingQueue ""
   ${TEST}/BlockingQueueTest.cc
 )
 
+object(Bits "memory"
+  ${INC}/memory/bits.hh
+)
+test_object(Bits "memory"
+  ${TEST}/memory/BitsTest.cc
+)
+
 object(Sump "" 
   ${INC}/Sump.hh
 )
@@ -65,10 +72,22 @@ object(BlockingSource ""
 
 object(ObjectPool "memory"
   ${INC}/memory/ObjectPool.hh
+  ${INC}/memory/ObjectPool.tt
   ${INC}/memory/pooled_ptr.hh
+  ${INC}/memory/pooled_ptr.tt
 )
 test_object(ObjectPool "memory" 
   ${TEST}/memory/ObjectPoolTest.cc
+)
+
+object(BufferPool "memory"
+  ${INC}/memory/BufferPool.hh
+  ${SRC}/memory/BufferPool.cc
+  ${INC}/memory/pooled_buf.hh
+  ${SRC}/memory/pooled_buf.cc
+)
+test_object(BufferPool "memory"
+  ${TEST}/memory/BufferPoolTest.cc
 )
 
 #-------------------------------------------
@@ -92,12 +111,6 @@ object(Messenger "msg"
 object(Channel "channel"
   ${INC}/channel/Channel.hh
   ${SRC}/channel/Channel.cc
-)
-object(SelectableChannel "channel"
-  ${INC}/channel/SelectableChannel.hh
-)
-object(Selector "channel"
-  ${INC}/channel/Selector.hh
 )
 
 #-------------------------------------------
@@ -123,36 +136,38 @@ object(Packet "net"
   ${INC}/net/Packet.hh
   ${SRC}/net/Packet.cc
 )
+
 object(Socket "net"
   ${INC}/net/Socket.hh
   ${INC}/net/SocketFactory.hh
 )
 
 #-------------------------------------------
-# net/ns3
+# net
 
-object(Ns3Socket "net"
+object(Ns3Socket "net\\\\ns3"
   ${INC}/net/Ns3Socket.hh
   ${SRC}/net/Ns3Socket.cc
 )
 
-#-------------------------------------------
-# net/bsd
+object(NativeSocket "net\\\\native"
+  ${INC}/net/NativeSocket.hh
+  ${SRC}/net/NativeSocket.cc
+)
+object(NativeSocketFactory "net\\\\native"
+  ${INC}/net/NativeSocketFactory.hh
+  ${SRC}/net/NativeSocketFactory.cc
+)
+object(NativeSocketChannel "net\\\\native"
+  ${INC}/net/NativeSocketChannel.hh
+  ${SRC}/net/NativeSocketChannel.cc
+)
+object(NativeSocketSelector "net\\\\native"
+  ${INC}/net/NativeSocketSelector.hh
+  ${SRC}/net/NativeSocketSelector.cc
+)
 
-object(BsdSocket "net"
-  ${INC}/net/BsdSocket.hh
-  ${SRC}/net/BsdSocket.cc
-)
-object(BsdSocketFactory "net"
-  ${INC}/net/BsdSocketFactory.hh
-  ${SRC}/net/BsdSocketFactory.cc
-)
-object(BsdSocketChannel "net"
-  ${INC}/net/BsdSocketChannel.hh
-  ${SRC}/net/BsdSocketChannel.cc
-)
-
-object(Winsock "net"
+object(Winsock "net\\\\native"
   ${INC}/net/Winsock.hh
   ${SRC}/net/Winsock.cc
 )
@@ -179,6 +194,10 @@ add_test(SocketAddress
 
 add_test(ObjectPool)
 
+add_test(BufferPool)
+
+add_test(Bits)
+
 add_exe(Main
   # Utility
   CyclicBarrier
@@ -203,12 +222,12 @@ add_exe(Main
 
   # Interfaces for abstracting platform-specific networking
   Channel
-  SelectableChannel
-  Selector
 
   # BSD-specific networking
-  BsdSocket           # Berkely sockets implementation
-  BsdSocketChannel    # Abstraction
+  NativeSocket           # Berkely sockets implementation
+  NativeSocketChannel    # Abstraction
+  NativeSocketSelector
+  NativeSocketFactory
   Winsock
 
   # NS3-specific networking
@@ -216,5 +235,5 @@ add_exe(Main
 )
 
 add_exe(SocketsTest
-  BsdSocket
+  NativeSocket
   Socket)

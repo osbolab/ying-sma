@@ -23,16 +23,20 @@ public:
   virtual std::unique_ptr<Packet> recv() = 0;
   virtual int send(std::unique_ptr<const Packet> packet, const SocketAddress& recipient) = 0;
 
-  virtual int getLastError() const = 0;
+  virtual int lastError() const = 0;
 
 protected:
   Socket() {}
 
-  virtual int setLastError(int error) = 0;
+  virtual int lastError(int error) = 0;
 
   Address::Family family;
   Type            type;
   Protocol        protocol;
+
+private:
+  Socket(const Socket& copy) = delete;
+  Socket& operator =(const Socket& copy) = delete;
 };
 
 }

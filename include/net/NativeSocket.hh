@@ -8,10 +8,6 @@
   #include <sys/types.h>
   #include <sys/socket.h>
   #include <netinet/in.h>
-  namespace sma
-  {
-    typedef int SOCKET;
-  }
 #endif
 
 #ifndef INVALID_SOCKET
@@ -22,33 +18,42 @@
 namespace sma
 {
 
-class BsdSocket : public Socket
+#ifndef TYPEDEF_SOCKET_
+  #define TYPEDEF_SOCKET_
+  typedef int SOCKET;
+#endif
+
+class NativeSocket : public Socket
 {
-  friend class BsdSocketFactory;
+  friend class NativeSocketFactory;
 
 public:
-  ~BsdSocket();
+  ~NativeSocket();
 
   int bind(const SocketAddress& address) override;
   void close() override;
-
+  
   std::unique_ptr<Packet> recv() override;
   int send(std::unique_ptr<const Packet> packet, const SocketAddress& recipient) override;
 
-  int getLastError() const override;
+  int isBlocking(bool blocking);
+  bool isBlocking() const;
+
+  int lastError() const override;
 
 private:
-  BsdSocket();
+  NativeSocket();
 
   int create(Address::Family family, Type type, Protocol protocol);
 
-  int setLastError(int error) override;
+  int lastError(int error) override;
 
 #ifdef WIN32
   static bool wsaInitialized;
 #endif
 
-  SOCKET sock;
+  SOCKET  sock;
+  bool    blocking;
 };
 
 }

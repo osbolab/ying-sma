@@ -7,7 +7,7 @@ template<class T>
 class Sink
 {
 public:
-  virtual void sink(T item) = 0;
+  virtual bool sink(T item) = 0;
 };
 
 }

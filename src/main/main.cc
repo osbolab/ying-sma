@@ -4,9 +4,7 @@
 
 #include "Sump.hh"
 #include "BlockingQueue.hh"
-#include "channel/SelectableChannel.hh"
-#include "channel/Selector.hh"
-
+#include "channel/Channel.hh"
 
 using std::string;
 
