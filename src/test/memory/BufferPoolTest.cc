@@ -6,5 +6,5 @@
 
 TEST(It_Compiles, AssertionTrue)
 {
-  sma::BufferPool<char> pool;
+  auto pool = sma::BufferPool<2>::create(6);
 }
