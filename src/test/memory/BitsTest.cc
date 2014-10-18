@@ -1,4 +1,5 @@
 #include <iostream>
+#include <bitset>
 #include "gtest/gtest.h"
 
 #include "memory/bits.hh"
@@ -43,9 +44,10 @@ TEST(Builtins, AssertionTrue)
   ASSERT_EQ(2147483648, nums[1]);
 
   v = 0;
-  for (int i = 1; i < 32; ++i) {
+  for (int i = 0; i < 32; ++i) {
     set_bit(i, v);
     ASSERT_EQ(i, ms_bit(v));
     ASSERT_EQ(i, ls_bit(v));
+    clear_bit(i, v);
   }
 }

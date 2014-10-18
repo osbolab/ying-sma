@@ -47,7 +47,12 @@ static const int table[] = {
 #if defined(__i386__) || defined(__x86_64__)
   #define ls_bit(i) (__builtin_ffs(i) - 1)
 #elif defined(_M_IX86) || defined(_M_X64)
-  #define ls_bit(i) (31 -__lzcnt(i))
+  #define ls_bit(i) (tzcnt_(i))
+int __inline tzcnt_(std::uint32_t value)
+{
+  unsigned long tz = 0;
+  return (_BitScanForward(&tz, value) ? tz : -1);
+}
 #else
   #define ls_bit(i) ls_bit_(i)
   static inline int ls_bit_(int i)
@@ -64,18 +69,7 @@ static const int table[] = {
 #if defined(__i386__) || defined(__x86_64__)
   #define ms_bit(i) (i ? 31 - __builtin_clz(i) : -1)
 #elif defined(_M_IX86) || defined(_M_X64)
-  #define ms_bit(i) lzcnt_(i)
-  int __inline lzcnt_(std::uint32_t value)
-  {
-    unsigned long lz = 0;
-
-    if (_BitScanReverse(&lz, value)) {
-      return lz;
-    } else {
-      // undefined
-      return -1;
-    }
-  }
+  #define ms_bit(i) (i ? (31 -__lzcnt(i)) : -1)
 #else
   #define ms_bit(i) ms_bit_(i)
   static inline int ms_bit_(int i)
