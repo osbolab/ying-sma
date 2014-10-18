@@ -2,12 +2,16 @@
 
 #include <cstdlib>
 
+#include "BufferPool.hh"
+
 
 namespace sma
 {
 
-class pooled_buf
+class pool_ptr
 {
+private:
+  pool_ptr();
 };
 
 }

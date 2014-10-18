@@ -83,8 +83,8 @@ test_object(ObjectPool "memory"
 object(BufferPool "memory"
   ${INC}/memory/BufferPool.hh
   ${SRC}/memory/BufferPool.cc
-  ${INC}/memory/pooled_buf.hh
-  ${SRC}/memory/pooled_buf.cc
+  ${INC}/memory/pool_ptr.hh
+  ${SRC}/memory/pool_ptr.cc
 )
 test_object(BufferPool "memory"
   ${TEST}/memory/BufferPoolTest.cc

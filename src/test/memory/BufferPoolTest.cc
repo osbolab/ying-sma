@@ -6,5 +6,6 @@
 
 TEST(It_Compiles, AssertionTrue)
 {
-  auto pool = sma::BufferPool<2>::create(6);
+  auto pool = sma::BufferPool::allocate(128);
+  auto buf = pool.get(3);
 }

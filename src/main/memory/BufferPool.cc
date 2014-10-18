@@ -1,6 +1,7 @@
-#include <cassert>
+#include <utility>
+#include <cstring>
 #include <cmath>
-#include <iostream>
+#include <memory>
 
 #include "memory/bits.hh"
 
@@ -10,28 +11,32 @@
 namespace sma
 {
 
-template<std::size_t szBlock>
-BufferPool<szBlock> BufferPool<szBlock>::create(std::size_t capacity)
+using std::size_t;
+using std::uint32_t;
+using std::uint8_t;
+
+
+BufferPool BufferPool::allocate(size_t capacity)
 {
-  return std::move(BufferPool<szBlock>(capacity).allocate());
+  return std::move(BufferPool(capacity, 16).allocate());
 }
 
-template<std::size_t szBlock>
-BufferPool<szBlock>::BufferPool(std::size_t capacity)
+BufferPool::BufferPool(size_t capacity, size_t blockSize)
   : index(nullptr), blocks(nullptr), buffer(nullptr),
+  // Keep the block size as a power of two for alignment and cheap math
+  szBlock(1 << (ms_bit(blockSize) + 1)),
   // Take the next largest size that fits only whole blocks
-  bufferLen((std::size_t) std::ceil((float)capacity / szBlock)*szBlock),
+  bufferLen((size_t) std::ceil((float)capacity / szBlock)*szBlock),
   nBlocks(bufferLen / szBlock),
   // One status bit per block
-  indexLen((std::size_t) std::ceil(nBlocks / (8.0f * sizeof index)))
+  indexLen((size_t) std::ceil(nBlocks / (8.0f * sizeof index)))
 {
 }
 
-template<std::size_t szBlock>
-BufferPool<szBlock>::BufferPool(BufferPool&& move)
-  : nBlocks(move.nBlocks), 
-  szBlock(move.szBlock), 
-  indexLen(move.indexLen), 
+BufferPool::BufferPool(BufferPool&& move)
+  : nBlocks(move.nBlocks),
+  szBlock(move.szBlock),
+  indexLen(move.indexLen),
   bufferLen(move.bufferLen)
 {
   std::swap(index, move.index);
@@ -39,18 +44,24 @@ BufferPool<szBlock>::BufferPool(BufferPool&& move)
   std::swap(buffer, move.buffer);
 }
 
-template<std::size_t szBlock>
-BufferPool<szBlock>& BufferPool<szBlock>::allocate()
+BufferPool& BufferPool::allocate()
 {
-  if (index || blocks || buffer) return;
+  if (index && blocks && buffer) {
+    index = new uint32_t[indexLen];
+    std::memset(index, 0xFF, (sizeof index) * indexLen);
 
-  index = new std::uint32_t[indexLen];
-  buffer = new std::uint8_t[bufferLen];
-  blocks = new Block[nBlocks];
+    blocks = (Block*) new uint8_t[sizeof(Block) * nBlocks];
+    Block* p = blocks;
+    for (size_t i = 0; i < nBlocks; ++i) {
+      new (p++) Block(i, buffer + (i*sizeof(Block)));
+    }
+
+    buffer = new uint8_t[bufferLen];
+  }
+  return *(this);
 }
 
-template<std::size_t szBlock>
-BufferPool<szBlock>::~BufferPool()
+BufferPool::~BufferPool()
 {
   if (index)  delete[] index;   index = nullptr;
   if (blocks) delete[] blocks;  blocks = nullptr;

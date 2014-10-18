@@ -9,44 +9,47 @@
 namespace sma
 {
 
-template<std::size_t szBlock>
-class BufferPool
-{
-  static_assert((szBlock > 1) && (szBlock &(szBlock - 1)) == 0,
-                "Block size must be a power of two.");
+using std::size_t;
+using std::uint8_t;
+using std::uint32_t;
 
+
+class BufferPool
+{ 
   friend class pooled_buf;
 
 public:
-  static BufferPool<szBlock> create(std::size_t capacity);
-  BufferPool(BufferPool<szBlock>&& move);
+  static BufferPool allocate(size_t capacity);
+  BufferPool(BufferPool&& move);
+
+  pooled_buf get(size_t size);
 
   ~BufferPool();
 
 private:
-  template<std::size_t szBlock>
   struct Block
   {
-    Block(std::size_t index, std::uint8_t* head) : index(index), head(head) {}
-    std::size_t   index;
-    std::uint8_t* head;
+    Block(size_t index, uint8_t* head) : index(index), head(head) {}
+    size_t   index;
+    uint8_t* head;
   };
 
-  BufferPool(std::size_t capacity);
+  BufferPool(size_t capacity, size_t blockSize);
 
   BufferPool(const BufferPool& copy) = delete;
   BufferPool& operator =(const BufferPool& copy) = delete;
 
   BufferPool& allocate();
 
-  const std::size_t nBlocks;
-  const std::size_t indexLen;
-  const std::size_t bufferLen;
+  const size_t szBlock;
+  const size_t nBlocks;
+  const size_t indexLen;
+  const size_t bufferLen;
 
   // One bit per block
-  std::uint32_t*    index;
-  Block<szBlock>*   blocks;
-  std::uint8_t*     buffer;
+  uint32_t*    index;
+  Block*            blocks;
+  uint8_t*     buffer;
 };
 
 }
