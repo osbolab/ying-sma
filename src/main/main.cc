@@ -38,12 +38,13 @@ int main(int argc, const char** argv)
   MyChannel chan;
 
   std::shared_ptr<sma::BlockingQueue<string>> messages(new sma::BlockingQueue<string>());
-  std::shared_ptr<sma::Sink<string>> sink(new PrintSink());
+  std::shared_ptr<sma::Sink<string>> Sink(new PrintSink());
 
-  sma::Sump<string> pump(messages, std::move(sink));
+  sma::Sump<string> pump(messages, std::move(Sink));
 
   std::thread th([&] {
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 3; ++i)
+    {
       messages->offer(string("Hello, queue!"));
       std::this_thread::sleep_for(std::chrono::seconds(1));
     }

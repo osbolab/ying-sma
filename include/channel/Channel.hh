@@ -9,7 +9,7 @@
 namespace sma
 {
 
-template<class T>
+template<typename T>
 class Channel : public Sink<T>
 {
 public:
@@ -23,13 +23,13 @@ private:
 };
 
 
-template<class T>
+template<typename T>
 void Channel<T>::onReceive(std::function<void(T&& t)> callback)
 {
   this->callback = std::move(callback);
 }
 
-template<class T>
+template<typename T>
 bool Channel<T>::onReceive(T&& t) const
 {
   auto copy = callback;

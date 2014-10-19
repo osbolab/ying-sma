@@ -1,6 +1,6 @@
 #pragma once
 
-#include "channel/SelectableChannel.hh"
+#include "Channel/SelectableChannel.hh"
 #include "msg/Message.hh"
 
 
@@ -11,4 +11,4 @@ class BsdSocketChannel : SelectableChannel<Message>
 {
 };
 
-}
+} Q

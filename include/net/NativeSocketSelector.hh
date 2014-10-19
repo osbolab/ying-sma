@@ -4,14 +4,18 @@
 #include <vector>
 #include <memory>
 
+#ifdef WIN32
+#include "net/Winsock.hh"
+#else
+#include <sys/select.h>
+#endif
+
 
 namespace sma
 {
 
 class Socket;
 class NativeSocket;
-
-struct fd_set;
 
 class NativeSocketSelector final
 {
@@ -21,7 +25,7 @@ public:
   int select(std::shared_ptr<NativeSocket>& selected);
 
 protected:
-  std::map<SOCKETstd::shared_ptr<NativeSocket>
+  //std::map<SOCKETstd::shared_ptr<NativeSocket>
   const std::vector<std::shared_ptr<NativeSocket>> sockets;
   const fd_set sockets;
 };

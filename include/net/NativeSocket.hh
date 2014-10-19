@@ -3,15 +3,15 @@
 #include "Socket.hh"
 
 #ifdef WIN32
-  #include "Winsock.hh"
+#include "Winsock.hh"
 #else
-  #include <sys/types.h>
-  #include <sys/socket.h>
-  #include <netinet/in.h>
+#include <sys/types.h>
+#include <sys/Socket.h>
+#include <netinet/in.h>
 #endif
 
 #ifndef INVALID_SOCKET
-  #define INVALID_SOCKET 0 
+#define INVALID_SOCKET 0
 #endif
 
 
@@ -19,38 +19,45 @@ namespace sma
 {
 
 #ifndef TYPEDEF_SOCKET_
-  #define TYPEDEF_SOCKET_
-  typedef int SOCKET;
+#define TYPEDEF_SOCKET_
+typedef int SOCKET;
 #endif
 
 class NativeSocket : public Socket
 {
-  friend class NativeSocketFactory;
-
 public:
+  class Factory : public Socket::factory
+  {
+  public:
+    Factory();
+
+    int create(Address::Family family, Socket::Type type, Socket::Protocol protocol,
+               std::unique_ptr<Socket>& Socket) override;
+  };
+
   ~NativeSocket();
 
   int bind(const SocketAddress& address) override;
   void close() override;
-  
-  std::unique_ptr<Packet> recv() override;
-  int send(std::unique_ptr<const Packet> packet, const SocketAddress& recipient) override;
 
-  int isBlocking(bool blocking);
-  bool isBlocking() const;
+  Message recv() override;
+  int send(const Message& packet, const SocketAddress& recipient) override;
 
-  int lastError() const override;
+  int is_blocking(bool blocking);
+  bool is_blocking() const;
+
+  int last_error() const override;
 
 private:
   NativeSocket();
 
   int create(Address::Family family, Type type, Protocol protocol);
 
-  int lastError(int error) override;
+  int last_error(int error) override;
 
-#ifdef WIN32
-  static bool wsaInitialized;
-#endif
+  #ifdef WIN32
+  static bool wsa_is_initialized;
+  #endif
 
   SOCKET  sock;
   bool    blocking;

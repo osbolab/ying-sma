@@ -4,12 +4,12 @@
 
 #include "gtest/gtest.h"
 
-#include "memory/buffer_pool.hh"
-#include "memory/pool_buf.hh"
+#include "memory/BufferPool.hh"
+#include "memory/PooledBuffer.hh"
 
 TEST(It_Compiles, AssertionTrue)
 {
-  auto pool = sma::buffer_pool<std::uint8_t, 32>(128);
+  auto pool = sma::BufferPool<std::uint8_t, 32>(128);
   auto pool2 = std::move(pool);
   pool = std::move(pool2);
   auto buf = pool.allocate(50);

@@ -3,11 +3,11 @@
 
 #include "gtest/gtest.h"
 
-#include "net/Ipv4Address.hh"
+#include "net/inet_address.hh"
 #include "net/SocketAddress.hh"
 
 
-TEST(ParseAddress, AssertionTrue) 
+TEST(ParseAddress, AssertionTrue)
 {
   std::string ip = std::string("127.0.0.1");
   std::string ip2 = std::string("128.0.0.2");

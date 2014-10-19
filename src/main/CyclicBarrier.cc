@@ -5,20 +5,20 @@
 namespace sma
 {
 
-CyclicBarrier::CyclicBarrier(std::size_t numThreads)
-  : numThreads(numThreads),
-  numWaiting(0),
-  numToLeave(0),
-  forceOpen(false)
+CyclicBarrier::CyclicBarrier(std::size_t nr_threads)
+  : nr_threads(nr_threads),
+    numWaiting(0),
+    numToLeave(0),
+    forceOpen(false)
 {
 }
 
-CyclicBarrier::CyclicBarrier(std::size_t numThreads, std::function<void()>&& onOpened)
-  : numThreads(numThreads),
-  onOpened(onOpened),
-  numWaiting(0),
-  numToLeave(0),
-  forceOpen(false)
+CyclicBarrier::CyclicBarrier(std::size_t nr_threads, std::function<void()>&& onOpened)
+  : nr_threads(nr_threads),
+    onOpened(onOpened),
+    numWaiting(0),
+    numToLeave(0),
+    forceOpen(false)
 {
 }
 
@@ -44,11 +44,11 @@ void CyclicBarrier::wait()
 
   ++numWaiting;
   // The last waiting thread opens the barrier
-  if (numWaiting == numThreads) {
-    numToLeave = numThreads;
+  if (numWaiting == nr_threads) {
+    numToLeave = nr_threads;
     open.notify_all();
   } else {
-    open.wait(lock, [&] { return numWaiting == numThreads || forceOpen; });
+    open.wait(lock, [&] { return numWaiting == nr_threads || forceOpen; });
   }
 
   --numToLeave;

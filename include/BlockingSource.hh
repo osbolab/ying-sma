@@ -3,7 +3,7 @@
 namespace sma
 {
 
-template<class T>
+template<typename T>
 class BlockingSource
 {
 public:

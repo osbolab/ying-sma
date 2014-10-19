@@ -47,14 +47,15 @@ TEST(Pop_Uncontended, AssertionTrue)
 
 TEST(Concurrent_Producer_Consumer, AssertionTrue)
 {
-  const std::size_t numThreads = 3;
+  const std::size_t nr_threads = 3;
 
-  auto mq = BlockingQueue<string>(numThreads);
+  auto mq = BlockingQueue<string>(nr_threads);
   string msg("Hello, world!");
 
-  CyclicBarrier consumption(numThreads, [&] {
-    CyclicBarrier production(numThreads);
-    for (std::size_t i = 0; i < numThreads; ++i) {
+  CyclicBarrier consumption(nr_threads, [&] {
+    CyclicBarrier production(nr_threads);
+    for (std::size_t i = 0; i < nr_threads; ++i)
+    {
       std::thread th([&] {
         production.wait();
         ASSERT_TRUE(mq.offer(msg));
@@ -66,19 +67,19 @@ TEST(Concurrent_Producer_Consumer, AssertionTrue)
   int successes = 0;
 
   std::vector<std::thread> consumers;
-  for (std::size_t i = 0; i < numThreads; ++i) {
-    std::thread th([&] { 
+  for (std::size_t i = 0; i < nr_threads; ++i) {
+    std::thread th([&] {
       consumption.wait();
       if (mq.take() == msg) ++successes;
     });
     consumers.push_back(std::move(th));
   }
 
-  for (std::thread &th : consumers) {
+  for (std::thread& th : consumers) {
     th.join();
   }
 
-  ASSERT_EQ(successes, numThreads);
+  ASSERT_EQ(successes, nr_threads);
   ASSERT_FALSE(mq.poll(msg));
 }
 

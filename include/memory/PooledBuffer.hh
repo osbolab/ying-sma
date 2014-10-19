@@ -4,28 +4,28 @@
 #include <cstdlib>
 #include <string>
 
-#include "log.hh"
-#include "pow2_math.hh"
+#include "Log.hh"
+#include "Pow2Math.hh"
 
-//#include "buffer_pool.hh"
+//#include "BufferPool.hh"
 
 namespace sma
 {
 
 template<typename T, std::size_t BlockSize>
-class pool_buf
+class PooledBuffer
 {
   static_assert(BlockSize > 0 && ((BlockSize & (BlockSize-1)) == 0),
                 "Block size must be a power of two.");
 
   template<typename T, std::size_t BlockSize>
-  friend class buffer_pool;
+  friend class BufferPool;
 
 public:
-  pool_buf(pool_buf&& move);
-  ~pool_buf();
+  PooledBuffer(PooledBuffer&& move);
+  ~PooledBuffer();
 
-  pool_buf& operator =(pool_buf&& move);
+  PooledBuffer& operator =(PooledBuffer&& move);
 
   // Copy at most `count` bytes from `src` to this buffer.
   std::size_t fill_from(const T* src, std::size_t count);
@@ -41,16 +41,16 @@ public:
   const T& operator[](std::size_t index) const;
 
 private:
-  pool_buf(buffer_pool<T, BlockSize>* pool, T* const * blocks, std::size_t count);
+  PooledBuffer(BufferPool<T, BlockSize>* pool, T* const* blocks, std::size_t count);
 
-  pool_buf(const pool_buf& copy) = delete;
-  pool_buf& operator =(const pool_buf& copy) = delete;
+  PooledBuffer(const PooledBuffer& copy) = delete;
+  PooledBuffer& operator =(const PooledBuffer& copy) = delete;
 
   // She owns the blocks' memory.
-  buffer_pool<T, BlockSize>* pool;
-  // Array of pointers to blocks in the pool; we don't own this. 
-  // Return it to buffer_pool::deallocate and she'll delete it.
-  T* const *  blocks;
+  BufferPool<T, BlockSize>* pool;
+  // Array of pointers to blocks in the pool; we don't own this.
+  // Return it to BufferPool::deallocate and she'll delete it.
+  T* const*   blocks;
   // The number of block pointers in the array
   std::size_t nr_blocks;
   std::size_t capacity;
@@ -59,43 +59,44 @@ private:
 
 
 template<typename T, std::size_t BlockSize>
-pool_buf<T, BlockSize>::pool_buf(buffer_pool<T, BlockSize>* pool,
-                               T* const* blocks, std::size_t count)
-: pool(pool), blocks(blocks), nr_blocks(count), capacity(count * BlockSize), size(0)
+PooledBuffer<T, BlockSize>::PooledBuffer(BufferPool<T, BlockSize>* pool,
+    T* const* blocks, std::size_t count)
+  : pool(pool), blocks(blocks), nr_blocks(count), capacity(count* BlockSize), size(0)
 {
-  LOG_D("[pool_buf::()] block*[" << nr_blocks << "] ("
+  LOG_D("[PooledBuffer::()] block*[" << nr_blocks << "] ("
         << static_cast<const void*>(this->blocks) << ")");
 }
 
 
 template<typename T, std::size_t BlockSize>
-pool_buf<T, BlockSize>::pool_buf(pool_buf<T, BlockSize>&& move)
-  : pool(move.pool), blocks(move.blocks), nr_blocks(move.nr_blocks), 
-  capacity(move.capacity), size(move.size)
+PooledBuffer<T, BlockSize>::PooledBuffer(PooledBuffer<T, BlockSize>&& move)
+  : pool(move.pool), blocks(move.blocks), nr_blocks(move.nr_blocks),
+    capacity(move.capacity), size(move.size)
 {
-  LOG_D("[pool_buf::(&&)] " << static_cast<void*>(&move));
+  if (&move == this) return *this;
+  LOG_D("[PooledBuffer::(&&)] " << static_cast<void*>(&move));
   move.pool = nullptr;
   move.blocks = nullptr;
 }
 
 
 template<typename T, std::size_t BlockSize>
-pool_buf<T, BlockSize>::~pool_buf()
+PooledBuffer<T, BlockSize>::~PooledBuffer()
 {
   if (!pool) {
     assert(!blocks && "Leaked block pointers: pool is null");
     return;
   }
-  LOG_D("[pool_buf::~]");
+  LOG_D("[PooledBuffer::~]");
   pool->deallocate(blocks, nr_blocks);
 }
 
 
 template<typename T, std::size_t BlockSize>
-pool_buf<T, BlockSize>&
-pool_buf<T, BlockSize>::operator=(pool_buf<T, BlockSize>&& move)
+PooledBuffer<T, BlockSize>&
+PooledBuffer<T, BlockSize>::operator=(PooledBuffer<T, BlockSize>&& move)
 {
-  LOG_D("[pool_buf::=(&&)] " << static_cast<void*>(&move));
+  LOG_D("[PooledBuffer::=(&&)] " << static_cast<void*>(&move));
   std::swap(blocks, move.blocks);
   std::swap(pool, move.pool);
   nr_blocks = move.nr_blocks;
@@ -106,9 +107,9 @@ pool_buf<T, BlockSize>::operator=(pool_buf<T, BlockSize>&& move)
 
 template<typename T, std::size_t BlockSize>
 std::size_t
-pool_buf<T, BlockSize>::fill_from(const T* src, std::size_t count)
+PooledBuffer<T, BlockSize>::fill_from(const T* src, std::size_t count)
 {
-  if (count > capacity) count = capacity;
+  if (count > capacity) { count = capacity; }
   T* const* block = blocks;
   const size_t nr_read = count;
 
@@ -126,9 +127,9 @@ pool_buf<T, BlockSize>::fill_from(const T* src, std::size_t count)
 
 template<typename T, std::size_t BlockSize>
 std::size_t
-pool_buf<T, BlockSize>::read_into(T* dst, std::size_t count)
+PooledBuffer<T, BlockSize>::read_into(T* dst, std::size_t count)
 {
-  if (count > capacity) count = capacity;
+  if (count > capacity) { count = capacity; }
   T* const* block = blocks;
   const size_t nr_read = count;
 
@@ -145,13 +146,13 @@ pool_buf<T, BlockSize>::read_into(T* dst, std::size_t count)
 
 template<typename T, std::size_t BlockSize>
 T&
-pool_buf<T, BlockSize>::operator[](std::size_t index)
+PooledBuffer<T, BlockSize>::operator[](std::size_t index)
 {
   if (index > size) {
     if (index >= capacity) {
       std::cerr
-        << "!!! Fatal error:\n!!!     Memory pool buffer index out of range ("
-        << index << " >= " << capacity << ")" << std::endl;
+          << "!!! Fatal error:\n!!!     Memory pool buffer index out of range ("
+          << index << " >= " << capacity << ")" << std::endl;
       std::terminate();
     }
     size = index;
@@ -164,12 +165,12 @@ pool_buf<T, BlockSize>::operator[](std::size_t index)
 
 template<typename T, std::size_t BlockSize>
 const T&
-pool_buf<T, BlockSize>::operator[](std::size_t index) const
+PooledBuffer<T, BlockSize>::operator[](std::size_t index) const
 {
   if (index >= capacity) {
     std::cerr
-      << "!!! Fatal error:\n!!! Memory pool buffer index out of range ("
-      << index << " >= " << capacity << ")" << std::endl;
+        << "!!! Fatal error:\n!!! Memory pool buffer index out of range ("
+        << index << " >= " << capacity << ")" << std::endl;
     std::terminate();
   }
   // see T& operator[]

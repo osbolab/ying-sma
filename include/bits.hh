@@ -10,7 +10,7 @@
 #include <intrin.h>
 #endif
 
-template<class T>
+template<typename T>
 static inline void set_bit(std::size_t nr, T* addr) 
 {
   *addr |= (1 << nr);

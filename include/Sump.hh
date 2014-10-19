@@ -11,12 +11,13 @@
 namespace sma
 {
 
-template<class T>
+template<typename T>
 class Sump
 {
 public:
-  Sump(std::shared_ptr<BlockingSource<T>> source, std::shared_ptr<Sink<T>> sink);
-  Sump(std::shared_ptr<BlockingSource<T>> source, const std::vector<std::shared_ptr<Sink<T>>>& sinks);
+  Sump(std::shared_ptr<BlockingSource<T>> src, std::shared_ptr<Sink<T>> dst);
+  Sump(std::shared_ptr<BlockingSource<T>> src,
+       const std::vector<std::shared_ptr<Sink<T>>>& dsts);
 
   virtual void start();
   virtual void stop();
@@ -28,24 +29,24 @@ private:
 };
 
 
-template<class T>
-Sump<T>::Sump(std::shared_ptr<BlockingSource<T>> source, 
-              std::shared_ptr<Sink<T>> sink)
-  : source(source), 
-  sinks(std::vector<std::shared_ptr<Sink<T>>>())
+template<typename T>
+Sump<T>::Sump(std::shared_ptr<BlockingSource<T>> src,
+              std::shared_ptr<Sink<T>> dst)
+  : source(src),
+    sinks(std::vector<std::shared_ptr<Sink<T>>>())
 {
-  sinks.push_back(std::move(sink));
+  sinks.push_back(std::move(dst));
 }
 
-template<class T>
-Sump<T>::Sump(std::shared_ptr<BlockingSource<T>> source, 
-              const std::vector<std::shared_ptr<Sink<T>>>& sinks)
-  : source(source), 
-  sinks(sinks)
+template<typename T>
+Sump<T>::Sump(std::shared_ptr<BlockingSource<T>> src,
+              const std::vector<std::shared_ptr<Sink<T>>>& dsts)
+  : source(src),
+    sinks(dsts)
 {
 }
 
-template<class T>
+template<typename T>
 void Sump<T>::start()
 {
   running = true;
@@ -62,7 +63,7 @@ void Sump<T>::start()
   }
 }
 
-template<class T>
+template<typename T>
 void Sump<T>::stop()
 {
   running = false;

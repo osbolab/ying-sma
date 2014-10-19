@@ -5,12 +5,12 @@ option(use_folders "Group projects in folders." ON)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ${use_folders})
 if (${use_folders})
-  message(STATUS "Using project folders")
+  Message(STATUS "Using project folders")
 endif()
 
 set(PROJ          ying-sma)
 set(INC           include)
-set(SRC	          src/main)
+set(SRC	          src/Main)
 set(TEST          src/test)
 set(LIB_GTEST     lib/gtest-1.7.0)
 set(FOLDER_TEST   Test)
@@ -37,7 +37,18 @@ endif()
 # OBJECTS
 
 object(Main ""
-  ${SRC}/main.cc
+  ${SRC}/Main.cc
+)
+
+object(Log ""
+	${INC}/Log.hh
+)
+
+object(Bits ""
+  ${INC}/Bits.hh
+)
+test_object(Bits ""
+  ${TEST}/BitsTest.cc
 )
 
 object(CyclicBarrier ""
@@ -48,16 +59,8 @@ object(CyclicBarrier ""
 object(BlockingQueue "" 
   ${INC}/BlockingQueue.hh
 )
-
 test_object(BlockingQueue "" 
   ${TEST}/BlockingQueueTest.cc
-)
-
-object(Bits "memory"
-  ${INC}/memory/bits.hh
-)
-test_object(Bits "memory"
-  ${TEST}/memory/BitsTest.cc
 )
 
 object(Sump "" 
@@ -71,12 +74,11 @@ object(BlockingSource ""
 )
 
 object(BufferPool "memory"
-  ${INC}/memory/buffer_pool.hh
-  ${INC}/memory/pool_buf.hh
+  ${INC}/memory/BufferPool.hh
+  ${INC}/memory/PooledBuffer.hh
 )
 test_object(BufferPool "memory"
-  ${TEST}/memory/buffer_pool_test.cc
-  ${INC}/log.hh
+  ${TEST}/memory/BufferPoolTest.cc
 )
 
 #-------------------------------------------
@@ -95,15 +97,19 @@ object(Messenger "msg"
 )
 
 #-------------------------------------------
-# channel
+# Channel
 
-object(Channel "channel"
-  ${INC}/channel/Channel.hh
-  ${SRC}/channel/Channel.cc
+object(Channel "Channel"
+  ${INC}/Channel/Channel.hh
+  ${SRC}/Channel/Channel.cc
 )
 
 #-------------------------------------------
 # net
+
+object(Socket "net"
+  ${INC}/net/Socket.hh
+)
 
 object(Address "net"
   ${INC}/net/Address.hh
@@ -121,48 +127,17 @@ test_object(SocketAddress "net"
   ${TEST}/net/SocketAddressTest.cc
 )
 
-object(Packet "net"
-  ${INC}/net/Packet.hh
-  ${SRC}/net/Packet.cc
-)
-
-object(Socket "net"
-  ${INC}/net/Socket.hh
-  ${INC}/net/SocketFactory.hh
-)
-
-#-------------------------------------------
-# net
-
-object(Ns3Socket "net\\\\ns3"
-  ${INC}/net/Ns3Socket.hh
-  ${SRC}/net/Ns3Socket.cc
-)
-
-object(NativeSocket "net\\\\native"
+object(NativeSocket "net"
   ${INC}/net/NativeSocket.hh
   ${SRC}/net/NativeSocket.cc
 )
-object(NativeSocketFactory "net\\\\native"
-  ${INC}/net/NativeSocketFactory.hh
-  ${SRC}/net/NativeSocketFactory.cc
-)
-object(NativeSocketChannel "net\\\\native"
-  ${INC}/net/NativeSocketChannel.hh
-  ${SRC}/net/NativeSocketChannel.cc
-)
-object(NativeSocketSelector "net\\\\native"
-  ${INC}/net/NativeSocketSelector.hh
-  ${SRC}/net/NativeSocketSelector.cc
+test_object(NativeSocket ""
+  ${TEST}/net/NativeSocketTest.cc
 )
 
-object(Winsock "net\\\\native"
+object(Winsock "net"
   ${INC}/net/Winsock.hh
   ${SRC}/net/Winsock.cc
-)
-
-object(SocketsTest ""
-  ${SRC}/SocketsTest.cc
 )
 
 
@@ -171,24 +146,18 @@ object(SocketsTest ""
 
 include_directories(${INC})
 
-add_test(BlockingQueue CyclicBarrier)
-
-add_test(Message)
-
-add_test(SocketAddress
-  Address
-  Ipv4Address
-  Winsock
-)
-
-add_test(BufferPool)
-
 add_test(Bits)
+add_test(Message)
+add_test(BufferPool    Log)
+add_test(NativeSocket	Socket)
+add_test(BlockingQueue	CyclicBarrier)
+add_test(SocketAddress	Address InetAddress Winsock)
 
 add_exe(Main
   # Utility
-  CyclicBarrier
+  Bits
   BufferPool
+  CyclicBarrier
 
   # Message queueing
   Message
@@ -202,7 +171,6 @@ add_exe(Main
   
   # Cross-platform abstractions
   Socket              # Interface
-  Packet
   Address
   InetAddress
   SocketAddress
@@ -210,17 +178,7 @@ add_exe(Main
   # Interfaces for abstracting platform-specific networking
   Channel
 
-  # BSD-specific networking
-  NativeSocket           # Berkely sockets implementation
-  NativeSocketChannel    # Abstraction
-  NativeSocketSelector
-  NativeSocketFactory
-  Winsock
-
-  # NS3-specific networking
-  # Ns3Socket
+  # BSD/Win32-specific networking
+  NativeSocket				  # Berkely sockets/Winsock implementation
+  Winsock               # Winsock includes and defines
 )
-
-add_exe(SocketsTest
-  NativeSocket
-  Socket)

@@ -1,13 +1,13 @@
+#include "net/SocketAddress.hh"
+
 #include <cassert>
 
 #ifdef WIN32
-  #include "net/Winsock.hh"
+#include "net/Winsock.hh"
 #else
-  #include <netinet/in.h>   // struct sockaddr
-  #include <sys/socket.h>   // AF_***
+#include <netinet/in.h>   // struct sockaddr
+#include <sys/Socket.h>   // AF_***
 #endif
-
-#include "net/SocketAddress.hh"
 
 
 namespace sma
@@ -23,8 +23,12 @@ SocketAddress::operator sockaddr() const
 {
   sockaddr saddr;
   switch (addr.family) {
-  case Address::IPv4:   saddr.sa_family = AF_INET;                  break;
-  default:              assert(!1 && "Unsupported address family"); break;
+    case Address::IPv4:
+      saddr.sa_family = AF_INET;
+      break;
+    default:
+      assert(!1 && "Unsupported address family");
+      break;
   }
   std::copy(addr.addr.begin(), addr.addr.begin() + 14, saddr.sa_data);
   return saddr;

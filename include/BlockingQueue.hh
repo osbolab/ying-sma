@@ -11,14 +11,14 @@
 namespace sma
 {
 
-template<class T>
+template<typename T>
 class BlockingQueue : public BlockingSource<T>
 {
 public:
   //! Create an unbounded queue.
   BlockingQueue();
   //! Create a bounded queue.
-  BlockingQueue(size_t capacity);
+  BlockingQueue(std::size_t capacity);
   BlockingQueue(const BlockingQueue<T>& copy);
   BlockingQueue(BlockingQueue<T>&& move);
 
@@ -48,33 +48,33 @@ private:
 
 
 
-template<class T>
+template<typename T>
 BlockingQueue<T>::BlockingQueue()
   : capacity(-1)
 {
 }
 
-template<class T>
+template<typename T>
 BlockingQueue<T>::BlockingQueue(std::size_t capacity)
   : capacity(capacity)
 {
 }
 
-template<class T>
+template<typename T>
 BlockingQueue<T>::BlockingQueue(const BlockingQueue<T>& copy)
   : items(copy.items),
-  capacity(copy.capacity)
+    capacity(copy.capacity)
 {
 }
 
-template<class T>
+template<typename T>
 BlockingQueue<T>::BlockingQueue(BlockingQueue<T>&& move)
 {
   std::swap(items, move.items);
   capacity = move.capacity;
 }
 
-template<class T>
+template<typename T>
 BlockingQueue<T>& BlockingQueue<T>::operator =(const BlockingQueue<T>& copy)
 {
   items = std::deque<T>(copy.items);
@@ -82,7 +82,7 @@ BlockingQueue<T>& BlockingQueue<T>::operator =(const BlockingQueue<T>& copy)
   return *this;
 }
 
-template<class T>
+template<typename T>
 BlockingQueue<T>& BlockingQueue<T>::operator =(BlockingQueue<T>&& move)
 {
   std::swap(items, move.items);
@@ -90,7 +90,7 @@ BlockingQueue<T>& BlockingQueue<T>::operator =(BlockingQueue<T>&& move)
   return *this;
 }
 
-template<class T>
+template<typename T>
 bool BlockingQueue<T>::offer(const T& item)
 {
   {
@@ -102,7 +102,7 @@ bool BlockingQueue<T>::offer(const T& item)
   return true;
 }
 
-template<class T>
+template<typename T>
 bool BlockingQueue<T>::poll(T& item)
 {
   std::unique_lock<std::mutex> lock(mutex);
@@ -113,7 +113,7 @@ bool BlockingQueue<T>::poll(T& item)
   return true;
 }
 
-template<class T>
+template<typename T>
 T BlockingQueue<T>::take()
 {
   std::unique_lock<std::mutex> lock(mutex);

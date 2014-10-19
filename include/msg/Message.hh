@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include <cstdint>
 #include <vector>
+#include <memory>
+#include <cstddef>
 
 namespace sma
 {
@@ -13,6 +15,17 @@ public:
   typedef std::uint8_t  Type;
   typedef std::string   Tag;
 
+  class Builder
+  {
+    friend class Messenger;
+
+  private:
+    Builder(std::shared_ptr<const Messenger> messenger);
+
+    std::shared_ptr<const Messenger> messenger;
+  };
+
+  Message();
   Message(const std::vector<std::uint8_t>& copy);
   Message(std::vector<std::uint8_t>&& move);
 
@@ -22,7 +35,6 @@ public:
   bool operator !=(const Message& other) const;
 
 protected:
-  Message();
   Message(std::size_t len);
 
 protected:

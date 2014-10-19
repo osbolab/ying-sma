@@ -1,11 +1,10 @@
-#include "net/NativeSocket.hh"
 #include "net/NativeSocketSelector.hh"
 
 namespace sma
 {
 
 NativeSocketSelector::NativeSocketSelector(std::vector<std::shared_ptr<NativeSocket>> sockets)
-  : sockets(sockets) 
+  : sockets(sockets)
 {
 
 }
