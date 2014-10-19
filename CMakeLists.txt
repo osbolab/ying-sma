@@ -71,13 +71,12 @@ object(BlockingSource ""
 )
 
 object(BufferPool "memory"
-  ${INC}/memory/BufferPool.hh
-  ${SRC}/memory/BufferPool.cc
+  ${INC}/memory/buffer_pool.hh
   ${INC}/memory/pool_buf.hh
-  ${SRC}/memory/pool_buf.cc
 )
 test_object(BufferPool "memory"
-  ${TEST}/memory/BufferPoolTest.cc
+  ${TEST}/memory/buffer_pool_test.cc
+  ${INC}/log.hh
 )
 
 #-------------------------------------------

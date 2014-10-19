@@ -2,17 +2,13 @@
 #include <bitset>
 #include "gtest/gtest.h"
 
+#include "log.hh"
+
 #include "memory/bits.hh"
 
-#include "test.hh"
-
-#undef _DEBUG
 
 TEST(Builtins, AssertionTrue)
 {
-  std::cout << "Fastest is: " << (sizeof(std::uint_fast8_t) * CHAR_BIT) << std::endl;
-
-
 #ifdef _DEBUG
   int l = 8;
   std::stringstream ss;
