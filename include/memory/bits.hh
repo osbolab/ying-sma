@@ -10,10 +10,14 @@
 #include <intrin.h>
 #endif
 
-#define set_bit(nr, addr)   (addr |=  (1 << nr)) 
-#define clear_bit(nr, addr) (addr &= ~(1 << nr))
-#define set_bit_a(nr, addr)   (addr[nr >> 5] |=   1 << (nr & 0x1f))
-#define clear_bit_a(nr, addr) (addr[nr >> 5] &= ~(1 << (nr & 0x1f)))
+template<class T>
+static inline void set_bit(std::size_t nr, T* addr) 
+{
+  *addr |= (1 << nr);
+}
+
+#define set_bit(nr, addr)     (addr |=  (1 << nr)) 
+#define clear_bit(nr, addr)   (addr &= ~(1 << nr))
 
 #if !defined(__i386__) && !defined(__x86_64__) && !defined(_M_IX86) && !defined(_M_X64) 
 static const int table[] = {
@@ -45,16 +49,16 @@ static const int table[] = {
 #endif
 
 #if defined(__i386__) || defined(__x86_64__)
-  #define ls_bit(i) (__builtin_ffs(i) - 1)
+  #define least_set_bit(i) (__builtin_ffs(i) - 1)
 #elif defined(_M_IX86) || defined(_M_X64)
-  #define ls_bit(i) (tzcnt_(i))
+  #define least_set_bit(i) (tzcnt_(i))
 int __inline tzcnt_(std::uint32_t value)
 {
   unsigned long tz = 0;
   return (_BitScanForward(&tz, value) ? tz : -1);
 }
 #else
-  #define ls_bit(i) ls_bit_(i)
+  #define least_set_bit(i) ls_bit_(i)
   static inline int ls_bit_(int i)
   {
 
@@ -67,11 +71,11 @@ int __inline tzcnt_(std::uint32_t value)
 #endif
 
 #if defined(__i386__) || defined(__x86_64__)
-  #define ms_bit(i) (i ? 31 - __builtin_clz(i) : -1)
+  #define most_set_bit(i) (i ? 31 - __builtin_clz(i) : -1)
 #elif defined(_M_IX86) || defined(_M_X64)
-  #define ms_bit(i) (i ? (31 -__lzcnt(i)) : -1)
+  #define most_set_bit(i) (i ? (31 -__lzcnt(i)) : -1)
 #else
-  #define ms_bit(i) ms_bit_(i)
+  #define most_set_bit(i) ms_bit_(i)
   static inline int ms_bit_(int i)
   {
     unsigned int a;

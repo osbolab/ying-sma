@@ -4,17 +4,40 @@
 
 #include "memory/bits.hh"
 
+#include "test.hh"
+
+#undef _DEBUG
+
 TEST(Builtins, AssertionTrue)
 {
+  std::cout << "Fastest is: " << (sizeof(std::uint_fast8_t) * CHAR_BIT) << std::endl;
+
+
+#ifdef _DEBUG
+  int l = 8;
+  std::stringstream ss;
+  ss << "ms " << "fedcba9876543210" << " ls" << std::endl;
+  std::cout << ss.str();
+  for (unsigned int k = 1; k < (unsigned short) -1; k *= 2) {
+    unsigned int j = k | (1 << (l++ % 16));
+    std::cout << std::hex 
+      << " " << most_set_bit(j) << " " 
+      << std::bitset<16>(j) 
+      << " " << least_set_bit(j) << std::endl;
+    if (k == 0x80) std::cout << ss.str();
+  }
+  std::cout << ss.str();
+#endif
+
   unsigned int v = 1;
   for (int i = 0; i < 32; ++i) {
-    ASSERT_EQ(i, ls_bit(v));
+    ASSERT_EQ(i, least_set_bit(v));
     v <<= 1;
   }
 
   v = -1;
   for (int i = 31; i >=0; --i) {
-    ASSERT_EQ(i, ms_bit(v));
+    ASSERT_EQ(i, most_set_bit(v));
     v >>= 1;
   }
 
@@ -33,21 +56,11 @@ TEST(Builtins, AssertionTrue)
   ASSERT_EQ(0, nums[0]);
   ASSERT_EQ(0, nums[1]);
 
-  set_bit_a(32, nums);
-  ASSERT_EQ(0, nums[0]);
-  ASSERT_EQ(1, nums[1]);
-
-  clear_bit_a(32, nums);
-  set_bit_a(31, nums);
-  set_bit_a(63, nums);
-  ASSERT_EQ(2147483648, nums[0]);
-  ASSERT_EQ(2147483648, nums[1]);
-
   v = 0;
   for (int i = 0; i < 32; ++i) {
     set_bit(i, v);
-    ASSERT_EQ(i, ms_bit(v));
-    ASSERT_EQ(i, ls_bit(v));
+    ASSERT_EQ(i, most_set_bit(v));
+    ASSERT_EQ(i, least_set_bit(v));
     clear_bit(i, v);
   }
 }

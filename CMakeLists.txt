@@ -70,21 +70,11 @@ object(BlockingSource ""
   ${INC}/BlockingSource.hh
 )
 
-object(ObjectPool "memory"
-  ${INC}/memory/ObjectPool.hh
-  ${INC}/memory/ObjectPool.tt
-  ${INC}/memory/pooled_ptr.hh
-  ${INC}/memory/pooled_ptr.tt
-)
-test_object(ObjectPool "memory" 
-  ${TEST}/memory/ObjectPoolTest.cc
-)
-
 object(BufferPool "memory"
   ${INC}/memory/BufferPool.hh
   ${SRC}/memory/BufferPool.cc
-  ${INC}/memory/pool_ptr.hh
-  ${SRC}/memory/pool_ptr.cc
+  ${INC}/memory/pool_buf.hh
+  ${SRC}/memory/pool_buf.cc
 )
 test_object(BufferPool "memory"
   ${TEST}/memory/BufferPoolTest.cc
@@ -192,8 +182,6 @@ add_test(SocketAddress
   Winsock
 )
 
-add_test(ObjectPool)
-
 add_test(BufferPool)
 
 add_test(Bits)
@@ -201,7 +189,7 @@ add_test(Bits)
 add_exe(Main
   # Utility
   CyclicBarrier
-  ObjectPool
+  BufferPool
 
   # Message queueing
   Message
