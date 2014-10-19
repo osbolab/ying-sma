@@ -40,8 +40,8 @@ public:
   int bind(const SocketAddress& address) override;
   void close() override;
 
-  Message recv() override;
-  int send(const Message& packet, const SocketAddress& recipient) override;
+  std::size_t recv(std::uint8_t& dst, std::size_t len) override;
+  int send(const std::uint8_t& src, std::size_t len, const SocketAddress& recipient) override;
 
   int is_blocking(bool blocking);
   bool is_blocking() const;

@@ -106,12 +106,12 @@ void NativeSocket::close()
   #endif
 }
 
-Message NativeSocket::recv()
+std::size_t NativeSocket::recv(std::uint8_t& dst, std::size_t len)
 {
-  return Message();
+  return 0;
 }
 
-int NativeSocket::send(const Message& packet, const SocketAddress& recipient)
+int NativeSocket::send(const std::uint8_t& src, std::size_t len, const SocketAddress& recipient)
 {
   return -1;
 }
