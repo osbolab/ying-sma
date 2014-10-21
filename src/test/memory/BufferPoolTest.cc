@@ -10,23 +10,26 @@
 TEST(It_Compiles, AssertionTrue)
 {
   auto pool = sma::BufferPool<std::uint8_t, 32>(128);
-  auto pool2 = std::move(pool);
-  pool = std::move(pool2);
   auto buf = pool.allocate(50);
-  auto buf2 = std::move(buf);
-  buf = std::move(buf2);
 
-  unsigned char arr[50];
-  memset(arr, 'A', 50);
+  std::size_t n = 15;
+  unsigned char* arr = new unsigned char[n];
+  memset(arr, 'A', n);
 
-  buf.fill_from(arr, 50);
-  std::cout << std::string(arr, arr+50) << std::endl;
+  buf.fill_with(arr, n);
+  std::cout << std::string(arr, arr+n) << std::endl;
+  std::cout << "capacity: " << buf.get_capacity() << " size " << buf.get_size() << std::endl;
 
+  ASSERT_EQ(buf.shrink_to_fit(), 32);
 
-  for (int i = 0; i < 65; ++i) {
+  std::cout << "capacity: " << buf.get_capacity() << " size " << buf.get_size() << std::endl;
+
+  for (unsigned int i = 0; i < n; ++i) {
     buf[i] = 'B';
   }
 
-  ASSERT_EQ(buf.read_into(arr, 50), 50);
-  std::cout << std::string(arr, arr+50) << std::endl;
+  ASSERT_EQ(buf.read_into(arr, n), n);
+  std::cout << std::string(arr, arr+n) << std::endl;
+
+  delete[] arr;
 }

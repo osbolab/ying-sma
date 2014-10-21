@@ -8,7 +8,7 @@ endmacro(object)
 
 macro(test_object OBJ GROUP)
   file(GLOB O_${OBJ}_test ${ARGN})
-  source_group("test\\${GROUP}" FILES ${O_${OBJ}Test})
+  source_group("test\\${GROUP}" FILES ${O_${OBJ}_test})
 endmacro(test_object)
 
 
