@@ -12,13 +12,13 @@
 namespace sma
 {
 
-template<typename T, std::size_t BlockSize>
+template<typename T, std::size_t PageSize>
 class PooledBuffer
 {
-  static_assert(BlockSize > 0 && ((BlockSize & (BlockSize-1)) == 0),
-                "Block size must be a power of two.");
+  static_assert(PageSize > 0 && ((PageSize & (PageSize-1)) == 0),
+                "Page size must be a power of two.");
 
-  template<typename T, std::size_t BlockSize>
+  template<typename T, std::size_t PageSize>
   friend class BufferPool;
 
 public:
@@ -27,14 +27,18 @@ public:
 
   PooledBuffer& operator =(PooledBuffer&& move);
 
-  // Copy at most `count` bytes from `src` to this buffer.
+  /*! Copy at most \c count bytes from \c src to this buffer.
+   * \return the number of bytes copied.
+   */
   std::size_t fill_with(const T* src, std::size_t count);
 
-  // Copy at most `count` bytes from this buffer into `dst`.
+  /*! Copy at most \c count bytes from this buffer into \c dst.
+   * \return the number of bytes copied.
+   */
   std::size_t read_into(T* dst, std::size_t count);
 
-  /*! Releases any part of the buffer not currently in use back to the pool, decreasing the capacity
-   * of this buffer.
+  /*! Release any space allocated by the buffer that is not currently in use.
+   * If a memory page is partially used it will not be released.
    * \return the buffer's new capacity.
    */
   std::size_t shrink_to_fit();
@@ -46,129 +50,128 @@ public:
   std::size_t get_capacity() const { return capacity; }
 
 private:
-  PooledBuffer(BufferPool<T, BlockSize>* pool, T* const* blocks, std::size_t count);
+  PooledBuffer(BufferPool<T, PageSize>* pool,
+               std::unique_ptr<T*[]> pages,
+               std::size_t count);
 
   PooledBuffer(const PooledBuffer& copy) = delete;
   PooledBuffer& operator =(const PooledBuffer& copy) = delete;
 
-  // She owns the blocks' memory.
-  BufferPool<T, BlockSize>* pool;
-  // Array of pointers to blocks in the pool; we don't own this.
-  // Return it to BufferPool::deallocate and she'll delete it.
-  T* const*   blocks;
-  // The number of block pointers in the array
-  std::size_t nr_blocks;
+  // She owns the pages' memory.
+  BufferPool<T, PageSize>* pool;
+  // Array of pointers to pages in the pool.
+  std::unique_ptr<T*[]> pages;
+  // The number of page pointers in the array
+  std::size_t nr_pages;
   std::size_t capacity;
   std::size_t size;
 };
 
 
-template<typename T, std::size_t BlockSize>
-PooledBuffer<T, BlockSize>::PooledBuffer(BufferPool<T, BlockSize>* pool,
-    T* const* blocks, std::size_t count)
-  : pool(pool), blocks(blocks), nr_blocks(count), capacity(count* BlockSize), size(0)
+template<typename T, std::size_t PageSize>
+PooledBuffer<T, PageSize>::PooledBuffer(BufferPool<T, PageSize>* pool,
+                                        std::unique_ptr<T*[]> pages,
+                                        std::size_t count)
+  : pool(pool), pages(std::move(pages)), nr_pages(count), capacity(count* PageSize), size(0)
 {
-  LOG_D("[PooledBuffer::()] block*[" << nr_blocks << "] ("
-        << static_cast<const void*>(this->blocks) << ")");
+  LOG_D("[PooledBuffer::()] page*[" << nr_pages << "] ("
+        << static_cast<const void*>(this->pages.get()) << ")");
 }
 
 
-template<typename T, std::size_t BlockSize>
-PooledBuffer<T, BlockSize>::PooledBuffer(PooledBuffer<T, BlockSize>&& move)
-  : pool(move.pool), blocks(move.blocks), nr_blocks(move.nr_blocks),
+template<typename T, std::size_t PageSize>
+PooledBuffer<T, PageSize>::PooledBuffer(PooledBuffer<T, PageSize>&& move)
+  : pool(move.pool), pages(std::move(move.pages)), nr_pages(move.nr_pages),
     capacity(move.capacity), size(move.size)
 {
   LOG_D("[PooledBuffer::(&&)] " << static_cast<void*>(&move));
   move.pool = nullptr;
-  move.blocks = nullptr;
+  move.pages = nullptr;
 }
 
 
-template<typename T, std::size_t BlockSize>
-PooledBuffer<T, BlockSize>::~PooledBuffer()
+template<typename T, std::size_t PageSize>
+PooledBuffer<T, PageSize>::~PooledBuffer()
 {
-  if (!pool) {
-    assert(!blocks && "Leaked block pointers: pool is null");
-    return;
-  }
+  if (!pool) return;
   LOG_D("[PooledBuffer::~]");
-  pool->deallocate(blocks, nr_blocks);
+  pool->deallocate(pages.get(), nr_pages);
 }
 
 
-template<typename T, std::size_t BlockSize>
-PooledBuffer<T, BlockSize>&
-PooledBuffer<T, BlockSize>::operator=(PooledBuffer<T, BlockSize>&& move)
+template<typename T, std::size_t PageSize>
+PooledBuffer<T, PageSize>&
+PooledBuffer<T, PageSize>::operator=(PooledBuffer<T, PageSize>&& move)
 {
   LOG_D("[PooledBuffer::=(&&)] " << static_cast<void*>(&move));
-  std::swap(blocks, move.blocks);
+  std::swap(pages, move.pages);
   std::swap(pool, move.pool);
-  nr_blocks = move.nr_blocks;
+  nr_pages = move.nr_pages;
   capacity  = move.capacity;
   size      = move.size;
   return (*this);
 }
 
 
-template<typename T, std::size_t BlockSize>
+template<typename T, std::size_t PageSize>
 std::size_t
-PooledBuffer<T, BlockSize>::shrink_to_fit()
+PooledBuffer<T, PageSize>::shrink_to_fit()
 {
-  std::size_t nr_unused_blocks = (capacity - size) >> Pow2Math<BlockSize>::div;
-  LOG_D("[PooledBuffer::shrink_to_fit] " << nr_unused_blocks << " unused blocks");
-  if (!nr_unused_blocks) return capacity;
+  std::size_t nr_unused_pages = (capacity - size) >> Pow2Math<PageSize>::div;
+  LOG_D("[PooledBuffer::shrink_to_fit] " << nr_unused_pages << " unused pages");
+  if (!nr_unused_pages) return capacity;
   LOG_D("[PooledBuffer::shrink_to_fit] shrink from " << capacity << " bytes");
-  nr_blocks -= nr_unused_blocks;
-  capacity = nr_blocks * BlockSize;
-  T* const* unused_blocks = blocks + nr_blocks;
-  pool->deallocate(unused_blocks, nr_unused_blocks);
+  nr_pages -= nr_unused_pages;
+  capacity = nr_pages * PageSize;
+  T* const* unused_pages = pages.get() + nr_pages;
+  pool->deallocate(unused_pages, nr_unused_pages);
   LOG_D("[PooledBuffer::shrink_to_fit] shrunk to " << capacity << " bytes");
   return capacity;
 }
 
 
-template<typename T, std::size_t BlockSize>
+template<typename T, std::size_t PageSize>
 std::size_t
-PooledBuffer<T, BlockSize>::fill_with(const T* src, std::size_t count)
+PooledBuffer<T, PageSize>::fill_with(const T* src, std::size_t count)
 {
   if (count > capacity) { count = capacity; }
-  T* const* block = blocks;
+  T* const* page = pages.get();
   const size_t nr_read = count;
 
-  while (count > BlockSize) {
-    std::memcpy(*block++, src, BlockSize);
-    count -= BlockSize;
-    src += BlockSize;
+  while (count > PageSize) {
+    std::memcpy(*page++, src, PageSize);
+    count -= PageSize;
+    src += PageSize;
   }
-  std::memcpy(*block, src, count);
+  std::memcpy(*page, src, count);
 
   size = nr_read;
   return nr_read;
 }
 
 
-template<typename T, std::size_t BlockSize>
+template<typename T, std::size_t PageSize>
 std::size_t
-PooledBuffer<T, BlockSize>::read_into(T* dst, std::size_t count)
+PooledBuffer<T, PageSize>::read_into(T* dst, std::size_t count)
 {
   if (count > capacity) { count = capacity; }
-  T* const* block = blocks;
+  T* const* page = pages.get();
   const size_t nr_read = count;
 
-  while (count > BlockSize) {
-    std::memcpy(dst, *block++, BlockSize);
-    count -= BlockSize;
-    dst += BlockSize;
+  while (count > PageSize) {
+    std::memcpy(dst, *page++, PageSize);
+    count -= PageSize;
+    dst += PageSize;
   }
-  std::memcpy(dst, *block, count);
+  std::memcpy(dst, *page, count);
 
   return nr_read;
 }
 
 
-template<typename T, std::size_t BlockSize>
+template<typename T, std::size_t PageSize>
 T&
-PooledBuffer<T, BlockSize>::operator[](std::size_t index)
+PooledBuffer<T, PageSize>::operator[](std::size_t index)
 {
   if (index > size) {
 #ifdef RANGE_CHECKED_BUFFERS_
@@ -181,15 +184,15 @@ PooledBuffer<T, BlockSize>::operator[](std::size_t index)
 #endif
     size = index;
   }
-  // Dividing the index by the block size gives us its block index
-  // and the remainder is the offset within that block.
-  return (*(blocks + (index >> Pow2Math<BlockSize>::div)))[index & Pow2Math<BlockSize>::mod];
+  // Dividing the index by the page size gives us its page index
+  // and the remainder is the offset within that page.
+  return (*(pages.get() + (index >> Pow2Math<PageSize>::div)))[index & Pow2Math<PageSize>::mod];
 }
 
 
-template<typename T, std::size_t BlockSize>
+template<typename T, std::size_t PageSize>
 const T&
-PooledBuffer<T, BlockSize>::operator[](std::size_t index) const
+PooledBuffer<T, PageSize>::operator[](std::size_t index) const
 {
 #ifdef RANGE_CHECKED_BUFFERS_
   if (index >= capacity) {
@@ -200,7 +203,7 @@ PooledBuffer<T, BlockSize>::operator[](std::size_t index) const
   }
 #endif
   // see T& operator[]
-  return (*(blocks + (index >> Pow2Math<BlockSize>::div)))[index & Pow2Math<BlockSize>::mod];
+  return (*(pages.get() + (index >> Pow2Math<PageSize>::div)))[index & Pow2Math<PageSize>::mod];
 }
 
 }
