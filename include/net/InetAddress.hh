@@ -5,14 +5,19 @@
 namespace sma
 {
 
-class InetAddress : public Address {
+class InetAddress : public Address
+{
 public:
+  static const InetAddress ANY;
+
   InetAddress(const std::string& addr);
 
   void print(std::ostream& os) const override;
 
 private:
   static const std::vector<unsigned char> parse(const std::string& saddr);
+
+  InetAddress();
 };
 
 }

@@ -113,6 +113,7 @@ object(Address "net"
 object(NativeSocket "net"
   ${INC}/net/NativeSocket.hh
   ${SRC}/net/NativeSocket.cc
+  Socket
   Address
   Log
 )

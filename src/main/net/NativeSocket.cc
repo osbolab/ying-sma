@@ -31,6 +31,7 @@ int NativeSocket::create(Address::Family family , Type type, Protocol protocol)
       return last_error();
     }
     wsa_is_initialized = true;
+    LOG_D("[::WSAStartup] " << wsa_is_initialized);
   }
 #endif
 
@@ -105,33 +106,36 @@ void NativeSocket::close()
 
   if (sock != INVALID_SOCKET) {
 #ifdef WIN32
-    closesocket(sock);
+    int result = closesocket(sock);
 #else
-    close(sock);
+    int result = close(sock);
 #endif
+    if (result != 0) std::perror("Error closing socket");
     sock = INVALID_SOCKET;
   }
 
 #ifdef WIN32
   if (wsa_is_initialized) {
-    WSACleanup();
     LOG_D("[::WSACleanup]");
+    WSACleanup();
   }
 #endif
 }
 
-std::size_t NativeSocket::recv(std::uint8_t& dst, std::size_t len)
+std::size_t NativeSocket::recv(char* dst, std::size_t len)
 {
   LOG_D("[NativeSocket::recv]");
+  memset(dst, 'A', len);
 
-  return 0;
+  return len;
 }
 
-int NativeSocket::send(const std::uint8_t& src, std::size_t len, const SocketAddress& recipient)
+int NativeSocket::send(const char* src, std::size_t len, const SocketAddress& recipient)
 {
   LOG_D("[NativeSocket::send]");
 
-  return -1;
+  sockaddr sa = recipient.to_sockaddr();
+  return ::sendto(sock, src, len, 0, &sa, sizeof(sockaddr));
 }
 
 int NativeSocket::is_blocking(bool blocking)
@@ -166,7 +170,7 @@ int NativeSocket::last_error() const
 #else
   int error = errno;
 #endif
-#ifndef NDEBUG
+#ifdef _DEBUG
   if (error != 0) std::perror("Socket error");
 #endif
   return error;

@@ -6,10 +6,20 @@
 namespace sma
 {
 
-Address::Address(const Family& family, const std::vector<unsigned char>& addr)
+Address::Address(Family family, std::uint32_t addrl)
+  : family(family), data(std::vector<unsigned char>(4))
+{
+  addrl = addrl;
+  data[0] = (unsigned char) (addrl >> 24);
+  data[1] = (unsigned char) (addrl >> 16);
+  data[2] = (unsigned char) (addrl >> 8);
+  data[3] = (unsigned char) (addrl & 0xFF);
+}
+
+Address::Address(Family family, const std::vector<unsigned char>& addr)
   : family(family), data(addr) {}
 
-Address::Address(const Family& family, std::vector<unsigned char>&& addr)
+Address::Address(Family family, std::vector<unsigned char>&& addr)
   : family(family), data(std::move(addr)) {}
 
 void Address::print(std::ostream& os) const

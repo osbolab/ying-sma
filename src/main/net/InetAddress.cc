@@ -14,6 +14,13 @@
 namespace sma
 {
 
+const InetAddress InetAddress::ANY = InetAddress();
+
+InetAddress::InetAddress()
+  : Address(IPv4, INADDR_ANY)
+{
+}
+
 InetAddress::InetAddress(const std::string& saddr)
   : Address(IPv4, parse(saddr)) {}
 
@@ -23,10 +30,10 @@ const std::vector<unsigned char> InetAddress::parse(const std::string& saddr)
   unsigned char buf[len];
   if (!inet_pton(AF_INET, saddr.c_str(), &buf)) {
     perror("inet_pton");
-    return std::move(std::vector<unsigned char>());
+    return std::vector<unsigned char>();
   }
 
-  return std::move(std::vector<unsigned char>(buf, buf + len));
+  return std::vector<unsigned char>(buf, buf + len);
 }
 
 

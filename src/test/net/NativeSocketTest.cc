@@ -24,9 +24,20 @@ TEST(Create_Socket, AssertionTrue)
 
 
   int port = 9997;
-  auto sockaddr = SocketAddress(InetAddress("127.0.0.1"), port);
+  auto sockaddr = SocketAddress(InetAddress::ANY, port);
 
   ASSERT_EQ(0, sock->bind(sockaddr));
+
+  const int buf_len = 32;
+  std::uint8_t buf[buf_len];
+
+  ASSERT_EQ(buf_len, sock->recv(reinterpret_cast<char*>(buf), buf_len));
+
+  std::size_t sent = sock->send(reinterpret_cast<const char*>(buf), buf_len,
+                                SocketAddress(InetAddress("192.168.0.1"), port));
+
+  ASSERT_EQ(buf_len, sent);
+  std::cout << std::string(buf, buf+buf_len) << std::endl;
 }
 
 }

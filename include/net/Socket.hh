@@ -33,8 +33,8 @@ public:
   virtual int bind(const SocketAddress& address) = 0;
   virtual void close() = 0;
 
-  virtual std::size_t recv(std::uint8_t& dst, std::size_t len) = 0;
-  virtual int send(const std::uint8_t& src, std::size_t len, const SocketAddress& recipient) = 0;
+  virtual std::size_t recv(char* dst, std::size_t len) = 0;
+  virtual int send(const char* src, std::size_t len, const SocketAddress& recipient) = 0;
 
   virtual int last_error() const = 0;
 

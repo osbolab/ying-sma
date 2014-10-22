@@ -33,12 +33,10 @@ sockaddr SocketAddress::to_sockaddr() const
       assert(!1 && "Unsupported address family");
       break;
   }
-  saddr.sin.sin_port = port;
+  saddr.sin.sin_port = htons(port);
   memset(saddr.sin.sin_zero, 0, 8);
-  saddr.sin.sin_addr.S_un.S_un_b.s_b1 = addr.data[0];
-  saddr.sin.sin_addr.S_un.S_un_b.s_b2 = addr.data[1];
-  saddr.sin.sin_addr.S_un.S_un_b.s_b3 = addr.data[2];
-  saddr.sin.sin_addr.S_un.S_un_b.s_b4 = addr.data[3];
+  // FIXME: This is nice and safe...
+  saddr.sin.sin_addr.S_un.S_addr = *reinterpret_cast<const std::uint32_t*>(&addr.data[0]);;
   return saddr.sa;
 }
 
