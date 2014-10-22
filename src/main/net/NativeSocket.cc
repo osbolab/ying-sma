@@ -67,6 +67,16 @@ int NativeSocket::create(Address::Family family , Type type, Protocol protocol)
     return last_error();
   }
 
+#ifdef WIN32
+  BOOL so_reuse = TRUE;
+  if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char*) &so_reuse, sizeof(BOOL)) == SOCKET_ERROR) {
+    return last_error();
+  }
+#else
+  bool so_reuse = true;
+
+#endif
+
   this->family = family;
   this->type = type;
   this->protocol = protocol;
@@ -110,7 +120,7 @@ void NativeSocket::close()
 #else
     int result = close(sock);
 #endif
-    if (result != 0) std::perror("Error closing socket");
+    if (result != 0) print_last_error();
     sock = INVALID_SOCKET;
   }
 
@@ -125,9 +135,8 @@ void NativeSocket::close()
 std::size_t NativeSocket::recv(char* dst, std::size_t len)
 {
   LOG_D("[NativeSocket::recv]");
-  memset(dst, 'A', len);
 
-  return len;
+  return ::recv(sock, dst, len, 0);
 }
 
 int NativeSocket::send(const char* src, std::size_t len, const SocketAddress& recipient)
@@ -142,18 +151,20 @@ int NativeSocket::is_blocking(bool blocking)
 {
 #if WIN32
   u_long mode = blocking ? 0 : 1;
-  ioctlsocket(sock, FIONBIO, &mode);
+  if (ioctlsocket(sock, FIONBIO, &mode) != NO_ERROR) {
+    return -1;
+  }
 #else
   int opts;
-  if ((opts = fcntl(sock, F_GETFL) < 0) {
-  return getLastError();
+  if ((opts = fcntl(sock, F_GETFL)) < 0) {
+    return -1;
   }
   opts = (opts | O_NONBLOCK);
   if (fcntl(sock, F_SETFL, opts) < 0) {
-  return getLastError();
+    return -1;
   }
 #endif
-  LOG_D("[NativeSocket::is_blocking] " << blocking);
+  LOG_D("[NativeSocket::is_blocking] " << (blocking ? "yes" : "no"));
 
   return 0;
 }
@@ -171,7 +182,7 @@ int NativeSocket::last_error() const
   int error = errno;
 #endif
 #ifdef _DEBUG
-  if (error != 0) std::perror("Socket error");
+  print_last_error();
 #endif
   return error;
 }
@@ -186,6 +197,19 @@ int NativeSocket::last_error(int error)
   return error;
 }
 
+#ifdef WIN32
+void NativeSocket::print_last_error() const
+{
+  int error = NO_ERROR;
+  if ((error = last_error()) != NO_ERROR) {
+#ifdef WIN32
+    std::cerr << WSAGetLastErrorMessage("Socket error", error);
+#else
+    std::perror("Socket error");
+#endif
+  }
+}
+#endif
 
 NativeSocket::Factory::Factory()
 {

@@ -14,6 +14,10 @@
 #define INVALID_SOCKET 0
 #endif
 
+#ifndef NO_ERROR
+#define NO_ERROR 0
+#endif
+
 
 namespace sma
 {
@@ -54,6 +58,7 @@ private:
   int create(Address::Family family, Type type, Protocol protocol);
 
   int last_error(int error) override;
+  void print_last_error() const;
 
 #ifdef WIN32
   static bool wsa_is_initialized;
