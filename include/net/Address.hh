@@ -16,7 +16,7 @@ public:
   friend std::ostream& operator <<(std::ostream& os, const Address& addr);
 
   const Family                      family;
-  const std::vector<unsigned char>  addr;
+  const std::vector<unsigned char>  data;
 
 protected:
   Address(const Family& family, const std::vector<unsigned char>& addr);

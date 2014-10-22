@@ -24,7 +24,7 @@ public:
                        std::unique_ptr<Socket>& Socket) = 0;
 
   protected:
-    factory();
+    factory() {};
   };
 
 

@@ -33,7 +33,7 @@ const std::vector<unsigned char> InetAddress::parse(const std::string& saddr)
 void InetAddress::print(std::ostream& os) const
 {
   char str[INET_ADDRSTRLEN];
-  if (inet_ntop(AF_INET, &addr[0], str, INET_ADDRSTRLEN) == NULL) {
+  if (inet_ntop(AF_INET, &data[0], str, INET_ADDRSTRLEN) == NULL) {
     perror("inet_ntop");
   } else {
     os << str;

@@ -13,25 +13,33 @@
 namespace sma
 {
 
-SocketAddress::SocketAddress(const Address& address, std::uint16_t port)
+SocketAddress::SocketAddress(Address address, std::uint16_t port)
   : addr(address), port(port) {}
 
-SocketAddress::SocketAddress(Address&& address, std::uint16_t port)
-  : addr(std::move(address)), port(port) {}
-
-SocketAddress::operator sockaddr() const
+sockaddr SocketAddress::to_sockaddr() const
 {
-  sockaddr saddr;
+  // wow never do this
+  typedef union {
+    sockaddr    sa;
+    sockaddr_in sin;
+  } addr_t;
+
+  addr_t saddr;
   switch (addr.family) {
     case Address::IPv4:
-      saddr.sa_family = AF_INET;
+      saddr.sin.sin_family = AF_INET;
       break;
     default:
       assert(!1 && "Unsupported address family");
       break;
   }
-  std::copy(addr.addr.begin(), addr.addr.begin() + 14, saddr.sa_data);
-  return saddr;
+  saddr.sin.sin_port = port;
+  memset(saddr.sin.sin_zero, 0, 8);
+  saddr.sin.sin_addr.S_un.S_un_b.s_b1 = addr.data[0];
+  saddr.sin.sin_addr.S_un.S_un_b.s_b2 = addr.data[1];
+  saddr.sin.sin_addr.S_un.S_un_b.s_b3 = addr.data[2];
+  saddr.sin.sin_addr.S_un.S_un_b.s_b4 = addr.data[3];
+  return saddr.sa;
 }
 
 void SocketAddress::print(std::ostream& os) const

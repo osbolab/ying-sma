@@ -12,18 +12,17 @@ namespace sma
 
 class SocketAddress
 {
- public:
+public:
+  SocketAddress(Address address, std::uint16_t port);
+
   virtual void print(std::ostream& os) const;
   friend std::ostream& operator <<(std::ostream& os, const SocketAddress& addr);
 
-  operator sockaddr() const;
+  sockaddr to_sockaddr() const;
 
   const Address         addr;
   const std::uint16_t   port;
 
- protected:
-  SocketAddress(const Address& address, std::uint16_t port);
-  SocketAddress(Address&& address, std::uint16_t port);
 };
 
 }

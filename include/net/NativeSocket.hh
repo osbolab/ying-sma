@@ -55,9 +55,9 @@ private:
 
   int last_error(int error) override;
 
-  #ifdef WIN32
+#ifdef WIN32
   static bool wsa_is_initialized;
-  #endif
+#endif
 
   SOCKET  sock;
   bool    blocking;
