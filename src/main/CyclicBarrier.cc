@@ -1,6 +1,7 @@
+#include "CyclicBarrier.hh"
+
 #include <thread>
 
-#include "CyclicBarrier.hh"
 
 namespace sma
 {

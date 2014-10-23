@@ -1,9 +1,10 @@
 #pragma once
 
+#include "Message.hh"
+
+
 #include <memory>
 #include <functional>
-
-#include "Message.hh"
 
 
 namespace sma

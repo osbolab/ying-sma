@@ -1,9 +1,9 @@
 #pragma once
 
-#include <functional>
-
 #include "Sink.hh"
 #include "BlockingSource.hh"
+
+#include <functional>
 
 
 namespace sma

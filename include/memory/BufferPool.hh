@@ -1,5 +1,9 @@
 #pragma once
 
+#include "Log.hh"
+#include "Bits.hh"
+#include "Pow2Math.hh"
+
 #include <climits>
 #include <cstdlib>
 #include <cstdint>
@@ -14,10 +18,6 @@
 #ifdef SMA_POOL_MT_
 #include <mutex>
 #endif
-
-#include "Log.hh"
-#include "Bits.hh"
-#include "Pow2Math.hh"
 
 
 namespace sma
@@ -35,7 +35,7 @@ const std::size_t state_t_size_bits = sizeof(page_state_t)* CHAR_BIT;
 
 
 template<typename T, std::size_t PageSize>
-class BufferPool
+class BufferPool final
 {
   static_assert(PageSize > 0 && ((PageSize & (PageSize - 1)) == 0),
                 "Page size must be a power of two.");
@@ -91,7 +91,7 @@ private:
 }
 
 
-/*********************************************
+/*******************************************************************************
  * Construction/Initialization/Destruction
  */
 
@@ -172,11 +172,11 @@ BufferPool<T, PageSize>::~BufferPool()
 #endif
 
 
-/** Construction/Initialization/Destruction
- *********************************************/
+/* Construction/Initialization/Destruction
+ ******************************************************************************/
 
 
-/*********************************************
+/*******************************************************************************
  * Public methods
  */
 
@@ -237,8 +237,8 @@ BufferPool<T, PageSize>::deallocate(const T* const* pages, std::size_t count)
   }
 }
 
-/** Public methods
- *********************************************/
+/* Public methods
+ ******************************************************************************/
 
 
 

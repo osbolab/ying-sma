@@ -10,7 +10,7 @@ struct sockaddr;
 namespace sma
 {
 
-class SocketAddress
+class SocketAddress final
 {
 public:
   SocketAddress(Address address, std::uint16_t port);

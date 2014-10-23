@@ -36,8 +36,10 @@ public:
     Factory();
 
     int create(Address::Family family, Socket::Type type, Socket::Protocol protocol,
-               std::unique_ptr<Socket>& Socket) override;
+               std::unique_ptr<Socket>& sock_out) override;
   };
+
+  friend class Factory;
 
   ~NativeSocket();
 
@@ -58,7 +60,10 @@ private:
   int create(Address::Family family, Type type, Protocol protocol);
 
   int last_error(int error) override;
-  void print_last_error() const;
+  static void print_last_error();
+  static int global_last_error(int error);
+  static int global_last_error();
+
 
 #ifdef WIN32
   static bool wsa_is_initialized;

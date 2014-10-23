@@ -1,9 +1,11 @@
 #include "net/NativeSocket.hh"
 
+#include "Log.hh"
+
+
 #include <cassert>
 #include <cstdio>
 #include <cerrno>
-#include "Log.hh"
 
 
 namespace sma
@@ -12,6 +14,30 @@ namespace sma
 #ifdef WIN32
 bool NativeSocket::wsa_is_initialized = false;
 #endif
+
+
+NativeSocket::Factory::Factory()
+{
+}
+
+int NativeSocket::Factory::create(Address::Family family, Socket::Type type,
+                                  Socket::Protocol protocol,
+                                  std::unique_ptr<Socket>& sock_out)
+{
+  switch (family) {
+    case Address::IPv4: {
+      auto sock = std::unique_ptr<NativeSocket>(new NativeSocket());
+      int error = sock->create(family, type, protocol);
+      if (!error) {
+        sock_out = std::move(sock);
+      }
+      return error;
+    }
+
+    default:
+      return NativeSocket::global_last_error(EAFNOSUPPORT);
+  }
+}
 
 NativeSocket::NativeSocket() : sock(INVALID_SOCKET)
 {
@@ -27,9 +53,7 @@ int NativeSocket::create(Address::Family family , Type type, Protocol protocol)
   if (!wsa_is_initialized) {
     WORD version_wanted = MAKEWORD(2, 2);
     WSADATA wsa_data;
-    if (WSAStartup(version_wanted, &wsa_data)) {
-      return last_error();
-    }
+    if (WSAStartup(version_wanted, &wsa_data) != NO_ERROR) return -1;
     wsa_is_initialized = true;
     LOG_D("[::WSAStartup] " << wsa_is_initialized);
   }
@@ -58,19 +82,15 @@ int NativeSocket::create(Address::Family family , Type type, Protocol protocol)
       return last_error(EPROTONOSUPPORT);
   }
 
-  if (sock != INVALID_SOCKET) {
-    close();
-  }
+  if (sock != INVALID_SOCKET) close();
 
   sock = socket(family_i, type_i, protocol_i);
-  if (sock == INVALID_SOCKET) {
-    return last_error();
-  }
+  if (sock == INVALID_SOCKET) return last_error();
 
 #ifdef WIN32
   BOOL so_reuse = TRUE;
   if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char*) &so_reuse, sizeof(BOOL)) == SOCKET_ERROR) {
-    return last_error();
+    return -1;
   }
 #else
   bool so_reuse = true;
@@ -99,9 +119,7 @@ int NativeSocket::bind(const SocketAddress& address)
   switch (family) {
     case Address::IPv4:
       const sockaddr sa(address.to_sockaddr());
-      if (::bind(sock, &sa, sizeof(sockaddr)) != 0) {
-        return last_error();
-      }
+      if (::bind(sock, &sa, sizeof(sockaddr)) != NO_ERROR) return -1;
       return 0;
       break;
 
@@ -120,14 +138,14 @@ void NativeSocket::close()
 #else
     int result = close(sock);
 #endif
-    if (result != 0) print_last_error();
+    if (result != NO_ERROR) print_last_error();
     sock = INVALID_SOCKET;
   }
 
 #ifdef WIN32
   if (wsa_is_initialized) {
     LOG_D("[::WSACleanup]");
-    WSACleanup();
+    if (WSACleanup() != NO_ERROR) print_last_error();
   }
 #endif
 }
@@ -151,15 +169,13 @@ int NativeSocket::is_blocking(bool blocking)
 {
 #if WIN32
   u_long mode = blocking ? 0 : 1;
-  if (ioctlsocket(sock, FIONBIO, &mode) != NO_ERROR) {
-    return -1;
-  }
+  if (ioctlsocket(sock, FIONBIO, &mode) != NO_ERROR) return -1;
 #else
   int opts;
   if ((opts = fcntl(sock, F_GETFL)) < 0) {
     return -1;
   }
-  opts = (opts | O_NONBLOCK);
+  opts = blocking ? (opts & ~O_NONBLOCK) : (opts | O_NONBLOCK);
   if (fcntl(sock, F_SETFL, opts) < 0) {
     return -1;
   }
@@ -176,18 +192,10 @@ bool NativeSocket::is_blocking() const
 
 int NativeSocket::last_error() const
 {
-#ifdef WIN32
-  int error = WSAGetLastError();
-#else
-  int error = errno;
-#endif
-#ifdef _DEBUG
-  print_last_error();
-#endif
-  return error;
+  return global_last_error();
 }
 
-int NativeSocket::last_error(int error)
+int NativeSocket::global_last_error(int error)
 {
 #ifdef WIN32
   WSASetLastError(error);
@@ -197,11 +205,29 @@ int NativeSocket::last_error(int error)
   return error;
 }
 
+int NativeSocket::global_last_error()
+{
 #ifdef WIN32
-void NativeSocket::print_last_error() const
+  int error = WSAGetLastError();
+#else
+  int error = errno;
+#endif
+#ifdef _DEBUG
+  print_last_error();
+#endif
+  return -1;
+}
+
+int NativeSocket::last_error(int error)
+{
+  return global_last_error(error);
+}
+
+#ifdef WIN32
+void NativeSocket::print_last_error()
 {
   int error = NO_ERROR;
-  if ((error = last_error()) != NO_ERROR) {
+  if ((error = global_last_error()) != NO_ERROR) {
 #ifdef WIN32
     std::cerr << WSAGetLastErrorMessage("Socket error", error);
 #else
@@ -210,28 +236,5 @@ void NativeSocket::print_last_error() const
   }
 }
 #endif
-
-NativeSocket::Factory::Factory()
-{
-}
-
-int NativeSocket::Factory::create(Address::Family family, Socket::Type type,
-                                  Socket::Protocol protocol,
-                                  std::unique_ptr<Socket>& Socket)
-{
-  switch (family) {
-    case Address::IPv4: {
-      auto ptr = std::unique_ptr<NativeSocket>(new NativeSocket());
-      int error = ptr->create(family, type, protocol);
-      if (!error) {
-        Socket = std::move(ptr);
-      }
-      return error;
-    }
-
-    default:
-      return EAFNOSUPPORT;
-  }
-}
 
 }

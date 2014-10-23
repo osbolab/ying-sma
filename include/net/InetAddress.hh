@@ -5,7 +5,7 @@
 namespace sma
 {
 
-class InetAddress : public Address
+class InetAddress final : public Address
 {
 public:
   static const InetAddress ANY;

@@ -1,6 +1,6 @@
-#include <iomanip>
-
 #include "net/Address.hh"
+
+#include <iomanip>
 
 
 namespace sma

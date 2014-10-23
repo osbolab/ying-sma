@@ -4,7 +4,7 @@
 
 #include "log.hh"
 
-#include "memory/bits.hh"
+#include "bits.hh"
 
 
 TEST(Builtins, AssertionTrue)
@@ -16,10 +16,10 @@ TEST(Builtins, AssertionTrue)
   std::cout << ss.str();
   for (unsigned int k = 1; k < (unsigned short) -1; k *= 2) {
     unsigned int j = k | (1 << (l++ % 16));
-    std::cout << std::hex 
-      << " " << most_set_bit(j) << " " 
-      << std::bitset<16>(j) 
-      << " " << least_set_bit(j) << std::endl;
+    std::cout << std::hex
+              << " " << most_set_bit(j) << " "
+              << std::bitset<16>(j)
+              << " " << least_set_bit(j) << std::endl;
     if (k == 0x80) std::cout << ss.str();
   }
   std::cout << ss.str();

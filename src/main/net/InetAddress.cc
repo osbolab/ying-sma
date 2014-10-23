@@ -1,14 +1,14 @@
 #include "net/InetAddress.hh"
 
-#include <cassert>
-#include <utility>
-
 #ifdef WIN32
 #include "net/Winsock.hh"
 #else
 #include <arpa/inet.h>
 #define ARPA_INET_H_
 #endif
+
+#include <cassert>
+#include <utility>
 
 
 namespace sma

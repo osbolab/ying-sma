@@ -1,13 +1,13 @@
 #include "net/SocketAddress.hh"
 
-#include <cassert>
-
 #ifdef WIN32
 #include "net/Winsock.hh"
 #else
 #include <netinet/in.h>   // struct sockaddr
 #include <sys/Socket.h>   // AF_***
 #endif
+
+#include <cassert>
 
 
 namespace sma
@@ -18,7 +18,7 @@ SocketAddress::SocketAddress(Address address, std::uint16_t port)
 
 sockaddr SocketAddress::to_sockaddr() const
 {
-  // wow never do this
+  // FIXME: wow never do this
   typedef union {
     sockaddr    sa;
     sockaddr_in sin;
@@ -38,6 +38,7 @@ sockaddr SocketAddress::to_sockaddr() const
   // FIXME: This is nice and safe...
   saddr.sin.sin_addr.S_un.S_addr = *reinterpret_cast<const std::uint32_t*>(&addr.data[0]);;
   return saddr.sa;
+  // you can tell I wrote this after 2am on a Friday
 }
 
 void SocketAddress::print(std::ostream& os) const

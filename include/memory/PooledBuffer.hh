@@ -1,11 +1,11 @@
 #pragma once
 
+#include "Log.hh"
+#include "Pow2Math.hh"
+
 #include <iostream>
 #include <cstdlib>
 #include <string>
-
-#include "Log.hh"
-#include "Pow2Math.hh"
 
 // #define RANGE_CHECKED_BUFFERS_
 
@@ -13,7 +13,7 @@ namespace sma
 {
 
 template<typename T, std::size_t PageSize>
-class PooledBuffer
+class PooledBuffer final
 {
   static_assert(PageSize > 0 && ((PageSize & (PageSize-1)) == 0),
                 "Page size must be a power of two.");
