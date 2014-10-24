@@ -1,5 +1,7 @@
 #pragma once
 
+#include "concurrent/thread_interrupted.hh"
+
 #include <queue>
 #include <chrono>
 #include <mutex>
@@ -21,12 +23,13 @@ class DelayQueue final
 {
   using Myt = DelayQueue<E, Clock>;
   using wrapper_type = detail::Wrapper<E, Clock>;
-  using lock_type = std::unique_lock<std::mutex>;
+  using Lock = std::unique_lock<std::mutex>;
   using queue_type =
     std::priority_queue<wrapper_type, std::deque<wrapper_type>, std::greater<wrapper_type>>;
 
 public:
   DelayQueue()
+    : interrupted(false), nr_waiting(0)
   {
   }
 
@@ -40,28 +43,37 @@ public:
   {
   }
 
-  template<typename DelayT>
-  void push(const E& e, DelayT delay)
+  template<typename Delay>
+  void push(const E& e, Delay delay)
   {
     push(wrapper_type(e, delay));
   }
 
-  template<typename DelayT>
-  void push(E&& e, DelayT delay)
+  template<typename Delay>
+  void push(E&& e, Delay delay)
   {
     push(wrapper_type(std::move(e), delay));
   }
 
-  E take()
+  E pop()
   {
-    lock_type lock(mutex);
+    Lock lock(mutex);
 
     for (;;) {
-      if (q.empty()) available.wait(lock);
-      else {
+      if (interrupted) {
+        interrupted = (nr_waiting != 0);
+        throw thread_interrupted();
+      }
+      if (q.empty()) {
+        ++nr_waiting;
+        available.wait(lock);
+        --nr_waiting;
+      } else {
         const wrapper_type* first = &(q.top());
         if (!first->expired()) {
+          ++nr_waiting;
           available.wait_for(lock, first->delay());
+          --nr_waiting;
         } else {
           auto actual = std::move(q.top());
           q.pop();
@@ -69,6 +81,27 @@ public:
           return std::move(actual.entry);
         }
       }
+    }
+  }
+
+  std::size_t size()
+  {
+    Lock lock(mutex);
+    return q.size();
+  }
+
+  bool empty()
+  {
+    Lock lock(mutex);
+    return q.empty();
+  }
+
+  void interrupt()
+  {
+    Lock lock(mutex);
+    if (nr_waiting > 0) {
+      interrupted = true;
+      available.notify_all();
     }
   }
 
@@ -87,10 +120,10 @@ public:
 private:
   void push(wrapper_type&& delayed)
   {
-    lock_type lock(mutex);
+    Lock lock(mutex);
     const wrapper_type* first = !q.empty() ? &(q.top()) : nullptr;
     q.push(std::move(delayed));
-    // notify take() that there's a sooner delay than the one it's waiting on
+    // notify pop() that there's a sooner delay than the one it's waiting on
     if (!first || delayed < *first) available.notify_all();
   }
 
@@ -98,6 +131,8 @@ private:
   queue_type q;
   std::mutex mutex;
   std::condition_variable available;
+  bool interrupted;
+  std::size_t nr_waiting;
 };
 
 
@@ -138,14 +173,14 @@ private:
     return Clock::now() + delay;
   }
 
-  template<typename DelayT>
-  Wrapper(const E& entry, DelayT delay)
+  template<typename Delay>
+  Wrapper(const E& entry, Delay delay)
     :entry(entry), delay_until(project_future(delay))
   {
   }
 
-  template<typename DelayT>
-  Wrapper(E&& entry, DelayT delay)
+  template<typename Delay>
+  Wrapper(E&& entry, Delay delay)
     : entry(std::move(entry)), delay_until(project_future(delay))
   {
   }

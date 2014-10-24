@@ -75,7 +75,9 @@ object(Sump "util"
 
 
 # concurrent
-
+object(thread_interrupted "concurrent"
+  "${INC}/concurrent/thread_interrupted.hh"
+)
 object(CyclicBarrier "concurrent"
   "${INC}/concurrent/CyclicBarrier.hh"
   "${SRC}/concurrent/CyclicBarrier.cc"
@@ -88,6 +90,7 @@ object(BlockingSource "concurrent"
 )
 object(DelayQueue "concurrent"
   "${INC}/concurrent/DelayQueue.hh"
+  thread_interrupted
 )
 object(Threadpool "concurrent"
   "${INC}/concurrent/Threadpool.hh"
@@ -195,7 +198,11 @@ add_test(BlockingQueue
   "${TEST}/concurrent/BlockingQueueTest.cc"
   CyclicBarrier
 )
-add_test(Threadpool       "${TEST}/concurrent/ThreadpoolTest.cc")
+add_test(Threadpool       
+  "${TEST}/concurrent/ThreadpoolTest.cc"
+  thread_interrupted
+  DelayQueue
+)
 
 # memory
 add_test(BufferPool       "${TEST}/memory/BufferPoolTest.cc")

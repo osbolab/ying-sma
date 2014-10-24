@@ -29,10 +29,10 @@ TEST(Move_Semantics, AssertionTrue)
   auto d = dq.take();
   ASSERT_EQ(2,  d->i);
 
-  d = dq.take();
+  d = dq.pop();
   ASSERT_EQ(20,  d->i);
 
-  d = dq.take();
+  d = dq.pop();
   ASSERT_EQ(100,  d->i);
 }
 
@@ -46,13 +46,13 @@ TEST(Copy_Semantics, AssertionTrue)
   dq.push(y, std::chrono::milliseconds(20));
   dq.push(z, std::chrono::milliseconds(100));
 
-  auto d = dq.take();
+  auto d = dq.pop();
   ASSERT_EQ(x,  d);
 
-  d = dq.take();
+  d = dq.pop();
   ASSERT_EQ(y,  d);
 
-  d = dq.take();
+  d = dq.pop();
   ASSERT_EQ(z,  d);
 }
 

@@ -8,7 +8,6 @@
 #include <mutex>
 #include <condition_variable>
 #include <queue>
-#include <iostream>
 
 
 namespace sma
@@ -25,7 +24,7 @@ using Container_queue__ = std::queue<T>;
 template<template<typename> class Container = detail::Container_queue__>
 class Threadpool
 {
-  using lock_type = std::unique_lock<std::mutex>;
+  using Lock = std::unique_lock<std::mutex>;
 
 public:
   Threadpool(std::size_t nr_threads)
@@ -38,7 +37,7 @@ public:
         std::function<void()> task;
 
         {
-          lock_type lock(mutex);
+          Lock lock(mutex);
           available.wait(lock, [this] { return stop || !tasks.empty(); });
           if (stop && tasks.empty()) return;
           task = std::move(tasks.front());
@@ -53,7 +52,7 @@ public:
   ~Threadpool()
   {
     {
-      lock_type lock(mutex);
+      Lock lock(mutex);
       stop = true;
     }
     available.notify_all();
@@ -71,7 +70,7 @@ public:
     std::future<return_type> result = task->get_future();
 
     {
-      lock_type lock(mutex);
+      Lock lock(mutex);
       if (stop) throw std::runtime_error("Threadpool is shut down");
       tasks.emplace([task]() { (*task)(); });
     }
@@ -82,7 +81,7 @@ public:
 
   void shutdown()
   {
-    lock_type lock(mutex);
+    Lock lock(mutex);
     stop = true;
   }
 
@@ -93,13 +92,23 @@ public:
       if (thread.joinable()) thread.join();
   }
 
+  std::size_t nr_threads() const
+  {
+    return threads.size();
+  }
+
+  std::size_t size() const
+  {
+    return tasks.size();
+  }
+
 private:
   std::vector<std::thread> threads;
   Container<std::function<void()>> tasks;
 
   std::mutex mutex;
   std::condition_variable available;
-  bool stop;
+  volatile bool stop;
 };
 
 }
