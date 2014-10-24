@@ -5,7 +5,6 @@
 #include "gtest/gtest.h"
 
 #include "memory/BufferPool.hh"
-#include "memory/PooledBuffer.hh"
 
 TEST(It_Compiles, AssertionTrue)
 {
