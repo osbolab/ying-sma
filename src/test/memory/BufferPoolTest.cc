@@ -6,9 +6,13 @@
 
 #include "memory/BufferPool.hh"
 
+
+namespace sma
+{
+
 TEST(It_Compiles, AssertionTrue)
 {
-  auto pool = sma::BufferPool<std::uint8_t, 32>(128);
+  auto pool = BufferPool<std::uint8_t, 16>(128);
   auto buf = pool.allocate(50);
 
   std::size_t n = 15;
@@ -19,7 +23,7 @@ TEST(It_Compiles, AssertionTrue)
   std::cout << std::string(arr, arr+n) << std::endl;
   std::cout << "capacity: " << buf.capacity() << " size " << buf.size() << std::endl;
 
-  ASSERT_EQ(buf.shrink_to_fit(), 32);
+  ASSERT_EQ(16, buf.shrink_to_fit());
 
   std::cout << "capacity: " << buf.capacity() << " size " << buf.size() << std::endl;
 
@@ -27,8 +31,10 @@ TEST(It_Compiles, AssertionTrue)
     buf[i] = 'B';
   }
 
-  ASSERT_EQ(buf.read_into(arr, n), n);
+  ASSERT_EQ(n, buf.read_into(arr, n));
   std::cout << std::string(arr, arr+n) << std::endl;
 
   delete[] arr;
+}
+
 }

@@ -31,12 +31,7 @@ class BufferPool final
   static_assert(PageSize > 0 && ((PageSize & (PageSize - 1)) == 0),
                 "Page size must be a power of two.");
 
-
-  template<typename T, std::size_t PageSize>
-  class Buffer;
-
-
-  using MyT = BufferPool<T, PageSize>;
+  using Myt = BufferPool<T, PageSize>;
 
   using page_state_t = std::uint_fast8_t;
   using state_bitmap_t = std::unique_ptr<page_state_t[]>;
@@ -48,7 +43,7 @@ class BufferPool final
   using backing_t = std::unique_ptr<T[]>;
 
 public:
-  using buffer_t = Buffer<T, PageSize>;
+  class Buffer;
 
   /*******************************************************************************
   * Construction/Initialization
@@ -62,7 +57,7 @@ public:
   {
   }
 
-  BufferPool(MyT&& move)
+  BufferPool(Myt&& move)
     : nr_pages(move.nr_pages),
       nr_pages_available(move.nr_pages_available),
       backing_buf(std::move(move.backing_buf)),
@@ -73,7 +68,7 @@ public:
     move.state_bitmap = nullptr;
   }
 
-  MyT&  operator=(MyT&& move)
+  Myt&  operator=(Myt&& move)
   {
     nr_pages           = move.nr_pages;
     nr_pages_available = move.nr_pages_available;
@@ -92,7 +87,7 @@ public:
   * Public methods
   */
 
-  buffer_t allocate(std::size_t size)
+  Buffer allocate(std::size_t size)
   {
 #ifdef SMA_POOL_MT_
     std::unique_lock<std::mutex> lock(state_mutex);
@@ -113,7 +108,7 @@ public:
     assert(nr_pages_found == nr_pages_needed &&
            "Counted enough available pages, but can't find them");
 
-    return buffer_t(this, std::move(allocated_pages), nr_pages_found);
+    return Buffer(this, std::move(allocated_pages), nr_pages_found);
   }
 
   /* Public methods
@@ -182,8 +177,8 @@ private:
   }
 
   // Guard from accidentally allocating extra memory by passing the class as an argument.
-  BufferPool(const MyT& copy) = delete;
-  MyT& operator=(const MyT& copy) = delete;
+  BufferPool(const Myt& copy) = delete;
+  Myt& operator=(const Myt& copy) = delete;
 
   // Number of pages (given by buffer size / page size)
   std::size_t nr_pages;
@@ -201,16 +196,10 @@ private:
 
 
 public:
-  template<typename T, std::size_t PageSize>
   class Buffer final
   {
-    static_assert(PageSize > 0 && ((PageSize & (PageSize-1)) == 0),
-                  "Page size must be a power of two.");
-
     template<typename T, std::size_t PageSize>
     friend class BufferPool;
-
-    using MyT = Buffer<T, PageSize>;
 
     using pool_t = BufferPool<T, PageSize>;
     using pages_t = std::unique_ptr<T*[]>;
@@ -218,7 +207,7 @@ public:
     using by_page_size = Pow2Math<PageSize>;
 
   public:
-    Buffer(MyT&& move)
+    Buffer(Buffer&& move)
       : pool(move.pool),
         pages(std::move(move.pages)),
         nr_pages(move.nr_pages),
@@ -236,7 +225,7 @@ public:
     }
 
 
-    MyT& operator =(MyT&& move)
+    Buffer& operator =(Buffer&& move)
     {
       std::swap(pages, move.pages);
       std::swap(pool, move.pool);
@@ -359,8 +348,8 @@ public:
     {
     }
 
-    Buffer(const MyT& copy) = delete;
-    MyT& operator =(const MyT& copy) = delete;
+    Buffer(const Buffer& copy) = delete;
+    Buffer& operator =(const Buffer& copy) = delete;
 
     // She owns the pages' memory.
     pool_t* pool;

@@ -21,6 +21,8 @@ public:
                  std::chrono::milliseconds delay,
                  std::size_t times_to_run = 1) = 0;
 
+
+
   class Task
   {
   public:
@@ -60,6 +62,8 @@ public:
     //! \return \c true if the task can be cancelled or \c false if it isn't scheduled.
     virtual bool is_cancellable() = 0;
   };
+
+
 
   class Factory
   {
