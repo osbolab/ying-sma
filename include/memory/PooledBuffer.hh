@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Log.hh"
-#include "Pow2Math.hh"
+#include "util/Log.hh"
+#include "util/Pow2Math.hh"
 
 #include <iostream>
 #include <cstdlib>

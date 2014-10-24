@@ -6,8 +6,8 @@
 
 #include "gtest/gtest.h"
 
-#include "BlockingQueue.hh"
-#include "CyclicBarrier.hh"
+#include "concurrent/BlockingQueue.hh"
+#include "concurrent/CyclicBarrier.hh"
 
 
 namespace sma

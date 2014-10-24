@@ -1,10 +1,12 @@
+#include "util/Sump.hh"
+#include "concurrent/BlockingQueue.hh"
+#include "channel/Channel.hh"
+
 #include <iostream>
 #include <string>
 #include <thread>
 
-#include "Sump.hh"
-#include "BlockingQueue.hh"
-#include "channel/Channel.hh"
+
 
 using std::string;
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Sink.hh"
-#include "BlockingSource.hh"
+#include "util/Sink.hh"
+#include "concurrent/BlockingSource.hh"
 
 #include <functional>
 
@@ -13,29 +13,22 @@ template<typename T>
 class Channel : public Sink<T>
 {
 public:
-  void onReceive(std::function<void(T&& t)> callback);
+  void onReceive(std::function<void(T&& t)> callback)
+  {
+    this->callback = std::move(callback);
+  }
 
 protected:
-  bool onReceive(T&& t) const;
+  bool onReceive(T&& t) const
+  {
+    auto copy = callback;
+    if (!copy) return false;
+    copy(std::move(t));
+    return true;
+  }
 
 private:
   std::function<void(T&& t)> callback;
 };
-
-
-template<typename T>
-void Channel<T>::onReceive(std::function<void(T&& t)> callback)
-{
-  this->callback = std::move(callback);
-}
-
-template<typename T>
-bool Channel<T>::onReceive(T&& t) const
-{
-  auto copy = callback;
-  if (!copy) return false;
-  copy(std::move(t));
-  return true;
-}
 
 }

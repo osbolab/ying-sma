@@ -1,6 +1,6 @@
 #include "schedule/ThreadScheduler.hh"
 
-#include "Log.hh"
+#include "util/Log.hh"
 
 #include <chrono>
 #include <thread>
@@ -16,7 +16,10 @@ namespace sma
  * Factory
  */
 
-ThreadScheduler::Factory::Factory(std::size_t nr_threads) : nr_threads(nr_threads) {}
+ThreadScheduler::Factory::Factory(std::size_t nr_threads)
+  : nr_threads(nr_threads)
+{
+}
 
 std::unique_ptr<Scheduler>
 ThreadScheduler::Factory::new_scheduler() const
@@ -28,7 +31,10 @@ ThreadScheduler::Factory* const
 ThreadScheduler::single_threaded_factory_ = new ThreadScheduler::Factory(1);
 
 Scheduler::Factory*
-ThreadScheduler::single_threaded_factory() {return single_threaded_factory_; }
+ThreadScheduler::single_threaded_factory()
+{
+  return single_threaded_factory_;
+}
 
 /* Factory
  ******************************************************************************/

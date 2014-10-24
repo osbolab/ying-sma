@@ -4,8 +4,8 @@
 #include <memory>
 #include <utility>
 
-#include "BlockingSource.hh"
-#include "Sink.hh"
+#include "concurrent/BlockingSource.hh"
+#include "util/Sink.hh"
 
 
 namespace sma

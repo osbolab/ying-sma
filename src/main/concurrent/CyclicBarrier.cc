@@ -1,4 +1,4 @@
-#include "CyclicBarrier.hh"
+#include "concurrent/CyclicBarrier.hh"
 
 #include <thread>
 
