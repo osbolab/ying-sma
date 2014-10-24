@@ -79,6 +79,10 @@ object(BlockingSource ""
   "${INC}/BlockingSource.hh"
 )
 
+object(DelayQueue ""
+  "${INC}/DelayQueue.hh"
+)
+
 object(Sink ""  
   "${INC}/Sink.hh"
 )
@@ -180,6 +184,8 @@ add_test(BlockingQueue
   "${TEST}/BlockingQueueTest.cc"
   CyclicBarrier
 )
+
+add_test(DelayQueue   "${TEST}/DelayQueueTest.cc")
 
 add_test(Message      "${TEST}/msg/MessageTest.cc")
 
