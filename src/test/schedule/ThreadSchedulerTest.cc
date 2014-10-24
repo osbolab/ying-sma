@@ -6,51 +6,42 @@
 #include <chrono>
 #include <iostream>
 #include <limits>
+#include <memory>
+
 
 
 namespace sma
 {
 
-struct Packet {
+struct Packet : public Task::Wrapper {
   int i;
 };
 
-void* scheduled_func(void* arg)
+Task::Ptr scheduled_func(Task::Ptr arg)
 {
-  Packet* p = new Packet();
-  p->i = 15;
+  if (!arg) return nullptr;
 
-  return static_cast<void*>(p);
+  auto packet_in = arg->as<Packet>();
+  auto packet_out = new Packet();
+  packet_out->i = 2 * packet_in->i;
+
+  return Task::ptr(packet_out);
 }
-
-template<typename R, typename ...A>
-class Wrapper
-{
-  using fun_t = std::function<R(A...)>;
-
-public:
-  Wrapper(fun_t f)
-    : f(f)
-  {
-  }
-
-private:
-  fun_t f;
-};
 
 TEST(Schedule_Task, AssertionTrue)
 {
-#if 0
   auto sched = ThreadScheduler::single_threaded_factory()->new_scheduler();
 
-  auto task = sched->schedule_delay(scheduled_func, std::chrono::milliseconds(1000), 1);
+  Packet* arg = new Packet();
+  arg->i = 15;
 
-  void* result;
-  ASSERT_TRUE(task->await_result(result));
+  auto task = sched->schedule(scheduled_func,
+                              std::chrono::milliseconds(1000), 1,
+                              Task::ptr(arg));
 
-  Packet* p = static_cast<Packet*>(result);
-  ASSERT_EQ(15, p->i);
-#endif
+  Task::Ptr result;
+  ASSERT_TRUE(task->await(result));
+  ASSERT_EQ(30, result->as<Packet>()->i);
 }
 
 }

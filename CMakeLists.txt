@@ -144,6 +144,7 @@ object(NativeSocket "net"
 
 object(Scheduler        "schedule"
   "${INC}/schedule/Scheduler.hh"
+  "${INC}/schedule/Task.hh"
 )
 object(ThreadScheduler  "schedule"
   "${INC}/schedule/ThreadScheduler.hh"

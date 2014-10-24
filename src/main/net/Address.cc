@@ -20,7 +20,9 @@ Address::Address(Family family, const std::vector<unsigned char>& addr)
   : family(family), data(addr) {}
 
 Address::Address(Family family, std::vector<unsigned char>&& addr)
-  : family(family), data(std::move(addr)) {}
+  : family(family), data(std::move(addr))
+{
+}
 
 void Address::print(std::ostream& os) const
 {

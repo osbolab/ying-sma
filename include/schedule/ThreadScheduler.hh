@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Scheduler.hh"
+#include "Task.hh"
 
 #include <chrono>
 #include <cstdlib>
@@ -25,13 +26,33 @@ public:
 
   ThreadScheduler(std::size_t nr_threads);
 
-  std::shared_ptr<Scheduler::Task>
-  schedule_delay(std::function<void* (void*)> f,
-                 std::chrono::milliseconds delay,
-                 std::size_t times_to_run = 1) override;
+  std::shared_ptr<Task>
+  schedule(Task::voidFvoid f,
+           std::chrono::milliseconds delay = std::chrono::milliseconds(0),
+           Task::NullaryCallback on_complete = nullptr) override;
+
+  std::shared_ptr<Task>
+  schedule(Task::voidFptr f,
+           std::chrono::milliseconds delay = std::chrono::milliseconds(0),
+           Task::Ptr&& arg = nullptr,
+           Task::NullaryCallback on_complete = nullptr) override;
+
+  std::shared_ptr<Task>
+  schedule(Task::voidFvoid f,
+           std::chrono::milliseconds delay = std::chrono::milliseconds(0),
+           Task::UnaryCallback on_result = nullptr) override;
+
+  std::shared_ptr<Task>
+  schedule(Task::ptrFptr f,
+           std::chrono::milliseconds delay = std::chrono::milliseconds(0),
+           Task::Ptr&& arg = nullptr,
+           Task::UnaryCallback on_result = nullptr) override;
+
 
 private:
-  void run_task(std::function<void* (void*)> f, ThreadTask task);
+  struct Caller;
+
+  void run_task(Task::voidFvoid f, ThreadTask task);
 
   std::size_t nr_threads;
   // TODO: need a delay queue
@@ -41,47 +62,45 @@ private:
 
 
 
-  class ThreadTask final : public Scheduler::Task
+  class ThreadTask final : public Task
   {
     friend class ThreadScheduler;
+
   public:
     ~ThreadTask();
 
-    bool cancel() override;
+    bool cancel(Task::Ptr& arg_out) override;
 
-    void* run_now() override;
-    bool  await_result(void*& result_out) override;
-    bool  result(void*& result_out) override;
+    bool  modify_arg(Task::Ptr&& new_arg_in, Task::Ptr& old_arg_out) override;
 
-    std::size_t nr_cycles_remaining() override { return nr_cycles_remaining_; }
-    bool is_scheduled() override;
+    bool  await(Task::Ptr& result_out) override;
+    bool  poll(Task::Ptr& result_out) override;
+
+    bool is_done() override;
     bool is_cancellable() override;
-    void decrement_cycles() { --nr_cycles_remaining_; }
     void is_scheduled(bool scheduled) { is_scheduled_ = scheduled; }
     void is_cancellable(bool cancellable) { is_cancellable_ = cancellable; }
 
   private:
     ThreadTask(ThreadScheduler* scheduler,
-               std::function<void* (void*)> f,
                std::chrono::milliseconds delay,
-               std::size_t times_to_run = 1);
+               std::unique_ptr<Caller>&& caller);
 
-    void result(void* result_in);
+    void run();
 
     ThreadScheduler* scheduler;
     std::chrono::milliseconds delay;
-    std::function<void* (void*)> f;
-
+    Task::voidFvoid f;
 
     std::mutex state_mutex;
     bool cancel_requested;
     bool is_cancellable_;
     bool is_scheduled_;
-    std::size_t nr_cycles_remaining_;
 
     std::mutex result_mutex;
     std::condition_variable result_available;
-    void* result_;
+
+    std::unique_ptr<Caller> caller;
   };
 
 
@@ -97,6 +116,55 @@ private:
   };
 
   static Factory* const single_threaded_factory_;
+
+
+private:
+  struct Caller {
+    Caller() : result(nullptr) {}
+    virtual ~Caller() {}
+
+    virtual void call() = 0;
+
+    Task::Ptr result;
+  };
+
+  struct voidFvoidCaller final : public Caller {
+    void call() override
+    {
+      if (f) f();
+    }
+  private:
+    Task::voidFvoid f;
+  };
+
+  struct voidFptrCaller final : public Caller {
+    void call() override
+    {
+      if (f) f(std::move(arg));
+    }
+  private:
+    Task::voidFptr f;
+    Task::Ptr arg;
+  };
+
+  struct ptrFvoidCaller final : public Caller {
+    void call() override
+    {
+      if (f) result = f();
+    }
+  private:
+    Task::ptrFvoid f;
+  };
+
+  struct ptrFptrCaller final : public Caller {
+    void call() override
+    {
+      if (f) result = f(std::move(arg));
+    }
+  private:
+    Task::ptrFptr f;
+    Task::Ptr arg;
+  };
 };
 
 }

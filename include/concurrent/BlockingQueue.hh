@@ -20,10 +20,10 @@ public:
   //! Create a bounded queue.
   BlockingQueue(std::size_t capacity);
   BlockingQueue(const BlockingQueue<T>& copy);
-  BlockingQueue(BlockingQueue<T>&& move);
+  BlockingQueue(BlockingQueue<T>&& move) noexcept;
 
   BlockingQueue<T>& operator =(const BlockingQueue<T>& copy);
-  BlockingQueue<T>& operator =(BlockingQueue<T>&& move);
+  BlockingQueue<T>& operator =(BlockingQueue<T>&& move) noexcept;
 
   /*! Place an item at the end of the queue if the queue is not full.
    * \return \a true if the item was placed in the queue.
