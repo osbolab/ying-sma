@@ -1,6 +1,7 @@
 #include "concurrent/Threadpool.hh"
 #include "concurrent/DelayQueue.hh"
 #include "concurrent/thread_interrupted.hh"
+#include "util/Log.hh"
 
 #include "gtest/gtest.h"
 
@@ -10,22 +11,15 @@
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
+#include <thread>
+#include <condition_variable>
+#include <mutex>
 
 
 namespace sma
 {
 
-std::atomic<long long> jobms = 0;
-
-using clock = std::chrono::high_resolution_clock;
-
-void test(int i)
-{
-  auto ms = std::chrono::milliseconds(20 + std::rand() % 50);
-  std::this_thread::sleep_for(ms);
-  jobms.fetch_add(ms.count());
-}
-
+#if 0
 TEST(Threadpool, AssertionTrue)
 {
   Threadpool<> tp(5);
@@ -52,7 +46,6 @@ TEST(Delay_Scheduler, AssertionTrue)
         if (stop) break;
         try {
           auto waited = std::chrono::duration_cast<std::chrono::milliseconds>(clock::now() - dq.pop());
-          std::cout << waited.count() << " ms" << std::endl;
         } catch (const thread_interrupted& ignore) {
           (void) ignore;
         }
@@ -68,6 +61,67 @@ TEST(Delay_Scheduler, AssertionTrue)
   std::this_thread::sleep_for(std::chrono::milliseconds(1200));
   stop = true;
   dq.interrupt();
+}
+#endif
+
+std::atomic<unsigned long long> jobms = 0;
+
+static const std::size_t job_count { 100 };
+
+using clock = std::chrono::high_resolution_clock;
+std::atomic<std::size_t> count = 0;
+std::mutex mutex;
+std::condition_variable finished;
+
+
+TEST(Async_Scheduler, AssertionTrue)
+{
+  std::atomic<bool> stop = false;
+
+  DelayQueue<clock::time_point> dq;
+
+  std::vector<std::future<void>> futures;
+
+  for (std::size_t i = 0; i < 5; ++i) {
+    futures.push_back(std::async(std::launch::async, [&]() {
+      for (;;) {
+        if (stop) break;
+        try {
+          auto waited = std::chrono::duration_cast<std::chrono::milliseconds>(clock::now() - dq.pop());
+          jobms.fetch_add(waited.count());
+          if (count.fetch_add(1) >= job_count-1) {
+            std::unique_lock<std::mutex> lock(mutex);
+            finished.notify_all();
+          }
+        } catch (const thread_interrupted& ignore) {
+          (void) ignore;
+        }
+      }
+    }));
+  }
+
+  auto start = clock::now();
+
+  for (int i = 0; i < job_count; ++i) {
+    auto wait = std::chrono::milliseconds(10 + std::rand() % 1000);
+    dq.push(clock::now(), wait);
+  }
+
+  while (count.load() < job_count) {
+    std::unique_lock<std::mutex> lock(mutex);
+    finished.wait(lock, []() { return count.load() >= 100; });
+  }
+  stop = true;
+  dq.interrupt();
+
+  for (auto& fut : futures) {
+    if (fut.valid()) fut.wait();
+  }
+
+  auto realms = std::chrono::duration_cast<std::chrono::milliseconds>(clock::now() - start);
+
+  LOG_D(count.load() << " jobs totaling " << std::chrono::milliseconds(jobms.load()).count() <<
+        " ms in " << std::chrono::milliseconds(realms).count() << " real ms");
 }
 
 }

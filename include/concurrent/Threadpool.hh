@@ -28,7 +28,6 @@ class Threadpool
 
 public:
   Threadpool(std::size_t nr_threads)
-    : stop(false)
   {
     for (std::size_t i = 0; i < nr_threads; ++i)
       threads.emplace_back([this] {
@@ -108,7 +107,7 @@ private:
 
   std::mutex mutex;
   std::condition_variable available;
-  volatile bool stop;
+  volatile bool stop { false };
 };
 
 }

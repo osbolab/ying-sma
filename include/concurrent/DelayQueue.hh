@@ -131,8 +131,8 @@ private:
   queue_type q;
   std::mutex mutex;
   std::condition_variable available;
-  bool interrupted;
-  std::size_t nr_waiting;
+  bool interrupted { false };
+  std::size_t nr_waiting { 0 };
 };
 
 
