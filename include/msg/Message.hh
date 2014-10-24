@@ -27,7 +27,7 @@ public:
 
   Message();
   Message(const std::vector<std::uint8_t>& copy);
-  Message(std::vector<std::uint8_t>&& move) noexcept;
+  Message(std::vector<std::uint8_t>&& move);
 
   const std::vector<std::uint8_t>& data() const;
 
@@ -48,7 +48,7 @@ public:
   MutableMessage(const Message& copy);
   MutableMessage(std::size_t len);
   MutableMessage(const std::vector<std::uint8_t>& copy);
-  MutableMessage(std::vector<std::uint8_t>&& move) noexcept;
+  MutableMessage(std::vector<std::uint8_t>&& move);
 
   std::vector<std::uint8_t>& data();
 

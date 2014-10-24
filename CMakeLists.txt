@@ -89,6 +89,12 @@ object(BlockingSource "concurrent"
 object(DelayQueue "concurrent"
   "${INC}/concurrent/DelayQueue.hh"
 )
+object(Threadpool "concurrent"
+  "${INC}/concurrent/Threadpool.hh"
+)
+
+
+# memory
 object(BufferPool "memory"
   "${INC}/memory/BufferPool.hh"
   "${INC}/memory/PooledBuffer.hh"
@@ -189,6 +195,7 @@ add_test(BlockingQueue
   "${TEST}/concurrent/BlockingQueueTest.cc"
   CyclicBarrier
 )
+add_test(Threadpool       "${TEST}/concurrent/ThreadpoolTest.cc")
 
 # memory
 add_test(BufferPool       "${TEST}/memory/BufferPoolTest.cc")

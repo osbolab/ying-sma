@@ -22,7 +22,7 @@ public:
 protected:
   Address(Family family, std::uint32_t addrl);
   Address(Family family, const std::vector<unsigned char>& addr);
-  Address(Family family, std::vector<unsigned char>&& addr) noexcept;
+  Address(Family family, std::vector<unsigned char>&& addr);
 };
 
 }

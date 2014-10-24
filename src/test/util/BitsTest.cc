@@ -2,9 +2,9 @@
 #include <bitset>
 #include "gtest/gtest.h"
 
-#include "log.hh"
+#include "util/Log.hh"
 
-#include "bits.hh"
+#include "util/Bits.hh"
 
 
 TEST(Builtins, AssertionTrue)
