@@ -42,9 +42,9 @@ class BufferPool final
   using page_state_t = std::uint_fast8_t;
   using state_bitmap_t = std::unique_ptr<page_state_t[]>;
   // The number of bits, and thus number of pages' states, in each word of the bitmap
-  static const std::size_t state_t_size_bits = sizeof(page_state_t)* CHAR_BIT;
+  static const std::size_t states_per_word = sizeof(page_state_t)* CHAR_BIT;
   // Work out the bit counts for divide-by-shift and modulo-by-and given the size of a state word
-  using state_bitmap_math = Pow2Math<state_t_size_bits>;
+  using by_states_per_word = Pow2Math<states_per_word>;
 
   using backing_t = std::unique_ptr<T[]>;
 
@@ -61,9 +61,6 @@ public:
       backing_buf(std::move(backing_t(new T[nr_pages* PageSize]))),
       state_bitmap(std::move(make_bitmap(nr_pages)))
   {
-    LOG_D("[BufferPool::()] buffer("
-          << static_cast<void*>(backing_buf.get())       << "+" << (nr_pages * PageSize) << ") states("
-          << static_cast<void*>(state_bitmap.get()) << ")");
   }
 
   BufferPool(MyT&& move)
@@ -73,14 +70,12 @@ public:
       state_bitmap(std::move(move.state_bitmap)),
 
   {
-    LOG_D("[BufferPool::(&&)] " << static_cast<void*>(&move));
     move.backing_buf  = nullptr;
     move.state_bitmap = nullptr;
   }
 
   MyT&  operator=(MyT&& move)
   {
-    LOG_D("[BufferPool::=(&&)] " << static_cast<void*>(&move));
     nr_pages           = move.nr_pages;
     nr_pages_available = move.nr_pages_available;
 
@@ -113,13 +108,8 @@ public:
       throw std::bad_alloc();
     }
 
-    LOG_D("[BufferPool::allocate] finding "
-          << nr_pages_needed << " pages ("
-          << nr_pages_available << " available)");
-
     auto allocated_pages = std::unique_ptr<T*[]>(new T*[nr_pages_needed]);
-
-    const std::size_t nr_pages_found  = allocate_pages(allocated_pages.get(), nr_pages_needed);
+    const std::size_t nr_pages_found = allocate_pages(allocated_pages.get(), nr_pages_needed);
 
     assert(nr_pages_found == nr_pages_needed &&
            "Counted enough available pages, but can't find them");
@@ -136,7 +126,7 @@ private:
    */
   state_bitmap_t static make_bitmap(std::size_t nr_pages)
   {
-    const std::size_t bitmap_len = (std::size_t) std::ceil((float) nr_pages / state_t_size_bits);
+    const std::size_t bitmap_len = (std::size_t) std::ceil((float) nr_pages / states_per_word);
 
     auto bitmap = std::move(state_bitmap_t(new page_state_t[bitmap_len]));
     // Set the default state of every page to 'available'
@@ -161,7 +151,7 @@ private:
       // Skip to the next state word with an available page
       while (!(*page_state)) {
         ++page_state;
-        base_index += state_t_size_bits;
+        base_index += states_per_word;
       }
       const std::size_t sub_index = least_set_bit(*page_state);
       // Mark this page unavailable and take it
@@ -171,9 +161,6 @@ private:
       *pages_out++ = (backing_buf.get() + base_index + sub_index);
       ++nr_pages_found;
       --nr_pages_available;
-
-      LOG_D("[BufferPool::allocate_pages] page " << (base_index + sub_index)
-            << " (" << static_cast<void*>(*(pages_out - 1)) << ")");
     }
     return nr_pages_found;
   }
@@ -188,15 +175,10 @@ private:
       // State indices are naturally ordered from the head of the buffer.
       const std::size_t page_idx = pages[i] - backing_buf.get();
       // page_idx / page_state_t gives which state word the index is in
-      page_state_t* page_state = state_bitmap.get() + (page_idx >> state_bitmap_math::div);
+      page_state_t* page_state = state_bitmap.get() + (page_idx >> by_states_per_word::shr_to_div);
       // page_idx % page_state_t gives the bit offset into that word
-      set_bit(page_idx & state_bitmap_math::mod, *page_state);
+      set_bit(page_idx & by_states_per_word::and_to_mod, *page_state);
       ++nr_pages_available;
-
-      LOG_D("[BufferPool::deallocate] page "
-            << page_idx
-            << " (" << static_cast<void*>(backing_buf.get() + page_idx) << ") (total "
-            << nr_pages_available << ")");
     }
   }
 

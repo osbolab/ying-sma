@@ -18,11 +18,11 @@ TEST(It_Compiles, AssertionTrue)
 
   buf.fill_with(arr, n);
   std::cout << std::string(arr, arr+n) << std::endl;
-  std::cout << "capacity: " << buf.get_capacity() << " size " << buf.get_size() << std::endl;
+  std::cout << "capacity: " << buf.capacity() << " size " << buf.size() << std::endl;
 
   ASSERT_EQ(buf.shrink_to_fit(), 32);
 
-  std::cout << "capacity: " << buf.get_capacity() << " size " << buf.get_size() << std::endl;
+  std::cout << "capacity: " << buf.capacity() << " size " << buf.size() << std::endl;
 
   for (unsigned int i = 0; i < n; ++i) {
     buf[i] = 'B';
