@@ -17,16 +17,6 @@ class UntypedFuture
 public:
   using pointer = std::unique_ptr<UntypedFuture>;
 
-  template<typename T>
-  static pointer wrap(std::future<T>&& fut)
-  {
-    return pointer {
-      dynamic_cast<UntypedFuture*>(
-      new Future<T> { std::move(fut) }
-      )
-    };
-  }
-
   virtual ~UntypedFuture() = 0;
 
   template<typename T>
@@ -47,11 +37,6 @@ class Future final : public UntypedFuture
 
   using Myt = Future<T>;
 
-  Future(std::future<T>&& move)
-    : f(std::move(move))
-  {
-  }
-
   Future(Myt&& move)
     : f(std::move(move.f))
   {
@@ -61,6 +46,11 @@ class Future final : public UntypedFuture
   Myt& operator =(const Myt& copy) = delete;
 
 public:
+  Future(std::future<T>&& move)
+    : f(std::move(move))
+  {
+  }
+
   Myt& operator =(Myt&& move)
   {
     std::swap(f, move.f);
@@ -80,11 +70,6 @@ class Future<T&> final : public UntypedFuture
 
   using Myt = Future<T&>;
 
-  Future(std::future<T&>&& move)
-    : f(std::move(move))
-  {
-  }
-
   Future(Myt&& move)
     : f(std::move(move.f))
   {
@@ -94,6 +79,11 @@ class Future<T&> final : public UntypedFuture
   Myt& operator =(const Myt& copy) = delete;
 
 public:
+  Future(std::future<T&>&& move)
+    : f(std::move(move))
+  {
+  }
+
   Myt& operator =(Myt&& move)
   {
     std::swap(f, move.f);
@@ -114,11 +104,6 @@ class Future<void> final : public UntypedFuture
 
   using Myt = Future<void>;
 
-  Future(std::future<void>&& move)
-    : f(std::move(move))
-  {
-  }
-
   Future(Myt&& move)
     : f(std::move(move.f))
   {
@@ -128,6 +113,11 @@ class Future<void> final : public UntypedFuture
   Myt& operator =(const Myt& copy) = delete;
 
 public:
+  Future(std::future<void>&& move)
+    : f(std::move(move))
+  {
+  }
+
   Myt& operator =(Myt&& move)
   {
     std::swap(f, move.f);

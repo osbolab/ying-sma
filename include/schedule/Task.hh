@@ -16,6 +16,9 @@ class Task
 public:
   using f_wrapper = std::function<void()>;
 
+
+
+
   struct Target {
     friend class Task;
 
@@ -45,6 +48,9 @@ public:
   };
 
 
+
+
+
   template<typename F, typename... Args>
   static Target target(F&& f, Args&& ... args)
   {
@@ -62,10 +68,10 @@ public:
     // The closure copies the pointer to the binding and deduces the type. Calling the
     // void(*)() dereferences the pointer the binding is equivalent to f(args).
     // We also attach the future so the task result can be retrieved.
-    return Target {
-      f_wrapper([binding]() { (*binding)(); }),
-      UntypedFuture::wrap(std::move(binding->get_future()))
-    };
+    return Target(
+    f_wrapper([binding]() { (*binding)(); }),
+    wrap(std::move(binding->get_future()))
+           );
   }
 
   virtual ~Task() {}
@@ -75,6 +81,17 @@ public:
 
   //! \return \c true if the task can be cancelled or \c false if it isn't scheduled.
   virtual bool cancellable() = 0;
+
+private:
+  template<typename T>
+  static UntypedFuture::pointer wrap(std::future<T>&& fut)
+  {
+    return UntypedFuture::pointer(
+             dynamic_cast<UntypedFuture*>(
+               new Future<T>(std::move(fut))
+             )
+           );
+  }
 };
 
 }

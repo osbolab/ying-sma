@@ -110,7 +110,7 @@ TEST(Async_Scheduler, AssertionTrue)
   auto start = clock::now();
 
   for (int i = 0; i < job_count; ++i) {
-    auto wait = std::chrono::milliseconds(10 + std::rand() % 1000);
+    auto wait = std::chrono::milliseconds {10 + std::rand() % 1000};
     dq.push(clock::now(), wait);
   }
 
