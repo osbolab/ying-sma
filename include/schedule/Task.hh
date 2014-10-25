@@ -1,7 +1,10 @@
 #pragma once
 
+#include "concurrent/Future.hh"
+
 #include <cstdlib>
 #include <memory>
+#include <thread>
 #include <functional>
 
 
@@ -11,74 +14,67 @@ namespace sma
 class Task
 {
 public:
-  struct Wrapper {
-    template<typename A>
-    A* as()
+  using f_wrapper = std::function<void()>;
+
+  struct Target {
+    friend class Task;
+
+    Target(Target&& move)
+      : f(std::move(move.f)), result(std::move(move.result))
     {
-      static_assert(std::is_base_of<Wrapper, A>::value,
-                    "Type pointed to derives from Task::Wrapper");
-      return dynamic_cast<A*>(this);
     }
 
-    virtual ~Wrapper() = 0;
+    Target& operator =(Target&& move)
+    {
+      std::swap(f, move.f);
+      std::swap(result, move.result);
+      return *this;
+    }
+
+  private:
+    Target(f_wrapper f, UntypedFuture::pointer result)
+      : f(std::move(f)), result(std::move(result))
+    {
+    }
+
+    Target& operator =(const Target& copy) = delete;
+
+  public:
+    f_wrapper f;
+    UntypedFuture::pointer result;
   };
 
-  using Ptr = std::unique_ptr<Task::Wrapper>;
-  using voidFvoid = std::function<void ()>;
-  using ptrFvoid = std::function<Ptr ()>;
-  using voidFptr = std::function<void (Ptr)>;
-  using ptrFptr = std::function<Ptr (Ptr)>;
-  using NullaryCallback = std::function<void(bool, bool)>;
-  using UnaryCallback = std::function<void(bool, bool, Ptr)>;
 
-  template<typename A>
-  static Ptr ptr(A* a)
+  template<typename F, typename... Args>
+  static Target target(F&& f, Args&& ... args)
   {
-    static_assert(std::is_base_of<Wrapper, A>::value,
-                  "Ptr type must derive from Task::Wrapper");
-    return a ? Ptr(static_cast<Wrapper*>(a)) : nullptr;
+    // Deduce the type of the function created by f(args) so we can pass it to
+    // bind without specifying it
+    using return_type = typename std::result_of<F(Args...)>::type;
+
+    // Bind f(args) in an asynchronous task runner in a copyable pointer
+    auto binding =
+      std::make_shared<std::packaged_task<return_type()>>(
+        std::bind(std::forward<F>(f), std::forward<Args>(args)...)
+      );
+
+    // Move capture comes in C++14; until then we eat the ref++/ref-- on the shared_ptr
+    // The closure copies the pointer to the binding and deduces the type. Calling the
+    // void(*)() dereferences the pointer the binding is equivalent to f(args).
+    // We also attach the future so the task result can be retrieved.
+    return Target {
+      f_wrapper([binding]() { (*binding)(); }),
+      UntypedFuture::wrap(std::move(binding->get_future()))
+    };
   }
 
   virtual ~Task() {}
 
-  /*! Attempt to cancel a scheduled task.
-  *  If the task is currently executing it will not be
-  *  interrupted, but any future executions will be cancelled.
-  *  \return \c true if the argument was returned.
-  */
-  virtual bool cancel(Ptr& arg_out) = 0;
-
-  /*! Attempt to modify the argument to the scheduled task.
-   *  If it is currently running, then the modification will take effect at the next scheduled
-   *  execution or not at all if no further executions are scheduled.
-   *  \param  old_args_out contains the old argument pointer if it was changed.
-   *  \return \c true if the argument was modified or \c false if it cannot be modified
-   *          because the task is not scheduled.
-   */
-  virtual bool modify_arg(Ptr&& new_args_in,
-                          Ptr& old_args_out) = 0;
-
-  /*! Block the calling thread until a result of executing this task is available or the
-   *  task is cancelled.
-   *  If a callback was specified at the task's scheduling it will \b not be called.
-   *  \param result_out contains the result if \c true was returned.
-   *  \return \c true if the result was retrieved or \c false if the task was cancelled.
-   */
-  virtual bool await(Ptr& result_out) = 0;
-
-  /*! Retrieve the result of execution if available.
-   *  \param result_out contains the result if \c true was returned.
-   *  \return \c true if the result was retrieved or \c false if none is available.
-   */
-  virtual bool poll(Ptr& result_out) = 0;
-
   //! \return \c true if the task is not scheduled to run.
-  virtual bool is_done() = 0;
+  virtual bool done() = 0;
 
   //! \return \c true if the task can be cancelled or \c false if it isn't scheduled.
-  virtual bool is_cancellable() = 0;
+  virtual bool cancellable() = 0;
 };
-
-inline Task::Wrapper::~Wrapper() {}
 
 }

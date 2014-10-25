@@ -73,9 +73,16 @@ std::atomic<std::size_t> count = 0;
 std::mutex mutex;
 std::condition_variable finished;
 
+int the_target(int i)
+{
+  return i+5;
+}
 
 TEST(Async_Scheduler, AssertionTrue)
 {
+  Threadpool<> tp(1);
+  tp.push(the_target, 5);
+
   std::atomic<bool> stop = false;
 
   DelayQueue<clock::time_point> dq;

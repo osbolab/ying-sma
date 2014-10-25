@@ -25,7 +25,7 @@ ThreadScheduler::Factory::Factory(std::size_t nr_threads)
 std::unique_ptr<Scheduler>
 ThreadScheduler::Factory::new_scheduler() const
 {
-  return std::unique_ptr<Scheduler>(new ThreadScheduler(nr_threads));
+  return std::unique_ptr<Scheduler> {new ThreadScheduler(nr_threads)};
 }
 
 ThreadScheduler::Factory* const
@@ -45,66 +45,19 @@ ThreadScheduler::ThreadScheduler(std::size_t nr_threads)
 {
 }
 
-std::shared_ptr<Task>
-ThreadScheduler::schedule(Task::voidFptr f,
-                          std::chrono::milliseconds delay,
-                          Task::Ptr&& arg,
-                          Task::Callback on_result)
+Scheduler::task_pointer
+ThreadScheduler::schedule(Task::Target target, delay_type delay)
 {
-  auto task = std::shared_ptr<ThreadTask>(
-                new ThreadTask(this, f, delay, std::move(arg), on_result)
-              );
-  task->is_scheduled(true);
-  task->is_cancellable(true);
+  auto task = std::shared_ptr<ThreadTask> {
+    std::move(new ThreadTask(this, std::move(target), delay))
+  };
+  task->scheduled(true);
+  task->cancellable(true);
 
-  tasks.push(task);
-
-  {
-    std::unique_lock<std::mutex> lock(task_thread_mutex);
-    if (!task_thread.joinable()) {
-      task_thread = std::thread([this]() {
-        LOG_D("[ThreadScheduler::{runner}] task thread is alive");
-        while (!tasks.empty()) {
-          auto task = std::move(tasks.front());
-          tasks.pop();
-          LOG_D("[ThreadScheduler::{runner}] sleeping for " << task->delay.count() << "ms");
-          std::this_thread::sleep_for(task->delay);
-          LOG_D("[ThreadScheduler::{runner}] awake");
-          {
-            std::unique_lock<std::mutex> lock(task->state_mutex);
-            if (task->cancel_requested) {
-              LOG_D("[ThreadScheduler::{runner}] task cancelled");
-            }
-            task->is_cancellable(false);
-          }
-          LOG_D("[ThreadScheduler::{runner}] running task");
-          task->set_result(std::move(task->f(nullptr)));
-          {
-            std::unique_lock<std::mutex> lock(task->state_mutex);
-            task->decrement_cycles();
-            if (task->nr_cycles_remaining() > 0) {
-              task->is_cancellable(true);
-              tasks.push(std::move(task));
-            } else {
-              task->is_scheduled(false);
-            }
-          }
-        }
-        LOG_D("[ThreadScheduler::{runner}] task thread dying");
-        {
-          std::unique_lock<std::mutex> lock(task_thread_mutex);
-          if (this->task_thread.joinable()) {
-            LOG_D("[ThreadScheduler::{runner}] no task thread");
-            this->task_thread = std::thread();
-          }
-        }
-      });
-    }
-  }
+  tasks.push(task, delay);
 
   return task;
 }
-
 
 
 /*******************************************************************************
@@ -112,12 +65,12 @@ ThreadScheduler::schedule(Task::voidFptr f,
  */
 
 ThreadScheduler::ThreadTask::ThreadTask(ThreadScheduler* scheduler,
-                                        std::chrono::milliseconds delay,
-                                        std::unique_ptr<Caller>&& caller)
+                                        Task::Target target,
+                                        std::chrono::milliseconds delay)
   : scheduler(scheduler),
+    target(std::move(target)),
     delay(delay),
-    caller(std::move(caller)),
-    cancel_requested(false), is_cancellable_(false), is_scheduled_(false)
+    cancel_requested(false), is_cancellable(false), is_scheduled(false)
 {
   LOG_D("[ThreadTask::()] " << delay.count() << "ms");
 }
@@ -127,6 +80,22 @@ ThreadScheduler::ThreadTask::~ThreadTask()
   LOG_D("[ThreadTask::~]");
 }
 
+
+bool
+ThreadScheduler::ThreadTask::done()
+{
+  std::unique_lock<std::mutex> lock { mutex };
+  return !is_scheduled;
+}
+
+bool
+ThreadScheduler::ThreadTask::cancellable()
+{
+  std::unique_lock<std::mutex> lock { mutex };
+  return is_cancellable;
+}
+
+#if 0
 void
 ThreadScheduler::ThreadTask::set_result(Task::Ptr&& result_in)
 {
@@ -188,20 +157,7 @@ ThreadScheduler::ThreadTask::await(Task::Ptr& result_out)
   result_out = std::move(result);
   return true;
 }
-
-bool
-ThreadScheduler::ThreadTask::is_done()
-{
-  std::unique_lock<std::mutex> lock(state_mutex);
-  return !is_scheduled_;
-}
-
-bool
-ThreadScheduler::ThreadTask::is_cancellable()
-{
-  std::unique_lock<std::mutex> lock(state_mutex);
-  return is_cancellable_;
-}
+#endif
 
 /* ThreadTask
  ******************************************************************************/

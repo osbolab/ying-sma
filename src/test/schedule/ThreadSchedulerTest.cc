@@ -1,47 +1,44 @@
 #include "schedule/Scheduler.hh"
 #include "schedule/ThreadScheduler.hh"
+#include "util/Log.hh"
 
 #include "gtest/gtest.h"
 
 #include <chrono>
 #include <iostream>
 #include <limits>
+#include <cstdlib>
+#include <cstdint>
 #include <memory>
+#include <ctime>
+#include <iomanip>
 
 
 
 namespace sma
 {
 
-struct Packet : public Task::Wrapper {
-  int i;
-};
-
-Task::Ptr scheduled_func(Task::Ptr arg)
+void do_announce(std::uint16_t node_id)
 {
-  if (!arg) return nullptr;
+  auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+  LOG_D("Announced at " << now);
+}
 
-  auto packet_in = arg->as<Packet>();
-  auto packet_out = new Packet();
-  packet_out->i = 2 * packet_in->i;
-
-  return Task::ptr(packet_out);
+// function<void(Task, ...A)>
+void on_announce_done(std::shared_ptr<Task>& task, std::size_t backoff)
+{
+  backoff = std::size_t(float(backoff) * 1.2f);
 }
 
 TEST(Schedule_Task, AssertionTrue)
 {
   auto sched = ThreadScheduler::single_threaded_factory()->new_scheduler();
 
-  Packet* arg = new Packet();
-  arg->i = 15;
+  auto target = Task::target(do_announce, 32);
+  std::future<std::uint16_t> f { target.result->unwrap<std::uint16_t>() };
+  std::cout << f.valid() << std::endl;
 
-  auto task = sched->schedule(scheduled_func,
-                              std::chrono::milliseconds(1000), 1,
-                              Task::ptr(arg));
-
-  Task::Ptr result;
-  ASSERT_TRUE(task->await(result));
-  ASSERT_EQ(30, result->as<Packet>()->i);
+  //auto task = sched->schedule(do_announce,
 }
 
 }

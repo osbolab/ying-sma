@@ -78,6 +78,9 @@ object(Sump "util"
 object(thread_interrupted "concurrent"
   "${INC}/concurrent/thread_interrupted.hh"
 )
+object(Future "concurrent"
+  "${INC}/concurrent/Future.hh"
+)
 object(CyclicBarrier "concurrent"
   "${INC}/concurrent/CyclicBarrier.hh"
   "${SRC}/concurrent/CyclicBarrier.cc"
@@ -154,11 +157,13 @@ object(NativeSocket "net"
 object(Scheduler        "schedule"
   "${INC}/schedule/Scheduler.hh"
   "${INC}/schedule/Task.hh"
+  Future
 )
 object(ThreadScheduler  "schedule"
   "${INC}/schedule/ThreadScheduler.hh"
   "${SRC}/schedule/ThreadScheduler.cc"
   Scheduler
+  Future
 )
 
 ############################################

@@ -2,12 +2,12 @@
 
 #include "Scheduler.hh"
 #include "Task.hh"
+#include "concurrent/DelayQueue.hh"
 
 #include <chrono>
 #include <cstdlib>
 #include <functional>
 #include <memory>
-#include <queue>
 #include <mutex>
 #include <atomic>
 #include <thread>
@@ -21,86 +21,61 @@ class ThreadScheduler final : public Scheduler
 {
   class ThreadTask;
 
+  using thread_task_pointer = std::shared_ptr<ThreadTask>;
+  using task_q_type = DelayQueue<thread_task_pointer>;
+  using f_wrapper = std::function<void()>;
+
 public:
   static Scheduler::Factory* single_threaded_factory();
 
   ThreadScheduler(std::size_t nr_threads);
 
-  std::shared_ptr<Task>
-  schedule(Task::voidFvoid f,
-           std::chrono::milliseconds delay = std::chrono::milliseconds(0),
-           Task::NullaryCallback on_complete = nullptr) override;
-
-  std::shared_ptr<Task>
-  schedule(Task::voidFptr f,
-           std::chrono::milliseconds delay = std::chrono::milliseconds(0),
-           Task::Ptr&& arg = nullptr,
-           Task::NullaryCallback on_complete = nullptr) override;
-
-  std::shared_ptr<Task>
-  schedule(Task::voidFvoid f,
-           std::chrono::milliseconds delay = std::chrono::milliseconds(0),
-           Task::UnaryCallback on_result = nullptr) override;
-
-  std::shared_ptr<Task>
-  schedule(Task::ptrFptr f,
-           std::chrono::milliseconds delay = std::chrono::milliseconds(0),
-           Task::Ptr&& arg = nullptr,
-           Task::UnaryCallback on_result = nullptr) override;
+  task_pointer
+  schedule(Task::Target target, delay_type delay) override;
 
 
 private:
-  struct Caller;
-
-  void run_task(Task::voidFvoid f, ThreadTask task);
+  template<typename F, typename... Args>
+  f_wrapper wrap(F&& f, Args&& ... args);
 
   std::size_t nr_threads;
-  // TODO: need a delay queue
-  std::queue<std::shared_ptr<ThreadTask>> tasks;
-  std::mutex      task_thread_mutex;
-  std::thread     task_thread;
+  task_q_type  tasks;
+  std::mutex  task_thread_mutex;
+  std::thread task_thread;
 
 
 
   class ThreadTask final : public Task
   {
+    using delay_type = std::chrono::milliseconds;
+
     friend class ThreadScheduler;
 
   public:
     ~ThreadTask();
 
-    bool cancel(Task::Ptr& arg_out) override;
-
-    bool  modify_arg(Task::Ptr&& new_arg_in, Task::Ptr& old_arg_out) override;
-
-    bool  await(Task::Ptr& result_out) override;
-    bool  poll(Task::Ptr& result_out) override;
-
-    bool is_done() override;
-    bool is_cancellable() override;
-    void is_scheduled(bool scheduled) { is_scheduled_ = scheduled; }
-    void is_cancellable(bool cancellable) { is_cancellable_ = cancellable; }
+    bool done() override;
+    bool cancellable() override;
+    void scheduled(bool scheduled) { is_scheduled = scheduled; }
+    void cancellable(bool cancellable) { is_cancellable = cancellable; }
 
   private:
     ThreadTask(ThreadScheduler* scheduler,
-               std::chrono::milliseconds delay,
-               std::unique_ptr<Caller>&& caller);
+               Task::Target target,
+               delay_type delay);
 
     void run();
 
     ThreadScheduler* scheduler;
-    std::chrono::milliseconds delay;
-    Task::voidFvoid f;
+    delay_type delay;
+    Task::Target target;
 
-    std::mutex state_mutex;
     bool cancel_requested;
-    bool is_cancellable_;
-    bool is_scheduled_;
+    bool is_cancellable;
+    bool is_scheduled;
 
-    std::mutex result_mutex;
+    std::mutex mutex;
     std::condition_variable result_available;
-
-    std::unique_ptr<Caller> caller;
   };
 
 
@@ -119,52 +94,6 @@ private:
 
 
 private:
-  struct Caller {
-    Caller() : result(nullptr) {}
-    virtual ~Caller() {}
-
-    virtual void call() = 0;
-
-    Task::Ptr result;
-  };
-
-  struct voidFvoidCaller final : public Caller {
-    void call() override
-    {
-      if (f) f();
-    }
-  private:
-    Task::voidFvoid f;
-  };
-
-  struct voidFptrCaller final : public Caller {
-    void call() override
-    {
-      if (f) f(std::move(arg));
-    }
-  private:
-    Task::voidFptr f;
-    Task::Ptr arg;
-  };
-
-  struct ptrFvoidCaller final : public Caller {
-    void call() override
-    {
-      if (f) result = f();
-    }
-  private:
-    Task::ptrFvoid f;
-  };
-
-  struct ptrFptrCaller final : public Caller {
-    void call() override
-    {
-      if (f) result = f(std::move(arg));
-    }
-  private:
-    Task::ptrFptr f;
-    Task::Ptr arg;
-  };
 };
 
 }
