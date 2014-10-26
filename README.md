@@ -9,7 +9,8 @@
 Compile and run by changing into the `ns-3.xx/build` directory and running `./waf --run example`
 
 #### Android
-> If you're using command line NDK support (I use IDEA community edition 13 for the Java stuff), then this is what I had to put in my `jni/Application.mk` to get C++11 support with API 19
+> If you're using command line NDK support this is what I had to put in my `jni/Application.mk` to
+> get C++11 support with API 19
 
 ([stackoverflow](http://stackoverflow.com/a/21386866))
 

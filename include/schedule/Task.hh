@@ -74,6 +74,8 @@ public:
            );
   }
 
+
+
   virtual ~Task() {}
 
   //! \return \c true if the task is not scheduled to run.
@@ -81,6 +83,7 @@ public:
 
   //! \return \c true if the task can be cancelled or \c false if it isn't scheduled.
   virtual bool cancellable() = 0;
+
 
 private:
   template<typename T>
