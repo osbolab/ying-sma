@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 2.8)
 option(build_tests "Build all tests." ON)
 option(use_folders "Group projects in folders." ON)
 
+option(gtest_version "Google Test library version." 1.7.0)
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ${use_folders})
 if (${use_folders})
   Message(STATUS "Using project folders")
@@ -12,7 +14,7 @@ set(PROJ              ying-sma)
 set(INC               include)
 set(SRC	              src/main)
 set(TEST              src/test)
-set(LIB_GTEST         lib/gtest-1.7.0)
+set(LIB_GTEST         lib/gtest-${gtest_version})
 set(TEST_PROJ_FOLDER  Test)
 
 set(PLATFORM  platform)
@@ -38,11 +40,10 @@ endif()
 
 # syntax:
 #   object(Name "Project Folder (or empty)"
-#     source_dependency.hh
 #     source_dependency.cc
 #     object_dependency
-#     source_dependency2.hh
-#     "source dependency with/spaces.hh"
+#     header_shown_in_project.hh
+#     "source dependency with spaces.hh"
 #   )
 
 # example:
