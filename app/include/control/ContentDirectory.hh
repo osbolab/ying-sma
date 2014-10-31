@@ -2,10 +2,10 @@
 #define CONTENT_DIRECTORY_H
 
 #include <vector>
-#include "ContentDiscription.h"
+#include "control/ContentDiscription.hh"
 #include <mutex>
-#include "SortDirectory.h"
-#include "Segmenter.h"
+#include "control/SortDirectory.hh"
+#include "control/Segmenter.hh"
 
 class ContentDirectory
 {

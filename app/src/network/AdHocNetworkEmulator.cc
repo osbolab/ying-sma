@@ -1,16 +1,16 @@
-#include "AdHocNetworkEmulator.hh"
+#include "network/AdHocNetworkEmulator.hh"
 #include <mutex>
 #include <cassert>
-#include "GPSinfo.hh"
+#include "control/GPSinfo.hh"
 #include <iostream>
-#include "Device.hh"
+#include "node/Device.hh"
 #include <string>
 #include <cmath>
 #include <cstdlib>
 #include <condition_variable>
 #include <thread>
 #include <chrono>
-#include "DeviceLogger.hh"
+#include "node/DeviceLogger.hh"
 #include <sstream>
 #include <map>
 

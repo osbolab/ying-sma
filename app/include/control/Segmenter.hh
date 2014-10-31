@@ -4,10 +4,10 @@
 #include <string>
 #include <fstream>
 #include <vector>
-#include "ChunkStore.h"
-#include "DataLayer.h"
-#include "TypeDefinition.h"
-#include "DeviceLogger.h"
+#include "data/ChunkStore.hh"
+#include "data/DataLayer.hh"
+#include "TypeDefinition.hh"
+#include "node/DeviceLogger.hh"
 
 class DataLayer;
 

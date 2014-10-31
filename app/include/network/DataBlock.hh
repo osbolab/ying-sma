@@ -1,8 +1,8 @@
 #ifndef DATA_BLOCK_H
 #define DATA_BLOCK_H
 
-#include "Device.h"
-#include "TypeDefinition.h"
+#include "node/Device.hh"
+#include "TypeDefinition.hh"
 
 namespace SMA
 {

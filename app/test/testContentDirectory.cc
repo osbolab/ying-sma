@@ -1,7 +1,7 @@
-#include "ContentDirectory.hh"
-#include "SortDirectoryByRank.hh"
+#include "control/ContentDirectory.hh"
+#include "control/SortDirectoryByRank.hh"
 #include <iostream>
-#include "ContentDiscription.hh"
+#include "control/ContentDiscription.hh"
 #include <string>
 
 using namespace std;

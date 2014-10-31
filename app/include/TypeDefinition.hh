@@ -1,6 +1,8 @@
 #ifndef TYPE_DEFINITION_H
 #define TYPE_DEFINITION_H
 
-typedef std::string ChunkID; 
+#include <string>
+
+typedef std::string ChunkID;
 
 #endif

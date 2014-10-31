@@ -218,7 +218,7 @@ typedef UInt64 LargestUInt;
 #define JSON_FORWARDS_H_INCLUDED
 
 #if !defined(JSON_IS_AMALGAMATION)
-#include "config.h"
+#include "config.hh"
 #endif // if !defined(JSON_IS_AMALGAMATION)
 
 namespace Json {

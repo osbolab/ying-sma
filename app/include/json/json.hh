@@ -245,7 +245,7 @@ typedef UInt64 LargestUInt;
 #define JSON_FORWARDS_H_INCLUDED
 
 #if !defined(JSON_IS_AMALGAMATION)
-#include "config.h"
+#include "config.hh"
 #endif // if !defined(JSON_IS_AMALGAMATION)
 
 namespace Json {
@@ -302,7 +302,7 @@ class ValueInternalMap;
 #define CPPTL_JSON_FEATURES_H_INCLUDED
 
 #if !defined(JSON_IS_AMALGAMATION)
-#include "forwards.h"
+#include "forwards.hh"
 #endif // if !defined(JSON_IS_AMALGAMATION)
 
 namespace Json {
@@ -373,7 +373,7 @@ public:
 #define CPPTL_JSON_H_INCLUDED
 
 #if !defined(JSON_IS_AMALGAMATION)
-#include "forwards.h"
+#include "forwards.hh"
 #endif // if !defined(JSON_IS_AMALGAMATION)
 #include <string>
 #include <vector>
@@ -1246,7 +1246,7 @@ public:
   virtual void destructArray(ValueInternalArray* array) = 0;
   /** \brief Reallocate array page index.
    * Reallocates an array of pointer on each page.
-   * \param indexes [input] pointer on the current index. May be \c NULL.
+   * \param indexes [input] pointer on the current index. May be \c nullptr.
    *                [output] pointer on the new index of at least
    *                         \a minNewIndexCount pages.
    * \param indexCount [input] current number of pages in the index.
@@ -1473,8 +1473,8 @@ public:
 #define CPPTL_JSON_READER_H_INCLUDED
 
 #if !defined(JSON_IS_AMALGAMATION)
-#include "features.h"
-#include "value.h"
+#include "features.hh"
+#include "value.hh"
 #endif // if !defined(JSON_IS_AMALGAMATION)
 #include <deque>
 #include <iosfwd>
@@ -1740,7 +1740,7 @@ JSON_API std::istream& operator>>(std::istream&, Value&);
 #define JSON_WRITER_H_INCLUDED
 
 #if !defined(JSON_IS_AMALGAMATION)
-#include "value.h"
+#include "value.hh"
 #endif // if !defined(JSON_IS_AMALGAMATION)
 #include <vector>
 #include <string>
@@ -1969,7 +1969,7 @@ JSON_API std::ostream& operator<<(std::ostream&, const Value& root);
 #include <stdlib.h>
 
 #if !defined(JSON_IS_AMALGAMATION)
-#include "config.h"
+#include "config.hh"
 #endif // if !defined(JSON_IS_AMALGAMATION)
 
 #if JSON_USE_EXCEPTION

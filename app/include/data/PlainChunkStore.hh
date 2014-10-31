@@ -1,12 +1,12 @@
 #ifndef PLAIN_CHUNK_STORE_H
 #define PLAIN_CHUNK_STORE_H
 
-#include "ChunkStore.h"
+#include "data/ChunkStore.hh"
 #include <unordered_map>
 #include <mutex>
 #include <string>
 #include <fstream>
-#include "TypeDefinition.h"
+#include "TypeDefinition.hh"
 
 class PlainChunkStore : public ChunkStore
 {

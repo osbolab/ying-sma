@@ -1,12 +1,12 @@
-#include "ControlLayer.hh"
-#include "ContentDiscription.hh"
+#include "control/ControlLayer.hh"
+#include "control/ContentDiscription.hh"
 #include <string>
-#include "ContentDirectory.hh"
-#include "Segmenter.hh"
+#include "control/ContentDirectory.hh"
+#include "control/Segmenter.hh"
 #include <vector>
 #include <iostream>
 #include <mutex>
-#include "SignalHandler.hh"
+#include "control/SignalHandler.hh"
 #include <fstream>
 #include <sstream>
 #include <cstdio>
@@ -186,7 +186,7 @@ void ControlLayer::transmitChunk (ChunkID chunk)
       block.setChunkID (chunk);
       block.createData (device, buffer, sizeOfChunk);
       delete [] buffer;
-      buffer = NULL;
+      buffer = nullptr;
       device->sendSignal(block);
     }
   }

@@ -1,10 +1,10 @@
-#include "SignalHandler.hh"
+#include "control/SignalHandler.hh"
 #include <sstream>
-#include "DataBlock.hh"
+#include "network/DataBlock.hh"
 #include "./json/json.hh"
-#include "ContentDiscription.hh"
-#include "DeviceLogger.hh"
-#include "ControlLayer.hh"
+#include "control/ContentDiscription.hh"
+#include "node/DeviceLogger.hh"
+#include "control/ControlLayer.hh"
 #include <iostream>
 
 //SignalHandler::SignalHandler (ControlLayer* controlPtr, DeviceLogger* loggerPtr) : control (controlPtr), logger (loggerPtr) {}
@@ -96,7 +96,7 @@ void SignalHandler::processIncomingChunk (const DataBlock& block)
       logger->log (oss.str());
   }  
   delete [] payload;
-  payload = NULL;
+  payload = nullptr;
  
 }
 
@@ -106,7 +106,7 @@ void SignalHandler::processRequestFwd (const DataBlock& block)
   block.getPayload(payload);
   std::string payloadJson(payload);
   delete [] payload;
-  payload = NULL;
+  payload = nullptr;
   Json::Value parsedFromString;
   Json::Reader reader;
   bool success = reader.parse(payloadJson, parsedFromString);

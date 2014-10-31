@@ -3,7 +3,7 @@
 
 #include <unordered_map>
 #include <mutex>
-#include "TypeDefinition.h"
+#include "TypeDefinition.hh"
 #include <string>
 /*
  * getRule

@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <mutex>
 #include <string>
-#include "NeighborRecordEntry.h"
+#include "control/NeighborRecordEntry.hh"
 #include <vector>
 
 class NeighborRecords

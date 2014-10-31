@@ -1,12 +1,12 @@
-#include "ContentDirectory.hh"
-#include "ContentDiscription.hh"
+#include "control/ContentDirectory.hh"
+#include "control/ContentDiscription.hh"
 #include <mutex>
 #include <algorithm>
-#include "SortDirectory.hh"
+#include "control/SortDirectory.hh"
 #include <vector>
 #include <functional>
-#include "SortDirectoryByRank.hh"
-#include "SortDirectoryByPublishTime.hh"
+#include "control/SortDirectoryByRank.hh"
+#include "control/SortDirectoryByPublishTime.hh"
 #include <iostream>
 
 void ContentDirectory::addContentToDirectory (const ContentDiscription& discription)

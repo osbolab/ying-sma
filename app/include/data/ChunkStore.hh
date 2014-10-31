@@ -3,8 +3,8 @@
 
 #include <string>
 #include <fstream>
-#include "TypeDefinition.h"
-#include "DeviceLogger.h"
+#include "TypeDefinition.hh"
+#include "node/DeviceLogger.hh"
 
 class ChunkStore
 {

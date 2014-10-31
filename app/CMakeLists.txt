@@ -9,9 +9,40 @@ set(TEST   "test")
 
 
 set(LIB_SOURCES
+  "${SRC}/md5.cc"
+  "${SRC}/json/json.cc"
+  "${SRC}/split_regroup.cc"
+
+  "${SRC}/EchoClient.cc"
+  "${SRC}/EchoServer.cc"
+
+  "${SRC}/emulator/Emulator.cc"
+  "${SRC}/emulator/BatchScriptGenerator.cc"
+
+  "${SRC}/node/DeviceWithGPS.cc"
+  "${SRC}/node/DeviceLogger.cc"
+
+  "${SRC}/network/DataBlock.cc"
+  "${SRC}/network/AdHocNetworkEmulator.cc"
+
+  "${SRC}/data/PlainChunkStore.cc"
+  "${SRC}/data/PendingChunkManager.cc"
+  "${SRC}/data/FlowTable.cc"
+  "${SRC}/data/DataLayer.cc"
+
+  "${SRC}/control/SignalHandler.cc"
+  "${SRC}/control/Segmenter.cc"
+  "${SRC}/control/PendingFileManager.cc"
+  "${SRC}/control/NeighborRecords.cc"
+  "${SRC}/control/NeighborRecordEntry.cc"
+  "${SRC}/control/GPSDriver.cc"
+  "${SRC}/control/ControlLayer.cc"
+  "${SRC}/control/ContentDiscription.cc"
+  "${SRC}/control/ContentDirectory.cc"
 )
 
 set(TEST_SOURCES
+  "${TEST}/test_main.cc"
 )
 
 

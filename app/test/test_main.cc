@@ -1,5 +1,5 @@
 #include <iostream>
-#include "Emulator.hh"
+#include "emulator/Emulator.hh"
 
 using namespace std;
 

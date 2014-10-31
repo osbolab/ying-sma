@@ -1,4 +1,4 @@
-#include "PendingChunkManager.hh"
+#include "data/PendingChunkManager.hh"
 #include <vector>
 #include <string>
 #include <mutex>
@@ -64,10 +64,10 @@ void PendingChunkManager::completeDownloadTask(ChunkID chunk, std::vector<std::s
       }
       files->erase (*file_iter++);
     }
-    if (files != NULL && files->size() == 0)
+    if (files != nullptr && files->size() == 0)
     {
       delete files; 
-      files = NULL;
+      files = nullptr;
     }
     pendingFilesOfChunk.erase(chunk_iter);
   }
@@ -86,7 +86,7 @@ void PendingChunkManager::removeChunkFromFile(ChunkID chunk, std::string fileNam
     if (chunks->size() == 0)
     {
       delete chunks;
-      chunks = NULL;
+      chunks = nullptr;
       pendingChunksInFile.erase(file_iter); //if all chunks have been downloaded.
       complete = true;
     }

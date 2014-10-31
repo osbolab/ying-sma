@@ -1,10 +1,10 @@
 #ifndef SIGNAL_HANDLER_H
 #define SIGNAL_HANDLER_H
 
-#include "DataBlock.h"
-#include "DeviceLogger.h"
-//#include "ControlLayer.h"
-#include "DeviceLogger.h"
+#include "network/DataBlock.hh"
+#include "node/DeviceLogger.hh"
+//#include "control/ControlLayer.hh"
+#include "node/DeviceLogger.hh"
 
 class ControlLayer;
 

@@ -1,8 +1,8 @@
 #include <iostream>
-#include "NetworkEmulator.hh"
-#include "Device.hh"
-#include "AdHocNetworkEmulator.hh"
-#include "DeviceWithGPS.hh"
+#include "network/NetworkEmulator.hh"
+#include "node/Device.hh"
+#include "network/AdHocNetworkEmulator.hh"
+#include "node/DeviceWithGPS.hh"
 
 using namespace std;
 

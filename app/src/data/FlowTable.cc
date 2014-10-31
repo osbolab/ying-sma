@@ -1,4 +1,4 @@
-#include "FlowTable.hh"
+#include "data/FlowTable.hh"
 #include <unordered_map>
 #include <mutex>
 

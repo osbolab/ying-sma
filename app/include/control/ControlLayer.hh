@@ -1,20 +1,20 @@
 #ifndef CONTROL_LAYER_H
 #define CONTROL_LAYER_H
 
-#include "DataLayer.h"
-#include "Segmenter.h"
-#include "ContentDirectory.h"
+#include "data/DataLayer.hh"
+#include "control/Segmenter.hh"
+#include "control/ContentDirectory.hh"
 #include <string>
-#include "ContentDiscription.h"
+#include "control/ContentDiscription.hh"
 #include <vector>
 #include <unordered_map>
 #include <mutex>
-#include "Device.h"
-#include "NeighborRecords.h"
-#include "DataBlock.h"
-#include "SignalHandler.h"
-#include "PendingFileManager.h"
-#include "TypeDefinition.h"
+#include "node/Device.hh"
+#include "control/NeighborRecords.hh"
+#include "network/DataBlock.hh"
+#include "control/SignalHandler.hh"
+#include "control/PendingFileManager.hh"
+#include "TypeDefinition.hh"
 
 class ControlLayer
 {

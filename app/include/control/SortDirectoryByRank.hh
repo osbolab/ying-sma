@@ -1,8 +1,8 @@
 #ifndef SORT_DIRECTORY_BY_RANK_H
 #define SORT_DIRECTORY_BY_RANK_H
 
-#include "SortDirectory.h"
-#include "ContentDiscription.h"
+#include "control/SortDirectory.hh"
+#include "control/ContentDiscription.hh"
 #include <string>
 #include <sstream>
 

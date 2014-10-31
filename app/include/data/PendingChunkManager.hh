@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <set>
 #include <mutex>
-#include "TypeDefinition.h"
+#include "TypeDefinition.hh"
 
 class PendingChunkManager
 {

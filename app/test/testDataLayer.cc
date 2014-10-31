@@ -1,5 +1,5 @@
 #include <iostream>
-#include "DataLayer.hh"
+#include "data/DataLayer.hh"
 #include <cassert>
 
 using namespace std;

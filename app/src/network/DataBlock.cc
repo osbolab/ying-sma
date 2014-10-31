@@ -1,10 +1,10 @@
-#include "DataBlock.hh"
+#include "network/DataBlock.hh"
 
 #include <cstring>
-#include "Device.hh"
+#include "node/Device.hh"
 #include <iostream>
 
-DataBlock::DataBlock(SMA::MESSAGE_TYPE type):dataType(type), dataArray(NULL), payloadSize(0) {}
+DataBlock::DataBlock(SMA::MESSAGE_TYPE type):dataType(type), dataArray(nullptr), payloadSize(0) {}
 
 DataBlock::DataBlock(const DataBlock& block)
 {
@@ -14,11 +14,11 @@ DataBlock::DataBlock(const DataBlock& block)
     dataType = block._getMsgTypeEnum();
     srcDeviceID = block.getSrcDeviceID();
     chunkID = block.getChunkID();
-//    if (dataArray != NULL) 
+//    if (dataArray != nullptr) 
 //    {
 //      std::cout << "trying to delete " << dataArray << std::endl;
 //      delete [] dataArray;
-//      dataArray = NULL;
+//      dataArray = nullptr;
 //    }
     dataArray = new char [payloadSize];
 //    strncpy(dataArray, block.dataArray, payloadSize);
@@ -33,7 +33,7 @@ DataBlock& DataBlock::operator= (const DataBlock& block)
     this->payloadSize = block.getPayloadSize();
     this->dataType = block._getMsgTypeEnum();
     this->srcDeviceID = block.getSrcDeviceID();
-    if (this->dataArray != NULL) delete [] this->dataArray;
+    if (this->dataArray != nullptr) delete [] this->dataArray;
     this->dataArray = new char [payloadSize];
 //    strncpy(this->dataArray, block.dataArray, this->payloadSize);
     memcpy(this->dataArray, block.dataArray, this->payloadSize);
@@ -44,14 +44,14 @@ DataBlock& DataBlock::operator= (const DataBlock& block)
 DataBlock::~DataBlock()
 {
   delete [] dataArray;
-  dataArray = NULL;
+  dataArray = nullptr;
 }
 
 void DataBlock::createData(Device* devicePtr, char* carray, int size)
 {
   srcDeviceID = devicePtr->getDeviceID();
   payloadSize = size;
-  if (dataArray != NULL)  delete [] dataArray;
+  if (dataArray != nullptr)  delete [] dataArray;
   dataArray = new char [payloadSize];
   memcpy(dataArray, carray, size);
 }
@@ -73,8 +73,8 @@ SMA::MESSAGE_TYPE DataBlock::_getMsgTypeEnum() const
 
 void DataBlock::getPayload(char* outputBuffer) const
 {
-//  if (outputBuffer != NULL) strncpy(outputBuffer, dataArray, payloadSize);
-  if (outputBuffer != NULL) memcpy(outputBuffer, dataArray, payloadSize);
+//  if (outputBuffer != nullptr) strncpy(outputBuffer, dataArray, payloadSize);
+  if (outputBuffer != nullptr) memcpy(outputBuffer, dataArray, payloadSize);
 }
 
 std::string DataBlock::getSrcDeviceID() const

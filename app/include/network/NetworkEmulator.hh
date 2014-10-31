@@ -1,11 +1,11 @@
 #ifndef NETWORK_EMULATOR_H
 #define NETWORK_EMULATOR_H
 
-#include "Device.h"
+#include "node/Device.hh"
 #include <string>
 #include <mutex>
 #include <fstream>
-#include "DataBlock.h"
+#include "network/DataBlock.hh"
 
 class Device;
 class DataBlock;

@@ -1,18 +1,18 @@
 #ifndef DEVICE_WITH_GPS_H
 #define DEVICE_WITH_GPS_H
 
-#include "GPSinfo.h"
-#include "Device.h"
-#include "NetworkEmulator.h"
+#include "control/GPSinfo.hh"
+#include "node/Device.hh"
+#include "network/NetworkEmulator.hh"
 #include <thread>
-#include "DataBlock.h"
+#include "network/DataBlock.hh"
 #include <mutex>
 #include <queue>
-#include "NeighborRecords.h"
-#include "ControlLayer.h"
-#include "GPSDriver.h"
-#include "DeviceLogger.h"
-#include "TypeDefinition.h"
+#include "control/NeighborRecords.hh"
+#include "control/ControlLayer.hh"
+#include "control/GPSDriver.hh"
+#include "node/DeviceLogger.hh"
+#include "TypeDefinition.hh"
 
 class DeviceWithGPS : public Device
 {

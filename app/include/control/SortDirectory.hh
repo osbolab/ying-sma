@@ -1,7 +1,7 @@
 #ifndef SORT_DIRECTORY_H
 #define SORT_DIRECTORY_H
 
-#include "ContentDirectory.h"
+#include "control/ContentDirectory.hh"
 
 class SortDirectory
 {

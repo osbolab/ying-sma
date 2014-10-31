@@ -2,13 +2,13 @@
 #define DATA_LAYER_H
 
 #include <string>
-#include "ChunkStore.h"
+#include "data/ChunkStore.hh"
 #include <fstream>
-#include "TypeDefinition.h"
+#include "TypeDefinition.hh"
 #include <unordered_map>
 #include <set>
-#include "PendingChunkManager.h"
-#include "FlowTable.h"
+#include "data/PendingChunkManager.hh"
+#include "data/FlowTable.hh"
 
 class ControlLayer;
 class DeviceLogger;

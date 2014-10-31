@@ -1,7 +1,7 @@
 #ifndef GPS_DRIVER_H
 #define GPS_DRIVER_H
 
-#include "GPSinfo.h"
+#include "control/GPSinfo.hh"
 
 class GPSDriver
 {

@@ -1,16 +1,16 @@
 #ifndef ADHOC_NETWORK_EMULATOR_H
 #define ADHOC_NETWORK_EMULATOR_H
 
-#include "GPSinfo.h"
-#include "Device.h"
-#include "DeviceWithGPS.h"
+#include "control/GPSinfo.hh"
+#include "node/Device.hh"
+#include "node/DeviceWithGPS.hh"
 #include <string>
 #include <mutex>
 #include <unordered_map>
 #include <queue>
-#include "DataBlock.h"
+#include "network/DataBlock.hh"
 #include <condition_variable>
-#include "NetworkEmulator.h"
+#include "network/NetworkEmulator.hh"
 #include <vector>
 #include <map>
 
