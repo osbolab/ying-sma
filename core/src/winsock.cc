@@ -1,7 +1,7 @@
 #ifdef WIN32
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
-#include "net/Winsock.hh"
+#include "winsock.hh"
 
 #include <iostream>
 #include <algorithm>

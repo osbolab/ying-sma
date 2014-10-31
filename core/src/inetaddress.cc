@@ -1,7 +1,7 @@
-#include "net/InetAddress.hh"
+#include "inetaddress.hh"
 
 #ifdef WIN32
-#include "net/Winsock.hh"
+#include "winsock.hh"
 #else
 #include <arpa/inet.h>
 #define ARPA_INET_H_

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Channel/SelectableChannel.hh"
-#include "msg/Message.hh"
+#include "selectablechannel.hh"
+#include "message.hh"
 
 
 namespace sma

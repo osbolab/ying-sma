@@ -1,7 +1,7 @@
-#include "net/SocketAddress.hh"
+#include "socketaddress.hh"
 
 #ifdef WIN32
-#include "net/Winsock.hh"
+#include "winsock.hh"
 #else
 #include <netinet/in.h>    // struct sockaddr
 #include <sys/socket.h>    // AF_***

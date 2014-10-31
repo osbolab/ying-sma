@@ -1,9 +1,9 @@
-#include "net/NativeSocket.hh"
+#include "nativesocket.hh"
 
-#include "util/Log.hh"
+#include "log.hh"
 
 #ifdef WIN32
-#include "Winsock.hh"
+#include "winsock.hh"
 #else
 #include <unistd.h>
 #include <fcntl.h>

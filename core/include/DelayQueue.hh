@@ -1,7 +1,7 @@
 #pragma once
 
-#include "PriorityQueue.hh"
-#include "concurrent/thread_interrupted.hh"
+#include "priorityqueue.hh"
+#include "thread_interrupted.hh"
 
 #include <utility>
 #include <chrono>

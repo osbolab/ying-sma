@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Socket.hh"
+#include "socket.hh"
 
 #ifdef WIN32
-#include "Winsock.hh"
+#include "winsock.hh"
 #else
 #include <sys/types.h>
 #include <sys/socket.h>

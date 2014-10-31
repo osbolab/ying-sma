@@ -1,4 +1,4 @@
-#include "msg/Message.hh"
+#include "message.hh"
 
 
 namespace sma

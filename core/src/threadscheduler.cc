@@ -1,7 +1,7 @@
-#include "schedule/ThreadScheduler.hh"
-#include "schedule/Task.hh"
+#include "threadscheduler.hh"
+#include "task.hh"
 
-#include "util/Log.hh"
+#include "log.hh"
 
 #include <chrono>
 #include <thread>

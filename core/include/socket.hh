@@ -2,8 +2,8 @@
 
 #include <memory>
 
-#include "SocketAddress.hh"
-#include "msg/Message.hh"
+#include "socketaddress.hh"
+#include "message.hh"
 
 
 namespace sma

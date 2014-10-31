@@ -5,7 +5,7 @@
 #include <deque>
 #include <utility>
 
-#include "concurrent/BlockingSource.hh"
+#include "blockingsource.hh"
 
 
 namespace sma

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "util/Sink.hh"
-#include "concurrent/BlockingSource.hh"
+#include "sink.hh"
+#include "blockingsource.hh"
 
 #include <functional>
 

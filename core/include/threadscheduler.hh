@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Scheduler.hh"
-#include "Task.hh"
-#include "DelayQueue.hh"
+#include "scheduler.hh"
+#include "task.hh"
+#include "delayqueue.hh"
 
 #include <chrono>
 #include <cstdlib>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "concurrent/Future.hh"
+#include "future.hh"
 
 #include <cstdlib>
 #include <memory>

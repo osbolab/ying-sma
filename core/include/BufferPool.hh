@@ -1,7 +1,7 @@
 #pragma once
 
-#include "util/Bits.hh"
-#include "util/Pow2Math.hh"
+#include "bits.hh"
+#include "pow2math.hh"
 
 #include <climits>
 #include <cstdlib>

@@ -9,14 +9,17 @@ set(TEST   "test")
 
 
 set(LIB_SOURCES
-  "${SRC}/concurrent/CyclicBarrier.cc"
-  "${SRC}/msg/Message.cc"
-  "${SRC}/net/Winsock.cc"
-  "${SRC}/net/Address.cc"
-  "${SRC}/net/InetAddress.cc"
-  "${SRC}/net/SocketAddress.cc"
-  "${SRC}/net/NativeSocket.cc"
-  "${SRC}/schedule/ThreadScheduler.cc"
+  "${SRC}/cyclicbarrier.cc"
+
+  "${SRC}/message.cc"
+
+  "${SRC}/address.cc"
+  "${SRC}/inetaddress.cc"
+  "${SRC}/socketaddress.cc"
+  "${SRC}/nativesocket.cc"
+  "${SRC}/winsock.cc"
+
+  "${SRC}/threadscheduler.cc"
 )
 
 set(TEST_SOURCES

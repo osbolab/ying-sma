@@ -5,7 +5,7 @@
 #include <memory>
 
 #ifdef WIN32
-#include "net/Winsock.hh"
+#include "winsock.hh"
 #else
 #include <sys/select.h>
 #endif
