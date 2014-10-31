@@ -1,12 +1,12 @@
-#include "DataLayer.h"
+#include "DataLayer.hh"
 #include <string>
-#include "PlainChunkStore.h"
+#include "PlainChunkStore.hh"
 #include <sys/stat.h>
-#include "Segmenter.h"
-#include "ControlLayer.h"
-#include "PendingChunkManager.h"
+#include "Segmenter.hh"
+#include "ControlLayer.hh"
+#include "PendingChunkManager.hh"
 #include <vector>
-#include "DeviceLogger.h"
+#include "DeviceLogger.hh"
 #include <sstream>
 
 std::string DataLayer::DEFAULT_CACHE_PREFIX = "./build/cache/";

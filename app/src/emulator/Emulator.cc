@@ -1,4 +1,4 @@
-#include "Emulator.h"
+#include "Emulator.hh"
 #include <iostream>
 #include <sstream>
 #include <cassert>
@@ -8,10 +8,10 @@
 #include <cstdlib>
 #include <locale>
 #include <utility>
-#include "AdHocNetworkEmulator.h"
-#include "DeviceWithGPS.h"
-#include "Device.h"
-#include "BatchScriptGenerator.h"
+#include "AdHocNetworkEmulator.hh"
+#include "DeviceWithGPS.hh"
+#include "Device.hh"
+#include "BatchScriptGenerator.hh"
 
 Emulator::Emulator():network(NULL), running(true)
 {

@@ -1,16 +1,16 @@
-#include "AdHocNetworkEmulator.h"
+#include "AdHocNetworkEmulator.hh"
 #include <mutex>
 #include <cassert>
-#include "GPSinfo.h"
+#include "GPSinfo.hh"
 #include <iostream>
-#include "Device.h"
+#include "Device.hh"
 #include <string>
 #include <cmath>
 #include <cstdlib>
 #include <condition_variable>
 #include <thread>
 #include <chrono>
-#include "DeviceLogger.h"
+#include "DeviceLogger.hh"
 #include <sstream>
 #include <map>
 

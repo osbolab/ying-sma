@@ -1,5 +1,5 @@
-#include "GPSDriver.h"
-#include "GPSinfo.h"
+#include "GPSDriver.hh"
+#include "GPSinfo.hh"
 
 void GPSDriver::setGPS (double lat, double lon)
 {

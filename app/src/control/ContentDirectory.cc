@@ -1,12 +1,12 @@
-#include "ContentDirectory.h"
-#include "ContentDiscription.h"
+#include "ContentDirectory.hh"
+#include "ContentDiscription.hh"
 #include <mutex>
 #include <algorithm>
-#include "SortDirectory.h"
+#include "SortDirectory.hh"
 #include <vector>
 #include <functional>
-#include "SortDirectoryByRank.h"
-#include "SortDirectoryByPublishTime.h"
+#include "SortDirectoryByRank.hh"
+#include "SortDirectoryByPublishTime.hh"
 #include <iostream>
 
 void ContentDirectory::addContentToDirectory (const ContentDiscription& discription)

@@ -1,17 +1,17 @@
-#include "DeviceWithGPS.h"
+#include "DeviceWithGPS.hh"
 #include <iostream>
 #include <thread>
 #include <string>
 #include <sstream>
-#include "DataBlock.h"
-#include "./json/json.h"
+#include "DataBlock.hh"
+#include "./json/json.hh"
 #include <chrono>
 #include <ctime>
 #include <iomanip>
-#include "ControlLayer.h"
+#include "ControlLayer.hh"
 #include <vector>
-#include "ContentDiscription.h"
-#include "DeviceLogger.h"
+#include "ContentDiscription.hh"
+#include "DeviceLogger.hh"
 #include <iostream>
 
 

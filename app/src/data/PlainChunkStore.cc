@@ -1,7 +1,7 @@
-#include "PlainChunkStore.h"
+#include "PlainChunkStore.hh"
 #include <cassert>
 #include <iostream>
-#include "../md5/MD5.h"
+#include "../md5/MD5.hh"
 #include <string>
 #include <fstream>
 #include <mutex>

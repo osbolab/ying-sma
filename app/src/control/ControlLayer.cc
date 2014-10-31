@@ -1,12 +1,12 @@
-#include "ControlLayer.h"
-#include "ContentDiscription.h"
+#include "ControlLayer.hh"
+#include "ContentDiscription.hh"
 #include <string>
-#include "ContentDirectory.h"
-#include "Segmenter.h"
+#include "ContentDirectory.hh"
+#include "Segmenter.hh"
 #include <vector>
 #include <iostream>
 #include <mutex>
-#include "SignalHandler.h"
+#include "SignalHandler.hh"
 #include <fstream>
 #include <sstream>
 #include <cstdio>

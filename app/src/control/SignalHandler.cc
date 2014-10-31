@@ -1,10 +1,10 @@
-#include "SignalHandler.h"
+#include "SignalHandler.hh"
 #include <sstream>
-#include "DataBlock.h"
-#include "./json/json.h"
-#include "ContentDiscription.h"
-#include "DeviceLogger.h"
-#include "ControlLayer.h"
+#include "DataBlock.hh"
+#include "./json/json.hh"
+#include "ContentDiscription.hh"
+#include "DeviceLogger.hh"
+#include "ControlLayer.hh"
 #include <iostream>
 
 //SignalHandler::SignalHandler (ControlLayer* controlPtr, DeviceLogger* loggerPtr) : control (controlPtr), logger (loggerPtr) {}

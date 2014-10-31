@@ -1,4 +1,4 @@
-#include "BatchScriptGenerator.h"
+#include "BatchScriptGenerator.hh"
 #include <ctime>
 #include <cassert>
 

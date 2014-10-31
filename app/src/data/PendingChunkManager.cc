@@ -1,4 +1,4 @@
-#include "PendingChunkManager.h"
+#include "PendingChunkManager.hh"
 #include <vector>
 #include <string>
 #include <mutex>
@@ -6,7 +6,7 @@
 #include <set>
 #include <iostream>
 #include <mutex>
-#include "TypeDefinition.h"
+#include "TypeDefinition.hh"
 
 void PendingChunkManager::addDownloadTask(std::string fileName, ChunkID chunk)
 {

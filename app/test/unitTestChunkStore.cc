@@ -1,8 +1,8 @@
 //this file is outdated. don't use.
 
 #include <iostream>
-#include "ChunkStore.h"
-#include "PlainChunkStore.h"
+#include "ChunkStore.hh"
+#include "PlainChunkStore.hh"
 #include <cassert>
 #include <fstream>
 

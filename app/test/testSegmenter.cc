@@ -1,7 +1,7 @@
 #include <iostream>
-#include "Segmenter.h"
-#include "ChunkStore.h"
-#include "PlainChunkStore.h"
+#include "Segmenter.hh"
+#include "ChunkStore.hh"
+#include "PlainChunkStore.hh"
 
 using namespace std;
 

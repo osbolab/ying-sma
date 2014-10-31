@@ -1,4 +1,4 @@
-#include "DeviceLogger.h"
+#include "DeviceLogger.hh"
 #include <fstream>
 #include <mutex>
 #include <string>

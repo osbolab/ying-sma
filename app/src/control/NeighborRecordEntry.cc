@@ -1,4 +1,4 @@
-#include "NeighborRecordEntry.h"
+#include "NeighborRecordEntry.hh"
 #include <string>
 
 NeighborRecordEntry::NeighborRecordEntry(std::string id, double lat, double lon):deviceID(id),

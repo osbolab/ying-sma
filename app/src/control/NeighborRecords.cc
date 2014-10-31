@@ -1,4 +1,4 @@
-#include "NeighborRecords.h"
+#include "NeighborRecords.hh"
 #include <mutex>
 #include <string>
 #include <sstream>

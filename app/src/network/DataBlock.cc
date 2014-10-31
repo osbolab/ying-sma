@@ -1,7 +1,7 @@
-#include "DataBlock.h"
+#include "DataBlock.hh"
 
 #include <cstring>
-#include "Device.h"
+#include "Device.hh"
 #include <iostream>
 
 DataBlock::DataBlock(SMA::MESSAGE_TYPE type):dataType(type), dataArray(NULL), payloadSize(0) {}

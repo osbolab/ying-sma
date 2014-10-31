@@ -1,13 +1,13 @@
-#include "Segmenter.h"
+#include "Segmenter.hh"
 #include <string>
 #include <vector>
 #include <fstream>
-#include "MD5.h"
+#include "MD5.hh"
 #include <cstdio>
 #include <iostream>
 #include <sstream>
 #include <cassert>
-#include "DataLayer.h"
+#include "DataLayer.hh"
 
 typedef std::string ChunkID;
 
