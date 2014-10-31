@@ -30,20 +30,19 @@ AllowAllParametersOfDeclarationOnNextLine: true
 # Either don't break in the list or break every item. This looks bad:
 # void myfun(param1, param2,
 #   param3, param4, param5);
-BinPackArguments: true
-BinPackParameters: true
+BinPackArguments: false
+BinPackParameters: false
 
 # If guards
 AllowShortBlocksOnASingleLine: true
-# Default exceptions
-AllowShortCaseLabelsOnASingleLine: true
-# Getters
-AllowShortFunctionsOnASingleLine: true
+# Allow apparently means force
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: false
 
 AllowShortLoopsOnASingleLine: false
 
-# Same line in declaration, though
-AlwaysBreakAfterDefinitionReturnType: true
+# Unfortunately it does it for templates, too
+AlwaysBreakAfterDefinitionReturnType: false
 AlwaysBreakTemplateDeclarations: true
 
 AlwaysBreakBeforeMultilineStrings: false
@@ -55,16 +54,16 @@ BreakBeforeTernaryOperators: false
 BreakConstructorInitializersBeforeComma: true
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 Cpp11BracedListStyle: true
-KeepEmptyLinesAtTheStartOfBlocks: false
+KeepEmptyLinesAtTheStartOfBlocks: true
 MaxEmptyLinesToKeep: 5
 
-// Indenting
-NamespaceIndentation: 0
+# Indenting
+NamespaceIndentation: Inner
 ConstructorInitializerIndentWidth: 2
-IndentCaseLabels: false
+IndentCaseLabels: true
 IndentWrappedFunctionNames: false
 
-// Spacing
+# Spacing
 SpaceAfterCStyleCast: true 
 SpaceBeforeAssignmentOperators: true
 SpaceBeforeParens: ControlStatements
