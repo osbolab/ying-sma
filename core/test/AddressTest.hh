@@ -1,5 +1,5 @@
-#include "net/InetAddress.hh"
-#include "net/SocketAddress.hh"
+#include "inetaddress.hh"
+#include "socketaddress.hh"
 
 #include "gtest/gtest.h"
 

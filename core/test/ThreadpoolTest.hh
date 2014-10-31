@@ -1,7 +1,7 @@
-#include "concurrent/Threadpool.hh"
-#include "DelayQueue.hh"
-#include "concurrent/thread_interrupted.hh"
-#include "util/Log.hh"
+#include "threadpool.hh"
+#include "delayqueue.hh"
+#include "thread_interrupted.hh"
+#include "log.hh"
 
 #include "gtest/gtest.h"
 

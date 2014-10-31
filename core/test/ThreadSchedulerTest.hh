@@ -1,6 +1,6 @@
-#include "schedule/Scheduler2.hh"
-//#include "schedule/ThreadScheduler.hh"
-#include "util/Log.hh"
+#include "scheduler2.hh"
+//#include "threadscheduler.hh"
+#include "log.hh"
 
 #include "gtest/gtest.h"
 

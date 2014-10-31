@@ -5,23 +5,23 @@
  *****************************************************************************/
 
 
-#include "util/BitsTest.hh"
+#include "bitstest.hh"
 
 
-#include "PriorityQueueTest.hh"
-#include "DelayQueueTest.hh"
-#include "BufferPoolTest.hh"
+#include "priorityqueuetest.hh"
+#include "delayqueuetest.hh"
+#include "bufferpooltest.hh"
 
 
-#include "concurrent/BlockingQueueTest.hh"
-#include "concurrent/ThreadpoolTest.hh"
+#include "blockingqueuetest.hh"
+#include "threadpooltest.hh"
 
 
-#include "msg/MessageTest.hh"
+#include "messagetest.hh"
 
 
-#include "net/AddressTest.hh"
-#include "net/NativeSocketTest.hh"
+#include "addresstest.hh"
+#include "nativesockettest.hh"
 
 
-#include "schedule/ThreadSchedulerTest.hh"
+#include "threadschedulertest.hh"

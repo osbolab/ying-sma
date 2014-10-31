@@ -1,5 +1,5 @@
-#include "util/Bits.hh"
-#include "util/Log.hh"
+#include "bits.hh"
+#include "log.hh"
 
 #include "gtest/gtest.h"
 

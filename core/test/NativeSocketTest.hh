@@ -1,6 +1,6 @@
-#include "net/NativeSocket.hh"
-#include "net/InetAddress.hh"
-#include "net/SocketAddress.hh"
+#include "nativesocket.hh"
+#include "inetaddress.hh"
+#include "socketaddress.hh"
 
 #include "gtest/gtest.h"
 

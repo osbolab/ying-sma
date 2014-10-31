@@ -1,5 +1,5 @@
-#include "concurrent/BlockingQueue.hh"
-#include "concurrent/CyclicBarrier.hh"
+#include "blockingqueue.hh"
+#include "cyclicbarrier.hh"
 
 #include "gtest/gtest.h"
 
