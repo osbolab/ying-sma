@@ -1,11 +1,7 @@
-#include <iostream>
-#include "emulator/Emulator.hh"
+/******************************************************************************
+ *
+ * This file just creates a compilation unit with the tests.
+ *
+ *****************************************************************************/
 
-using namespace std;
-
-int main ()
-{
-  Emulator emulation;
-  emulation.initEnv(true);
-  return 0;
-}
+#include "SegmenterTest.hh"
