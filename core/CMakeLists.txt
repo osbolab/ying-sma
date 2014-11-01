@@ -19,9 +19,6 @@ set(LIB_SOURCES
   "${SRC}/socketaddress.cc"
   "${SRC}/nativesocket.cc"
   "${SRC}/winsock.cc"
-
-  "${SRC}/scheduler.cc"
-  "${SRC}/threadscheduler.cc"
 )
 
 set(TEST_SOURCES

@@ -104,6 +104,21 @@ public:
     return tasks.size();
   }
 
+  Threadpool(Threadpool&& move)
+    : stop(move.stop)
+    , threads(std::move(move.threads))
+    , tasks(std::move(move.tasks))
+  {
+  }
+
+  Threadpool& operator=(Threadpool&& move)
+  {
+    stop = move.stop;
+    std::swap(threads, move.threads);
+    std::swap(tasks, move.tasks);
+    return *this;
+  }
+
 private:
   std::vector<std::thread> threads;
   Container<std::function<void()>> tasks;
