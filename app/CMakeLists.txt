@@ -10,35 +10,35 @@ set(TEST   "test")
 
 set(LIB_SOURCES
   "${SRC}/md5.cc"
-  "${SRC}/json/json.cc"
+  "${SRC}/json.cc"
   "${SRC}/split_regroup.cc"
 
-  "${SRC}/EchoClient.cc"
-  "${SRC}/EchoServer.cc"
+  "${SRC}/echoclient.cc"
+  "${SRC}/echoserver.cc"
 
-  "${SRC}/emulator/Emulator.cc"
-  "${SRC}/emulator/BatchScriptGenerator.cc"
+  "${SRC}/emulator.cc"
+  "${SRC}/batchscriptgenerator.cc"
 
-  "${SRC}/node/DeviceWithGPS.cc"
-  "${SRC}/node/DeviceLogger.cc"
+  "${SRC}/devicewithgps.cc"
+  "${SRC}/devicelogger.cc"
 
-  "${SRC}/network/DataBlock.cc"
-  "${SRC}/network/AdHocNetworkEmulator.cc"
+  "${SRC}/datablock.cc"
+  "${SRC}/adhocnetworkemulator.cc"
 
-  "${SRC}/data/PlainChunkStore.cc"
-  "${SRC}/data/PendingChunkManager.cc"
-  "${SRC}/data/FlowTable.cc"
-  "${SRC}/data/DataLayer.cc"
+  "${SRC}/plainchunkstore.cc"
+  "${SRC}/pendingchunkmanager.cc"
+  "${SRC}/flowtable.cc"
+  "${SRC}/datalayer.cc"
 
-  "${SRC}/control/SignalHandler.cc"
-  "${SRC}/control/Segmenter.cc"
-  "${SRC}/control/PendingFileManager.cc"
-  "${SRC}/control/NeighborRecords.cc"
-  "${SRC}/control/NeighborRecordEntry.cc"
-  "${SRC}/control/GPSDriver.cc"
-  "${SRC}/control/ControlLayer.cc"
-  "${SRC}/control/ContentDiscription.cc"
-  "${SRC}/control/ContentDirectory.cc"
+  "${SRC}/signalhandler.cc"
+  "${SRC}/segmenter.cc"
+  "${SRC}/pendingfilemanager.cc"
+  "${SRC}/neighborrecords.cc"
+  "${SRC}/neighborrecordentry.cc"
+  "${SRC}/gpsdriver.cc"
+  "${SRC}/controllayer.cc"
+  "${SRC}/contentdiscription.cc"
+  "${SRC}/contentdirectory.cc"
 )
 
 set(TEST_SOURCES
@@ -56,7 +56,7 @@ SET(gtest_version "1.7.0" CACHE STRING "Google Test library version.")
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ${use_folders})
 
-set(PROJ              "smapp")
+set(PROJ              "smaapp")
 set(LIB_GTEST         "${CMAKE_CURRENT_SOURCE_DIR}/../lib/gtest-${gtest_version}")
 set(TEST_PROJ_FOLDER  "Test")
 
