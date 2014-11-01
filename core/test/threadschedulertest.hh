@@ -1,5 +1,5 @@
-#include "scheduler2.hh"
-//#include "threadscheduler.hh"
+#include "threadscheduler.hh"
+
 #include "log.hh"
 
 #include "gtest/gtest.h"
@@ -19,7 +19,7 @@ namespace sma
 {
 
 
-int do_announce(std::uint16_t node_id)
+int do_announce(std::uint32_t node_id)
 {
   auto now =
       std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
@@ -35,12 +35,12 @@ void on_announce_done(std::shared_ptr<Task>& task, std::size_t backoff)
 }
 */
 
-TEST(ThreadScheduler, schedule_task)
+TEST(Scheduler, schedule_task)
 {
-  auto sched = Scheduler();
-  auto t = sched.schedule(std::chrono::milliseconds(100),
-                          do_announce,
-                          static_cast<std::uint16_t>(15));
+  auto factory = ThreadScheduler::Factory<1>();
+  auto sched = factory.new_scheduler();
+
+  auto task = sched->schedule(std::chrono::milliseconds(100), do_announce, 15);
 
   /*
   auto sched = ThreadScheduler::single_threaded_factory()->new_scheduler();

@@ -20,6 +20,7 @@ set(LIB_SOURCES
   "${SRC}/nativesocket.cc"
   "${SRC}/winsock.cc"
 
+  "${SRC}/scheduler.cc"
   "${SRC}/threadscheduler.cc"
 )
 
@@ -33,5 +34,5 @@ set(TEST_SOURCES
 
 add_library("${PROJECT_NAME}" STATIC ${LIB_SOURCES})
 
-add_test_exe("${PROJECT_NAME}" ${TEST_SOURCES})
-
+add_test_exe("${PROJECT_NAME}_test" ${TEST_SOURCES})
+target_link_libraries("${PROJECT_NAME}_test" "${PROJECT_NAME}")

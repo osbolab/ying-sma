@@ -58,14 +58,13 @@ if (build_tests)
   )
 
   macro(add_test_exe name)
-    set                   (test_obj    "${name}_test")
-    add_executable        ("${test_obj}" ${ARGN})
-    target_link_libraries ("${test_obj}" "${PROJECT_NAME}" gtest_main)
-    set_target_properties ("${test_obj}" PROPERTIES
+    add_executable        ("${name}" ${ARGN})
+    target_link_libraries ("${name}" gtest_main)
+    set_target_properties ("${name}" PROPERTIES
                             RUNTIME_OUTPUT_DIRECTORY "${OUTPUT}/test/")
     add_test(
       NAME "${name}"
-      COMMAND "${test_obj}"
+      COMMAND "${name}"
     )
   endmacro(add_test_exe)
 else()
