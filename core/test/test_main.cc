@@ -21,8 +21,8 @@ _INITIALIZE_EASYLOGGINGPP
 
 #include "addresstest.hh"
 #include "nativesockettest.hh"
-
-#include "threadschedulertest.hh"
+//
+//#include "threadschedulertest.hh"
 
 #include "gtest/gtest.h"
 
@@ -30,6 +30,11 @@ _INITIALIZE_EASYLOGGINGPP
 int main(int argc, char** argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
+
+  el::Loggers::reconfigureAllLoggers(
+      el::ConfigurationType::Format,
+      "%datetime %levshort [%thread] (%fbase:%line) %msg");
+
   LOG(DEBUG) << "Testing smacore";
   return RUN_ALL_TESTS();
 }

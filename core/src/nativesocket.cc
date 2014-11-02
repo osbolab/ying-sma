@@ -52,13 +52,13 @@ int NativeSocket::Factory::create(Address::Family family,
 NativeSocket::NativeSocket()
   : sock(INVALID_SOCKET)
 {
-  LOG(DEBUG) << "[NativeSocket::()]";
+  LOG(DEBUG);
   is_blocking(true);
 }
 
 int NativeSocket::create(Address::Family family, Type type, Protocol protocol)
 {
-  LOG(DEBUG) << "[NativeSocket::create]";
+  LOG(DEBUG);
 
 #ifdef WIN32
   if (!wsa_is_initialized) {
@@ -67,7 +67,7 @@ int NativeSocket::create(Address::Family family, Type type, Protocol protocol)
     if (WSAStartup(version_wanted, &wsa_data) != NO_ERROR)
       return -1;
     wsa_is_initialized = true;
-    LOG(DEBUG) << "[::WSAStartup] " << wsa_is_initialized;
+    LOG(DEBUG) << wsa_is_initialized;
   }
 #endif
 
@@ -127,7 +127,7 @@ NativeSocket::~NativeSocket()
 
 int NativeSocket::bind(const SocketAddress& address)
 {
-  LOG(DEBUG) << "[NativeSocket::bind] " << address;
+  LOG(DEBUG) << address;
 
   if (address.addr.family != family) {
     return last_error(EAFNOSUPPORT);
@@ -148,7 +148,7 @@ int NativeSocket::bind(const SocketAddress& address)
 
 void NativeSocket::close()
 {
-  LOG(DEBUG) << "[NativeSocket::close]";
+  LOG(DEBUG);
 
   if (sock != INVALID_SOCKET) {
 #ifdef WIN32
@@ -163,7 +163,7 @@ void NativeSocket::close()
 
 #ifdef WIN32
   if (wsa_is_initialized) {
-    LOG(DEBUG) << "[::WSACleanup]";
+    LOG(DEBUG);
     if (WSACleanup() != NO_ERROR)
       print_last_error();
   }
@@ -172,7 +172,7 @@ void NativeSocket::close()
 
 std::size_t NativeSocket::recv(char* dst, std::size_t len)
 {
-  LOG(DEBUG) << "[NativeSocket::recv]";
+  LOG(DEBUG);
 
   return ::recv(sock, dst, len, 0);
 }
@@ -181,7 +181,7 @@ int NativeSocket::send(const char* src,
                        std::size_t len,
                        const SocketAddress& recipient)
 {
-  LOG(DEBUG) << "[NativeSocket::send]";
+  LOG(DEBUG);
 
   sockaddr sa = recipient.to_sockaddr();
   return ::sendto(sock, src, len, 0, &sa, sizeof(sockaddr));
@@ -203,7 +203,7 @@ int NativeSocket::is_blocking(bool blocking)
     return -1;
   }
 #endif
-  LOG(DEBUG) << "[NativeSocket::is_blocking] " << (blocking ? "yes" : "no");
+  LOG(DEBUG) << (blocking ? "yes" : "no");
 
   return 0;
 }

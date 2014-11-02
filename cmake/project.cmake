@@ -2,11 +2,14 @@
 # PROJECT SETUP
 
 option(build_tests "Build all tests." ON)
+option(profiling "Enable profiling by linking gperftools." OFF)
 option(use_folders "Group projects in folders." ON)
 option(group_output "Group output into bin/, lib/, test/ directories under each project's build directory." OFF)
 option(global_output_path "Group all projects' output into common bin/, lib/, and test/ directories in the root build directory." OFF)
 
 SET(gtest_version "1.7.0" CACHE STRING "Google Test library version.")
+SET(LIB_PROFILER "profiler" CACHE STRING "Profiler library name.")
+SET(LIB_PROFILER_DIR "/usr/lib" CACHE STRING "Profiler library directory.")
 
 set_property(GLOBAL PROPERTY USE_FOLDERS "${use_folders}")
 
@@ -75,6 +78,22 @@ endif()
 
 
 ###############################################################################
+# PROFILING (cmake -Dprofiling=ON)
+
+if (profiling)
+  message (STATUS "Using profiler library '${LIB_PROFILER_DIR}/${LIB_PROFILER}'")
+  link_directories("${LIB_PROFILER_DIR}")
+  macro(profile name)
+    target_link_libraries("${name}" "${LIB_PROFILER}")
+    message (STATUS "Profiling target '${name}' with '${LIB_PROFILER_DIR}/${LIB_PROFILER}'")
+  endmacro(profile)
+else()
+  macro(profile)
+    message (STATUS "Use -Dprofiling=ON to enable profiling.")
+  endmacro(profile)
+endif()
+
+###############################################################################
 # TESTING            (cmake -Dbuild_tests=ON)
 
 if (build_tests)
@@ -98,6 +117,7 @@ if (build_tests)
   macro(add_test_exe name)
     add_executable        ("${name}" ${ARGN})
     target_link_libraries ("${name}" gtest_main)
+    profile               ("${name}")
     set_target_properties ("${name}" PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY "${TEST_OUTPUT_DIRECTORY}")
     add_test(
@@ -107,6 +127,7 @@ if (build_tests)
   endmacro(add_test_exe)
 else()
   macro(add_test_exe)
+    message (STATUS "Use -Dbuild_tests=ON to enable test compilation.")
   endmacro(add_test_exe)
 endif()
 

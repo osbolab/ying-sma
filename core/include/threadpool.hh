@@ -1,5 +1,7 @@
 #pragma once
 
+#include "log.hh"
+
 #include <cstdlib>
 #include <thread>
 #include <future>
@@ -28,27 +30,36 @@ class Threadpool
 public:
   Threadpool(std::size_t nr_threads)
   {
+    LOG(DEBUG) << nr_threads << " threads";
     for (std::size_t i = 0; i < nr_threads; ++i)
       threads.emplace_back([this] {
+        LOG(DEBUG) << "child thread spawned";
         for (;;) {
           std::function<void()> task;
 
           {
             Lock lock(mutex);
-            available.wait(lock, [this] { return stop || !tasks.empty(); });
+            if (tasks.empty()) {
+              LOG(DEBUG) << "waiting for task";
+              available.wait(lock, [this] { return stop || !tasks.empty(); });
+            }
             if (stop && tasks.empty())
               return;
             task = std::move(tasks.front());
             tasks.pop();
           }
 
+          LOG(DEBUG) << "popped task; running";
           task();
         }
+        LOG(DEBUG) << "child thread dead";
       });
   }
 
   ~Threadpool()
   {
+    if (!threads.empty())
+      LOG(DEBUG) << "killing " << threads.size() << " threads";
     {
       Lock lock(mutex);
       stop = true;
@@ -61,6 +72,8 @@ public:
   auto push(F&& f, Args&&... args)
       -> std::future<typename std::result_of<F(Args...)>::type>
   {
+    LOG(DEBUG);
+
     using return_type = typename std::result_of<F(Args...)>::type;
 
     auto task = std::make_shared<std::packaged_task<return_type()>>(
@@ -81,6 +94,7 @@ public:
 
   void shutdown()
   {
+    LOG(DEBUG);
     Lock lock(mutex);
     stop = true;
   }
@@ -89,9 +103,15 @@ public:
   {
     if (shutdown)
       this->shutdown();
-    for (std::thread& thread : threads)
-      if (thread.joinable())
-        thread.join();
+
+    if (!threads.empty()) {
+      LOG(DEBUG) << "joining " << threads.size() << " threads...";
+
+      for (std::thread& thread : threads)
+        if (thread.joinable())
+          thread.join();
+      LOG(DEBUG) << "... joined";
+    }
   }
 
   std::size_t nr_threads() const

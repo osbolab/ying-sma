@@ -2,6 +2,8 @@
 
 #include "chrono_literals.hh"
 
+#include "log.hh"
+
 #include <mutex>
 #include <memory>
 #include <future>
@@ -30,11 +32,18 @@ class Task final
   using Lock = std::unique_lock<std::mutex>;
 
 public:
+  ~Task()
+  {
+    LOG(DEBUG);
+  }
+
+  // Implicitly delete the copy constructor and assignment operator
   Task(Myt&& move) = default;
   Myt& operator=(Myt&& move) = default;
 
   R wait()
   {
+    LOG(DEBUG);
     {
       Lock lock{mutex};
       if (!ftr.valid())
@@ -48,6 +57,7 @@ public:
 
   bool poll(R& out)
   {
+    LOG(DEBUG);
     {
       Lock lock{mutex};
       if (!ftr.valid())
@@ -61,6 +71,7 @@ public:
 
   bool cancel()
   {
+    LOG(DEBUG);
     Lock lock{mutex};
     if (!cancellable())
       return false;
@@ -96,12 +107,14 @@ private:
   Task(std::future<R> ftr)
     : ftr(std::move(ftr))
   {
+    LOG(DEBUG);
   }
 
   // Called by the embedded void() lambda after the proxy is called;
   // signals that the task has run and the future is ready.
   void complete()
   {
+    LOG(DEBUG);
     Lock lock{mutex};
     is_done = true;
   }
@@ -131,12 +144,14 @@ protected:
 public:
   ~Scheduler()
   {
+    LOG(DEBUG);
   }
 
   template <typename Delay, typename F, typename... Args>
   auto schedule(Delay delay, F&& f, Args&&... args)
       -> std::shared_ptr<Task<typename std::result_of<F(Args...)>::type>>
   {
+    LOG(DEBUG);
     // clang-format off
     // The task takes arguments, but it would be annoying to store those
     // and pass them at the call site--plus we would need to paramterize
@@ -181,6 +196,7 @@ public:
       // Copy the proxy pointer to move the proxy out of this scope
       [proxy, task]()
       {
+        LOG(DEBUG) << "<task runner proxy>";
         // Calling this void() calls the proxy and sets the future<R>
         // with the return value of the target function.
         (*proxy)();
