@@ -131,9 +131,9 @@ TEST(Threadpool, schedule_async)
   auto realms = std::chrono::duration_cast<std::chrono::milliseconds>(
       clock::now() - start);
 
-  LOG_D(count.load() << " jobs totaling "
+  LOG(DEBUG) << count.load() << " jobs totaling "
                      << std::chrono::milliseconds(jobms.load()).count()
                      << " ms in " << std::chrono::milliseconds(realms).count()
-                     << " real ms");
+                     << " real ms";
 }
 }

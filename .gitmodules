@@ -1,3 +1,6 @@
 [submodule "lib/glfw"]
 	path = lib/glfw
 	url = https://github.com/glfw/glfw.git
+[submodule "lib/easyloggingpp"]
+	path = lib/easyloggingpp
+	url = https://github.com/easylogging/easyloggingpp.git

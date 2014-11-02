@@ -37,11 +37,12 @@ public:
   {
     {
       Lock lock{mutex};
-      if (!ftr->valid())
+      if (!ftr.valid())
         throw std::future_error{std::future_errc::no_state};
       if (is_set)
-        return ftr->get();
-      return ftr->wait();
+        return ftr.get();
+      ftr.wait();
+      return ftr.get();
     }
   }
 
@@ -49,12 +50,12 @@ public:
   {
     {
       Lock lock{mutex};
-      if (!ftr->valid())
+      if (!ftr.valid())
         throw std::future_error{std::future_errc::no_state};
       if (!is_set)
         return false;
     }
-    out = ftr->get();
+    out = ftr.get();
     return true;
   }
 
