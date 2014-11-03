@@ -8,6 +8,7 @@
 #include <functional>
 #include <vector>
 #include <mutex>
+#include <memory>
 #include <condition_variable>
 #include <queue>
 
@@ -29,47 +30,55 @@ class Threadpool
 
 public:
   Threadpool(std::size_t nr_threads)
+    : state(new shared_state())
   {
     LOG(DEBUG) << nr_threads << " threads";
+
+    // If we let the thread capture *this, then if this object gets moved
+    // the thread will have invalid references to the members.
+    shared_state* const cstate = state.get();
+
     for (std::size_t i = 0; i < nr_threads; ++i) {
       LOG(DEBUG) << "constructing " << i << "th thread";
-      threads.emplace_back([this] {
+      state->threads.emplace_back([cstate] {
         LOG(DEBUG) << "child thread spawned";
         for (;;) {
           std::function<void()> task;
 
           {
-            Lock lock(mutex);
-            if (tasks.empty()) {
+            Lock lock(cstate->mutex);
+            if (cstate->tasks.empty()) {
               LOG(DEBUG) << "waiting for task";
-              available.wait(lock, [this] { return stop || !tasks.empty(); });
+              cstate->available.wait(lock, [cstate] {
+                return cstate->stop || !cstate->tasks.empty();
+              });
             }
-            if (stop && tasks.empty())
+            if (cstate->stop && cstate->tasks.empty())
               break;
-            LOG(DEBUG) << "popping task";
-            task = std::move(tasks.front());
-            tasks.pop();
-            LOG(DEBUG) << "popped task; running";
+            task = std::move(cstate->tasks.front());
+            cstate->tasks.pop();
           }
 
           LOG(DEBUG) << "popped task; running";
-          // task();
+          task();
         }
         LOG(DEBUG) << "child thread dead";
       });
-      LOG(DEBUG) << threads.size() << " threads constructed";
+      LOG(DEBUG) << state->threads.size() << " threads constructed";
     }
   }
 
   ~Threadpool()
   {
-    LOG(DEBUG) << "killing " << threads.size() << " threads";
-    {
-      Lock lock(mutex);
-      stop = true;
+    if (state) {
+      LOG(DEBUG) << "killing " << state->threads.size() << " threads";
+      {
+        Lock lock(state->mutex);
+        state->stop = true;
+      }
+      state->available.notify_all();
+      join();
     }
-    available.notify_all();
-    join();
   }
 
   template <typename F, typename... Args>
@@ -86,70 +95,72 @@ public:
     std::future<return_type> result = task->get_future();
 
     {
-      Lock lock(mutex);
-      if (stop) {
+      Lock lock(state->mutex);
+      if (state->stop) {
         LOG(FATAL) << "Attempted to add task to stopped threadpool";
         throw std::runtime_error("Threadpool is shut down");
       }
-      tasks.emplace([task]() { (*task)(); });
+      state->tasks.emplace([task]() { (*task)(); });
     }
 
     LOG(DEBUG) << "added task; waking thread to run it";
-    available.notify_one();
+    state->available.notify_one();
     return result;
   }
 
   void shutdown()
   {
-    LOG(DEBUG);
-    Lock lock(mutex);
-    stop = true;
+    if (state) {
+      LOG(DEBUG);
+      Lock lock(state->mutex);
+      state->stop = true;
+    }
   }
 
   void join(bool shutdown = false)
   {
-    if (shutdown)
-      this->shutdown();
+    if (state) {
+      if (shutdown)
+        this->shutdown();
 
-      LOG(DEBUG) << "joining " << threads.size() << " threads...";
+      LOG(DEBUG) << "joining " << state->threads.size() << " threads...";
 
-      for (std::thread& thread : threads)
+      for (std::thread& thread : state->threads)
         if (thread.joinable())
           thread.join();
       LOG(DEBUG) << "... joined";
+    }
   }
 
   std::size_t nr_threads() const
   {
-    return threads.size();
+    return state->threads.size();
   }
 
   std::size_t size() const
   {
-    return tasks.size();
+    return state->tasks.size();
   }
 
   Threadpool(Threadpool&& move)
-    : stop(move.stop)
-    , threads(std::move(move.threads))
-    , tasks(std::move(move.tasks))
+    : state(std::move(move.state))
   {
   }
 
   Threadpool& operator=(Threadpool&& move)
   {
-    stop = move.stop;
-    std::swap(threads, move.threads);
-    std::swap(tasks, move.tasks);
+    std::swap(state, move.state);
     return *this;
   }
 
 private:
-  std::vector<std::thread> threads;
-  Container<std::function<void()>> tasks;
-
-  std::mutex mutex;
-  std::condition_variable available;
-  volatile bool stop{false};
+  struct shared_state {
+    std::vector<std::thread> threads;
+    Container<std::function<void()>> tasks;
+    std::mutex mutex;
+    std::condition_variable available;
+    bool stop{false};
+  };
+  std::unique_ptr<shared_state> state;
 };
 }

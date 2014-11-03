@@ -24,6 +24,7 @@ public:
   ~ThreadScheduler()
   {
     LOG(DEBUG);
+    threadpool.join(true);
   }
 
 protected:
