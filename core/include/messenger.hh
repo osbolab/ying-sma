@@ -13,11 +13,14 @@ namespace sma
 class Messenger
 {
 public:
-  Message::Builder create();
+  using Handler = std::function<bool(const Message*)>;
 
-  void post(std::unique_ptr<const Message> msg);
+  // Blocks the caller
+  int send_now(Type type,
+               const Address* recipients,
+               const std::uint8_t* data,
+               std::size_t len);
 
-  void subscribe(Message::Type type, std::function<void(std::unique_ptr<Message>)> onMessage);
+  void subscribe(Message::Type type, Handler on_message);
 };
-
 }

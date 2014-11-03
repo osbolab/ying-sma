@@ -49,8 +49,8 @@ AlwaysBreakBeforeMultilineStrings: false
 
 BreakBeforeBraces: Linux 
 # I don't like operators followed by the abyss of right-column whitespace
-BreakBeforeBinaryOperators: false
-BreakBeforeTernaryOperators: false
+BreakBeforeBinaryOperators: true
+BreakBeforeTernaryOperators: true
 BreakConstructorInitializersBeforeComma: true
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 Cpp11BracedListStyle: true
