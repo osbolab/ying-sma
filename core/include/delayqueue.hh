@@ -30,11 +30,6 @@ public:
     LOG(DEBUG);
   }
 
-  ~Wrapper()
-  {
-    LOG(DEBUG);
-  }
-
   Myt& operator=(Myt&& move)
   {
     std::swap(entry, move.entry);
@@ -139,7 +134,7 @@ public:
   template <typename Delay>
   void push(E&& e, Delay delay)
   {
-    push(wrapper_type(std::move(e), delay));
+    push(std::move(wrapper_type(std::move(e), delay)));
   }
 
   E pop()
@@ -213,7 +208,7 @@ public:
   }
 
 private:
-  void push(wrapper_type&& delayed)
+  void push(wrapper_type delayed)
   {
     LOG(DEBUG);
     Lock lock(mutex);

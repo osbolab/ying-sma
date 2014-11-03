@@ -31,7 +31,8 @@ public:
   Threadpool(std::size_t nr_threads)
   {
     LOG(DEBUG) << nr_threads << " threads";
-    for (std::size_t i = 0; i < nr_threads; ++i)
+    for (std::size_t i = 0; i < nr_threads; ++i) {
+      LOG(DEBUG) << "constructing " << i << "th thread";
       threads.emplace_back([this] {
         LOG(DEBUG) << "child thread spawned";
         for (;;) {
@@ -44,22 +45,25 @@ public:
               available.wait(lock, [this] { return stop || !tasks.empty(); });
             }
             if (stop && tasks.empty())
-              return;
+              break;
+            LOG(DEBUG) << "popping task";
             task = std::move(tasks.front());
             tasks.pop();
+            LOG(DEBUG) << "popped task; running";
           }
 
           LOG(DEBUG) << "popped task; running";
-          task();
+          // task();
         }
         LOG(DEBUG) << "child thread dead";
       });
+      LOG(DEBUG) << threads.size() << " threads constructed";
+    }
   }
 
   ~Threadpool()
   {
-    if (!threads.empty())
-      LOG(DEBUG) << "killing " << threads.size() << " threads";
+    LOG(DEBUG) << "killing " << threads.size() << " threads";
     {
       Lock lock(mutex);
       stop = true;
@@ -83,11 +87,14 @@ public:
 
     {
       Lock lock(mutex);
-      if (stop)
+      if (stop) {
+        LOG(FATAL) << "Attempted to add task to stopped threadpool";
         throw std::runtime_error("Threadpool is shut down");
+      }
       tasks.emplace([task]() { (*task)(); });
     }
 
+    LOG(DEBUG) << "added task; waking thread to run it";
     available.notify_one();
     return result;
   }
@@ -104,14 +111,12 @@ public:
     if (shutdown)
       this->shutdown();
 
-    if (!threads.empty()) {
       LOG(DEBUG) << "joining " << threads.size() << " threads...";
 
       for (std::thread& thread : threads)
         if (thread.joinable())
           thread.join();
       LOG(DEBUG) << "... joined";
-    }
   }
 
   std::size_t nr_threads() const
