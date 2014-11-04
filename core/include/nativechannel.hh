@@ -20,7 +20,8 @@ namespace sma
 class NativeChannel : public Channel
 {
 public:
-  NativeChannel(std::vector<std::unique_ptr<NativeSocket>> sockets);
+  NativeChannel(NativeSocket* socket);
+  NativeChannel(std::vector<NativeSocket*> sockets);
 
   std::size_t wait_for_read(std::uint8_t* dst, std::size_t len) override;
   // Block until a socket has something to read.
@@ -28,7 +29,7 @@ public:
 
 private:
   std::mutex selecting;
-  std::vector<std::unique_ptr<NativeSocket>> sockets;
+  std::vector<NativeSocket*> sockets;
   std::vector<NativeSocket*> readable;
 };
 }

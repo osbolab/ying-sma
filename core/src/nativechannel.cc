@@ -21,24 +21,40 @@
 namespace sma
 {
 
-NativeChannel::NativeChannel(std::vector<std::unique_ptr<NativeSocket>> sockets)
+  NativeChannel::NativeChannel(NativeSocket* sock)
+    : sockets(1)
+  {
+    sockets[0] = sock;
+    if (sock->is_blocking(true) != NO_ERROR)
+      LOG(ERROR) << "Error setting socket to blocking: " << sock->last_error();
+
+  LOG(DEBUG) << "channel of one native socket";
+  }
+
+NativeChannel::NativeChannel(std::vector<NativeSocket*> sockets)
   : sockets(std::move(sockets))
 {
   for (auto& sock : this->sockets)
     if (sock->is_blocking(true) != NO_ERROR)
       LOG(ERROR) << "Error setting socket to blocking: " << sock->last_error();
+
+  LOG(DEBUG) << "channel of " << this->sockets.size() << " native sockets";
 }
 
 std::size_t NativeChannel::wait_for_read(std::uint8_t* dst, std::size_t len)
 {
+  LOG(DEBUG) << "try to read " << len << " into " << reinterpret_cast<void*>(dst);
   assert(dst);
   assert(len > 0);
 
   // Constantly take exclusive access to the sockets and try to take one
   std::unique_lock<std::mutex> lock(reader_mutex);
   // If none is ready to read we'll release the lock until it is
-  if (readable.empty())
+  if (readable.empty()) {
+    LOG(DEBUG) << "blocking until socket is readable";
     avail.wait(lock, [&] { return !readable.empty(); });
+    LOG(DEBUG) << "unblocked!";
+  }
   // We have the lock again, and thus ownership of the item in readable
   auto sock = std::move(readable.back());
   readable.pop_back();
@@ -54,6 +70,7 @@ std::size_t NativeChannel::wait_for_read(std::uint8_t* dst, std::size_t len)
 
 void NativeChannel::select()
 {
+  LOG(DEBUG) << "selecting " << sockets.size() << " socket(s)";
   // I don't know who would call this twice but... don't
   std::unique_lock<std::mutex> lock(selecting);
 
@@ -75,7 +92,7 @@ void NativeChannel::select()
     if (status > 0)
       for (auto& sock : sockets)
         if (FD_ISSET(sock->native_socket(), &fds))
-          readable.push_back(sock.get());
+          readable.push_back(sock);
   }
 
   if (!readable.empty())
