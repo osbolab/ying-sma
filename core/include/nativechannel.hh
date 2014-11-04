@@ -1,9 +1,12 @@
 #pragma once
 
+#include "channel.hh"
+
 #include "socket.hh"
 #include "nativesocket.hh"
 #include "message.hh"
 
+#include <mutex>
 #include <memory>
 #include <cstdlib>
 #include <cstdint>
@@ -14,20 +17,18 @@
 namespace sma
 {
 
-class NativeChannel final
+class NativeChannel : public Channel
 {
 public:
   NativeChannel(std::vector<std::unique_ptr<NativeSocket>> sockets);
 
-  // Blocks until some sockets have data ready to read.
-  std::vector<Socket*> wait_for_data();
-  // Blocks until the message is sent to every socket in the channel.
-  void broadcast(Message msg);
+  std::size_t wait_for_read(std::uint8_t* dst, std::size_t len) override;
+  // Block until a socket has something to read.
+  void select();
 
 private:
-  std::uint32_t have_data_bitmap;
-  static const std::size_t MAX_NR_SOCKETS{(sizeof have_data_bitmap)
-                                          * std::CHAR_BIT};
+  std::mutex selecting;
   std::vector<std::unique_ptr<NativeSocket>> sockets;
+  std::vector<NativeSocket*> readable;
 };
 }

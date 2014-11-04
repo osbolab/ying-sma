@@ -49,6 +49,7 @@ public:
            std::size_t len,
            const SocketAddress& recipient) override;
 
+  SOCKET native_socket() const { return sock; }
 
   int is_blocking(bool blocking);
   bool is_blocking() const;

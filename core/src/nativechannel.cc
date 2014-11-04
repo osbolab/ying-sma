@@ -1,15 +1,19 @@
 #include "nativechannel.hh"
 #include "nativesocket.hh"
 
+#include "log.hh"
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 
+#include <mutex>
 #include <vector>
 #include <memory>
 #include <cstdint>
-#include <limits>
+#include <climits>
 
+#include <cassert>
 #include <cerrno>
 #include <cstring>
 
@@ -20,41 +24,61 @@ namespace sma
 NativeChannel::NativeChannel(std::vector<std::unique_ptr<NativeSocket>> sockets)
   : sockets(std::move(sockets))
 {
-  assert(this->sockets.size() <= MAX_NR_SOCKETS);
-
   for (auto& sock : this->sockets)
     if (sock->is_blocking(true) != NO_ERROR)
       LOG(ERROR) << "Error setting socket to blocking: " << sock->last_error();
 }
 
-std::vector<Socket*> NativeChannel::wait_for_data()
+std::size_t NativeChannel::wait_for_read(std::uint8_t* dst, std::size_t len)
 {
-  std::vector<Socket*> selected;
+  assert(dst);
+  assert(len > 0);
 
-  have_data_bitmap = 0;
+  // Constantly take exclusive access to the sockets and try to take one
+  std::unique_lock<std::mutex> lock(reader_mutex);
+  // If none is ready to read we'll release the lock until it is
+  if (readable.empty())
+    avail.wait(lock, [&] { return !readable.empty(); });
+  // We have the lock again, and thus ownership of the item in readable
+  auto sock = std::move(readable.back());
+  readable.pop_back();
+  // Now we have a socket so we can unlock for others
+  lock.unlock();
+  // And wake them if necessary
+  if (!readable.empty())
+    avail.notify_one();
+
+  assert(socket);
+  return sock->recv(dst, len);
+}
+
+void NativeChannel::select()
+{
+  // I don't know who would call this twice but... don't
+  std::unique_lock<std::mutex> lock(selecting);
+
   fd_set fds;
   FD_ZERO(&fds);
   for (auto& sock : sockets)
     FD_SET(sock->native_socket(), &fds);
 
-  int status = select(sizeof(fds) * std::CHAR_BIT, &fds, NULL, NULL, NULL);
+  int status = ::select(sizeof(fds) * CHAR_BIT, &fds, NULL, NULL, NULL);
   if (status == -1) {
     LOG(ERROR) << "Selecting socket failed: " << std::strerror(errno);
-    return selected;
+    return;
   }
 
-  if (rc > 0)
-    for (auto& sock : sockets)
-      if (FD_ISSET(sock->native_socket(), &fds))
-        selected.push_back(dynamic_cast<Socket*>(sock.get()));
+  {
+    // Block readers from potentially seeing an empty list and going to sleep
+    // while we're giving them something to read.
+    std::unique_lock<std::mutex> lock(reader_mutex);
+    if (status > 0)
+      for (auto& sock : sockets)
+        if (FD_ISSET(sock->native_socket(), &fds))
+          readable.push_back(sock.get());
+  }
 
-  return selected;
-}
-
-void NativeChannel::broadcast(Message msg)
-{
-  for (auto& sock : sockets)
-    sock->send(msg.cdata(), msg.size(),
+  if (!readable.empty())
+    avail.notify_one();
 }
 }
-
