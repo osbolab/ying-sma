@@ -37,7 +37,7 @@ BinPackParameters: false
 AllowShortBlocksOnASingleLine: true
 # Allow apparently means force
 AllowShortCaseLabelsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: true
 
 AllowShortLoopsOnASingleLine: false
 

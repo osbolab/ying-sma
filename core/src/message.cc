@@ -121,15 +121,6 @@ bool Message::operator==(const Message& other) const
     ;
   return l == body_len;
 }
-bool Message::operator!=(const Message& other) const
-{
-  return !(*this == other);
-}
-
-std::size_t Message::serialized_size() const
-{
-  return header_size() + body_len;
-}
 
 std::size_t Message::header_size() const
 {
@@ -137,16 +128,6 @@ std::size_t Message::header_size() const
     + sizeof(Address) * (recipients.size() + 1)
     + sizeof(std::size_t)
     + sizeof body_len;
-}
-
-std::size_t Message::body_size() const
-{
-  return body_len;
-}
-
-const std::uint8_t* Message::body() const
-{
-  return body_data;
 }
 
 }

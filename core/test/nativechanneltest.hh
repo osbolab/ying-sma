@@ -79,7 +79,7 @@ TEST(NativeChannel, select_one_sockets)
 
   std::thread thsend([&]() {
     for (int i = 0; i < 11; ++i) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
       LOG(DEBUG) << "sending " << buf_len << " bytes from background thread";
       sender->send(
           buf, buf_len, SocketAddress(InetAddress::LOOPBACK, port + (i%2)));

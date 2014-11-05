@@ -17,16 +17,6 @@ namespace sma
 const InetAddress InetAddress::ANY = InetAddress();
 const InetAddress InetAddress::LOOPBACK = InetAddress("127.0.0.1");
 
-InetAddress::InetAddress()
-  : Address(IPv4, INADDR_ANY)
-{
-}
-
-InetAddress::InetAddress(const std::string& saddr)
-  : Address(IPv4, parse(saddr))
-{
-}
-
 const std::vector<unsigned char> InetAddress::parse(const std::string& saddr)
 {
   const std::size_t len = sizeof(in_addr);

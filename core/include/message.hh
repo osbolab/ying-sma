@@ -24,14 +24,15 @@ public:
   Message(Message&& m);
   Message& operator=(Message&& m);
 
-  std::size_t serialized_size() const;
+  std::size_t serialized_size() const { return header_size() + body_len; }
+
   std::uint8_t* serialize_to(std::uint8_t* dst, std::size_t body_len) const;
 
-  std::size_t body_size() const;
-  const std::uint8_t* body() const;
+  std::size_t body_size() const { return body_len; }
+  const std::uint8_t* body() const { return body_data; }
 
   bool operator==(const Message& other) const;
-  bool operator!=(const Message& other) const;
+  bool operator!=(const Message& other) const { return !(*this == other); }
 
 private:
   Message(Type type,

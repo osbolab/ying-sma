@@ -48,7 +48,7 @@ class MessageThread
 public:
   MessageThread();
 
-  const Message& cmsg() const;
+  const Message& cmsg() const { return msg; }
 
 private:
   // UDP packets should be pretty small to avoid fragmentation.

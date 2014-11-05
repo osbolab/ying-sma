@@ -43,7 +43,6 @@ NativeChannel::NativeChannel(std::vector<NativeSocket*> sockets)
 
 std::size_t NativeChannel::wait_for_read(std::uint8_t* dst, std::size_t len)
 {
-  LOG(DEBUG) << "try to read " << len << " into " << reinterpret_cast<void*>(dst);
   assert(dst);
   assert(len > 0);
 
@@ -51,9 +50,7 @@ std::size_t NativeChannel::wait_for_read(std::uint8_t* dst, std::size_t len)
   std::unique_lock<std::mutex> lock(reader_mutex);
   // If none is ready to read we'll release the lock until it is
   if (readable.empty()) {
-    LOG(DEBUG) << "blocking until socket is readable";
     avail.wait(lock, [&] { return !readable.empty(); });
-    LOG(DEBUG) << "unblocked!";
   }
   // We have the lock again, and thus ownership of the item in readable
   auto sock = std::move(readable.back());
@@ -70,7 +67,6 @@ std::size_t NativeChannel::wait_for_read(std::uint8_t* dst, std::size_t len)
 
 void NativeChannel::select()
 {
-  LOG(DEBUG) << "selecting " << sockets.size() << " socket(s)";
   // I don't know who would call this twice but... don't
   std::unique_lock<std::mutex> lock(selecting);
 

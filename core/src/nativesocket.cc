@@ -18,10 +18,6 @@ namespace sma
 {
 
 
-NativeSocket::Factory::Factory()
-{
-}
-
 int NativeSocket::Factory::create(Address::Family family,
                                   Socket::Type type,
                                   Socket::Protocol protocol,
@@ -42,13 +38,6 @@ int NativeSocket::Factory::create(Address::Family family,
     default:
       return NativeSocket::global_last_error(EAFNOSUPPORT);
   }
-}
-
-NativeSocket::NativeSocket()
-  : sock(INVALID_SOCKET)
-{
-  LOG(DEBUG);
-  is_blocking(true);
 }
 
 int NativeSocket::create(Address::Family family, Type type, Protocol protocol)
@@ -97,11 +86,6 @@ int NativeSocket::create(Address::Family family, Type type, Protocol protocol)
   return 0;
 }
 
-NativeSocket::~NativeSocket()
-{
-  close();
-}
-
 int NativeSocket::bind(const SocketAddress& address)
 {
   LOG(DEBUG) << address;
@@ -135,13 +119,6 @@ void NativeSocket::close()
   }
 }
 
-std::size_t NativeSocket::recv(std::uint8_t* dst, std::size_t len)
-{
-  LOG(DEBUG);
-
-  return ::recv(sock, reinterpret_cast<char*>(dst), len, 0);
-}
-
 int NativeSocket::send(const std::uint8_t* src,
                        std::size_t len,
                        const SocketAddress& recipient)
@@ -166,34 +143,6 @@ int NativeSocket::is_blocking(bool blocking)
   LOG(DEBUG) << (blocking ? "yes" : "no");
 
   return 0;
-}
-
-bool NativeSocket::is_blocking() const
-{
-  return blocking;
-}
-
-int NativeSocket::last_error() const
-{
-  return global_last_error();
-}
-
-int NativeSocket::global_last_error(int error)
-{
-  errno = error;
-  return error;
-}
-
-int NativeSocket::global_last_error()
-{
-  int error = errno;
-  log_last_error();
-  return -1;
-}
-
-int NativeSocket::last_error(int error)
-{
-  return global_last_error(error);
 }
 
 void NativeSocket::log_last_error()

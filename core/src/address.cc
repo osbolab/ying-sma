@@ -17,18 +17,6 @@ Address::Address(Family family, std::uint32_t addrl)
   data[3] = (unsigned char) (addrl & 0xFF);
 }
 
-Address::Address(Family family, const std::vector<unsigned char>& addr)
-  : family(family)
-  , data(addr)
-{
-}
-
-Address::Address(Family family, std::vector<unsigned char>&& addr)
-  : family(family)
-  , data(std::move(addr))
-{
-}
-
 void Address::print(std::ostream& os) const
 {
   switch (family) {
@@ -42,21 +30,5 @@ void Address::print(std::ostream& os) const
   }
   os << std::dec;
   os << ")";
-}
-
-std::ostream& operator<<(std::ostream& os, const Address& addr)
-{
-  addr.print(os);
-  return os;
-}
-
-bool Address::operator==(const Address& rhs) const
-{
-  return family == rhs.family && data == rhs.data;
-}
-
-bool Address::operator!=(const Address& rhs) const
-{
-  return !(*this == rhs);
 }
 }
