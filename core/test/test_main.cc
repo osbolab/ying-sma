@@ -17,11 +17,11 @@ _INITIALIZE_EASYLOGGINGPP
 //#include "blockingqueuetest.hh"
 //#include "threadpooltest.hh"
 //
-//#include "messagetest.hh"
+#include "messagetest.hh"
 //
 //#include "addresstest.hh"
-#include "nativesockettest.hh"
-#include "nativechanneltest.hh"
+//#include "nativesockettest.hh"
+//#include "nativechanneltest.hh"
 //
 //#include "threadschedulertest.hh"
 
