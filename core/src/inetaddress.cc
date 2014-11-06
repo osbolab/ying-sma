@@ -1,14 +1,6 @@
 #include "inetaddress.hh"
 
-#ifdef WIN32
-#include "winsock.hh"
-#else
 #include <arpa/inet.h>
-#define ARPA_INET_H_
-#endif
-
-#include <cassert>
-#include <utility>
 
 
 namespace sma
@@ -19,7 +11,7 @@ const InetAddress InetAddress::LOOPBACK = InetAddress("127.0.0.1");
 
 const std::vector<unsigned char> InetAddress::parse(const std::string& saddr)
 {
-  const std::size_t len = sizeof(in_addr);
+  const size_t len = sizeof(in_addr);
   unsigned char buf[len];
   if (!inet_pton(AF_INET, saddr.c_str(), &buf)) {
     perror("inet_pton");
