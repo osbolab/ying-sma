@@ -13,7 +13,7 @@ namespace sma
 class SocketAddress final
 {
 public:
-  SocketAddress(Address address, std::uint16_t port);
+  SocketAddress(Address address, uint16_t port);
 
   virtual void print(std::ostream& os) const;
   friend std::ostream& operator <<(std::ostream& os, const SocketAddress& addr);
@@ -21,7 +21,7 @@ public:
   sockaddr to_sockaddr() const;
 
   const Address         addr;
-  const std::uint16_t   port;
+  const uint16_t   port;
 
 };
 

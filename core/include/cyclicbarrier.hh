@@ -14,8 +14,8 @@ namespace sma
 class CyclicBarrier
 {
  public:
-  CyclicBarrier(std::size_t nr_threads);
-  CyclicBarrier(std::size_t nr_threads, std::function<void()>&& onOpened);
+  CyclicBarrier(size_t nr_threads);
+  CyclicBarrier(size_t nr_threads, std::function<void()>&& onOpened);
   ~CyclicBarrier();
 
   void wait();
@@ -23,9 +23,9 @@ class CyclicBarrier
  private:
   std::function<void()>     onOpened;
 
-  const std::size_t         nr_threads;
-  std::size_t               numWaiting;
-  std::size_t               numToLeave;
+  const size_t         nr_threads;
+  size_t               numWaiting;
+  size_t               numToLeave;
 
   std::mutex                mutex;
   std::condition_variable   closed;

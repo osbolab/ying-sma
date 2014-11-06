@@ -11,7 +11,7 @@
 #endif
 
 template<typename T>
-static inline void set_bit(std::size_t nr, T* addr) 
+static inline void set_bit(size_t nr, T* addr) 
 {
   *addr |= (1 << nr);
 }
@@ -52,7 +52,7 @@ static const int table[] = {
   #define least_set_bit(i) (__builtin_ffs(i) - 1)
 #elif defined(_M_IX86) || defined(_M_X64)
   #define least_set_bit(i) (tzcnt_(i))
-int __inline tzcnt_(std::uint32_t value)
+int __inline tzcnt_(uint32_t value)
 {
   unsigned long tz = 0;
   return (_BitScanForward(&tz, value) ? tz : -1);

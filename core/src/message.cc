@@ -14,8 +14,8 @@ namespace sma
 Message::Message(Type type,
                  Recipient sender,
                  std::vector<Recipient> recipients,
-                 const std::uint8_t* body,
-                 std::size_t len)
+                 const uint8_t* body,
+                 size_t len)
   : type(type)
   , sender(sender)
   , recipients(std::move(recipients))
@@ -39,7 +39,7 @@ Message::Message(Message&& m)
   m.body_len = 0;
 }
 
-Message::Message(const std::uint8_t* src, std::size_t len)
+Message::Message(const uint8_t* src, size_t len)
 {
   src = Message::read(src, sender);
 
@@ -61,12 +61,12 @@ Message::Message(const std::uint8_t* src, std::size_t len)
   body_data = src;
 }
 
-std::uint8_t* Message::serialize_to(std::uint8_t* dst, std::size_t len) const
+uint8_t* Message::serialize_to(uint8_t* dst, size_t len) const
 {
   assert(len >= serialized_size());
 
   dst = write(sender, dst);
-  dst = write(std::uint8_t(recipients.size()), dst);
+  dst = write(uint8_t(recipients.size()), dst);
   for (auto& recipient : recipients)
     dst = write(recipient, dst);
   dst = write(type, dst);
@@ -80,24 +80,24 @@ std::uint8_t* Message::serialize_to(std::uint8_t* dst, std::size_t len) const
   return dst;
 }
 
-std::uint8_t* Message::write(const Recipient& in, std::uint8_t* dst)
+uint8_t* Message::write(const Recipient& in, uint8_t* dst)
 {
-  for (std::size_t i = 0; i < sizeof(Recipient::uint8); ++i)
+  for (size_t i = 0; i < sizeof(Recipient::uint8); ++i)
     *dst++ = in.uint8[i];
   return dst;
 }
-std::uint8_t* Message::write(const std::uint8_t& in, std::uint8_t* dst)
+uint8_t* Message::write(const uint8_t& in, uint8_t* dst)
 {
   *dst++ = in;
   return dst;
 }
-std::uint8_t* Message::write(const std::uint16_t& in, std::uint8_t* dst)
+uint8_t* Message::write(const uint16_t& in, uint8_t* dst)
 {
   *dst++ = in >> 8 & 0xFF;
   *dst++ = in & 0xFF;
   return dst;
 }
-std::uint8_t* Message::write(const std::uint32_t& in, std::uint8_t* dst)
+uint8_t* Message::write(const uint32_t& in, uint8_t* dst)
 {
   *dst++ = in >> 24 & 0xFF;
   *dst++ = in >> 16 & 0xFF;
@@ -105,7 +105,7 @@ std::uint8_t* Message::write(const std::uint32_t& in, std::uint8_t* dst)
   *dst++ = in & 0xFF;
   return dst;
 }
-std::uint8_t* Message::write(const std::uint64_t& in, std::uint8_t* dst)
+uint8_t* Message::write(const uint64_t& in, uint8_t* dst)
 {
   *dst++ = in >> 56 & 0xFF;
   *dst++ = in >> 48 & 0xFF;
@@ -119,40 +119,40 @@ std::uint8_t* Message::write(const std::uint64_t& in, std::uint8_t* dst)
 }
 
 
-const std::uint8_t* Message::read(const std::uint8_t* src, Recipient& out)
+const uint8_t* Message::read(const uint8_t* src, Recipient& out)
 {
-  for (std::size_t i = 0; i < sizeof(Recipient::uint8); ++i)
+  for (size_t i = 0; i < sizeof(Recipient::uint8); ++i)
     out.uint8[i] = *src++;
   return src;
 }
-const std::uint8_t* Message::read(const std::uint8_t* src, std::uint8_t& out)
+const uint8_t* Message::read(const uint8_t* src, uint8_t& out)
 {
   out = *src++;
   return src;
 }
-const std::uint8_t* Message::read(const std::uint8_t* src, std::uint16_t& out)
+const uint8_t* Message::read(const uint8_t* src, uint16_t& out)
 {
-  out |= std::uint16_t{*src++} << 8;
+  out |= uint16_t{*src++} << 8;
   out |= *src++;
   return src;
 }
-const std::uint8_t* Message::read(const std::uint8_t* src, std::uint32_t& out)
+const uint8_t* Message::read(const uint8_t* src, uint32_t& out)
 {
-  out |= std::uint32_t{*src++} << 24;
-  out |= std::uint32_t{*src++} << 16;
-  out |= std::uint32_t{*src++} << 8;
+  out |= uint32_t{*src++} << 24;
+  out |= uint32_t{*src++} << 16;
+  out |= uint32_t{*src++} << 8;
   out |= *src++;
   return src;
 }
-const std::uint8_t* Message::read(const std::uint8_t* src, std::uint64_t& out)
+const uint8_t* Message::read(const uint8_t* src, uint64_t& out)
 {
-  out = std::uint64_t{*src++} << 56;
-  out |= std::uint64_t{*src++} << 48;
-  out |= std::uint64_t{*src++} << 40;
-  out |= std::uint64_t{*src++} << 32;
-  out |= std::uint64_t{*src++} << 24;
-  out |= std::uint64_t{*src++} << 16;
-  out |= std::uint64_t{*src++} << 8;
+  out = uint64_t{*src++} << 56;
+  out |= uint64_t{*src++} << 48;
+  out |= uint64_t{*src++} << 40;
+  out |= uint64_t{*src++} << 32;
+  out |= uint64_t{*src++} << 24;
+  out |= uint64_t{*src++} << 16;
+  out |= uint64_t{*src++} << 8;
   out |= *src++;
   return src;
 }
@@ -180,13 +180,13 @@ bool Message::operator==(const Message& other) const
     if (lhs.find(recipient) == lhs.end())
       return false;
 
-  std::size_t l(-1);
+  size_t l(-1);
   while (++l < body_len && body_data[l] == other.body_data[l])
     ;
   return l == body_len;
 }
 
-std::size_t Message::header_size() const
+size_t Message::header_size() const
 {
   return sizeof type + sizeof(field_nr_recipients_type)
          + sizeof(Recipient::uint8) * (recipients.size() + 1)

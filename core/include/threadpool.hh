@@ -29,7 +29,7 @@ class Threadpool
   using Lock = std::unique_lock<std::mutex>;
 
 public:
-  Threadpool(std::size_t nr_threads)
+  Threadpool(size_t nr_threads)
     : state(new shared_state())
   {
     LOG(DEBUG) << nr_threads << " threads";
@@ -38,7 +38,7 @@ public:
     // the thread will have invalid references to the members.
     shared_state* const cstate = state.get();
 
-    for (std::size_t i = 0; i < nr_threads; ++i) {
+    for (size_t i = 0; i < nr_threads; ++i) {
       LOG(DEBUG) << "constructing " << i << "th thread";
       state->threads.emplace_back([cstate] {
         LOG(DEBUG) << "child thread spawned";
@@ -132,12 +132,12 @@ public:
     }
   }
 
-  std::size_t nr_threads() const
+  size_t nr_threads() const
   {
     return state->threads.size();
   }
 
-  std::size_t size() const
+  size_t size() const
   {
     return state->tasks.size();
   }

@@ -30,7 +30,7 @@ public:
   }
   // Read up to len bytes from the channel into dst and return the number of
   // bytes read, or block until the channel is readable.
-  virtual std::size_t wait_for_read(std::uint8_t* dst, std::size_t len) = 0;
+  virtual size_t wait_for_read(uint8_t* dst, size_t len) = 0;
 
 protected:
   // Guarantee that whichever waiting reader is woken gets to read

@@ -12,7 +12,7 @@
 
 namespace sma
 {
-SocketAddress::SocketAddress(Address address, std::uint16_t port)
+SocketAddress::SocketAddress(Address address, uint16_t port)
   : addr(address)
   , port(port)
 {
@@ -37,10 +37,10 @@ SocketAddress::to_sockaddr() const
 // FIXME: This is nice and safe...
 #ifdef WIN32
   saddr.sin.sin_addr.S_un.S_addr =
-      *reinterpret_cast<const std::uint32_t *>(&addr.data[0]);
+      *reinterpret_cast<const uint32_t *>(&addr.data[0]);
 #else
   saddr.sin.sin_addr.s_addr =
-      *reinterpret_cast<const std::uint32_t *>(&addr.data[0]);
+      *reinterpret_cast<const uint32_t *>(&addr.data[0]);
 #endif
   ;
   return saddr.sa;

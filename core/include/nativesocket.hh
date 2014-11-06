@@ -44,13 +44,13 @@ public:
   int bind(const SocketAddress& address) override;
   void close() override;
 
-  std::size_t recv(std::uint8_t* dst, std::size_t len) override
+  size_t recv(uint8_t* dst, size_t len) override
   {
     return ::recv(sock, reinterpret_cast<char*>(dst), len, 0);
   }
 
-  int send(const std::uint8_t* src,
-           std::size_t len,
+  int send(const uint8_t* src,
+           size_t len,
            const SocketAddress& recipient) override;
 
   SOCKET native_socket() const { return sock; }

@@ -6,7 +6,7 @@
 namespace sma
 {
 
-Address::Address(Family family, std::uint32_t addrl)
+Address::Address(Family family, uint32_t addrl)
   : family(family)
   , data(std::vector<unsigned char>(4))
 {

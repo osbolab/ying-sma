@@ -11,10 +11,10 @@ namespace sma
 
 TEST(BufferPool, fill_shrink_and_read)
 {
-  auto pool = BufferPool<std::uint8_t, 16>(128);
+  auto pool = BufferPool<uint8_t, 16>(128);
   auto buf = pool.allocate(50);
 
-  std::size_t n = 15;
+  size_t n = 15;
   unsigned char* arr = new unsigned char[n];
   memset(arr, 'A', n);
 

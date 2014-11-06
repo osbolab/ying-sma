@@ -173,7 +173,7 @@ public:
     }
   }
 
-  std::size_t size()
+  size_t size()
   {
     Lock lock(mutex);
     return q.size();
@@ -225,7 +225,7 @@ private:
   std::mutex mutex;
   std::condition_variable available;
   bool interrupted{false};
-  std::size_t nr_waiting{0};
+  size_t nr_waiting{0};
 };
 
 

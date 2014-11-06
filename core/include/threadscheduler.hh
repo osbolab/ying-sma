@@ -48,7 +48,7 @@ protected:
 
 
 private:
-  ThreadScheduler(std::size_t nr_threads)
+  ThreadScheduler(size_t nr_threads)
     : threadpool(std::move(Threadpool<>(nr_threads)))
   {
     LOG(DEBUG);
@@ -59,7 +59,7 @@ private:
   DelayQueue<std::function<void()>> tasks;
 
 public:
-  template <std::size_t NrThreads>
+  template <size_t NrThreads>
   class Factory final : public Scheduler::Factory
   {
   public:

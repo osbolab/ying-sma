@@ -45,14 +45,14 @@ TEST(BlockingQueue, take_uncontended)
 
 TEST(BlockingQueue, concurrent_producer_consumer)
 {
-  const std::size_t nr_threads = 3;
+  const size_t nr_threads = 3;
 
   auto mq = BlockingQueue<std::string>(nr_threads);
   std::string msg("Hello, world!");
 
   CyclicBarrier production(nr_threads);
   CyclicBarrier consumption(nr_threads, [&] {
-    for (std::size_t i = 0; i < nr_threads; ++i) {
+    for (size_t i = 0; i < nr_threads; ++i) {
       std::thread th([&] {
         production.wait();
         ASSERT_TRUE(mq.offer(msg));
@@ -64,7 +64,7 @@ TEST(BlockingQueue, concurrent_producer_consumer)
   int successes = 0;
 
   std::vector<std::thread> consumers;
-  for (std::size_t i = 0; i < nr_threads; ++i) {
+  for (size_t i = 0; i < nr_threads; ++i) {
     std::thread th([&] {
       consumption.wait();
       if (mq.take() == msg)

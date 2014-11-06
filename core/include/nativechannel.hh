@@ -23,7 +23,7 @@ public:
   NativeChannel(NativeSocket* socket);
   NativeChannel(std::vector<NativeSocket*> sockets);
 
-  std::size_t wait_for_read(std::uint8_t* dst, std::size_t len) override;
+  size_t wait_for_read(uint8_t* dst, size_t len) override;
   // Block until a socket has something to read.
   void select();
 

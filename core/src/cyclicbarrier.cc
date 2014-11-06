@@ -6,7 +6,7 @@
 namespace sma
 {
 
-CyclicBarrier::CyclicBarrier(std::size_t nr_threads)
+CyclicBarrier::CyclicBarrier(size_t nr_threads)
   : nr_threads(nr_threads),
     numWaiting(0),
     numToLeave(0),
@@ -14,7 +14,7 @@ CyclicBarrier::CyclicBarrier(std::size_t nr_threads)
 {
 }
 
-CyclicBarrier::CyclicBarrier(std::size_t nr_threads, std::function<void()>&& onOpened)
+CyclicBarrier::CyclicBarrier(size_t nr_threads, std::function<void()>&& onOpened)
   : nr_threads(nr_threads),
     onOpened(onOpened),
     numWaiting(0),

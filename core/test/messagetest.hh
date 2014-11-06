@@ -20,7 +20,7 @@ const char* chars = contents.c_str();
 TEST(Message, copy_vector)
 {
   auto mut =
-      Message(std::vector<std::uint8_t>(contents.begin(), contents.end()));
+      Message(std::vector<uint8_t>(contents.begin(), contents.end()));
 
   auto data = mut.data();
 
@@ -31,7 +31,7 @@ TEST(Message, copy_vector)
 TEST(Message, modify_contents)
 {
   auto mut =
-      Message(std::vector<std::uint8_t>(contents.begin(), contents.end()));
+      Message(std::vector<uint8_t>(contents.begin(), contents.end()));
 
   auto data = mut.data();
 

@@ -17,7 +17,7 @@ TEST(NativeSocket, bind_send_recv)
   int port = 9997;
 
   const int buf_len = 32;
-  std::uint8_t buf[buf_len];
+  uint8_t buf[buf_len];
   memset(buf, 'A', buf_len);
   buf[buf_len - 1] = 0;
 
@@ -44,8 +44,8 @@ TEST(NativeSocket, bind_send_recv)
       buf_len,
       sender->send(buf, buf_len, SocketAddress(InetAddress::LOOPBACK, port)));
 
-  std::uint8_t recvbuf[buf_len];
-  std::size_t recv = listener->recv(recvbuf, buf_len);
+  uint8_t recvbuf[buf_len];
+  size_t recv = listener->recv(recvbuf, buf_len);
   recvbuf[buf_len - 1] = 0;
 
   ASSERT_STREQ(reinterpret_cast<const char*>(buf),
