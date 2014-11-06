@@ -9,8 +9,8 @@ namespace sma
 
 int Messenger::send_now(Message::Type type,
     const std::vector<Recipient>& recipients,
-    const uint8_t* data,
-    size_t len)
+    const std::uint8_t* data,
+    std::size_t len)
 {
 }
 

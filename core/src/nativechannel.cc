@@ -41,7 +41,7 @@ NativeChannel::NativeChannel(std::vector<NativeSocket*> sockets)
   LOG(DEBUG) << "channel of " << this->sockets.size() << " native sockets";
 }
 
-size_t NativeChannel::wait_for_read(uint8_t* dst, size_t len)
+std::size_t NativeChannel::wait_for_read(std::uint8_t* dst, std::size_t len)
 {
   assert(dst);
   assert(len > 0);

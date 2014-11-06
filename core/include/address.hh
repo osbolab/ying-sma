@@ -33,7 +33,7 @@ public:
   std::vector<unsigned char> data;
 
 protected:
-  Address(Family family, uint32_t addrl);
+  Address(Family family, std::uint32_t addrl);
   Address(Family family, const std::vector<unsigned char>& addr)
     : family(family)
     , data(addr)

@@ -19,7 +19,7 @@ namespace sma
 {
 
 
-int do_announce(uint32_t node_id)
+int do_announce(std::uint32_t node_id)
 {
   LOG(DEBUG) << "Success! Task callback called";
   return node_id;
@@ -27,9 +27,9 @@ int do_announce(uint32_t node_id)
 
 /*
 // function<void(Task, ...A)>
-void on_announce_done(std::shared_ptr<Task>& task, size_t backoff)
+void on_announce_done(std::shared_ptr<Task>& task, std::size_t backoff)
 {
-  backoff = size_t(float(backoff) * 1.2f);
+  backoff = std::size_t(float(backoff) * 1.2f);
 }
 */
 
@@ -38,7 +38,7 @@ TEST(Scheduler, schedule_task)
   using clock = std::chrono::high_resolution_clock;
 
   auto const delay = 100_ms;
-  const uint32_t input = 15;
+  const std::uint32_t input = 15;
 
   auto factory = ThreadScheduler::Factory<1>();
   auto sched = factory.new_scheduler();

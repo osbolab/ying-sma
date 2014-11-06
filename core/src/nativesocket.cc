@@ -119,8 +119,8 @@ void NativeSocket::close()
   }
 }
 
-int NativeSocket::send(const uint8_t* src,
-                       size_t len,
+int NativeSocket::send(const std::uint8_t* src,
+                       std::size_t len,
                        const SocketAddress& recipient)
 {
   LOG(DEBUG);

@@ -18,7 +18,7 @@ public:
   //! Create an unbounded queue.
   BlockingQueue();
   //! Create a bounded queue.
-  BlockingQueue(size_t capacity);
+  BlockingQueue(std::size_t capacity);
   BlockingQueue(const BlockingQueue<T>& copy);
   BlockingQueue(BlockingQueue<T>&& move);
 
@@ -41,7 +41,7 @@ public:
 
 private:
   std::deque<T>             items;
-  size_t               capacity;
+  std::size_t               capacity;
   std::mutex                mutex;
   std::condition_variable   itemAvailable;
 };
@@ -55,7 +55,7 @@ BlockingQueue<T>::BlockingQueue()
 }
 
 template<typename T>
-BlockingQueue<T>::BlockingQueue(size_t capacity)
+BlockingQueue<T>::BlockingQueue(std::size_t capacity)
   : capacity(capacity)
 {
 }

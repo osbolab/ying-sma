@@ -19,7 +19,7 @@ public:
   ~AbstractScheduler();
 
 protected:
-  virtual void schedule(size_t task_id,
+  virtual void schedule(std::size_t task_id,
                         std::chrono::milliseconds delay) = 0;
 
   // The scheduler frontend manages the actual tasks that get scheduled
