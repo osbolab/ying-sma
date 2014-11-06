@@ -1,11 +1,5 @@
 #include "inetaddress.hh"
 
-#ifdef WIN32
-#include "winsock.hh"
-#else
-#include <arpa/inet.h>
-#define ARPA_INET_H_
-#endif
 
 #include <cassert>
 #include <utility>

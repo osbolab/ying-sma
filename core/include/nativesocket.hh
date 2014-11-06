@@ -62,8 +62,6 @@ public:
 
 private:
   NativeSocket() { is_blocking(true); }
-
-
   int create(Address::Family family, Type type, Protocol protocol);
 
   int last_error(int error) override { return global_last_error(error); }

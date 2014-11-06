@@ -11,6 +11,9 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/../cmake/project.cmake" REQUIRED)
 
 set(LIB_SOURCES
   "${SRC}/cyclicbarrier.cc"
+  "${SRC}/threadpool.cc"
+
+  "${SRC}/threadscheduler.cc"
 
   "${SRC}/message.cc"
 

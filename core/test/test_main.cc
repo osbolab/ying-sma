@@ -20,10 +20,10 @@ _INITIALIZE_EASYLOGGINGPP
 //#include "messagetest.hh"
 //
 //#include "addresstest.hh"
-#include "nativesockettest.hh"
-#include "nativechanneltest.hh"
+//#include "nativesockettest.hh"
+//#include "nativechanneltest.hh"
 //
-//#include "threadschedulertest.hh"
+#include "threadschedulertest.hh"
 
 #include "gtest/gtest.h"
 

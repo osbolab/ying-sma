@@ -145,6 +145,7 @@ int NativeSocket::is_blocking(bool blocking)
   return 0;
 }
 
+
 void NativeSocket::log_last_error()
 {
   int error = NO_ERROR;

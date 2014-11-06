@@ -45,7 +45,8 @@ TEST(Scheduler, schedule_task)
   auto start = clock::now();
   auto task = sched->schedule(delay, do_announce, input);
   LOG(DEBUG) << "scheduled task; waiting for result";
-  int result = task->wait();
+  task.wait();
+  int result = task.get();
   auto time = clock::now() - start;
   LOG(DEBUG) << "task finished: " << result;
   ASSERT_EQ(input, result);

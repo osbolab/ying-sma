@@ -2,6 +2,9 @@
 
 #include "address.hh"
 
+#include <arpa/inet.h>
+#define ARPA_INET_H_
+
 namespace sma
 {
 
@@ -11,7 +14,7 @@ public:
   static const InetAddress ANY;
   static const InetAddress LOOPBACK;
 
-  InetAddress(const std::string& addr)
+  InetAddress(const std::string& saddr)
     : Address(IPv4, parse(saddr))
   {
   }
