@@ -28,8 +28,8 @@ public:
   {
     // Start on the tail and swap with our parent until she's better than us
     v.push_back(std::move(t));
-    size_t i = v.size() - 1;
-    size_t p_i = (i + 1) / 2 - 1;
+    std::size_t i = v.size() - 1;
+    std::size_t p_i = (i + 1) / 2 - 1;
     while (i > 0 && better(v[i], v[p_i])) {
       std::swap(v[i], v[p_i]);
       i = p_i;
@@ -53,11 +53,11 @@ public:
     std::swap(v[v.size() - 1], v[0]);
     v.pop_back();
 
-    const size_t sz = v.size();
+    const std::size_t sz = v.size();
 
-    size_t i = 0;
+    std::size_t i = 0;
     for (;;) {
-      size_t best = (i + 1) * 2 - 1;
+      std::size_t best = (i + 1) * 2 - 1;
       // If we have no children then we're done
       if (best >= sz)
         break;
@@ -84,7 +84,7 @@ public:
     return v.empty();
   }
 
-  size_t size()
+  std::size_t size()
   {
     return v.size();
   }

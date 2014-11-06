@@ -53,11 +53,11 @@ public:
 private:
   // UDP packets should be pretty small to avoid fragmentation.
   // Random stackoverflow sources suggest 512-540 bytes.
-  static const size_t MESSAGE_BUFFER_SIZE = 1024;
+  static const std::size_t MESSAGE_BUFFER_SIZE = 1024;
 
   std::thread th;
-  uint8_t buf[MESSAGE_BUFFER_SIZE];
-  size_t len{0};
+  std::uint8_t buf[MESSAGE_BUFFER_SIZE];
+  std::size_t len{0};
   // Constructed from the contents of buf after reading
   Message msg;
 

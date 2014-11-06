@@ -20,7 +20,7 @@ TEST(NativeChannel, select_one_sockets)
   int port = 9997;
 
   const int buf_len = 32;
-  uint8_t buf[buf_len];
+  std::uint8_t buf[buf_len];
   memset(buf, 'A', buf_len);
   buf[buf_len - 1] = 0;
 
@@ -63,9 +63,9 @@ TEST(NativeChannel, select_one_sockets)
   for (int i = 0; i < 2; ++i) {
     threads.emplace_back([&, i]() {
       while (--to_finish > 0) {
-        uint8_t buf[48];
+        std::uint8_t buf[48];
         ++waiting;
-        size_t read = channel.wait_for_read(buf, 48);
+        std::size_t read = channel.wait_for_read(buf, 48);
         --waiting;
         buf[read] = 0;
         LOG(DEBUG) << "thread " << i << " read " << read

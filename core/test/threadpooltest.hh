@@ -40,7 +40,7 @@ TEST(Delay_Scheduler, AssertionTrue)
   DelayQueue<clock::time_point> dq;
 
   Threadpool<> tp(5);
-  for (size_t i = 0; i < tp.nr_threads(); ++i) {
+  for (std::size_t i = 0; i < tp.nr_threads(); ++i) {
     tp.push([&]() {
       for (;;) {
         if (stop) break;
@@ -66,10 +66,10 @@ TEST(Delay_Scheduler, AssertionTrue)
 
 std::atomic<unsigned long long> jobms{0};
 
-static const size_t job_count{100};
+static const std::size_t job_count{100};
 
 using clock = std::chrono::high_resolution_clock;
-std::atomic<size_t> count{0};
+std::atomic<std::size_t> count{0};
 std::mutex mutex;
 std::condition_variable finished;
 
@@ -89,7 +89,7 @@ TEST(Threadpool, schedule_async)
 
   std::vector<std::future<void>> futures;
 
-  for (size_t i = 0; i < 5; ++i) {
+  for (std::size_t i = 0; i < 5; ++i) {
     futures.push_back(std::async(std::launch::async, [&]() {
       for (;;) {
         if (stop)

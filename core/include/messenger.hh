@@ -26,8 +26,8 @@ public:
   // Returns 0 on success
   virtual int send_now(Message::Type type,
                const std::vector<Address>& recipients,
-               const uint8_t* data,
-               size_t len);
+               const std::uint8_t* data,
+               std::size_t len);
 
   // Does not block, but on_message may be called in multiple threads
   // concurrently.

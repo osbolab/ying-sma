@@ -19,7 +19,7 @@ namespace sma
 
 namespace detail
 {
-  using taskid_type = size_t;
+  using taskid_type = std::size_t;
 }
 
 template <typename R>

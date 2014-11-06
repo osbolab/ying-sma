@@ -47,9 +47,9 @@ Message::Message(const std::uint8_t* src, std::size_t len)
   src = Message::read(src, nr_recipients);
 
   if (nr_recipients > 0) {
-    const std::vector<Recipient>::size_type nr{nr_recipients};
+    const std::vector<Recipient>::std::size_type nr{nr_recipients};
     recipients = std::vector<Recipient>(nr);
-    for (std::vector<Recipient>::size_type i = 0; i < nr; ++i) {
+    for (std::vector<Recipient>::std::size_type i = 0; i < nr; ++i) {
       src = Message::read(src, recipients[i]);
     }
   }
@@ -67,7 +67,8 @@ std::uint8_t* Message::serialize_to(std::uint8_t* dst, std::size_t len) const
 
   dst = write(sender, dst);
   dst = write(std::uint8_t(recipients.size()), dst);
-  for (auto& recipient : recipients) dst = write(recipient, dst);
+  for (auto& recipient : recipients)
+    dst = write(recipient, dst);
   dst = write(type, dst);
   dst = write(body_len, dst);
 
