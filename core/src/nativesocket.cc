@@ -1,5 +1,6 @@
 #include "nativesocket.hh"
 #include "socket.hh"
+#include "bytes.hh"
 
 #include "log.hh"
 
@@ -126,8 +127,7 @@ int NativeSocket::send(const std::uint8_t* src,
   LOG(DEBUG);
 
   sockaddr sa = recipient.to_sockaddr();
-  const char* csrc = reinterpret_cast<const char*>(src);
-  return ::sendto(sock, csrc, len, 0, &sa, sizeof(sockaddr));
+  return ::sendto(sock, char_cp(src), len, 0, &sa, sizeof(sockaddr));
 }
 
 int NativeSocket::is_blocking(bool blocking)

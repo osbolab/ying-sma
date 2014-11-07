@@ -1,6 +1,7 @@
 #pragma once
 
 #include "socket.hh"
+#include "bytes.hh"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -46,7 +47,7 @@ public:
 
   std::size_t recv(std::uint8_t* dst, std::size_t len) override
   {
-    return ::recv(sock, reinterpret_cast<char*>(dst), len, 0);
+    return ::recv(sock, char_p(dst), len, 0);
   }
 
   int send(const std::uint8_t* src,

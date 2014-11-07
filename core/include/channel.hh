@@ -28,6 +28,8 @@ public:
   ~Channel()
   {
   }
+
+  virtual std::size_t write(const std::uint8_t* src, std::size_t len) = 0;
   // Read up to len bytes from the channel into dst and return the number of
   // bytes read, or block until the channel is readable.
   virtual std::size_t wait_for_read(std::uint8_t* dst, std::size_t len) = 0;

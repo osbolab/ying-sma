@@ -18,6 +18,7 @@ _INITIALIZE_EASYLOGGINGPP
 //#include "threadpooltest.hh"
 //
 #include "messagetest.hh"
+#include "messengertest.hh"
 //
 //#include "addresstest.hh"
 //#include "nativesockettest.hh"

@@ -1,6 +1,7 @@
 #include "nativesocket.hh"
 #include "inetaddress.hh"
 #include "socketaddress.hh"
+#include "bytes.hh"
 
 #include "gtest/gtest.h"
 
@@ -48,7 +49,6 @@ TEST(NativeSocket, bind_send_recv)
   std::size_t recv = listener->recv(recvbuf, buf_len);
   recvbuf[buf_len - 1] = 0;
 
-  ASSERT_STREQ(reinterpret_cast<const char*>(buf),
-               reinterpret_cast<const char*>(recvbuf));
+  ASSERT_STREQ(char_cp(buf), char_cp(recvbuf));
 }
 }

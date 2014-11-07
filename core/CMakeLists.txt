@@ -13,6 +13,7 @@ set(LIB_SOURCES
   "${SRC}/cyclicbarrier.cc"
 
   "${SRC}/message.cc"
+  "${SRC}/messenger.cc"
 
   "${SRC}/address.cc"
   "${SRC}/inetaddress.cc"

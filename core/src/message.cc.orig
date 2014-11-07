@@ -1,82 +1,79 @@
 #include "message.hh"
 
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <utility>
+#include <vector>
 #include <unordered_set>
 
 
 namespace sma
 {
 
-Message::Message(Builder&& builder, Address sender)
-  : type_(builder.type)
-  , sender_(sender)
-  , recipients_(std::move(builder.recipients))
-  , body_data(builder.body)
-  , body_len(builder.len)
-{
-  assert(recipients_.size() <= field_nr_recipients_max);
-  assert(body_len <= field_body_len_max);
-}
-
 Message::Message(Type type,
-                 Address sender,
-                 std::unordered_set<Address>&& recipients,
+                 Recipient sender,
+                 std::vector<Recipient> recipients,
                  const std::uint8_t* body,
                  std::size_t len)
-  : type_(type)
-  , sender_(sender)
-  , recipients_(recipients)
+  : type(type)
+  , sender(sender)
+  , recipients(std::move(recipients))
   , body_data(body)
   , body_len(len)
 {
-  assert(recipients_.size() <= field_nr_recipients_max);
+  assert(recipients.size() <= field_nr_recipients_max);
   assert(len <= field_body_len_max);
+}
+
+Message::Message(Message&& m)
+  : type(m.type)
+  , sender(m.sender)
+  , body_data(m.body_data)
+  , body_len(m.body_len)
+{
+  m.type = 0;
+  m.sender = Recipient{{0}};
+  std::swap(recipients, m.recipients);
+  m.body_data = nullptr;
+  m.body_len = 0;
 }
 
 Message::Message(const std::uint8_t* src, std::size_t len)
 {
-  len -= static_header_size();
-  assert(len >= 0);
-
-  src = read(src, sender_);
+  src = Message::read(src, sender);
 
   field_nr_recipients_type nr_recipients{0};
-  src = read(src, nr_recipients);
+  src = Message::read(src, nr_recipients);
 
   if (nr_recipients > 0) {
-    len -= nr_recipients * sizeof(Address);
-    assert(len >= 0);
-
-    std::unordered_set<Address>::size_type n{nr_recipients};
-    recipients_ = std::unordered_set<Address>(n);
-    while (n-- > 0) {
-      Address r;
-      src = read(src, r);
-      recipients_.insert(std::move(r));
+    const std::vector<Recipient>::std::size_type nr{nr_recipients};
+    recipients = std::vector<Recipient>(nr);
+    for (std::vector<Recipient>::std::size_type i = 0; i < nr; ++i) {
+      src = Message::read(src, recipients[i]);
     }
   }
 
-  src = read(src, type_);
-  src = read(src, body_len);
-
-  len -= body_len;
-  assert(len >= 0);
+  src = Message::read(src, type);
+  src = Message::read(src, body_len);
 
   // don't copy
   body_data = src;
 }
 
-std::uint8_t* Message::put_in(std::uint8_t* dst, std::size_t len) const
+std::uint8_t* Message::serialize_to(std::uint8_t* dst, std::size_t len) const
 {
   assert(len >= serialized_size());
 
-  dst = write(sender_, dst);
-  dst = write(std::uint8_t(recipients_.size()), dst);
-  for (auto& recipient : recipients_)
+  dst = write(sender, dst);
+  dst = write(std::uint8_t(recipients.size()), dst);
+<<<<<<< HEAD
+  for (auto& recipient : recipients) dst = write(recipient, dst);
+=======
+  for (auto& recipient : recipients)
     dst = write(recipient, dst);
-  dst = write(type_, dst);
+>>>>>>> a7885b29f94f6034b5e13f300581043c33b2dfd3
+  dst = write(type, dst);
   dst = write(body_len, dst);
 
   len -= header_size();
@@ -87,6 +84,12 @@ std::uint8_t* Message::put_in(std::uint8_t* dst, std::size_t len) const
   return dst;
 }
 
+std::uint8_t* Message::write(const Recipient& in, std::uint8_t* dst)
+{
+  for (std::size_t i = 0; i < sizeof(Recipient::uint8); ++i)
+    *dst++ = in.uint8[i];
+  return dst;
+}
 std::uint8_t* Message::write(const std::uint8_t& in, std::uint8_t* dst)
 {
   *dst++ = in;
@@ -120,6 +123,12 @@ std::uint8_t* Message::write(const std::uint64_t& in, std::uint8_t* dst)
 }
 
 
+const std::uint8_t* Message::read(const std::uint8_t* src, Recipient& out)
+{
+  for (std::size_t i = 0; i < sizeof(Recipient::uint8); ++i)
+    out.uint8[i] = *src++;
+  return src;
+}
 const std::uint8_t* Message::read(const std::uint8_t* src, std::uint8_t& out)
 {
   out = *src++;
@@ -127,13 +136,13 @@ const std::uint8_t* Message::read(const std::uint8_t* src, std::uint8_t& out)
 }
 const std::uint8_t* Message::read(const std::uint8_t* src, std::uint16_t& out)
 {
-  out = std::uint16_t{*src++} << 8;
+  out |= std::uint16_t{*src++} << 8;
   out |= *src++;
   return src;
 }
 const std::uint8_t* Message::read(const std::uint8_t* src, std::uint32_t& out)
 {
-  out = std::uint32_t{*src++} << 24;
+  out |= std::uint32_t{*src++} << 24;
   out |= std::uint32_t{*src++} << 16;
   out |= std::uint32_t{*src++} << 8;
   out |= *src++;
@@ -152,16 +161,26 @@ const std::uint8_t* Message::read(const std::uint8_t* src, std::uint64_t& out)
   return src;
 }
 
+Message& Message::operator=(Message&& m)
+{
+  std::swap(type, m.type);
+  std::swap(sender, m.sender);
+  std::swap(recipients, m.recipients);
+  std::swap(body_data, m.body_data);
+  std::swap(body_len, m.body_len);
+  return *this;
+}
+
 bool Message::operator==(const Message& other) const
 {
-  if (!std::equal_to<Address>()(sender_, other.sender_))
+  if (!std::equal_to<Recipient>()(sender, other.sender))
     return false;
 
-  if (recipients_.size() != other.recipients_.size())
+  if (recipients.size() != other.recipients.size())
     return false;
 
-  std::unordered_set<Address> lhs(recipients_.cbegin(), recipients_.cend());
-  for (auto& recipient : other.recipients_)
+  std::unordered_set<Recipient> lhs(recipients.cbegin(), recipients.cend());
+  for (auto& recipient : other.recipients)
     if (lhs.find(recipient) == lhs.end())
       return false;
 
@@ -169,5 +188,12 @@ bool Message::operator==(const Message& other) const
   while (++l < body_len && body_data[l] == other.body_data[l])
     ;
   return l == body_len;
+}
+
+std::size_t Message::header_size() const
+{
+  return sizeof type + sizeof(field_nr_recipients_type)
+         + sizeof(Recipient::uint8) * (recipients.size() + 1)
+         + sizeof(field_body_len_type) + sizeof body_len;
 }
 }

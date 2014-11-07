@@ -4,6 +4,7 @@
 #include "nativesocket.hh"
 #include "inetaddress.hh"
 #include "socketaddress.hh"
+#include "bytes.hh"
 
 #include "gtest/gtest.h"
 
@@ -70,7 +71,7 @@ TEST(NativeChannel, select_one_sockets)
         buf[read] = 0;
         LOG(DEBUG) << "thread " << i << " read " << read
                    << " bytes from channel! "
-                   << std::string(reinterpret_cast<const char*>(buf));
+                   << copy_string(buf));
         LOG(DEBUG) << to_finish << " to go";
       }
     });
@@ -82,11 +83,11 @@ TEST(NativeChannel, select_one_sockets)
       std::this_thread::sleep_for(std::chrono::milliseconds(10));
       LOG(DEBUG) << "sending " << buf_len << " bytes from background thread";
       sender->send(
-          buf, buf_len, SocketAddress(InetAddress::LOOPBACK, port + (i%2)));
+          buf, buf_len, SocketAddress(InetAddress::LOOPBACK, port + (i % 2)));
     }
   });
 
-  while (to_finish>0 || waiting>0) {
+  while (to_finish > 0 || waiting > 0) {
     LOG(DEBUG) << "blocking main thread on select";
     channel.select();
     LOG(DEBUG) << "selected! joining read thread";

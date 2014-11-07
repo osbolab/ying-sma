@@ -1,46 +1,29 @@
 #include "message.hh"
+#include "bytes.hh"
 
 #include "gtest/gtest.h"
 
-#include <iostream>
-#include <cstdint>
 #include <string>
-#include <cassert>
-#include <memory>
-#include <algorithm>
-
+#include <cstdint>
 
 
 namespace sma
 {
 
-std::string contents("Hello, world!");
-const char* chars = contents.c_str();
-
-TEST(Message, copy_vector)
+TEST(Message, serialize_deserialize)
 {
-  auto mut =
-      Message(std::vector<std::uint8_t>(contents.begin(), contents.end()));
+  std::string contents{"Hello, world!"};
+  auto bytes = uint8_cp(contents);
+  auto msg
+      = Message(Message::build(Message::Type{1}, bytes, contents.size()),
+                Message::Address{1});
 
-  auto data = mut.data();
+  std::uint8_t buf[32];
+  msg.put_in(buf, sizeof buf);
 
-  ASSERT_EQ(contents, std::string(data.begin(), data.end()));
-  ASSERT_TRUE(mut == Message(data));
-}
+  auto msg2 = Message(buf, sizeof buf);
 
-TEST(Message, modify_contents)
-{
-  auto mut =
-      Message(std::vector<std::uint8_t>(contents.begin(), contents.end()));
-
-  auto data = mut.data();
-
-  data[0] = 'a';
-  ASSERT_TRUE(mut != Message(data));
-
-  mut.data()[0] = 'a';
-  ASSERT_FALSE(mut != Message(data));
-
-  ASSERT_EQ(data, mut.data());
+  ASSERT_EQ(1, msg2.type());
+  ASSERT_EQ(contents, copy_string(msg2.body(), msg2.body_size()));
 }
 }
