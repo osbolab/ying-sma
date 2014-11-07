@@ -1,173 +1,138 @@
 #include "message.hh"
 
 #include <cassert>
-#include <cstdint>
 #include <utility>
-#include <unordered_set>
+#include <vector>
 
 
 namespace sma
 {
 
-Message::Message(Builder&& builder, Address sender)
-  : type_(builder.type)
-  , sender_(sender)
-  , recipients_(std::move(builder.recipients))
-  , body_data(builder.body)
-  , body_len(builder.len)
+Message::Message(Type type,
+                 ActorId sender,
+                 std::vector<ActorId> recipients)
+  : type(type)
+  , sender(sender)
+  , recipients(recipients)
 {
-  assert(recipients_.size() <= field_nr_recipients_max);
-  assert(body_len <= field_body_len_max);
 }
 
-Message::Message(Type type,
-                 Address sender,
-                 std::unordered_set<Address>&& recipients,
-                 const std::uint8_t* body,
-                 std::size_t len)
-  : type_(type)
-  , sender_(sender)
-  , recipients_(recipients)
-  , body_data(body)
-  , body_len(len)
+Message::Message(Message&& m)
+  : type(m.type)
+  , sender(m.sender)
 {
-  assert(recipients_.size() <= field_nr_recipients_max);
-  assert(len <= field_body_len_max);
+  m.type = 0;
+  m.sender = ActorId {{0}};
+  std::swap(recipients, m.recipients);
+}
+
+std::uint8_t* write_fields(std::uint8_t* dst, std::size_t len) const
+{
+  dst += Bytes::put(dst, type);
+  dst += Bytes::put(dst, sender.id);
+  dst += Bytes::put(dst, field_nr_recp_type{recipients.size()});
+  for (auto& recp : recipients)
+    dst += ByteBuffer::put(dst, recp.id);
+}
+
+const std::uint8_t* read_fields(const std::uint8_t* src, std::size_t len)
+{
 }
 
 Message::Message(const std::uint8_t* src, std::size_t len)
 {
-  len -= static_header_size();
-  assert(len >= 0);
+  std::size_t i;
 
-  src = read(src, sender_);
+  // sender
+  for (i = 0; i < sizeof(ActorId::data); ++i)
+    sender.data[i] = *src++;
 
-  field_nr_recipients_type nr_recipients{0};
-  src = read(src, nr_recipients);
+  // nr_recipients
+  std::size_t nr_recipients{0};
+  for (i = 0; i < sizeof nr_recipients; ++i)
+    nr_recipients |= (*src++ << (i << 3));
 
-  if (nr_recipients > 0) {
-    len -= nr_recipients * sizeof(Address);
-    assert(len >= 0);
-
-    std::unordered_set<Address>::size_type n{nr_recipients};
-    recipients_ = std::unordered_set<Address>(n);
-    while (n-- > 0) {
-      Address r;
-      src = read(src, r);
-      recipients_.insert(std::move(r));
-    }
+  // recipient[]
+  for (std::size_t recp = 0; recp < nr_recipients; ++recp)
+  {
+    ActorId recipient;
+    for (i = 0; i < sizeof(ActorId::data); ++i)
+      recipient.data[i] = *src++;
+    recipients.push_back(recipient);
   }
 
-  src = read(src, type_);
-  src = read(src, body_len);
+  // message type
+  for (i = 0; i < sizeof type; ++i)
+    type |= (*src++ << (i << 3));
 
-  len -= body_len;
-  assert(len >= 0);
+  // body len
+  for (i = 0; i < sizeof body_len; ++i)
+    body_len |= (*src++ << (i << 3));
 
-  // don't copy
+  // body (don't copy)
   body_data = src;
 }
 
-std::uint8_t* Message::put_in(std::uint8_t* dst, std::size_t len) const
+std::uint8_t* Message::serialize_to(std::uint8_t* dst, std::size_t len) const
 {
   assert(len >= serialized_size());
 
-  dst = write(sender_, dst);
-  dst = write(std::uint8_t(recipients_.size()), dst);
-  for (auto& recipient : recipients_)
-    dst = write(recipient, dst);
-  dst = write(type_, dst);
-  dst = write(body_len, dst);
+  std::size_t i;
+
+  // sender
+  for (i = 0; i < sizeof(ActorId::data); ++i)
+    *dst++ = sender.data[i];
+
+  // nr_recipients
+  const std::size_t nr_recipients = recipients.size();
+  for (i = 0; i < sizeof nr_recipients; ++i)
+    *dst++ = (nr_recipients >> (i << 3)) & 0xFF;
+
+  // recipient[]
+  for (auto& recipient : recipients)
+    for (i = 0; i < sizeof(ActorId::data); ++i)
+      *dst++ = recipient.data[i];
+
+  // message type
+  for (i = 0; i < sizeof type; ++i)
+    *dst++ = (type >> (i << 3)) & 0xFF;
+
+  // body len
+  for (i = 0; i < sizeof body_len; ++i)
+    *dst++ = (body_len >> (i << 3)) & 0xFF;
 
   len -= header_size();
 
-  for (field_body_len_type i = 0; i < body_len && len-- > 0; ++i)
+  // body
+  for (i = 0; i < body_len && len-- > 0; ++i)
     *dst++ = body_data[i];
 
   return dst;
 }
 
-std::uint8_t* Message::write(const std::uint8_t& in, std::uint8_t* dst)
+Message& Message::operator=(Message&& m)
 {
-  *dst++ = in;
-  return dst;
-}
-std::uint8_t* Message::write(const std::uint16_t& in, std::uint8_t* dst)
-{
-  *dst++ = in >> 8 & 0xFF;
-  *dst++ = in & 0xFF;
-  return dst;
-}
-std::uint8_t* Message::write(const std::uint32_t& in, std::uint8_t* dst)
-{
-  *dst++ = in >> 24 & 0xFF;
-  *dst++ = in >> 16 & 0xFF;
-  *dst++ = in >> 8 & 0xFF;
-  *dst++ = in & 0xFF;
-  return dst;
-}
-std::uint8_t* Message::write(const std::uint64_t& in, std::uint8_t* dst)
-{
-  *dst++ = in >> 56 & 0xFF;
-  *dst++ = in >> 48 & 0xFF;
-  *dst++ = in >> 40 & 0xFF;
-  *dst++ = in >> 32 & 0xFF;
-  *dst++ = in >> 24 & 0xFF;
-  *dst++ = in >> 16 & 0xFF;
-  *dst++ = in >> 8 & 0xFF;
-  *dst++ = in & 0xFF;
-  return dst;
-}
-
-
-const std::uint8_t* Message::read(const std::uint8_t* src, std::uint8_t& out)
-{
-  out = *src++;
-  return src;
-}
-const std::uint8_t* Message::read(const std::uint8_t* src, std::uint16_t& out)
-{
-  out = std::uint16_t{*src++} << 8;
-  out |= *src++;
-  return src;
-}
-const std::uint8_t* Message::read(const std::uint8_t* src, std::uint32_t& out)
-{
-  out = std::uint32_t{*src++} << 24;
-  out |= std::uint32_t{*src++} << 16;
-  out |= std::uint32_t{*src++} << 8;
-  out |= *src++;
-  return src;
-}
-const std::uint8_t* Message::read(const std::uint8_t* src, std::uint64_t& out)
-{
-  out = std::uint64_t{*src++} << 56;
-  out |= std::uint64_t{*src++} << 48;
-  out |= std::uint64_t{*src++} << 40;
-  out |= std::uint64_t{*src++} << 32;
-  out |= std::uint64_t{*src++} << 24;
-  out |= std::uint64_t{*src++} << 16;
-  out |= std::uint64_t{*src++} << 8;
-  out |= *src++;
-  return src;
+  std::swap(type, m.type);
+  std::swap(sender, m.sender);
+  std::swap(recipients, m.recipients);
+  std::swap(body_data, m.body_data);
+  std::swap(body_len, m.body_len);
 }
 
 bool Message::operator==(const Message& other) const
 {
-  if (!std::equal_to<Address>()(sender_, other.sender_))
-    return false;
-
-  if (recipients_.size() != other.recipients_.size())
-    return false;
-
-  std::unordered_set<Address> lhs(recipients_.cbegin(), recipients_.cend());
-  for (auto& recipient : other.recipients_)
-    if (lhs.find(recipient) == lhs.end())
-      return false;
-
   std::size_t l(-1);
   while (++l < body_len && body_data[l] == other.body_data[l])
     ;
   return l == body_len;
 }
+
+std::size_t Message::header_size() const
+{
+  return sizeof type
+    + sizeof(ActorId) * (recipients.size() + 1)
+    + sizeof(std::size_t)
+    + sizeof body_len;
+}
+
 }
