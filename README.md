@@ -3,19 +3,18 @@
 Configure the makefile by invoking `cmake` in the build directory.
 Do not invoke `cmake` in any component's root directory or any other path.
 
-     -DCMAKE_BUILD_TYPE=Debug - attach symbols to the output
-     -Dgroup_output=ON        - group library output in build/lib, executables
-                                in build/bin, and test executables in
-                                build/test.
-     -Dglobal_output_path=ON  - output to ../../build instead of ./
-     -Dbuild_tests=OFF        - don't build test executables
+     # -DCMAKE_BUILD_TYPE=Debug - attach symbols to the output
+     # -Dgroup_output=ON        - group library output in build/lib, executables
+     #                            in build/bin, and test executables in build/test.
+     # -Dglobal_output_path=ON  - output to ../../build instead of ./
+     # -Dbuild_tests=OFF        - don't build test executables
 
      cd core/build/
      cmake -DCMAKE_BUILD_TYPE=Debug ../
      make
-     make test
+     ./smacore_test   # or make test
 
-Project sources are declared in `CMakeLists.txt` - see `core/CMakeLists.txt'
+Project sources are declared in `CMakeLists.txt` - see `core/CMakeLists.txt`
 for an example. 
 
 The macro `add_test_exe` adds the executable to `make test` and places it in
