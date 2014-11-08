@@ -1,3 +1,43 @@
+## Building
+
+Configure the makefile by invoking `cmake` in the build directory.
+Do not invoke `cmake` in any component's root directory or any other path.
+
+- `-DCMAKE_BUILD_TYPE=Debug` - attach symbols to the output
+- `-Dgroup_output=ON` - group library output in `build/lib`, executables in
+  `build/bin`, and test executables in `build/test`
+- `-Dglobal_output_path=ON` - output to `../../build` instead of `./`
+- `-Dbuild_tests=OFF` - don't build test executables
+
+    cd core/build/
+    cmake -DCMAKE_BUILD_TYPE=Debug ../
+    make
+    make test
+
+Project sources are declared in `CMakeLists.txt` - see `core/CMakeLists.txt'
+for an example. 
+
+The macro `add_test_exe` adds the executable to `make test` and places it in
+`build/test` instead of `build/bin` when `-Dgroup_output=ON`
+
+## Directories
+- `build/` - contains output from components configured with
+  `-Dglobal_output_path`
+  - `lib/` - (only when `-Dgroup_output`) 
+  - 'bin/' - (only when `-Dgroup_output`) 
+  - `test/` - (only when `-Dgroup_output`)
+- `cmake/` - cmake configuration macros
+- `lib/` - lib sources common to all components
+- `app/` - application library component
+- `core/` - core platform services library component
+  - `src/` - non-template class definitions
+  - `include/` - class declarations and template definitions
+  - `test/` - `.cc` compilation units and `.hh` test bodies
+  - `lib/` - library sources only used by this component
+  - `build/` - contains output when not configured with `-Dglobal_output_path`
+- `platform/` - platform-specific services implementations
+- `scripts/` - misc. bash stuff
+
 ## Structure
 
 - `core` - *(library)* platform-independent abstractions of platform services
