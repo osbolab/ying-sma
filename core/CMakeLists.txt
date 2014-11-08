@@ -17,9 +17,7 @@ set(LIB_SOURCES
   "${SRC}/message.cc"
   "${SRC}/messenger.cc"
 
-  "${SRC}/address.cc"
   "${SRC}/inetaddress.cc"
-  "${SRC}/socketaddress.cc"
   "${SRC}/nativesocket.cc"
   "${SRC}/winsock.cc"
 

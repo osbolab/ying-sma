@@ -1,6 +1,7 @@
 #pragma once
 
 #include "actor.hh"
+#include "bytebuffer.hh"
 
 #include <cstdlib>
 #include <cstdint>
@@ -23,16 +24,16 @@ public:
   Message& operator=(Message&& m);
 
   template <typename T>
-  static T read(const std::uint8_t* src, std::size_t len)
+  static T read(ByteView& src)
   {
     static_assert(std::is_base_of<Message, T>::value,
                   "Can only deserialize classes derived from Message");
     T t;
-    t.read_fields(src, len);
+    t.get_fields(src);
     return t;
   }
 
-  virtual std::size_t write_fields(std::uint8_t* dst, std::size_t len) const;
+  virtual std::size_t put_in(ByteBuffer& dst) const;
   virtual std::size_t size() const
   {
     return sizeof(ActorId::id) * (recipients_.size() + 1) + sizeof(Type);
@@ -44,7 +45,7 @@ public:
   bool operator!=(const Message& other) const { return !(*this == other); }
 
 protected:
-  virtual std::size_t read_fields(const std::uint8_t* src, std::size_t len);
+  virtual void get_fields(ByteView& src);
 
 private:
   Message(Type type, ActorId sender, std::vector<ActorId> recipients);

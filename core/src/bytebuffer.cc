@@ -6,7 +6,7 @@
 namespace sma
 {
 
-bool ReadableByteBuffer::operator==(const ReadableByteBuffer& rhs) const
+bool ByteView::operator==(const ByteView& rhs) const
 {
   std::size_t len = remaining();
   if (rhs.remaining() != len)
@@ -19,7 +19,7 @@ bool ReadableByteBuffer::operator==(const ReadableByteBuffer& rhs) const
   return true;
 }
 
-std::size_t ReadableByteBuffer::get(std::uint8_t* dst, std::size_t len)
+std::size_t ByteView::get(std::uint8_t* dst, std::size_t len)
 {
   if (remaining() < len)
     len = remaining();
@@ -30,19 +30,19 @@ std::size_t ReadableByteBuffer::get(std::uint8_t* dst, std::size_t len)
 }
 
 template <>
-std::uint8_t ReadableByteBuffer::get<std::uint8_t>()
+std::uint8_t ByteView::get<std::uint8_t>()
 {
   return b[pos++];
 }
 template <>
-std::uint16_t ReadableByteBuffer::get<std::uint16_t>()
+std::uint16_t ByteView::get<std::uint16_t>()
 {
   auto v = std::uint16_t{b[pos++]} << 8;
   v |= b[pos++];
   return v;
 }
 template <>
-std::uint32_t ReadableByteBuffer::get<std::uint32_t>()
+std::uint32_t ByteView::get<std::uint32_t>()
 {
   auto v = std::uint32_t{b[pos++]} << 24;
   v |= std::uint32_t{b[pos++]} << 16;
@@ -51,7 +51,7 @@ std::uint32_t ReadableByteBuffer::get<std::uint32_t>()
   return v;
 }
 template <>
-std::uint64_t ReadableByteBuffer::get<std::uint64_t>()
+std::uint64_t ByteView::get<std::uint64_t>()
 {
   auto v = std::uint64_t{b[pos++]} << 56;
   v |= std::uint64_t{b[pos++]} << 48;
@@ -65,7 +65,7 @@ std::uint64_t ReadableByteBuffer::get<std::uint64_t>()
 }
 
 template <>
-ReadableByteBuffer& ReadableByteBuffer::operator>>(std::uint8_t& v)
+ByteView& ByteView::operator>>(std::uint8_t& v)
 {
   v = b[pos++];
   return *this;
@@ -94,6 +94,14 @@ ByteBuffer& ByteBuffer::operator>>(std::uint64_t& v)
 {
   v = get<std::uint64_t>();
   return *this;
+}
+
+std::size_t ByteBuffer::put(const std::uint8_t* src, std::size_t len)
+{
+  if (len < remaining()) len = remaining();
+  std::memcpy(b+pos, src, len);
+  pos += len;
+  return len;
 }
 
 template <>

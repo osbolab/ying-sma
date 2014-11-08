@@ -1,6 +1,6 @@
 #pragma once
 
-#include "socketaddress.hh"
+#include "inetaddress.hh"
 
 #include <memory>
 #include <cstdlib>

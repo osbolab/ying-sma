@@ -10,7 +10,7 @@
 namespace sma
 {
 
-class ReadableByteBuffer
+class ByteView
 {
   friend class ByteBuffer;
 
@@ -20,17 +20,14 @@ protected:
   std::size_t lim;
   std::size_t pos;
 
-  ReadableByteBuffer(std::uint8_t* src, std::size_t cap)
+  ByteView(std::uint8_t* src, std::size_t cap)
     : b(src)
     , cap(cap)
     , lim(cap)
     , pos(0)
   {
   }
-  ReadableByteBuffer(std::uint8_t* src,
-                     std::size_t cap,
-                     std::size_t lim,
-                     std::size_t pos)
+  ByteView(std::uint8_t* src, std::size_t cap, std::size_t lim, std::size_t pos)
     : b(src)
     , cap(cap)
     , lim(lim)
@@ -39,16 +36,24 @@ protected:
   }
 
 public:
-  static ReadableByteBuffer wrap(const std::uint8_t* src, std::size_t len)
+  static ByteView wrap(const std::uint8_t* src, std::size_t len)
   {
-    return ReadableByteBuffer(const_cast<std::uint8_t*>(src), len, len, 0);
+    return ByteView(const_cast<std::uint8_t*>(src), len, len, 0);
   }
 
   const std::uint8_t* cbuf() const { return b + pos; }
   const char* cstr() const { return char_cp(b + pos); }
-  std::string copy_string() const { return sma::copy_string(b + pos, lim); }
+  std::string copy_string() const { return sma::copy_string(b + pos); }
+  std::string copy_string_to_end() const
+  {
+    return sma::copy_string(b + pos, remaining());
+  }
+  std::string copy_string(std::size_t len) const
+  {
+    return sma::copy_string(b + pos, len);
+  }
 
-  ReadableByteBuffer cview() { return ReadableByteBuffer(b, cap, lim, pos); }
+  ByteView cview() { return ByteView(b, cap, lim, pos); }
 
   const std::uint8_t& operator[](std::size_t i) const { return b[i]; }
   const std::uint8_t& operator*() const { return b[pos]; }
@@ -59,10 +64,10 @@ public:
   std::size_t remaining() const { return lim - pos; }
 
   // clang-format off
-  virtual ReadableByteBuffer& seek(std::size_t i) { pos = i; return *this; }
-  virtual ReadableByteBuffer& rewind() { pos = 0; return *this; }
-  virtual ReadableByteBuffer& flip() { lim = pos; pos = 0; return *this; }
-  virtual ReadableByteBuffer& clear() { lim = cap; pos = 0; return *this; }
+  virtual ByteView& seek(std::size_t i) { pos = i; return *this; }
+  virtual ByteView& rewind() { pos = 0; return *this; }
+  virtual ByteView& flip() { lim = pos; pos = 0; return *this; }
+  virtual ByteView& clear() { lim = cap; pos = 0; return *this; }
 
   std::size_t get(std::uint8_t* dst, std::size_t len);
 
@@ -77,17 +82,14 @@ public:
   }
   // clang-format on
   template <typename T>
-  ReadableByteBuffer& operator>>(T& v);
+  ByteView& operator>>(T& v);
 
-  bool operator==(const ReadableByteBuffer& rhs) const;
-  bool operator!=(const ReadableByteBuffer& rhs) const
-  {
-    return !(*this == rhs);
-  }
+  bool operator==(const ByteView& rhs) const;
+  bool operator!=(const ByteView& rhs) const { return !(*this == rhs); }
 };
 
 
-class ByteBuffer final : public ReadableByteBuffer
+class ByteBuffer final : public ByteView
 {
 public:
   // clang-format off
@@ -107,7 +109,7 @@ public:
   { return ByteBuffer(len); }
 
   ByteBuffer(ByteBuffer&& rhs)
-    : ReadableByteBuffer(rhs.b, rhs.cap, rhs.lim, rhs.pos), owner(rhs.owner)
+    : ByteView(rhs.b, rhs.cap, rhs.lim, rhs.pos), owner(rhs.owner)
   {
     rhs.b = nullptr;
     rhs.owner = false;
@@ -115,10 +117,7 @@ public:
   }
   // clang-format on
 
-  ByteBuffer duplicate()
-  {
-    return ByteBuffer(*this);
-  }
+  ByteBuffer duplicate() { return ByteBuffer(*this); }
   ByteBuffer view() { return ByteBuffer(b, cap, lim, pos); }
 
   ByteBuffer& operator=(const ByteBuffer& rhs)
@@ -145,6 +144,12 @@ public:
 
   std::uint8_t& operator[](std::size_t i) { return b[i]; }
   std::uint8_t& operator*() { return b[pos]; }
+
+  std::size_t put(const std::uint8_t* src, std::size_t len);
+  std::size_t put(const char* src, std::size_t len)
+  {
+    return put(uint8_cp(src), len);
+  }
 
   template <typename T>
   std::size_t put(const T& t)
@@ -174,27 +179,27 @@ private:
 
   // Allocate
   ByteBuffer(std::size_t capacity)
-    : ReadableByteBuffer(new std::uint8_t[capacity], capacity)
+    : ByteView(new std::uint8_t[capacity], capacity)
     , owner(true)
   {
   }
   // Copy
   ByteBuffer(const std::uint8_t* copy, std::size_t len)
-    : ReadableByteBuffer(new std::uint8_t[len], len)
+    : ByteView(new std::uint8_t[len], len)
     , owner(true)
   {
     std::memcpy(b, copy, len);
   }
   // Duplicate
   ByteBuffer(const ByteBuffer& rhs)
-    : ReadableByteBuffer(new std::uint8_t[rhs.cap], rhs.cap, rhs.lim, rhs.pos)
+    : ByteView(new std::uint8_t[rhs.cap], rhs.cap, rhs.lim, rhs.pos)
     , owner(true)
   {
     std::memcpy(b, rhs.b, cap);
   }
   // Wrap
   ByteBuffer(std::uint8_t* buf, std::size_t len)
-    : ReadableByteBuffer(buf, len)
+    : ByteView(buf, len)
     , owner(false)
   {
   }
@@ -203,7 +208,7 @@ private:
              std::size_t cap,
              std::size_t lim,
              std::size_t pos)
-    : ReadableByteBuffer(buf, cap, lim, pos)
+    : ByteView(buf, cap, lim, pos)
     , owner(false)
   {
   }

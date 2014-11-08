@@ -14,6 +14,8 @@ struct Message;
 struct ActorId {
   std::uint8_t id[4];
 
+  ActorId() { std::memset(id, 0, sizeof id); }
+
   ActorId(std::uint8_t* id) { std::memcpy(this->id, id, sizeof this->id); }
 
   bool operator==(const ActorId& rhs) const

@@ -1,24 +1,27 @@
+#include "actor.hh"
+#include "message.hh"
+#include "bytebuffer.hh"
+#include "bytes.hh"
+
 
 class DiscoveryActor : public Actor
 {
   class Helo : public Message
   {
  public:
-    std::size_t* write_fields(ByteBuffer& dst) const override
+    std::size_t put_in(ByteBuffer& dst) const override
     {
-      std::size_t off{0};
-      off += Message::write_fields(dst, len);
-      assert ((len -= off) > 0);
-      dst += Bytes.put(dst, text, text.size());
+      std::size_t written{0};
+      written += Message::write_fields(dst, len);
+      assert ((len -= written) > 0);
+      written += Bytes.put(dst, text, text.size());
       return dst - dst_start;
     }
 
   protected:
-    std::size_t* read_fields(const ByteBuffer& csrc) override
+    void get_fields(ReadableByteBuffer& src) override
     {
-      src += Message::read_fields(src, len);
-      src += Bytes.read(src, text);
-      return src - src_start;
+      Message::get_fields(src, len);
     }
 
   private:

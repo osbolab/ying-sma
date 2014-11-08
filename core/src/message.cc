@@ -1,5 +1,5 @@
 #include "message.hh"
-#include "bytes.hh"
+#include "bytebuffer.hh"
 
 #include <cassert>
 #include <utility>
@@ -9,9 +9,7 @@
 namespace sma
 {
 
-Message::Message(Type type,
-                 ActorId sender,
-                 std::vector<ActorId> recipients)
+Message::Message(Type type, ActorId sender, std::vector<ActorId> recipients)
   : type_(type)
   , sender_(sender)
   , recipients_(recipients)
@@ -23,40 +21,37 @@ Message::Message(Message&& m)
   , sender_(m.sender_)
 {
   m.type_ = 0;
-  m.sender_ = ActorId {{0}};
+  m.sender_ = ActorId{{0}};
   std::swap(recipients_, m.recipients_);
 }
 
-std::size_t Message::write_fields(std::uint8_t* dst, std::size_t len) const
+inline ByteBuffer& operator<<(ByteBuffer& dst, ActorId id)
 {
-  std::uint8_t* const dst_start = dst;
-  dst += Bytes::put(dst, type_);
-  dst += Bytes::put(dst, sender_.id, sizeof(ActorId::id));
-  dst += Bytes::put(dst, static_cast<field_nr_recp_type>(recipients_.size()));
+  dst.put(id.id, sizeof(ActorId::id));
+  return dst;
+}
+
+std::size_t Message::put_in(ByteBuffer& dst) const
+{
+  std::size_t start = dst.position();
+  dst.put(sender_.id, sizeof(ActorId::id));
+  dst << static_cast<field_nr_recp_type>(recipients_.size());
   for (auto& recp : recipients_)
-    dst += Bytes::put(dst, recp.id, sizeof(ActorId::id));
-
-  return dst - dst_start;
+    dst.put(recp.id, sizeof(ActorId::id));
+  dst << type_;
+  return dst.position() - start;
 }
 
-std::size_t Message::read_fields(const std::uint8_t* src, std::size_t len)
+void Message::get_fields(ByteView& src)
 {
-  const std::uint8_t* const src_start = src;
-
-  return src - src_start;
+  src.get(sender_.id, sizeof(ActorId::id));
+  field_nr_recp_type nr_recipients;
+  src >> nr_recipients;
+  recipients_ = std::vector<ActorId>(nr_recipients);
+  for (std::size_t i = 0; i < nr_recipients; ++i)
+    src.get(recipients_[i].id, sizeof(ActorId::id));
+  src >> type_;
 }
 
-Message& Message::operator=(Message&& m)
-{
-  std::swap(type_, m.type_);
-  std::swap(sender_, m.sender_);
-  std::swap(recipients_, m.recipients_);
-  return *this;
-}
-
-bool Message::operator==(const Message& other) const
-{
-  return true;
-}
-
+bool Message::operator==(const Message& other) const { return true; }
 }
