@@ -16,7 +16,7 @@
   - UI
     - `View` - abstract displayable user interface
     - `ViewModel` - abstract data model displayed by `View`
-    - `ViewController` - abstract `ViewModel` mutator`
+    - `ViewController` - abstract `ViewModel` mutator
 - `app` - *(library)* platform-independent application logic; depends on `core`.
 - `platform/native` - *(library)* implements core services with POSIX or Win32
                       libraries; depends on `core`.
@@ -31,6 +31,53 @@
 - `platform/android` - *(library)* implements core services with Android NDK and
                        declares JNI interfaces for interoperating with Android
                        applications.
+
+## Testing
+
+Using gtest:
+
+    test/test1.hh
+    ------------------
+    #pragma once
+
+    #include "log.hh"
+    #include "gtest/gtest.h"
+
+    TEST(MyClass, it_does_x_correctly)
+    {
+      LOG(DEBUG) << "Hello!";
+      ASSERT_EQ(1, 1);
+      ASSERT_GT(1, 0);
+      LOG(FATAL) << "Something terrible happened";
+    }
+
+    test/test_main.cc
+    ------------------
+    /**************************************************************************
+     * This file just creates a compilation unit with the tests.
+     *************************************************************************/
+    #include "log.hh"
+    // Must come first and only once in application 
+    _INITIALIZE_EASYLOGGINGPP
+
+    #include "test1.hh"
+    // more tests
+
+    #include "gtest/gtest.h"
+
+    int main(int argc, char** argv)
+    {
+      // Allow command line arguments to specify tests
+      ::testing::InitGoogleTest(&argc, argv);
+
+      // Trim down some noisy output
+      // Optionally turn logging off or change debug level (default ALL)
+      el::Loggers::reconfigureAllLoggers(
+        el::ConfigurationType::Format,
+        "%datetime{%m:%s.%g} %levshort [%thread] %func (%fbase:%line) %msg");
+
+      return RUN_ALL_TESTS();
+    }
 
 ## Project Setup
 ### Using C++11
