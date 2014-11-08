@@ -1,3 +1,37 @@
+## Structure
+
+- `core` - *(library)* platform-independent abstractions of platform services
+           like scheduling and messaging.
+  - `PlatformHost` - abstract application container
+  - `Scheduler` - asynchronous and delayed execution; guarantees that calling
+                  will not block, but does not guarantee parallel execution.
+  - `Actor` - base class for something that receives messages; actors can be in
+              the same process or on separate physical devices.
+  - `Messenger` - message passing between actors
+    - `Channel` - interface between message passing and physical transport;
+                  sends and receives to and from an unspecified number of
+                  endpoints of unspecified type (memory mapped file, socket,
+                  bluetooth, etc.)
+    - `Socket` - abstract IP socket 
+  - UI
+    - `View` - abstract displayable user interface
+    - `ViewModel` - abstract data model displayed by `View`
+    - `ViewController` - abstract `ViewModel` mutator`
+- `app` - *(library)* platform-independent application logic; depends on `core`.
+- `platform/native` - *(library)* implements core services with POSIX or Win32
+                      libraries; depends on `core`.
+  - `ThreadScheduler` -> `Scheduler`
+  - `NativeChannel` -> `Channel`
+  - `NativeSocket` -> `Socket`
+- `platform/ns3` - *(library)* implements core services by delegating to
+                   the NS3 simulator; depends on `core`.
+  - `NsScheduler` -> `Scheduler`
+  - `NsChannel` -> `Channel`
+  - `NsSocket` -> `Socket`
+- `platform/android` - *(library)* implements core services with Android NDK and
+                       declares JNI interfaces for interoperating with Android
+                       applications.
+
 ## Project Setup
 ### Using C++11
 #### NS-3 via `wscript`
