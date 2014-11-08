@@ -2,15 +2,19 @@
 
 #include <cstdint>
 #include <cstring>
+#include <utility>
+#include <functional>
 
 
 namespace sma
 {
 
-struct ActorId {
-  const std::uint8_t id[4];
+struct Message;
 
-  ActorId(std::uint8_t* id) { std::memcpy(this->id, id, sizeof id); }
+struct ActorId {
+  std::uint8_t id[4];
+
+  ActorId(std::uint8_t* id) { std::memcpy(this->id, id, sizeof this->id); }
 
   bool operator==(const ActorId& rhs) const
   {
@@ -64,7 +68,11 @@ public:
 
   virtual void receive(Message msg) = 0;
 
-  Actor& operator=(Actor&& rhs) { std::swap(id, rhs.id); }
+  Actor& operator=(Actor&& rhs)
+  {
+    std::swap(id, rhs.id);
+    return *this;
+  }
 
 protected:
   Actor(ActorId id)
@@ -80,14 +88,11 @@ protected:
 namespace std
 {
 template <>
-struct hash<ActorId> {
-  std::size_t operator()(const ActorId& o) const
+struct hash<sma::ActorId> {
+  std::size_t operator()(const sma::ActorId& o) const
   {
-    // clang-format off
-    return  std::uint32_t{o.id[0]} << 24
-          | std::uint32_t{o.id[1]} << 16
-          | std::uint32_t{o.id[2]} << 8
-          | o.id[3];
+    return std::uint32_t{o.id[0]} << 24 | std::uint32_t{o.id[1]} << 16
+           | std::uint32_t{o.id[2]} << 8 | o.id[3];
     // clang-format on
   }
 };

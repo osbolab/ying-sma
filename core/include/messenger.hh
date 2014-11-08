@@ -1,5 +1,6 @@
 #pragma once
 
+#include "actor.hh"
 #include "message.hh"
 #include "channel.hh"
 
@@ -17,7 +18,7 @@ class Messenger
   using Lock = std::unique_lock<std::mutex>;
 
 public:
-  Messenger(Message::Address this_sender, Channel* outbound)
+  Messenger(ActorId this_sender, Channel* outbound)
     : outbound(outbound)
     , this_sender(this_sender)
   {
@@ -38,10 +39,10 @@ public:
 
   // Blocks the caller
   // Returns 0 on success
-  virtual int send(Message::Builder builder);
+  virtual int send(Message builder);
 
 protected:
-  Message::Address this_sender;
+  ActorId this_sender;
   Channel* outbound;
   std::mutex mutex;
   std::unordered_map<Message::Type, MessageHandler> handlers;

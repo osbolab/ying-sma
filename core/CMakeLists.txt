@@ -10,6 +10,8 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/../cmake/project.cmake" REQUIRED)
 # SOURCES
 
 set(LIB_SOURCES
+  "${SRC}/bytebuffer.cc"
+
   "${SRC}/cyclicbarrier.cc"
 
   "${SRC}/message.cc"
@@ -33,8 +35,5 @@ set(TEST_SOURCES
 # TARGETS
 
 add_library("${PROJECT_NAME}" STATIC ${LIB_SOURCES})
-profile("${PROJECT_NAME}")
-
-# add_test_exe automatically adds profile()
 add_test_exe("${PROJECT_NAME}_test" ${TEST_SOURCES})
 target_link_libraries("${PROJECT_NAME}_test" "${PROJECT_NAME}")

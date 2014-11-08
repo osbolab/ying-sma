@@ -25,8 +25,7 @@ void Messenger::dispatch(const Message& msg)
     auto subscription = handlers.find(msg.type());
     if (subscription != handlers.end())
       handler = subscription->second;
-    else
-    {
+    else {
       LOG(WARNING) << "Unhandled message type " << std::size_t{msg.type()};
       return;
     }
@@ -34,15 +33,16 @@ void Messenger::dispatch(const Message& msg)
   handler(msg);
 }
 
-int Messenger::send(Message::Builder builder)
+int Messenger::send(Message builder)
 {
   std::uint8_t buf[SEND_BUFFER_SIZE];
-
+#if 0
   Message msg(std::move(builder), this_sender);
   if (msg.serialized_size() > SEND_BUFFER_SIZE)
     return -1;
   std::size_t wrote = msg.put_in(buf, SEND_BUFFER_SIZE) - buf;
   outbound->write(buf, wrote);
+#endif
 
   return 0;
 }
