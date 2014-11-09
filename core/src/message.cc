@@ -44,7 +44,7 @@ inline ByteBuffer& operator<<(ByteBuffer& dst, Node::Id id)
   return dst;
 }
 
-std::size_t Message::put_in(ByteBuffer& dst) const
+std::size_t Message::write_to(ByteBuffer& dst) const
 {
   std::size_t start = dst.position();
   dst.put(sender_.data, Node::Id::size);
@@ -57,12 +57,12 @@ std::size_t Message::put_in(ByteBuffer& dst) const
 
 void Message::get_fields(ByteView& src)
 {
-  src.get(sender_.data, Node::Id::size);
+  src.copy_to(sender_.data, Node::Id::size);
   field_nrecp nr_recipients;
   src >> nr_recipients;
   recipients_ = std::vector<Node::Id>(nr_recipients);
   for (std::size_t i = 0; i < nr_recipients; ++i)
-    src.get(recipients_[i].data, Node::Id::size);
+    src.copy_to(recipients_[i].data, Node::Id::size);
   src >> type_;
 }
 

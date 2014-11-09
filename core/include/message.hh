@@ -25,7 +25,7 @@ struct Message {
   Message& operator=(const Message& rhs) = delete;
 
 
-  std::size_t put_in(ByteBuffer& dst) const;
+  std::size_t write_to(ByteBuffer& dst) const;
   std::size_t size() const
   {
     return Node::Id::size * (recipients_.size() + 1) + sizeof(Type)
