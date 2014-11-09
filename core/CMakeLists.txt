@@ -1,15 +1,17 @@
 cmake_minimum_required(VERSION 2.8)
 
-set(PROJECT_NAME "smacore")
-
 # Include config options, gtest setup, and output paths
 include("${CMAKE_CURRENT_SOURCE_DIR}/../cmake/project.cmake" REQUIRED)
+
+set(LIB_CORE "smacore" CACHE STRING "Platform services core library")
+set(LIB_CORE_INC "${CMAKE_CURRENT_SOURCE_DIR}/${INC}" 
+    CACHE STRING "Core library include directory")
 
 
 ###############################################################################
 # SOURCES
 
-set(LIB_SOURCES
+set(LIB_CORE_SOURCES
   "${SRC}/bytebuffer.cc"
 
   "${SRC}/cyclicbarrier.cc"
@@ -25,14 +27,10 @@ set(LIB_SOURCES
   "${SRC}/nativechannel.cc"
 )
 
-set(TEST_SOURCES
-  "${TEST}/test_main.cc"
-)
-
 
 ###############################################################################
 # TARGETS
 
-add_library("${PROJECT_NAME}" STATIC ${LIB_SOURCES})
-add_test_exe("${PROJECT_NAME}_test" ${TEST_SOURCES})
-target_link_libraries("${PROJECT_NAME}_test" "${PROJECT_NAME}")
+add_library("${LIB_CORE}" STATIC ${LIB_CORE_SOURCES})
+add_test_exe("${LIB_CORE}_test" "${TEST}/test_main.cc")
+target_link_libraries("${LIB_CORE}_test" "${LIB_CORE}")

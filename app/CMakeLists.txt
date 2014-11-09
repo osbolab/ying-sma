@@ -1,16 +1,17 @@
 cmake_minimum_required(VERSION 2.8)
 
-# Set this first
-set(PROJECT_NAME "smaapp")
-
 # Include config options, gtest setup, and output paths
 include("${CMAKE_CURRENT_SOURCE_DIR}/../cmake/project.cmake" REQUIRED)
+
+set(LIB_APP "smapp" CACHE STRING "Application library")
+set(LIB_APP_INC "${CMAKE_CURRENT_SOURCE_DIR}/${INC}"
+    CACHE STRING "Application library include directory")
 
 
 ###############################################################################
 # SOURCES
 
-set(LIB_SOURCES
+set(LIB_APP_SOURCES
   "${SRC}/md5.cc"
   "${SRC}/json.cc"
   "${SRC}/split_regroup.cc"
@@ -43,15 +44,17 @@ set(LIB_SOURCES
   "${SRC}/contentdirectory.cc"
 )
 
-set(TEST_SOURCES
-  "${TEST}/test_main.cc"
-)
-
 
 ###############################################################################
 # TARGETS
 
-add_library("${PROJECT_NAME}" STATIC ${LIB_SOURCES})
+# Depend on the core library project
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../core/" "core")
+include_directories("${LIB_CORE_INC}")
 
-add_test_exe("${PROJECT_NAME}" ${TEST_SOURCES})
+add_library("${LIB_APP}" STATIC ${LIB_APP_SOURCES})
+target_link_libraries("${LIB_APP}" "${LIB_CORE}")
+
+add_test_exe("${LIB_APP}_test" "${TEST}/test_main.cc")
+  
 

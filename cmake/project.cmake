@@ -96,38 +96,41 @@ endif()
 ###############################################################################
 # TESTING            (cmake -Dbuild_tests=ON)
 
-if (build_tests)
-  message               (STATUS "Will build test projects")
-  enable_testing()
-  add_subdirectory      ("${LIB_GTEST}" "${THIRDPARTY_LIBS_OUTPUT_DIR}/gtest")
-  include_directories   ("${gtest_SOURCE_DIR}/include")
-  set_target_properties (gtest PROPERTIES
-    FOLDER "${TEST_PROJ_FOLDER}"
-    ARCHIVE_OUTPUT_DIRECTORY "${THIRDPARTY_LIBS_OUTPUT_DIR}/gtest"
-    LIBRARY_OUTPUT_DIRECTORY "${THIRDPARTY_LIBS_OUTPUT_DIR}/gtest"
-    RUNTIME_OUTPUT_DIRECTORY "${THIRDPARTY_LIBS_OUTPUT_DIR}/gtest"
-  )
-  set_target_properties (gtest_main PROPERTIES
-    FOLDER "${TEST_PROJ_FOLDER}"
-    ARCHIVE_OUTPUT_DIRECTORY "${THIRDPARTY_LIBS_OUTPUT_DIR}/gtest"
-    LIBRARY_OUTPUT_DIRECTORY "${THIRDPARTY_LIBS_OUTPUT_DIR}/gtest"
-    RUNTIME_OUTPUT_DIRECTORY "${THIRDPARTY_LIBS_OUTPUT_DIR}/gtest"
-  )
-
-  macro(add_test_exe name)
-    add_executable        ("${name}" ${ARGN})
-    target_link_libraries ("${name}" gtest_main)
-    profile               ("${name}")
-    set_target_properties ("${name}" PROPERTIES
-      RUNTIME_OUTPUT_DIRECTORY "${TEST_OUTPUT_DIRECTORY}")
-    add_test(
-      NAME "${name}"
-      COMMAND "${name}"
+if (NOT DEFINED gtest_added)
+  if (build_tests)
+    set(gtest_added ON)
+    message               (STATUS "Will build test projects")
+    enable_testing()
+    add_subdirectory      ("${LIB_GTEST}" "${THIRDPARTY_LIBS_OUTPUT_DIR}/gtest")
+    include_directories   ("${gtest_SOURCE_DIR}/include")
+    set_target_properties (gtest PROPERTIES
+      FOLDER "${TEST_PROJ_FOLDER}"
+      ARCHIVE_OUTPUT_DIRECTORY "${THIRDPARTY_LIBS_OUTPUT_DIR}/gtest"
+      LIBRARY_OUTPUT_DIRECTORY "${THIRDPARTY_LIBS_OUTPUT_DIR}/gtest"
+      RUNTIME_OUTPUT_DIRECTORY "${THIRDPARTY_LIBS_OUTPUT_DIR}/gtest"
     )
-  endmacro(add_test_exe)
-else()
-  macro(add_test_exe)
-    message (STATUS "Use -Dbuild_tests=ON to enable test compilation.")
-  endmacro(add_test_exe)
+    set_target_properties (gtest_main PROPERTIES
+      FOLDER "${TEST_PROJ_FOLDER}"
+      ARCHIVE_OUTPUT_DIRECTORY "${THIRDPARTY_LIBS_OUTPUT_DIR}/gtest"
+      LIBRARY_OUTPUT_DIRECTORY "${THIRDPARTY_LIBS_OUTPUT_DIR}/gtest"
+      RUNTIME_OUTPUT_DIRECTORY "${THIRDPARTY_LIBS_OUTPUT_DIR}/gtest"
+    )
+  
+    macro(add_test_exe name)
+      add_executable        ("${name}" ${ARGN})
+      target_link_libraries ("${name}" gtest_main)
+      profile               ("${name}")
+      set_target_properties ("${name}" PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${TEST_OUTPUT_DIRECTORY}")
+      add_test(
+        NAME "${name}"
+        COMMAND "${name}"
+      )
+    endmacro(add_test_exe)
+  else()
+    macro(add_test_exe)
+      message (STATUS "Use -Dbuild_tests=ON to enable test compilation.")
+    endmacro(add_test_exe)
+  endif()
 endif()
 
