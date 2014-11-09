@@ -1,8 +1,11 @@
+#pragma once
+
 #include "threadpool.hh"
 
 #include "gtest/gtest.h"
 
 #include <iostream>
+#include <sstream>
 
 
 namespace sma
@@ -11,28 +14,100 @@ namespace sma
 using namespace std::literals::chrono_literals;
 using Clock = std::chrono::high_resolution_clock;
 
-template<typename T>
+template <typename T>
 constexpr std::chrono::milliseconds to_ms(T d)
 {
   return std::chrono::duration_cast<std::chrono::milliseconds>(d);
 }
 
-TEST(Threadpool, do_stuff)
+class ThreadpoolTest : public ::testing::Test
 {
-  Threadpool th(2);
+protected:
+  static std::stringstream output;
 
-  auto start = Clock::now();
-  for (int i = 0; i < 4; ++i) {
-    th.push_back([start]() {
-      std::this_thread::sleep_for(100ms);
-      std::cout << "(" << to_ms(Clock::now() - start).count() << "ms) Hello, thread!"
-                << std::endl;
-    });
+  static void SetUpTestCase()
+  {
+    output << " -------------------------------------------------------\n";
+    output << "|   TRIAL   |      TIME       |    COMPARED WITH REAL   |\n";
+    output << "|-----------|-----------------|-------------------------|\n";
+    output << "| TH  TASKS |  REAL   ACTUAL  |  IDEAL  TARGET  ACTUAL  |\n"
+           << std::fixed;
+    output << "| --  ----- | ------  ------  |  -----  ------  ------  |\n";
+    output.precision(1);
+  }
+  static void TearDownTestCase()
+  {
+    output << " ------------------------------------------------------- ";
+    std::cout << output.str() << std::endl;
   }
 
-  std::cout << "(" << to_ms(Clock::now() - start).count() << "ms) joining"
-            << std::endl;
-}
+  std::string ti(std::size_t i)
+  {
+    output << std::setfill(' ') << std::right << i;
+    return "";
+  }
+
+  std::string p(double p)
+  {
+    output << std::setw(5) << std::setfill(' ') << std::right << p;
+    return "%  ";
+  }
+
+  std::string m(int ms)
+  {
+    output << std::setw(4) << std::setfill(' ') << std::right << ms;
+    return "ms";
+  }
+
+  template <typename D>
+  void do_test(std::size_t nr_threads,
+               std::size_t nr_tasks,
+               D task_wait,
+               double overhead = 0.15)
+  {
+    Threadpool th(nr_threads);
+
+    for (int i = 0; i < nr_tasks; ++i) {
+      th.push_back([=]() { std::this_thread::sleep_for(task_wait); });
+    }
+
+    auto start = Clock::now();
+    th.join();
+
+    auto actual = double(to_ms(Clock::now() - start).count());
+    auto real = double(nr_tasks * task_wait.count());
+    auto ideal = real / double(nr_threads);
+    auto target = (1.0 + overhead) * ideal;
+
+    auto pideal = ideal / real * 100.0;
+    auto ptarget = target / real * 100.0;
+    auto pactual = actual / real * 100.0;
+
+    output << "| " << std::setw(2) << ti(nr_threads) << "   " << std::setw(4)
+           << ti(nr_tasks) << " | " << m(int(real)) << "  " << m(int(actual))
+           << "  | " << p(pideal) << p(ptarget) << p(pactual) << "|\n";
+
+    EXPECT_GE(actual, ideal);
+    EXPECT_LE(actual, target);
+  }
+};
+
+std::stringstream ThreadpoolTest::output;
+
+
+TEST_F(ThreadpoolTest, 1_thread_10_tasks) { do_test(1, 10, 5ms); }
+TEST_F(ThreadpoolTest, 1_thread_50_tasks) { do_test(1, 50, 5ms); }
+TEST_F(ThreadpoolTest, 1_thread_100_tasks) { do_test(1, 100, 5ms); }
+TEST_F(ThreadpoolTest, 2_threads_10_tasks) { do_test(2, 10, 5ms); }
+TEST_F(ThreadpoolTest, 2_threads_50_tasks) { do_test(2, 50, 5ms); }
+TEST_F(ThreadpoolTest, 2_threads_100_tasks) { do_test(2, 100, 5ms); }
+TEST_F(ThreadpoolTest, 4_threads_50_tasks) { do_test(4, 50, 5ms); }
+TEST_F(ThreadpoolTest, 4_threads_100_tasks) { do_test(4, 100, 5ms); }
+TEST_F(ThreadpoolTest, 4_threads_200_tasks) { do_test(4, 200, 5ms); }
+TEST_F(ThreadpoolTest, 8_threads_100_tasks) { do_test(8, 100, 5ms); }
+TEST_F(ThreadpoolTest, 8_threads_200_tasks) { do_test(8, 200, 5ms); }
+TEST_F(ThreadpoolTest, 8_threads_400_tasks) { do_test(8, 400, 5ms); }
+TEST_F(ThreadpoolTest, 8_threads_1000_tasks) { do_test(8, 1000, 5ms); }
 
 #if 0
 TEST(Threadpool, AssertionTrue)

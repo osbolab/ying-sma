@@ -11,15 +11,17 @@ _INITIALIZE_EASYLOGGINGPP
 //#include "bytebuffertest.hh"
 //#include "bitstest.hh"
 //
+//#include "rws_mutextest.hh"
 //#include "priorityqueuetest.hh"
 //#include "delayqueuetest.hh"
 //#include "bufferpooltest.hh"
 //
 //#include "blockingqueuetest.hh"
-#include "threadpooltest.hh"
+//#include "threadpooltest.hh"
 //
-//#include "messagetest.hh"
-//#include "messengertest.hh"
+#include "messagetest.hh"
+#include "messengertest.hh"
+
 //
 //#include "addresstest.hh"
 //#include "nativesockettest.hh"

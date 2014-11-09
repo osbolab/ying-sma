@@ -1,9 +1,10 @@
 #include "threadpool.hh"
 
+#include "log.hh"
+
 #include <mutex>
 #include <memory>
 #include <utility>
-#include <iostream>
 
 
 namespace sma
@@ -32,27 +33,41 @@ Threadpool::Threadpool(std::size_t nr_threads)
   : Threadpool(nr_threads, 16)
 {
 }
-Threadpool::~Threadpool() { join(); }
+Threadpool::~Threadpool()
+{
+  // join() locks and notifies so don't bother
+  s->stop = true;
+  join();
+}
 
 void Threadpool::thread_body(shared_state& s)
 {
-  std::cout << "|> start" << std::endl;
   while (!s.stop) {
     Task task{nullptr};
     {
       std::unique_lock<std::mutex> lock(s.mx);
-      while (!s.count)
-        s.available.wait(lock, [&s]() { return s.count; });
+      if (!s.stop && !s.join && !s.count)
+        s.available.wait(lock, [&s]() { return s.stop || s.join || s.count; });
+      if (s.stop || (!s.count && s.join))
+        break;
       task = std::move(s.tasks[s.t]);
       if (++s.t == s.tasks.size())
         s.t = 0;
+      --s.count;
       // If the load decreases enough we can dump any extra storage
       // This isn't cheap so we don't bother unless the load is quite low
-      if (--s.count < (s.min_capacity / 2))
+      if (s.scaled && s.count < (s.min_capacity / 2)) {
         resize(s, s.min_capacity);
+        s.scaled = false;
+      }
     }
-    if (task)
-      task();
+    if (s.count)
+      s.available.notify_one();
+
+    task();
+
+    if (s.join && !s.count)
+      break;
   }
 }
 
@@ -64,8 +79,10 @@ void Threadpool::push_back(Task task)
     // If the writer has caught up with the readers, expand
     // the queue and order old elements at the head.
     // The queue prefers to grow than to shrink
-    if (s->count == sz)
+    if (s->count == sz) {
       sz = resize(*s, sz * 2);
+      s->scaled = true;
+    }
 
     s->tasks[s->p] = std::move(task);
     if (++(s->p) == sz)
@@ -87,12 +104,16 @@ std::size_t Threadpool::resize(shared_state& s, std::size_t len)
 
 void Threadpool::join()
 {
-  {
-    std::lock_guard<std::mutex>(s->mx);
-    s->stop = true;
+  if (!threads.empty()) {
+    {
+      std::lock_guard<std::mutex>(s->mx);
+      s->join= true;
+    }
+    s->available.notify_all();
+    for (auto& th : threads)
+      if (th.joinable())
+        th.join();
+    threads.clear();
   }
-  s->available.notify_all();
-  for (auto& th : threads)
-    th.join();
 }
 }

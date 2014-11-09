@@ -1,10 +1,10 @@
 #include "messenger.hh"
+#include "rws_mutex.hh"
 #include "message.hh"
 #include "channel.hh"
 #include "log.hh"
 
-#include <cstddef>
-#include <unordered_map>
+#include <cstdint>
 
 
 namespace sma
@@ -12,25 +12,28 @@ namespace sma
 
 void Messenger::subscribe(Message::Type type, MessageHandler handler)
 {
-  Lock lock(mutex);
-  handlers[type] = std::move(handler);
+  {
+    writer_lock lock(mx);
+    handlers.emplace_back(type, std::move(handler));
+  }
   LOG(DEBUG) << "Subscribed message type " << std::size_t{type};
 }
 
 void Messenger::dispatch(const Message& msg)
 {
   MessageHandler handler;
+
   {
-    Lock lock(mutex);
-    auto subscription = handlers.find(msg.type());
-    if (subscription != handlers.end())
-      handler = subscription->second;
-    else {
-      LOG(WARNING) << "Unhandled message type " << std::size_t{msg.type()};
-      return;
-    }
+    reader_lock lock(mx);
+    for (auto& w : handlers)
+      if (w.msgtype == msg.type())
+        handler = w.handler;
   }
-  handler(msg);
+
+  if (handler)
+    handler(msg);
+  else
+    LOG(WARNING) << "Unhandled message type " << std::size_t{msg.type()};
 }
 
 int Messenger::send(Message builder)

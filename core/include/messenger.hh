@@ -3,11 +3,10 @@
 #include "actor.hh"
 #include "message.hh"
 #include "channel.hh"
+#include "rws_mutex.hh"
 
-#include <cstddef>
-#include <mutex>
+#include <cstdint>
 #include <functional>
-#include <unordered_map>
 
 
 namespace sma
@@ -15,7 +14,6 @@ namespace sma
 
 class Messenger
 {
-  using Lock = std::unique_lock<std::mutex>;
 
 public:
   Messenger(ActorId this_sender, Channel* outbound)
@@ -31,8 +29,8 @@ public:
   Messenger(Messenger&& o) = default;
   Messenger& operator=(Messenger&& o) = default;
 
-  // Does not block, but on_message may be called in multiple threads
-  // concurrently.
+  // Does not block
+  // handler may be called concurrently from any number of threads.
   virtual void subscribe(Message::Type type, MessageHandler handler);
 
   virtual void dispatch(const Message& msg);
@@ -42,10 +40,21 @@ public:
   virtual int send(Message builder);
 
 protected:
+  struct Wrapper {
+    Wrapper(Message::Type type, MessageHandler handler)
+      : msgtype(std::move(type))
+      , handler(std::move(handler))
+    {
+    }
+    Message::Type msgtype;
+    MessageHandler handler;
+  };
+
   ActorId this_sender;
   Channel* outbound;
-  std::mutex mutex;
-  std::unordered_map<Message::Type, MessageHandler> handlers;
+  std::vector<Wrapper> handlers;
+  rws_mutex mx;
+
 
 private:
   static const std::size_t SEND_BUFFER_SIZE = 1024;
