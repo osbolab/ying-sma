@@ -14,9 +14,6 @@ namespace sma
 class Socket
 {
 public:
-  enum Type {
-    Datagram,
-  };
   enum Protocol {
     Udp,
   };
@@ -26,19 +23,16 @@ public:
   public:
     virtual ~factory(){};
 
-    virtual int create(Address::Family family,
-                       Type type,
-                       Protocol protocol,
-                       std::unique_ptr<Socket>& Socket) = 0;
+    virtual int create(Protocol protocol, std::unique_ptr<Socket>& Socket) = 0;
 
   protected:
     factory(){};
   };
 
 
-  virtual ~Socket()
-  {
-  }
+  Socket(Socket&& rhs) = default;
+  Socket& operator=(Socket&& rhs) = default;
+  virtual ~Socket() {}
 
   virtual int bind(const SocketAddress& address) = 0;
   virtual void close() = 0;
@@ -51,18 +45,10 @@ public:
   virtual int last_error() const = 0;
 
 protected:
-  Socket()
-  {
-  }
+  Socket() {}
 
   virtual int last_error(int error) = 0;
 
-  Address::Family family;
-  Type type;
   Protocol protocol;
-
-private:
-  Socket(const Socket& copy) = delete;
-  Socket& operator=(const Socket& copy) = delete;
 };
 }

@@ -13,6 +13,7 @@ set(LIB_SOURCES
   "${SRC}/bytebuffer.cc"
 
   "${SRC}/cyclicbarrier.cc"
+  "${SRC}/threadpool.cc"
 
   "${SRC}/message.cc"
   "${SRC}/messenger.cc"

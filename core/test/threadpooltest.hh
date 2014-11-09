@@ -1,23 +1,38 @@
 #include "threadpool.hh"
-#include "delayqueue.hh"
-#include "thread_interrupted.hh"
-#include "log.hh"
 
 #include "gtest/gtest.h"
 
 #include <iostream>
-#include <deque>
-#include <random>
-#include <chrono>
-#include <cstdint>
-#include <cstdlib>
-#include <thread>
-#include <condition_variable>
-#include <mutex>
 
 
 namespace sma
 {
+
+using namespace std::literals::chrono_literals;
+using Clock = std::chrono::high_resolution_clock;
+
+template<typename T>
+constexpr std::chrono::milliseconds to_ms(T d)
+{
+  return std::chrono::duration_cast<std::chrono::milliseconds>(d);
+}
+
+TEST(Threadpool, do_stuff)
+{
+  Threadpool th(2);
+
+  auto start = Clock::now();
+  for (int i = 0; i < 4; ++i) {
+    th.push_back([start]() {
+      std::this_thread::sleep_for(100ms);
+      std::cout << "(" << to_ms(Clock::now() - start).count() << "ms) Hello, thread!"
+                << std::endl;
+    });
+  }
+
+  std::cout << "(" << to_ms(Clock::now() - start).count() << "ms) joining"
+            << std::endl;
+}
 
 #if 0
 TEST(Threadpool, AssertionTrue)
@@ -62,9 +77,6 @@ TEST(Delay_Scheduler, AssertionTrue)
   stop = true;
   dq.interrupt();
 }
-#endif
-
-std::atomic<unsigned long long> jobms{0};
 
 static const std::size_t job_count{100};
 
@@ -136,4 +148,5 @@ TEST(Threadpool, schedule_async)
                      << " ms in " << std::chrono::milliseconds(realms).count()
                      << " real ms";
 }
+#endif
 }

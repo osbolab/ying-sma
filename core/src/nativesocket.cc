@@ -19,50 +19,26 @@ namespace sma
 {
 
 
-int NativeSocket::Factory::create(Address::Family family,
-                                  Socket::Type type,
-                                  Socket::Protocol protocol,
+int NativeSocket::Factory::create(Socket::Protocol protocol,
                                   std::unique_ptr<Socket>& sock_out)
 {
-  LOG(DEBUG) << "Family: " << family << " Type: " << type
-             << " Protocol: " << protocol;
-  switch (family) {
-    case Address::IPv4: {
-      auto sock = std::unique_ptr<NativeSocket>(new NativeSocket());
-      int error = sock->create(family, type, protocol);
-      if (!error) {
-        sock_out = std::move(sock);
-      }
-      return error;
-    }
-
-    default:
-      return NativeSocket::global_last_error(EAFNOSUPPORT);
-  }
+  LOG(DEBUG) << "Protocol: " << protocol;
+  auto sock = std::unique_ptr<NativeSocket>(new NativeSocket());
+  int error = sock->create(protocol);
+  if (!error)
+    sock_out = std::move(sock);
+  return error;
 }
 
-int NativeSocket::create(Address::Family family, Type type, Protocol protocol)
+int NativeSocket::create(Protocol protocol)
 {
   LOG(DEBUG);
 
-  int family_i, type_i, protocol_i;
-  switch (family) {
-    case Address::IPv4:
-      family_i = AF_INET;
-      break;
-    default:
-      return last_error(EAFNOSUPPORT);
-  }
-  switch (type) {
-    case Datagram:
-      type_i = SOCK_DGRAM;
-      break;
-    default:
-      return last_error(EPROTOTYPE);
-  }
+  int protocol_i, type_i;
   switch (protocol) {
     case Udp:
       protocol_i = IPPROTO_UDP;
+      type_i = SOCK_DGRAM;
       break;
     default:
       return last_error(EPROTONOSUPPORT);
@@ -71,7 +47,7 @@ int NativeSocket::create(Address::Family family, Type type, Protocol protocol)
   if (sock != INVALID_SOCKET)
     close();
 
-  sock = socket(family_i, type_i, protocol_i);
+  sock = socket(AF_INET, type_i, protocol_i);
   if (sock == INVALID_SOCKET)
     return last_error();
 
@@ -80,8 +56,6 @@ int NativeSocket::create(Address::Family family, Type type, Protocol protocol)
       == -1)
     return last_error();
 
-  this->family = family;
-  this->type = type;
   this->protocol = protocol;
 
   return 0;
@@ -90,22 +64,10 @@ int NativeSocket::create(Address::Family family, Type type, Protocol protocol)
 int NativeSocket::bind(const SocketAddress& address)
 {
   LOG(DEBUG) << address;
-
-  if (address.addr.family != family) {
-    return last_error(EAFNOSUPPORT);
-  }
-  switch (family) {
-    case Address::IPv4: {
-      const sockaddr sa(address.to_sockaddr());
-      if (::bind(sock, &sa, sizeof(sockaddr)) != NO_ERROR)
-        return -1;
-      return 0;
-      break;
-    }
-
-    default:
-      return last_error(EAFNOSUPPORT);
-  }
+  auto sa = static_cast<sockaddr>(address);
+  if (::bind(sock, &sa, sizeof sa) != NO_ERROR)
+    return -1;
+  return 0;
 }
 
 void NativeSocket::close()
@@ -126,8 +88,8 @@ int NativeSocket::send(const std::uint8_t* src,
 {
   LOG(DEBUG);
 
-  sockaddr sa = recipient.to_sockaddr();
-  return ::sendto(sock, char_cp(src), len, 0, &sa, sizeof(sockaddr));
+  auto sa = static_cast<sockaddr>(recipient);
+  return ::sendto(sock, char_cp(src), len, 0, &sa, sizeof sa);
 }
 
 int NativeSocket::is_blocking(bool blocking)

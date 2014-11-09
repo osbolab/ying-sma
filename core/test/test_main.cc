@@ -8,7 +8,7 @@
 // Call only once per application
 _INITIALIZE_EASYLOGGINGPP
 
-#include "bytebuffertest.hh"
+//#include "bytebuffertest.hh"
 //#include "bitstest.hh"
 //
 //#include "priorityqueuetest.hh"
@@ -16,7 +16,7 @@ _INITIALIZE_EASYLOGGINGPP
 //#include "bufferpooltest.hh"
 //
 //#include "blockingqueuetest.hh"
-//#include "threadpooltest.hh"
+#include "threadpooltest.hh"
 //
 //#include "messagetest.hh"
 //#include "messengertest.hh"

@@ -32,9 +32,7 @@ public:
   public:
     Factory() {}
 
-    int create(Address::Family family,
-               Socket::Type type,
-               Socket::Protocol protocol,
+    int create(Socket::Protocol protocol,
                std::unique_ptr<Socket>& sock_out) override;
   };
 
@@ -64,25 +62,19 @@ public:
 private:
   NativeSocket() { is_blocking(true); }
 
-
-  int create(Address::Family family, Type type, Protocol protocol);
+  int create(Protocol protocol);
 
   int last_error(int error) override { return global_last_error(error); }
 
   static void log_last_error();
-  static int global_last_error(int error)
-  {
-    errno = error;
-    return error;
-  }
+  static int global_last_error(int error) { return (errno = error); }
 
   static int global_last_error()
   {
     int error = errno;
     log_last_error();
-    return -1;
+    return error;
   }
-
 
   SOCKET sock{INVALID_SOCKET};
   bool blocking;
