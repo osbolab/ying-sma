@@ -19,6 +19,16 @@ bool ByteView::operator==(const ByteView& rhs) const
   return true;
 }
 
+ByteView& ByteView::limit(std::size_t newlim)
+{
+  if (newlim > cap)
+    newlim = cap;
+  lim = newlim;
+  if (pos > lim)
+    pos = lim;
+  return *this;
+}
+
 std::size_t ByteView::get(std::uint8_t* dst, std::size_t len)
 {
   if (remaining() < len)
@@ -32,11 +42,13 @@ std::size_t ByteView::get(std::uint8_t* dst, std::size_t len)
 template <>
 std::uint8_t ByteView::get<std::uint8_t>()
 {
+  assert(remaining() >= 1);
   return b[pos++];
 }
 template <>
 std::uint16_t ByteView::get<std::uint16_t>()
 {
+  assert(remaining() >= 2);
   auto v = std::uint16_t{b[pos++]} << 8;
   v |= b[pos++];
   return v;
@@ -44,6 +56,7 @@ std::uint16_t ByteView::get<std::uint16_t>()
 template <>
 std::uint32_t ByteView::get<std::uint32_t>()
 {
+  assert(remaining() >= 4);
   auto v = std::uint32_t{b[pos++]} << 24;
   v |= std::uint32_t{b[pos++]} << 16;
   v |= std::uint32_t{b[pos++]} << 8;
@@ -53,6 +66,7 @@ std::uint32_t ByteView::get<std::uint32_t>()
 template <>
 std::uint64_t ByteView::get<std::uint64_t>()
 {
+  assert(remaining() >= 8);
   auto v = std::uint64_t{b[pos++]} << 56;
   v |= std::uint64_t{b[pos++]} << 48;
   v |= std::uint64_t{b[pos++]} << 40;
@@ -67,6 +81,7 @@ std::uint64_t ByteView::get<std::uint64_t>()
 template <>
 ByteView& ByteView::operator>>(std::uint8_t& v)
 {
+  assert(remaining() >= 1);
   v = b[pos++];
   return *this;
 }
@@ -74,6 +89,7 @@ ByteView& ByteView::operator>>(std::uint8_t& v)
 template <>
 ByteBuffer& ByteBuffer::operator>>(std::uint8_t& v)
 {
+  assert(remaining() >= 1);
   v = b[pos++];
   return *this;
 }
@@ -98,8 +114,10 @@ ByteBuffer& ByteBuffer::operator>>(std::uint64_t& v)
 
 std::size_t ByteBuffer::put(const std::uint8_t* src, std::size_t len)
 {
-  if (len < remaining()) len = remaining();
-  std::memcpy(b+pos, src, len);
+  assert(remaining());
+  if (len < remaining())
+    len = remaining();
+  std::memcpy(b + pos, src, len);
   pos += len;
   return len;
 }
@@ -107,12 +125,14 @@ std::size_t ByteBuffer::put(const std::uint8_t* src, std::size_t len)
 template <>
 std::size_t ByteBuffer::put(const std::uint8_t& v)
 {
+  assert(free() >= 1);
   b[pos++] = v;
   return 1;
 }
 template <>
 std::size_t ByteBuffer::put(const std::uint16_t& v)
 {
+  assert(free() >= 2);
   b[pos++] = v >> 8;
   b[pos++] = v & 0xFF;
   return 2;
@@ -120,6 +140,7 @@ std::size_t ByteBuffer::put(const std::uint16_t& v)
 template <>
 std::size_t ByteBuffer::put(const std::uint32_t& v)
 {
+  assert(free() >= 4);
   b[pos++] = v >> 24;
   b[pos++] = (v >> 16) & 0xFF;
   b[pos++] = (v >> 8) & 0xFF;
@@ -129,6 +150,7 @@ std::size_t ByteBuffer::put(const std::uint32_t& v)
 template <>
 std::size_t ByteBuffer::put(const std::uint64_t& v)
 {
+  assert(free() >= 8);
   b[pos++] = v >> 56;
   b[pos++] = (v >> 48) & 0xFF;
   b[pos++] = (v >> 40) & 0xFF;

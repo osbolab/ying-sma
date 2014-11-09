@@ -1,4 +1,5 @@
 #include "message.hh"
+#include "node.hh"
 #include "bytebuffer.hh"
 
 #include <cassert>
@@ -9,47 +10,59 @@
 namespace sma
 {
 
-Message::Message(Type type, ActorId sender, std::vector<ActorId> recipients)
-  : type_(type)
-  , sender_(sender)
-  , recipients_(recipients)
+Message::Message(Type type,
+                 Node::Id sender,
+                 std::vector<Node::Id> recipients,
+                 ByteView body)
+  : type_(std::move(type))
+  , sender_(std::move(sender))
+  , recipients_(std::move(recipients))
+  , body(std::move(body))
 {
 }
 
-Message::Message(Message&& m)
-  : type_(m.type_)
-  , sender_(m.sender_)
+Message::Message(const ByteView& csrc)
 {
-  m.type_ = 0;
-  m.sender_ = ActorId{{0}};
-  std::swap(recipients_, m.recipients_);
+  auto src = csrc.view();
+
+  sender_ = src.get<Node::Id>();
+
+  auto nrecipients = src.get<field_nrecp>();
+  recipients_.reserve(nrecipients);
+  for (std::size_t i = 0; i < nrecipients; ++i)
+    recipients_.emplace_back(src.get<Node::Id>());
+
+  type_ = src.get<decltype(type_)>();
+
+  auto body_len = static_cast<std::size_t>(src.get<field_body_len>());
+  body = src.limit(body_len);
 }
 
-inline ByteBuffer& operator<<(ByteBuffer& dst, ActorId id)
+inline ByteBuffer& operator<<(ByteBuffer& dst, Node::Id id)
 {
-  dst.put(id.id, sizeof(ActorId::id));
+  dst.put(id.data, Node::Id::size);
   return dst;
 }
 
 std::size_t Message::put_in(ByteBuffer& dst) const
 {
   std::size_t start = dst.position();
-  dst.put(sender_.id, sizeof(ActorId::id));
-  dst << static_cast<field_nr_recp_type>(recipients_.size());
+  dst.put(sender_.data, Node::Id::size);
+  dst << static_cast<field_nrecp>(recipients_.size());
   for (auto& recp : recipients_)
-    dst.put(recp.id, sizeof(ActorId::id));
+    dst.put(recp.data, Node::Id::size);
   dst << type_;
   return dst.position() - start;
 }
 
 void Message::get_fields(ByteView& src)
 {
-  src.get(sender_.id, sizeof(ActorId::id));
-  field_nr_recp_type nr_recipients;
+  src.get(sender_.data, Node::Id::size);
+  field_nrecp nr_recipients;
   src >> nr_recipients;
-  recipients_ = std::vector<ActorId>(nr_recipients);
+  recipients_ = std::vector<Node::Id>(nr_recipients);
   for (std::size_t i = 0; i < nr_recipients; ++i)
-    src.get(recipients_[i].id, sizeof(ActorId::id));
+    src.get(recipients_[i].data, Node::Id::size);
   src >> type_;
 }
 

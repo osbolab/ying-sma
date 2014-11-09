@@ -1,6 +1,6 @@
 #pragma once
 
-#include "actor.hh"
+#include "node.hh"
 #include "bytebuffer.hh"
 
 #include <cstdlib>
@@ -17,28 +17,23 @@ class Messenger;
 struct Message {
   friend class Messenger;
 
-public:
   using Type = std::uint8_t;
 
-  Message(Message&& m);
-  Message& operator=(Message&& m);
+  Message(const ByteView& csrc);
 
-  template <typename T>
-  static T read(ByteView& src)
+  Message(const Message& rhs) = delete;
+  Message& operator=(const Message& rhs) = delete;
+
+
+  std::size_t put_in(ByteBuffer& dst) const;
+  std::size_t size() const
   {
-    static_assert(std::is_base_of<Message, T>::value,
-                  "Can only deserialize classes derived from Message");
-    T t;
-    t.get_fields(src);
-    return t;
+    return Node::Id::size * (recipients_.size() + 1) + sizeof(Type)
+           + body.limit();
   }
 
-  virtual std::size_t put_in(ByteBuffer& dst) const;
-  virtual std::size_t size() const
-  {
-    return sizeof(ActorId::id) * (recipients_.size() + 1) + sizeof(Type);
-  }
-
+  Node::Id sender() const { return sender_; }
+  const std::vector<Node::Id> recipients() const { return recipients_; }
   Type type() const { return type_; }
 
   bool operator==(const Message& other) const;
@@ -48,12 +43,20 @@ protected:
   virtual void get_fields(ByteView& src);
 
 private:
-  Message(Type type, ActorId sender, std::vector<ActorId> recipients);
+  Message(Type type,
+          Node::Id sender,
+          std::vector<Node::Id> recipients,
+          ByteView body);
 
   // In packet order
-  ActorId sender_{{0}};
-  using field_nr_recp_type = std::uint8_t;
-  std::vector<ActorId> recipients_;
+  Node::Id sender_;
+
+  using field_nrecp = std::uint8_t;
+  std::vector<Node::Id> recipients_;
+
   Type type_{0};
+
+  using field_body_len = std::uint16_t;
+  ByteView body;
 };
 }
