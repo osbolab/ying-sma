@@ -11,7 +11,7 @@
 namespace sma
 {
 
-void Messenger::subscribe(Message::Type t, MessageHandler h)
+void Messenger::subscribe(Message::Type t, msg_handler h)
 {
   {
     writer_lock lock(mx);
@@ -21,10 +21,10 @@ void Messenger::subscribe(Message::Type t, MessageHandler h)
     // we'd have an O(log) search and an O(n) insert.
     // Instead just do them at the same time by sliding in the back (heh)
 
-    auto i = vec.size();
     vec.emplace_back(std::move(t), std::move(h));
-    while (i > 0 && vec[i].first < vec[i - 1].first) {
-      std::swap(vec[i], vec[--i]);
+    auto i = vec.size();
+    while (--i > 0 && vec[i].first < vec[i - 1].first) {
+      std::swap(vec[i-1], vec[i]);
     }
   }
 }
@@ -33,7 +33,7 @@ void Messenger::dispatch(const Message& msg)
 {
   std::vector<msg_handler> handlers;
 
-  { // LOCK VEC FOR READING
+  {    // LOCK VEC FOR READING
     reader_lock lock(mx);
 
     if (vec.empty()) {
@@ -82,7 +82,7 @@ void Messenger::dispatch(const Message& msg)
         handlers[i] = vec[first + i].second;
       }
     }
-  } // UNLOCK VEC
+  }    // UNLOCK VEC
 
   if (!handlers.empty())
     for (auto& handler : handlers)

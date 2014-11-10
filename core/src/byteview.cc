@@ -9,7 +9,7 @@ namespace detail {
 /******************************************************************************
  * byteview - Static Factories
  */
-byteview byteview::wrap(const std::uint8_t* src, std::size_t len)
+byteview byteview::of(const std::uint8_t* src, std::size_t len)
 {
   return byteview(const_cast<std::uint8_t*>(src), len, 0);
 }

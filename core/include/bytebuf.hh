@@ -47,7 +47,7 @@ namespace detail
   public:
     // Create an immutable view of the interval [src, src+len)
     // Does not copy or transfer ownership of the array.
-    static byteview wrap(const std::uint8_t* src, std::size_t len);
+    static byteview of(const std::uint8_t* src, std::size_t len);
 
     // Create an immutable view of an empty buffer.
     // All accession methods are invalidated by default.
