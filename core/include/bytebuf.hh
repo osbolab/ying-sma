@@ -1,7 +1,5 @@
 #pragma once
 
-#include "bytes.hh"
-
 #include <cassert>
 #include <cstdint>
 #include <cstring>
@@ -32,19 +30,19 @@ namespace detail
   protected:
     // The underlying buffer; is never owned by byteview, but may be owned by
     // its derived types.
-    std::uint8_t* b;
+    std::uint8_t* b{nullptr};
     // The maximum read position (exclusive) in the buffer.
-    std::size_t lim;
+    std::size_t lim{0};
     // The current read position in the buffer.
-    std::size_t pos;
+    std::size_t pos{0};
 
     // Create an immutable view of the given array with the given bounds.
     // Does not copy or transfer ownership of the array.
-    byteview(std::uint8_t* src, std::size_t len);
+    byteview(void* src, std::size_t len);
     // Create an immutable view of the given array with the given bounds
     // and beginning at the given index.
     // Does not copy or transfer ownership of the array.
-    byteview(std::uint8_t* src, std::size_t len, std::size_t pos);
+    byteview(void* src, std::size_t len, std::size_t pos);
 
   public:
     // Create an immutable view of the interval [src, src+len)
@@ -58,8 +56,6 @@ namespace detail
     // Get a pointer to the underlying buffer starting at the current position.
     // Use rewind(), flip(), or clear() first to get the buffer's origin.
     const std::uint8_t* cbuf() const { return b + pos; }
-    // See `std::uint8_t* cbuf() const`
-    const char* cstr() const { return char_cp(b + pos); }
 
     // Get an immutable view of the interval [pos, pos+len) in the buffer
     byteview view(std::size_t pos, std::size_t len) const;
@@ -113,7 +109,7 @@ namespace detail
     bool operator!=(const byteview& rhs) const { return !(*this == rhs); }
 
   private:
-    static const std::uint8_t EMPTY[0];
+    static std::uint8_t EMPTY[0];
   };
 
   template <typename T>
@@ -150,18 +146,21 @@ public:
   using view = detail::byteview;
 
   static bytebuf allocate(std::size_t len);
-  static bytebuf wrap(std::uint8_t* buf, std::size_t len);
-  static bytebuf wrap(char* buf, std::size_t len);
-  static bytebuf copy(const std::uint8_t* buf, std::size_t len);
-  static bytebuf copy(const char* buf, std::size_t len);
+  static bytebuf wrap(void* buf, std::size_t len);
+  static bytebuf copy(const void* buf, std::size_t len);
 
 
+  // Allocate an underlying buffer equal in capacity to the given buffer and
+  // assign its contents, limit, and position to those of the given buffer.
+  bytebuf(const bytebuf& rhs);
+  // Cheaply move the given buffer into this one and zero its members.
   bytebuf(bytebuf&& rhs);
   // Allocate a new buffer equal in len to this and copy this buffer's full
   // contents to it.
   bytebuf duplicate();
   // Copies the contents, dimensions, and position of the given buffer.
   bytebuf& operator=(const bytebuf& rhs);
+  bytebuf& operator=(bytebuf&& rhs);
 
   // Deletes the buffer's backing memory if this buffer was instantiated by
   // copying or via allocate().
@@ -188,7 +187,6 @@ public:
 
   // Equivalent to byteview::cbuf, but the underlying buffer is mutable.
   std::uint8_t* buf() { return b + pos; }
-  char* str() { return char_p(b + pos); }
 
   std::uint8_t& operator[](std::size_t i);
   std::uint8_t& operator*();
@@ -202,11 +200,11 @@ public:
 
   // Copies the given bytes to this buffer, replacing its current contents
   // and settings its limit to the size of the copied array.
-  bytebuf& replace(const std::uint8_t* src, std::size_t len);
+  bytebuf& replace(const void* src, std::size_t len);
 
   // Copies the given bytes to this buffer starting at the current
   // position.
-  bytebuf& put(const std::uint8_t* src, std::size_t len);
+  bytebuf& put(const void* src, std::size_t len);
 
   // Directly copies the memory of the given reference to the buffer.
   template <typename T>
@@ -245,9 +243,6 @@ private:
   // Allocate an underlying buffer with a capacity of `len` bytes and copy
   // `len` bytes from the given buffer into it starting at its origin.
   bytebuf(const std::uint8_t* src, std::size_t len);
-  // Allocate an underlying buffer equal in capacity to the given buffer and
-  // assign its contents, limit, and position to those of the given buffer.
-  bytebuf(const bytebuf& rhs);
   // Create a modifiable view of the given buffer with a capacity of `len`
   // bytes, a limit equal to its capacity, and a starting position of zero.
   //
@@ -259,8 +254,6 @@ private:
   // Ownership of the buffer's memory is not transferred.
   bytebuf(std::uint8_t* buf, std::size_t cap, std::size_t lim, std::size_t pos);
 };
-
-
 
 
 template <typename T>

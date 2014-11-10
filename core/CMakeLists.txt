@@ -12,7 +12,8 @@ set(LIB_CORE_INC "${CMAKE_CURRENT_SOURCE_DIR}/${INC}"
 # SOURCES
 
 set(LIB_CORE_SOURCES
-  "${SRC}/bytebuffer.cc"
+  "${SRC}/bytebuf.cc"
+  "${SRC}/byteview.cc"
 
   "${SRC}/cyclicbarrier.cc"
   "${SRC}/threadpool.cc"

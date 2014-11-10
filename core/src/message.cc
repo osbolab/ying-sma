@@ -1,6 +1,6 @@
 #include "message.hh"
 #include "node.hh"
-#include "bytebuffer.hh"
+#include "bytebuf.hh"
 
 #include <cassert>
 #include <utility>
@@ -13,58 +13,58 @@ namespace sma
 Message::Message(Type type,
                  Node::Id sender,
                  std::vector<Node::Id> recipients,
-                 ByteView body)
-  : type_(std::move(type))
-  , sender_(std::move(sender))
-  , recipients_(std::move(recipients))
-  , body(std::move(body))
+                 const std::uint8_t* content,
+                 std::size_t len)
+  : t(std::move(type))
+  , senderid(std::move(sender))
+  , recpids(std::move(recipients))
+  , data(content)
+  , len(len)
 {
 }
 
-Message::Message(const ByteView& csrc)
+Message::Message(const std::uint8_t* src, std::size_t len)
 {
-  auto src = csrc.view();
+  src >> senderid;
 
-  sender_ = src.get<Node::Id>();
-
-  auto nrecipients = src.get<field_nrecp>();
-  recipients_.reserve(nrecipients);
+  const auto nrecipients = src.get<field_nrecp_type>();
+  recpids.resize(nrecipients);
   for (std::size_t i = 0; i < nrecipients; ++i)
-    recipients_.emplace_back(src.get<Node::Id>());
+    src >> recpids[i];
 
-  type_ = src.get<decltype(type_)>();
+  src >> t;
 
-  auto body_len = static_cast<std::size_t>(src.get<field_body_len>());
-  body = src.limit(body_len);
+  len = static_cast<std::size_t>(src.get<field_len_type>());
 }
 
-inline ByteBuffer& operator<<(ByteBuffer& dst, Node::Id id)
+std::size_t Message::write_to(bytebuf dst) const
 {
-  dst.put(id.data, Node::Id::size);
-  return dst;
-}
-
-std::size_t Message::write_to(ByteBuffer& dst) const
-{
+  assert(dst.remaining() >= total_len());
   std::size_t start = dst.position();
-  dst.put(sender_.data, Node::Id::size);
-  dst << static_cast<field_nrecp>(recipients_.size());
-  for (auto& recp : recipients_)
-    dst.put(recp.data, Node::Id::size);
-  dst << type_;
+  dst << senderid;
+  dst << static_cast<field_nrecp_type>(recpids.size());
+  for (auto& recp : recpids)
+    dst << recp;
+  dst << t;
+  dst << static_cast<field_len_type>(len);
+  dst << arrcopy(data, len);
   return dst.position() - start;
 }
 
-void Message::get_fields(ByteView& src)
+std::size_t Message::total_len() const
 {
-  src.copy_to(sender_.data, Node::Id::size);
-  field_nrecp nr_recipients;
-  src >> nr_recipients;
-  recipients_ = std::vector<Node::Id>(nr_recipients);
-  for (std::size_t i = 0; i < nr_recipients; ++i)
-    src.copy_to(recipients_[i].data, Node::Id::size);
-  src >> type_;
+  // clang-format off
+  return Node::Id::size
+       + sizeof(field_nrecp_type)
+       + Node::Id::size * recpids.size()
+       + sizeof(Type)
+       + sizeof(field_len_type)
+       + len;
+  // clang-format on
 }
 
-bool Message::operator==(const Message& other) const { return true; }
+std::size_t Message::write_to(std::uint8_t* dst, std::size_t len) const
+{
+  return write_to(bytebuf::wrap(dst, len));
+}
 }
