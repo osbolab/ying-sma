@@ -19,8 +19,8 @@ _INITIALIZE_EASYLOGGINGPP
 //#include "blockingqueuetest.hh"
 //#include "threadpooltest.hh"
 //
-#include "messagetest.hh"
-#include "messengertest.hh"
+//#include "messagetest.hh"
+//#include "messengertest.hh"
 
 //
 //#include "addresstest.hh"
