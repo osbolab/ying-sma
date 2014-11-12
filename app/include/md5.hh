@@ -244,7 +244,7 @@ public:
   void Init()
   {
     context.count[0] = context.count[1] = 0;
-  
+
     // Load magic initialization constants.
     context.state[0] = 0x67452301;
     context.state[1] = 0xefcdab89;
@@ -317,7 +317,7 @@ public:
     writeToString() ;
   }
 
-  /// Buffer must be 32+1 (nul) = 33 chars long at least 
+  /// Buffer must be 32+1 (nul) = 33 chars long at least
   void writeToString()
   {
     int pos ;
@@ -342,7 +342,7 @@ public:
     Init() ;
 
     FILE *file;
-    
+
     int len;
     unsigned char buffer[1024] ;
 
@@ -350,7 +350,7 @@ public:
       printf( "%s can't be opened\n", filename ) ;
     else
     {
-      while( len = fread( buffer, 1, 1024, file ) )
+      while( (len = fread( buffer, 1, 1024, file )) )
         Update( buffer, len ) ;
       Final();
 
@@ -366,7 +366,7 @@ public:
     Init() ;
     Update( memchunk, len ) ;
     Final() ;
-    
+
     return digestChars ;
   }
 

@@ -15,79 +15,38 @@ void Messenger::subscribe(Message::Type t, msg_handler h)
 {
   {
     writer_lock lock(mx);
-
-    // We could use a binary search to find the insertion point, but
-    // it still then requires an O(n) step to create the gap, so
-    // we'd have an O(log) search and an O(n) insert.
-    // Instead just do them at the same time by sliding in the back (heh)
-
-    vec.emplace_back(std::move(t), std::move(h));
-    auto i = vec.size();
-    while (--i > 0 && vec[i].first < vec[i - 1].first) {
-      std::swap(vec[i-1], vec[i]);
-    }
+    // Sort the handlers by message type so all handlers for a particular
+    // type are grouped together.
+    handlers.emplace_back(std::move(t), std::move(h));
+    for (auto i = handlers.size();
+         i > 0 && handlers[i].first < handlers[i - 1].first;
+         --i)
+      std::swap(handlers[i - 1], handlers[i]);
   }
 }
 
 void Messenger::dispatch(const Message& msg)
 {
-  std::vector<msg_handler> handlers;
+  // LOCK handlers FOR READING
+  reader_lock lock(mx);
 
-  {    // LOCK VEC FOR READING
-    reader_lock lock(mx);
-
-    if (vec.empty()) {
-      LOG(WARNING) << "No message handlers; dropping type " << int(msg.type());
+  if (handlers.empty()) {
+    LOG(WARNING) << "No message handlers; dropping type " << int(msg.type());
+    return;
+  }
+  bool handled = false;
+  const Message::Type t = msg.type();
+  const std::size_t sz = handlers.size();
+  // Handlers are executed IN THIS THREAD and IN THE CRITICAL SECTION
+  for (std::size_t i = 0; i < sz; ++i) {
+    if (handlers[i].first == t) {
+      handlers[i].second(msg);
+      handled = true;
+    } else if (handled)
       return;
-    }
-
-    const vec_size sz = vec.size();
-    const Message::Type t = msg.type();
-    vec_size min = 0, max = sz - 1;
-    vec_size first = sz, last = sz;
-
-    // Multiple handlers for one message type are allowed.
-    // Since they're sorted we'll find them all in a block;
-    // just get the beginning and end of that block.
-
-    // Approach from the right and find the leftmost index
-    while (min <= max) {
-      vec_size i = min + (max - min) / 2;
-      if (vec[i].first >= t) {
-        max = i - 1;
-        if (vec[i].first == t)
-          first = i;
-      } else {
-        min = i + 1;
-      }
-    }
-    // Approach from left and find the rightmost index
-    min = 0;
-    max = sz - 1;
-    while (min <= max) {
-      vec_size i = min + (max - min) / 2;
-      if (vec[i].first <= t) {
-        min = i + 1;
-        if (vec[i].first == t)
-          last = i;
-      } else {
-        max = i - 1;
-      }
-    }
-
-    if (first != sz && last != sz) {
-      const auto count = last - first + 1;
-      handlers.resize(count);
-      for (vec_size i = 0; i < count; ++i) {
-        handlers[i] = vec[first + i].second;
-      }
-    }
-  }    // UNLOCK VEC
-
-  if (!handlers.empty())
-    for (auto& handler : handlers)
-      handler(msg);
-  else
+  }
+  // UNLOCK handlers
+  if (!handled)
     LOG(WARNING) << "Unhandled message type " << std::size_t{msg.type()};
 }
 

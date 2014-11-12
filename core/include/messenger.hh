@@ -42,10 +42,8 @@ private:
   Messenger& operator=(const Messenger& o) = delete;
 
   using mapping = std::pair<Message::Type, msg_handler>;
-  std::vector<mapping> vec;
-  using vec_type = decltype(vec);
-  using vec_size = vec_type::size_type;
-  // Readers/writer mutex for vec
+  std::vector<mapping> handlers;
+  // Readers/writer mutex for handlers
   rws_mutex mx;
 
   Node::Id this_sender;

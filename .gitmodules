@@ -4,3 +4,6 @@
 [submodule "ext/waf"]
 	path = ext/waf
 	url = https://code.google.com/p/waf/
+[submodule "ext/waf-unittest"]
+	path = ext/waf-unittest
+	url = https://github.com/tanakh/waf-unittest.git

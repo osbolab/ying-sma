@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 # Include config options, gtest setup, and output paths
 include("${CMAKE_CURRENT_SOURCE_DIR}/../cmake/project.cmake" REQUIRED)
 
-set(LIB_APP "smapp" CACHE STRING "Application library")
+set(LIB_APP "smaapp" CACHE STRING "Application library")
 set(LIB_APP_INC "${CMAKE_CURRENT_SOURCE_DIR}/${INC}"
     CACHE STRING "Application library include directory")
 
