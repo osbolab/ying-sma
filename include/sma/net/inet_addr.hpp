@@ -5,6 +5,7 @@
 #include <cstring>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#define ARPA_INET_H_
 
 
 namespace sma

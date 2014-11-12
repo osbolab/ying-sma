@@ -1,6 +1,6 @@
-#include <sma/core/message.hpp>
-#include <sma/core/node.hpp>
-#include <sma/core/byte_buf.hpp>
+#include <sma/msg/message.hpp>
+#include <sma/node.hpp>
+#include <sma/byte_buf.hpp>
 
 #include <cassert>
 #include <utility>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sma/core/byte_buf.hpp>
+#include <sma/byte_buf.hpp>
 
 #include <cstdint>
 

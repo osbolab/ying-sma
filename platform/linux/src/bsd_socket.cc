@@ -1,6 +1,6 @@
 #include <sma/linux/bsd_socket.hpp>
-#include <sma/core/abstract_socket.hpp>
-#include <sma/core/bytes.hpp>
+#include <sma/net/abstract_socket.hpp>
+#include <sma/bytes.hpp>
 #include <sma/log.hpp>
 
 #include <unistd.h>
@@ -18,8 +18,8 @@ namespace sma
 {
 
 
-int bsd_socket::Factory::create(abstract_socket::protocol protocol,
-                                  std::unique_ptr<abstract_socket>& sock_out)
+int bsd_socket::factory::create(abstract_socket::protocol protocol,
+                                std::unique_ptr<abstract_socket>& sock_out)
 {
   LOG(DEBUG) << "protocol: " << protocol;
   auto sock = std::unique_ptr<bsd_socket>(new bsd_socket());
@@ -82,8 +82,8 @@ void bsd_socket::close()
 }
 
 int bsd_socket::send(const std::uint8_t* src,
-                       std::size_t len,
-                       const socket_addr& recipient)
+                     std::size_t len,
+                     const socket_addr& recipient)
 {
   LOG(DEBUG);
 
@@ -91,17 +91,19 @@ int bsd_socket::send(const std::uint8_t* src,
   return ::sendto(sock, char_cp(src), len, 0, &sa, sizeof sa);
 }
 
-int bsd_socket::is_blocking(bool blocking)
+int bsd_socket::blocking(bool block)
 {
   int opts;
   if ((opts = fcntl(sock, F_GETFL)) < 0) {
     return -1;
   }
-  opts = blocking ? (opts & ~O_NONBLOCK) : (opts | O_NONBLOCK);
+  opts = block ? (opts & ~O_NONBLOCK) : (opts | O_NONBLOCK);
   if (fcntl(sock, F_SETFL, opts) < 0) {
     return -1;
   }
-  LOG(DEBUG) << (blocking ? "yes" : "no");
+
+  is_blocking = block;
+  LOG(DEBUG) << (is_blocking ? "yes" : "no");
 
   return 0;
 }

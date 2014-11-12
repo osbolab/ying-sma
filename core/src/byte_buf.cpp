@@ -1,5 +1,5 @@
-#include <sma/core/byte_buf.hpp>
-#include <sma/core/bytes.hpp>
+#include <sma/byte_buf.hpp>
+#include <sma/bytes.hpp>
 
 #include <cassert>
 #include <cstdint>

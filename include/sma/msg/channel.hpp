@@ -22,10 +22,10 @@ namespace sma
  * An ns3 channel should just notify a condition variable when a packet arrives
  * via callback and hold onto it for readers.
  */
-class Channel
+class channel
 {
 public:
-  ~Channel()
+  ~channel()
   {
   }
 

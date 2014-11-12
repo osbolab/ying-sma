@@ -21,56 +21,67 @@ The macro `add_test_exe` adds the executable to `make test` and places it in
 `build/test` instead of `build/bin` when `-Dgroup_output=ON`
 
 ## Directories
-- `build/` - contains output from components configured with
-  `-Dglobal_output_path`
-  - `lib/` - (only when `-Dgroup_output`) 
-  - `bin/` - (only when `-Dgroup_output`) 
-  - `test/` - (only when `-Dgroup_output`)
-- `cmake/` - cmake configuration macros
-- `lib/` - lib sources common to all components
-- `app/` - application library component
-- `core/` - core platform services library component
-  - `src/` - non-template class definitions
-  - `include/` - class declarations and template definitions
-  - `test/` - `.cc` compilation units and `.hh` test bodies
-  - `lib/` - library sources only used by this component
-  - `build/` - contains output when not configured with `-Dglobal_output_path`
-- `platform/` - platform-specific services implementations
-- `scripts/` - misc. bash stuff
+    - build/ - contains output from components configured with
+      -Dglobal_output_path
+      - lib/ - (only when -Dgroup_output) 
+      - bin/ - (only when -Dgroup_output) 
+      - test/ - (only when -Dgroup_output)
+    - cmake/ - cmake configuration macros
+    - lib/ - lib sources common to all components
+    - include/ - public headers declaring the interface of each module
+    - app/ - application library component
+      - include/ - private implementation detail headers
+      - src/
+      - test/
+    - core/ - core platform services library component
+      - src/
+      - test/ - source files define compilation units for test executables and 
+                  headers implement test bodies
+      - lib/ - library sources used by only this component
+      - build/ - contains output when not configured with -Dglobal_output_path
+    - platform/ - platform-specific services implementations
+      - ns3/ - NS3 simulator platform 
+        - ext/
+          - ns-3.21/ - NS3 source tarball contents
+            - ns-3.21/ - NS3 source tree
+              - build/ - the library and include directory for building NS3
+                            simulations
+                - ns3/ - NS3 public interface headers
+                *.so - NS3 module libraries
+    - scripts/ - misc. bash stuff
 
 ## Structure
-
-- `core` - *(library)* platform-independent abstractions of platform services
-           like scheduling and messaging.
-  - `PlatformHost` - abstract application container
-  - `Scheduler` - asynchronous and delayed execution; guarantees that calling
-                  will not block, but does not guarantee parallel execution.
-  - `Actor` - base class for something that receives messages; actors can be in
-              the same process or on separate physical devices.
-  - `Messenger` - message passing between actors
-    - `Channel` - interface between message passing and physical transport;
-                  sends and receives to and from an unspecified number of
-                  endpoints of unspecified type (memory mapped file, socket,
-                  bluetooth, etc.)
-    - `Socket` - abstract IP socket 
-  - UI
-    - `View` - abstract displayable user interface
-    - `ViewModel` - abstract data model displayed by `View`
-    - `ViewController` - abstract `ViewModel` mutator
-- `app` - *(library)* platform-independent application logic; depends on `core`.
-- `platform/native` - *(library)* implements core services with POSIX or Win32
-                      libraries; depends on `core`.
-  - `ThreadScheduler` -> `Scheduler`
-  - `NativeChannel` -> `Channel`
-  - `NativeSocket` -> `Socket`
-- `platform/ns3` - *(library)* implements core services by delegating to
-                   the NS3 simulator; depends on `core`.
-  - `NsScheduler` -> `Scheduler`
-  - `NsChannel` -> `Channel`
-  - `NsSocket` -> `Socket`
-- `platform/android` - *(library)* implements core services with Android NDK and
-                       declares JNI interfaces for interoperating with Android
-                       applications.
+    - core - *(library)* platform-independent abstractions of platform services
+               like scheduling and messaging.
+      - PlatformHost - abstract application container
+      - Scheduler - asynchronous and delayed execution; guarantees that calling
+                      will not block, but does not guarantee parallel execution.
+      - Actor - base class for something that receives messages; actors can be in
+                  the same process or on separate physical devices.
+      - Messenger - message passing between actors
+        - Channel - interface between message passing and physical transport;
+                      sends and receives to and from an unspecified number of
+                      endpoints of unspecified type (memory mapped file, socket,
+                      bluetooth, etc.)
+        - Socket - abstract IP socket 
+      - UI
+        - View - abstract displayable user interface
+        - ViewModel - abstract data model displayed by View
+        - ViewController - abstract ViewModel mutator
+    - app - *(library)* platform-independent application logic; depends on core.
+    - platform/native - *(library)* implements core services with POSIX or Win32
+                          libraries; depends on core.
+      - ThreadScheduler -> Scheduler
+      - NativeChannel -> Channel
+      - NativeSocket -> Socket
+    - platform/ns3 - *(library)* implements core services by delegating to
+                       the NS3 simulator; depends on core.
+      - NsScheduler -> Scheduler
+      - NsChannel -> Channel
+      - NsSocket -> Socket
+    - platform/android - *(library)* implements core services with Android NDK and
+                           declares JNI interfaces for interoperating with Android
+                           applications.
 
 ## Testing
 

@@ -1,7 +1,7 @@
-#include <sma/core/messenger.hpp>
-#include <sma/core/message.hpp>
-#include <sma/core/channel.hpp>
-#include <sma/core/rws_mutex.hpp>
+#include <sma/msg/messenger.hpp>
+#include <sma/msg/message.hpp>
+#include <sma/msg/channel.hpp>
+#include <sma/concurrent/rws_mutex.hpp>
 #include <sma/log.hpp>
 
 #include <cstdint>

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "socket.hpp"
-#include "bytes.hpp"
+#include <sma/net/abstract_socket.hpp>
+#include <sma/bytes.hpp>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -24,21 +24,21 @@ namespace sma
 typedef int SOCKET;
 #endif
 
-class NativeSocket : public Socket
+class bsd_socket : public abstract_socket
 {
 public:
-  class Factory : public Socket::factory
+  class Factory : public abstract_socket::factory
   {
   public:
     Factory() {}
 
-    int create(Socket::Protocol protocol,
-               std::unique_ptr<Socket>& sock_out) override;
+    int create(abstract_socket::protocol proto,
+               std::unique_ptr<abstract_socket>& sock_out) override;
   };
 
   friend class Factory;
 
-  ~NativeSocket() { close(); }
+  ~bsd_socket() { close(); }
 
   int bind(const SocketAddress& address) override;
   void close() override;
@@ -54,15 +54,15 @@ public:
 
   SOCKET native_socket() const { return sock; }
 
-  int is_blocking(bool blocking);
-  bool is_blocking() const { return blocking; }
+  int blocking(bool block);
+  bool blocking() const { return is_blocking; }
 
   int last_error() const override { return global_last_error(); }
 
 private:
-  NativeSocket() { is_blocking(true); }
+  bsd_socket() { blocking(true); }
 
-  int create(Protocol protocol);
+  int create(protocol proto);
 
   int last_error(int error) override { return global_last_error(error); }
 
@@ -77,6 +77,6 @@ private:
   }
 
   SOCKET sock{INVALID_SOCKET};
-  bool blocking;
+  bool is_blocking;
 };
 }

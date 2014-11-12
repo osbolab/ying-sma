@@ -1,4 +1,4 @@
-#include <sma/core/byte_buf.hpp>
+#include <sma/byte_buf.hpp>
 
 #include <cstdint>
 #include <cstring>

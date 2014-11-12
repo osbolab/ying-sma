@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sma/core/node.hpp>
+#include <sma/node.hpp>
 
 #include <cstdint>
 #include <vector>

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <sma/core/message.hpp>
-#include <sma/core/node.hpp>
-#include <sma/core/channel.hpp>
-#include <sma/core/rws_mutex.hpp>
+#include <sma/msg/message.hpp>
+#include <sma/msg/channel.hpp>
+#include <sma/node.hpp>
+#include <sma/concurrent/rws_mutex.hpp>
 
 #include <cstdint>
 #include <functional>
@@ -18,7 +18,7 @@ public:
   using msg_handler = std::function<void(const message&) >;
 
 
-  messenger(node::id this_sender, Channel* outbound)
+  messenger(node::id this_sender, channel* outbound)
     : outbound(outbound)
     , this_sender(this_sender)
   {
@@ -47,7 +47,7 @@ private:
   rws_mutex mx;
 
   node::id this_sender;
-  Channel* outbound;
+  channel* outbound;
 
   static const std::size_t SEND_BUFFER_SIZE = 1024;
 };

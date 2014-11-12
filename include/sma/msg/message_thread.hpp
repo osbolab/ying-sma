@@ -2,9 +2,9 @@
 #define MESSAGE_THREAD_H_
 
 
-#include <sma/core/message.hpp>
-#include <sma/core/messenger.hpp>
-#include <sma/core/channel.hpp>
+#include <sma/msg/message.hpp>
+#include <sma/msg/messenger.hpp>
+#include <sma/msg/channel.hpp>
 
 #include <cstdlib>
 #include <cstdint>
@@ -26,7 +26,7 @@ namespace sma
  *    yes:  A. remove one socket and unlock channel
  *          ---> (another thread can now enter 1)
  *          B. read from socket into thread-local buffer
- *          C. parse header and go to messenger with dispatch info
+ *          C. parse header and go to msgr with dispatch info
  *          D. pick a handler or, if none, go to 1
  *          E. execute handler and block
  *          F. return to 1 for a new message
@@ -45,12 +45,12 @@ namespace sma
  * its lifetime during the handler execution, means we can process messages
  * concurrently with zero allocations.
  */
-class MessageThread
+class message_thread
 {
 public:
-  MessageThread();
+  message_thread();
 
-  const Message& cmsg() const { return msg; }
+  const message& cmsg() const { return msg; }
 
 private:
   // UDP packets should be pretty small to avoid fragmentation.
@@ -61,12 +61,12 @@ private:
   std::uint8_t buf[MESSAGE_BUFFER_SIZE];
   std::size_t len{0};
   // Constructed from the contents of buf after reading
-  Message msg;
+  message msg;
 
   // Get our messages from here
-  Channel* channel;
+  channel* channel;
   // and send them here
-  Messenger* messenger;
+  messenger* msgr;
 };
 }
 

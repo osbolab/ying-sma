@@ -1,26 +1,21 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+PROJECT(sma)
 
 OPTION(build_tests "Enables the output of test executables." ON)
 SET(gtest_version "1.7.0" CACHE STRING "Google Test library version")
 
+SET(ext            "${CMAKE_SOURCE_DIR}/ext")
 
-PROJECT("sma-libs")
+MACRO(set_build_dir path)
+  SET(RUNTIME_OUTPUT_DIRECTORY    ${path})
+  SET(LIBRARY_OUTPUT_DIRECTORY    ${path})
+  SET(ARCHIVE_OUTPUT_DIRECTORY    ${path})
+  SET(THIRDPARTY_OUTPUT_DIRECTORY "${path}/ext")
+  SET(TEST_OUTPUT_DIRECTORY       "${path}/test")
+ENDMACRO(set_build_dir)
 
-SET(ext         "${CMAKE_SOURCE_DIR}/lib")
-
-SET(user_headers    "${CMAKE_SOURCE_DIR}/include")
-SET(ext_headers     "${ext}/easyloggingpp/include")
-
-SET(RUNTIME_OUTPUT_DIRECTORY    "${CMAKE_SOURCE_DIR}/build")
-SET(TEST_OUTPUT_DIRECTORY       "${RUNTIME_OUTPUT_DIRECTORY}/test")
-SET(LIBRARY_OUTPUT_DIRECTORY    "${CMAKE_SOURCE_DIR}/build")
-SET(ARCHIVE_OUTPUT_DIRECTORY    ${LIBRARY_OUTPUT_DIRECTORY})
-SET(THIRDPARTY_OUTPUT_DIRECTORY "${LIBRARY_OUTPUT_DIRECTORY}/ext")
-
-
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 ")
-
-INCLUDE_DIRECTORIES(BEFORE SYSTEM ${user_headers} ${ext_headers})
+# Everything outputs in the root build dir by defailt
+set_build_dir(${CMAKE_BINARY_DIR})
 
 
 IF (NOT DEFINED tests_defined)
@@ -37,15 +32,26 @@ IF (NOT DEFINED tests_defined)
       SET_TARGET_PROPERTIES(${name} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${TEST_OUTPUT_DIRECTORY})
       ADD_TEST(NAME ${name} COMMAND ${name})
-    ENDMACRO(add_test_exe)
+    ENDMACRO()
   ELSE()
     MACRO(add_test_exe)
       MESSAGE (STATUS "TESTS ARE DISABLED. Use -Dbuild_tests=ON to build tests.")
-    ENDMACRO(add_test_exe)
+    ENDMACRO()
   ENDIF()
 ENDIF()
 
+MACRO(ADD_PROJECT PROJECT)
+  IF(${PROJECT} OR ALL)
+    add_subdirectory(${PROJECT})
+  ENDIF()
+ENDMACRO()
 
-ADD_SUBDIRECTORY("core")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 ")
+
+SET(user_headers   "${CMAKE_SOURCE_DIR}/include")
+SET(ext_headers    "${ext}/easyloggingpp/include")
+INCLUDE_DIRECTORIES(BEFORE SYSTEM ${user_headers} ${ext_headers})
+
+ADD_PROJECT("core")
 #ADD_SUBDIRECTORY("app")
 #ADD_SUBDIRECTORY("platform")
