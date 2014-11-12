@@ -22,7 +22,4 @@ public:
 
   virtual ~node() = 0;
 };
-
-const std::size_t node::id::size = sizeof(node::id::data);
-inline node::~node() {}
 }

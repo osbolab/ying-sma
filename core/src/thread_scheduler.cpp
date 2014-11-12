@@ -13,7 +13,7 @@ thread_scheduler::thread_scheduler(std::size_t nthreads)
 thread_scheduler::~thread_scheduler()
 {
   LOG(DEBUG);
-  threads.join(true);
+  threads.join();
 }
 
 void thread_scheduler::schedule(std::function<void()> task, millis delay)
@@ -26,6 +26,6 @@ void thread_scheduler::schedule(std::function<void()> task, millis delay)
   // Starts a thread waiting on the task queue until something
   // becomes available. There will be a "pop and run" task for every function
   // that gets put in the queue and those will be divided among the threads.
-  threadpool.push([this]() { tasks.pop()(); });
+  threads.push_back([this]() { tasks.pop()(); });
 }
 }

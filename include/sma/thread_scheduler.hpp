@@ -1,8 +1,8 @@
 #pragma once
 
 #include <sma/scheduler.hpp>
-#include <sma/delay_queue.hpp>
-#include <sma/threadpool.hpp>
+#include <sma/concurrent/delay_queue.hpp>
+#include <sma/concurrent/threadpool.hpp>
 #include <sma/log.hpp>
 
 #include <cstdlib>
@@ -31,8 +31,8 @@ private:
   thread_scheduler(std::size_t nthreads);
 
   std::mutex mutex;
-  threadpool<> threads;
-  delayqueue<std::function<void()>> tasks;
+  threadpool threads;
+  delay_queue<std::function<void()>> tasks;
 
 public:
   template <std::size_t NThreads>

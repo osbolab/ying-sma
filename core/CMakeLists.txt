@@ -9,11 +9,14 @@ SET(sources
 
   "src/cyclic_barrier.cpp"
   "src/threadpool.cpp"
+  "src/thread_scheduler.cpp"
 
   "src/message.cpp"
   "src/messenger.cpp"
 
   "src/inet_addr.cpp"
+
+  "src/node.cpp"
 )
 
 

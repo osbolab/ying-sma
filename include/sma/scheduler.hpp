@@ -26,7 +26,7 @@ public:
 
   template <typename Delay, typename F, typename... Args>
   auto schedule(Delay delay, F&& f, Args&&... args)
-      -> std::future<typename std::result_of<F(Args...)>::type>>
+      -> std::future<typename std::result_of<F(Args...)>::type>
   {
     LOG(DEBUG);
     using R = typename std::result_of<F(Args...)>::type;

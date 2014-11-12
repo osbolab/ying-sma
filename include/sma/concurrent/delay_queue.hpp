@@ -1,7 +1,7 @@
 #pragma once
 
-#include <sma/priority_queue.hpp>
-#include <sma/thread_interrupted.hpp>
+#include <sma/concurrent/priority_queue.hpp>
+#include <sma/concurrent/thread_interrupted.hpp>
 #include <sma/log.hpp>
 
 #include <utility>
@@ -17,7 +17,7 @@ template <typename E, typename Clock>
 class Wrapper final
 {
   template <typename E_, typename Clock_>
-  friend class DelayQueue;
+  friend class delay_queue;
 
   using Myt = Wrapper<E, Clock>;
   using delay_type = typename Clock::duration;
@@ -93,34 +93,34 @@ private:
 
 
 template <typename E, typename Clock = std::chrono::high_resolution_clock>
-class DelayQueue final
+class delay_queue final
 {
-  using Myt = DelayQueue<E, Clock>;
+  using Myt = delay_queue<E, Clock>;
   using wrapper_type = Wrapper<E, Clock>;
   using Lock = std::unique_lock<std::mutex>;
   using queue_type = PriorityQueue<wrapper_type>;
 
 public:
-  DelayQueue()
+  delay_queue()
     : interrupted(false)
     , nr_waiting(0)
   {
     LOG(DEBUG);
   }
 
-  DelayQueue(const Myt& copy)
+  delay_queue(const Myt& copy)
     : q(copy.q)
   {
     LOG(DEBUG);
   }
 
-  DelayQueue(Myt&& move)
+  delay_queue(Myt&& move)
     : q(std::move(move.q))
   {
     LOG(DEBUG);
   }
 
-  ~DelayQueue()
+  ~delay_queue()
   {
     LOG(DEBUG);
   }
