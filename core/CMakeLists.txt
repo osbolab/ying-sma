@@ -1,37 +1,25 @@
-cmake_minimum_required(VERSION 2.8)
-
-# Include config options, gtest setup, and output paths
-include("${CMAKE_CURRENT_SOURCE_DIR}/../cmake/project.cmake" REQUIRED)
-
-set(LIB_CORE "smacore" CACHE STRING "Platform services core library")
-set(LIB_CORE_INC "${CMAKE_CURRENT_SOURCE_DIR}/${INC}" 
-    CACHE STRING "Core library include directory")
-
+PROJECT(smacore)
 
 ###############################################################################
 # SOURCES
 
-set(LIB_CORE_SOURCES
-  "${SRC}/bytebuf.cc"
-  "${SRC}/byteview.cc"
+SET(sources
+  "src/byte_buf.cpp"
+  "src/byte_view.cpp"
 
-  "${SRC}/cyclicbarrier.cc"
-  "${SRC}/threadpool.cc"
+  "src/cyclic_barrier.cpp"
+  "src/threadpool.cpp"
 
-  "${SRC}/message.cc"
-  "${SRC}/messenger.cc"
+  "src/message.cpp"
+  "src/messenger.cpp"
 
-  "${SRC}/inetaddress.cc"
-  "${SRC}/nativesocket.cc"
-  "${SRC}/winsock.cc"
-
-  "${SRC}/nativechannel.cc"
+  "src/inet_addr.cpp"
 )
 
 
 ###############################################################################
 # TARGETS
 
-add_library("${LIB_CORE}" STATIC ${LIB_CORE_SOURCES})
-add_test_exe("${LIB_CORE}_test" "${TEST}/test_main.cc")
-target_link_libraries("${LIB_CORE}_test" "${LIB_CORE}")
+ADD_LIBRARY(${PROJECT_NAME} STATIC ${sources})
+add_test_exe("${PROJECT_NAME}_test" "test/test_main.cpp")
+TARGET_LINK_LIBRARIES("${PROJECT_NAME}_test" ${PROJECT_NAME})
