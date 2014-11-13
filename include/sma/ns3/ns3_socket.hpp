@@ -1,15 +1,19 @@
 #pragma once
 
 #include <sma/socket.hpp>
+#include <sma/inet_addr.hpp>
+#include <sma/ns3/ns3_channel.hpp>
 
-#include <ns3/socket.h>
 #include <ns3/ptr.h>
+#include <ns3/socket.h>
+
+#include <cstdint>
 
 
 namespace ns3
 {
-  class Node;
-  class TypeId;
+class Node;
+class TypeId;
 }
 
 namespace sma
@@ -21,19 +25,27 @@ public:
 
   ns3_socket(ns3_socket&& rhs);
   ns3_socket& operator=(ns3_socket&& rhs);
-  ~ns3_socket();
+  virtual ~ns3_socket();
 
-  void bind(const socket_addr& address) override;
-  void close() override;
+  virtual void bind(const socket_addr& address) override;
+  virtual void close() override;
 
-  std::size_t recv(std::uint8_t* dst, std::size_t len) override;
-  void send(const std::uint8_t* src,
-            std::size_t len,
-            const socket_addr& dest) override;
+  virtual std::size_t recv(std::uint8_t* dst, std::size_t len) override;
+  virtual void send(const std::uint8_t* src,
+                    std::size_t len,
+                    const socket_addr& dest) override;
+  virtual void broadcast(const std::uint8_t* src, std::size_t len) override;
+
+  // Set the inbound receiving channel
+  void receive_to(ns3_channel* inbound);
 
 private:
+  // Target of callback from ns3::Socket when a packet arrives.
+  void on_packet(ns3::Ptr<ns3::Socket> s);
   void throw_last_error();
 
   ns3::Ptr<ns3::Socket> sock{0};
+  ns3::InetSocketAddress bind_addr;
+  ns3_channel* inbound{nullptr};
 };
 }

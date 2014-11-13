@@ -15,7 +15,7 @@
 namespace sma
 {
 
-class threadpool
+class threadpool final
 {
 public:
   using Task = std::function<void()>;

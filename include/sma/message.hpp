@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sma/node.hpp>
+#include <sma/bytes.hpp>
 
 #include <cstdint>
 #include <vector>
@@ -19,36 +20,23 @@ class messenger;
  * node and optional recipient nodes. Also specifies parameters on which
  * the message can be sorted for delivery at its destination node.
  */
-class message
+class message final
 {
 public:
   using domain_type = std::uint8_t;
   using id_type = std::uint64_t;
 
-  class builder
+  class builder final
   {
     friend class message;
 
   public:
-    builder(domain_type domain)
-      : domain(domain)
-    {
-    }
-    builder& add_recipient(node::id recipient)
-    {
-      recipients.push_back(recipient);
-      return *this;
-    }
-    builder& containing(const std::uint8_t* src, std::size_t len)
-    {
-      data = src;
-      this->len = len;
-      return *this;
-    }
-    message build(node::id sender, id_type id) const
-    {
-      return message(std::move(sender), std::move(id), *this);
-    }
+    builder(domain_type domain);
+    builder& add_recipient(node::id recipient);
+    builder& containing(const std::uint8_t* src, std::size_t len);
+    message build(node::id sender, id_type id) const;
+
+    friend std::ostream& operator<<(std::ostream& os, const builder& bld);
 
   private:
     domain_type domain;
@@ -90,14 +78,14 @@ public:
   std::size_t total_len() const;
   // Serialize this message into the given buffer. The number of bytes
   // that will be written can be obtained via total_len().
-  std::size_t copy_to(byte_buf dst) const;
+  std::size_t serialize_to(byte_buf dst) const;
   // Serialize this message into the given byte array.
   // Partial writes are illegal; the array's length must be
   // at least equal to that given by total_len().
-  std::size_t copy_to(std::uint8_t* dst, std::size_t len) const;
+  std::size_t serialize_to(std::uint8_t* dst, std::size_t len) const;
 
   // The id_ of the node that sent this message.
-  const node::id& sender() const { return sender_; }
+  node::id sender() const { return sender_; }
   // The optional IDs of nodes for whom this message is intended.
   const std::vector<node::id>& recipients() const { return recipients_; }
   // The base message domain as used for dispatching arriving messages.
@@ -125,6 +113,8 @@ public:
   // the already pinned array.
   std::uint8_t* pin();
 
+  friend std::ostream& operator<<(std::ostream& os, const message& msg);
+
 private:
   message(node::id sender, id_type id, const builder& bld);
 
@@ -149,4 +139,7 @@ private:
   // When pinned, points to the copy of data that we own.
   std::unique_ptr<std::uint8_t[]> pinned{nullptr};
 };
+
+std::ostream& operator<<(std::ostream& os, const message::builder& bld);
+std::ostream& operator<<(std::ostream& os, const message& msg);
 }

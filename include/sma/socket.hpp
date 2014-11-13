@@ -28,9 +28,9 @@ public:
   };
 
   socket() {}
-  socket(socket&& rhs) noexcept {}
-  socket& operator=(socket&& rhs) noexcept {}
-  virtual ~socket() noexcept {}
+  socket(socket&& rhs) {}
+  socket& operator=(socket&& rhs) {}
+  virtual ~socket() {}
 
   virtual void bind(const socket_addr& address) = 0;
   virtual void close() = 0;
@@ -38,5 +38,6 @@ public:
   virtual std::size_t recv(std::uint8_t* dst, std::size_t len) = 0;
   virtual void
   send(const std::uint8_t* src, std::size_t len, const socket_addr& dest) = 0;
+  virtual void broadcast(const std::uint8_t* src, std::size_t len) = 0;
 };
 }

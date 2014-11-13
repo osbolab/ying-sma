@@ -27,7 +27,6 @@ public:
   Wrapper(Myt&& move) noexcept : entry(std::move(move.entry)),
                                  delay_until(move.delay_until)
   {
-    LOG(DEBUG);
   }
 
   Myt& operator=(Myt&& move)
@@ -65,7 +64,6 @@ private:
     : entry(entry)
     , delay_until(project_future(delay))
   {
-    LOG(DEBUG);
   }
 
   template <typename Delay>
@@ -73,7 +71,6 @@ private:
     : entry(std::move(entry))
     , delay_until(project_future(delay))
   {
-    LOG(DEBUG);
   }
 
   delay_type delay() const
@@ -105,24 +102,20 @@ public:
     : interrupted(false)
     , nr_waiting(0)
   {
-    LOG(DEBUG);
   }
 
   delay_queue(const Myt& copy)
     : q(copy.q)
   {
-    LOG(DEBUG);
   }
 
   delay_queue(Myt&& move)
     : q(std::move(move.q))
   {
-    LOG(DEBUG);
   }
 
   ~delay_queue()
   {
-    LOG(DEBUG);
   }
 
   template <typename Delay>
@@ -139,32 +132,26 @@ public:
 
   E pop()
   {
-    LOG(DEBUG);
     Lock lock(mutex);
 
     for (;;) {
       if (interrupted) {
-        LOG(DEBUG) << "interrupted!";
         interrupted = (nr_waiting != 0);
         throw thread_interrupted();
       }
       if (q.empty()) {
-        LOG(DEBUG) << "queue is empty; waiting on available";
         ++nr_waiting;
         available.wait(lock);
         --nr_waiting;
       } else {
         auto first = &(q.top());
         if (!first->expired()) {
-          LOG(DEBUG) << "first item not expired; waiting for delay";
           ++nr_waiting;
           available.wait_for(lock, first->delay());
           --nr_waiting;
         } else {
-          LOG(DEBUG) << "popped";
           auto actual = q.pop();
           if (!q.empty()) {
-            LOG(DEBUG) << "queue not empty; notifying";
             available.notify_all();
           }
           return std::move(actual.entry);
@@ -187,7 +174,6 @@ public:
 
   void interrupt()
   {
-    LOG(DEBUG);
     Lock lock(mutex);
     if (nr_waiting > 0) {
       interrupted = true;
@@ -210,13 +196,11 @@ public:
 private:
   void push(wrapper_type delayed)
   {
-    LOG(DEBUG);
     Lock lock(mutex);
     auto first = !q.empty() ? &(q.top()) : nullptr;
     q.push(std::move(delayed));
     // notify pop() that there's a sooner delay than the one it's waiting on
     if (!first || delayed < *first) {
-      LOG(DEBUG) << "pushed item comes sooner than queue head; notifying";
       available.notify_all();
     }
   }

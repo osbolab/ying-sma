@@ -11,6 +11,7 @@ namespace sma
 
 threadpool::threadpool(std::size_t nthreads, std::size_t min_capacity)
 {
+  LOG(DEBUG) << nthreads << " threads";
   if (!min_capacity)
     min_capacity = 16;
 
@@ -107,6 +108,7 @@ void threadpool::join()
     {
       std::lock_guard<std::mutex>(s->mx);
       s->join= true;
+      LOG(DEBUG) << "joining " << threads.size() << " workers";
     }
     s->available.notify_all();
     for (auto& th : threads)

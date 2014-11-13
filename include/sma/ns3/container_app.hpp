@@ -64,7 +64,7 @@
  * | ----------------------------------------------------------------------- |
  * | |                     ns3::ApplicationContainer                       | |
  * | | ------------------------------------------------------------------- | |
- * | | |               ns3_container --> ns3::Application              | | | |
+ * | | |               container_app --> ns3::Application              | | | |
  * | | | --------------------------------------------------------------| | | |
  * | | | |                                                             | | | |
  * | | | |    ------------------      -------------------------------  | | | |
@@ -94,24 +94,46 @@
  * ---------------------------------------------------------------------------
  */
 
+#include <sma/ns3/ns3_socket.hpp>
+#include <sma/ns3/ns3_channel.hpp>
+#include <sma/ns3/ns3_scheduler.hpp>
+#include <sma/messenger.hpp>
+
 #include <ns3/application.h>
+
+#include <cstdint>
+#include <memory>
+
 
 namespace sma
 {
 
-class ns3_container final : public ns3::Application
+class container_app final : public ns3::Application
 {
+  using Myt = container_app;
+
 public:
+  // ns3 constructs our object while injecting config parameters into it.
+  // We use this to look up the class when giving ns3 applications.
   static ns3::TypeId TypeId();
 
-  ns3_container();
-  ns3_container(ns3_container&& rhs);
-  ns3_container& operator=(ns3_container&& rhs);
-  virtual ~ns3_container();
+  container_app();
+  container_app(Myt&& rhs);
+  Myt& operator=(Myt&& rhs);
+  virtual ~container_app();
 
 protected:
   virtual void DoDispose() override;
+  virtual void StartApplication() override;
+  virtual void StopApplication() override;
 
 private:
+  std::unique_ptr<ns3_socket> sock{nullptr};
+  std::unique_ptr<ns3_channel> chan{nullptr};
+  std::unique_ptr<messenger> msgr{nullptr};
+  std::unique_ptr<scheduler> sched{nullptr};
+  // TODO: temporary part of demoing the container
+  std::uint16_t id;
+  std::uint16_t port;
 };
 }

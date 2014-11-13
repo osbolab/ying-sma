@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstring>
 #include <string>
+#include <iostream>
 
 
 namespace sma
@@ -24,6 +25,25 @@ static const unsigned char* uchar_cp(const std::uint8_t* b) { return reinterpret
 static std::string copy_string(const std::uint8_t* s) { return std::string(char_cp(s)); }
 static std::string copy_string(const std::uint8_t* s, std::size_t len) { return std::string(char_cp(s), char_cp(s)+len); }
 
+template<typename T>
+struct streamarr_S_ {
+  const T* tarr;
+  std::size_t len;
+};
+
+template<typename T>
+std::ostream& operator<<(std::ostream& os, const streamarr_S_<T>& s)
+{
+  const char* carr = reinterpret_cast<const char*>(s.tarr);
+  os.write(carr, s.len * sizeof(T));
+  return os;
+}
+
+template<typename T>
+static streamarr_S_<T> streamarr(const T* tarr, std::size_t len)
+{
+  return streamarr_S_<T>{tarr, len};
+}
 
 class Bytes final
 {

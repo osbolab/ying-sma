@@ -11,6 +11,9 @@ include("cmake/ns3.cmake")
 # The main library implements the abstract core services using NS3 facilities.
 set(sources
   "src/ns3_socket.cpp"
+  "src/ns3_channel.cpp"
+  "src/ns3_scheduler.cpp"
+  "src/container_app.cpp"
 )
 
 ###############################################################################
@@ -22,6 +25,7 @@ set(sources
 # Whatever simulation links to the library will have to make up the missing
 # symbols by linking NS3 modules.
 add_library("${PROJECT_NAME}" STATIC ${sources})
+target_link_libraries("${PROJECT_NAME}" "smacore" "smaapp")
 
 add_test_exe("${PROJECT_NAME}_test" "test/test_main.cpp")
 target_link_libraries("${PROJECT_NAME}_test" "${PROJECT_NAME}")

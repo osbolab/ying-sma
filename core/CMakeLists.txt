@@ -15,6 +15,7 @@ SET(sources
   "src/messenger.cpp"
 
   "src/inet_addr.cpp"
+  "src/channel.cpp"
 
   "src/node.cpp"
 )

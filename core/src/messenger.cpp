@@ -5,21 +5,37 @@
 #include <sma/log.hpp>
 
 #include <cstdint>
+#include <cassert>
+#include <memory>
 
 
 namespace sma
 {
 
-messenger messenger::new_single_threaded(node::id this_sender,
-                                         sink<message>* outbound)
+std::unique_ptr<messenger>
+messenger::new_single_threaded(node::id this_sender, csink<message>* outbound)
 {
-  return messenger(std::move(this_sender), outbound);
+  assert(outbound);
+  return std::unique_ptr<messenger>(
+      new messenger(std::move(this_sender), outbound));
 }
 
-messenger messenger::new_concurrent(node::id this_sender,
-                                    sink<message>* outbound)
+std::unique_ptr<messenger> messenger::new_concurrent(node::id this_sender,
+                                                     csink<message>* outbound)
 {
-  return detail::concurrent_messenger(std::move(this_sender), outbound);
+  assert(outbound);
+  return std::unique_ptr<messenger>(
+      new detail::concurrent_messenger(std::move(this_sender), outbound));
+}
+
+messenger::messenger(node::id this_sender, csink<message>* outbound)
+  : outbound(std::move(outbound))
+  , this_sender(std::move(this_sender))
+{
+}
+messenger::messenger(node::id this_sender)
+  : messenger(this_sender, nullptr)
+{
 }
 
 messenger::messenger(messenger&& rhs)
@@ -39,9 +55,19 @@ messenger& messenger::operator=(messenger&& rhs)
   return *this;
 }
 
+void messenger::deliver_to(csink<message>* outbound)
+{
+  this->outbound = outbound;
+  if (!outbound)
+    LOG(WARNING) << "Messenger has no outbound channel";
+}
+
 void messenger::send(const message::builder& builder)
 {
-  outbound->accept(builder.build(this_sender, next_id.fetch_add(1)));
+  if (outbound)
+    outbound->accept(builder.build(this_sender, next_id.fetch_add(1)));
+  else
+    LOG(WARNING) << "Message dropped: messenger has no outbound channel";
 }
 
 void messenger::subscribe(message::domain_type domain, msg_handler h)
@@ -57,14 +83,14 @@ void messenger::subscribe(message::domain_type domain, msg_handler h)
     std::swap(handlers[i - 1], handlers[i]);
 }
 
-void messenger::dispatch(const message& msg)
+void messenger::accept(const message& msg)
 {
   bool handled = false;
   if (!handlers.empty()) {
     for (std::size_t i = 0; i < handlers.size(); ++i) {
       if (handlers[i].first == msg.domain()) {
         while (handlers[i].first == msg.domain())
-          handlers[i].second(msg);
+          handlers[i++].second(msg);
         handled = true;
       } else if (handled)
         return;
@@ -77,6 +103,16 @@ void messenger::dispatch(const message& msg)
 
 namespace detail
 {
+  concurrent_messenger::concurrent_messenger(node::id this_sender,
+                                             csink<message>* outbound)
+    : messenger(std::move(this_sender), std::move(outbound))
+  {
+  }
+  concurrent_messenger::concurrent_messenger(node::id this_sender)
+    : messenger(std::move(this_sender))
+  {
+  }
+
   void concurrent_messenger::subscribe(message::domain_type domain,
                                        msg_handler h)
   {
@@ -86,11 +122,11 @@ namespace detail
     }
   }
 
-  void concurrent_messenger::dispatch(const message& msg)
+  void concurrent_messenger::accept(const message& msg)
   {
     {
       reader_lock lock(mx);
-      messenger::dispatch(msg);
+      messenger::accept(msg);
     }
   }
 }

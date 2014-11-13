@@ -23,7 +23,7 @@ namespace detail
    */
 
   byte_view::byte_view()
-    : b(EMPTY)
+    : b(nullptr)
     , lim(0)
     , pos(0)
   {
@@ -124,7 +124,7 @@ namespace detail
   byte_view& byte_view::get(void* dst, std::size_t len)
   {
     assert(remaining() >= len);
-    copy_to(dst, pos, len);
+    copy_to(dst, len, pos);
     pos += len;
     return *this;
   }

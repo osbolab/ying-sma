@@ -107,9 +107,6 @@ namespace detail
     // Perform a bytewise value equality comparison with the given buffer.
     bool operator==(const byte_view& rhs) const;
     bool operator!=(const byte_view& rhs) const { return !(*this == rhs); }
-
-  private:
-    static std::uint8_t EMPTY[0];
   };
 
   template <typename T>
@@ -214,9 +211,12 @@ public:
   template <typename T>
   byte_buf& operator<<(const T& t);
 
+  template <typename T>
+  byte_buf& operator<<(const arrcopy_w<T>& src);
+
   // See byte_view::operator>>(const arrcopy_w<T>&)
   template <typename T>
-  byte_buf& operator>>(const arrcopy_w<T>& src);
+  byte_buf& operator>>(const arrcopy_w<T>& dst);
 
   // See byte_view::operator>>(T&)
   template <typename T>
@@ -252,7 +252,10 @@ private:
   // capacity, limit, and starting position.
   //
   // Ownership of the buffer's memory is not transferred.
-  byte_buf(std::uint8_t* buf, std::size_t cap, std::size_t lim, std::size_t pos);
+  byte_buf(std::uint8_t* buf,
+           std::size_t cap,
+           std::size_t lim,
+           std::size_t pos);
 };
 
 
@@ -276,6 +279,17 @@ byte_buf& byte_buf::put(const T& t)
   assert(free() >= sz);
   auto src = static_cast<const void*>(&t);
   std::memcpy(b + pos, src, sz);
+  pos += sz;
+  return *this;
+}
+
+template <typename T>
+byte_buf& byte_buf::operator<<(const arrcopy_w<T>& src)
+{
+  const std::size_t sz = sizeof(T) * src.len;
+  assert(free() >= sz);
+  auto vsrc = static_cast<const void*>(src.arr);
+  std::memcpy(b + pos, vsrc, sz);
   pos += sz;
   return *this;
 }

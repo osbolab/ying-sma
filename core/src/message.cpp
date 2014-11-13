@@ -2,13 +2,64 @@
 #include <sma/node.hpp>
 #include <sma/byte_buf.hpp>
 
+#include <cstdint>
 #include <cassert>
 #include <utility>
 #include <vector>
+#include <iostream>
 
 
 namespace sma
 {
+
+// clang-format off
+std::ostream& operator<<(std::ostream& os, const message::builder& bld)
+{
+  os << "partial-message {\n   domain: " << std::size_t{bld.domain}
+     << "\n , recipients: [";
+      for (auto& recp : bld.recipients) os << recp << ", ";
+  os << "]\n , data: (" << bld.len << " bytes)\n}";
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const message& msg)
+{
+  os << "message {\n   domain: " << std::size_t{msg.domain_}
+     << "\n , id: " << std::size_t{msg.id_} << "\n  , sender: " << msg.sender_
+     << "\n , recipients: [";
+      for (auto& recp : msg.recipients_) os << recp << ", ";
+  os << "]\n , data: (" << msg.len << " bytes)\n}";
+  return os;
+}
+// clang-format on
+
+/******************************************************************************
+ * message builder
+ */
+message::builder::builder(domain_type domain)
+  : domain(domain)
+{
+}
+message::builder& message::builder::add_recipient(node::id recipient)
+{
+  recipients.push_back(recipient);
+  return *this;
+}
+message::builder& message::builder::containing(const std::uint8_t* src,
+                                               std::size_t len)
+{
+  data = src;
+  this->len = len;
+  return *this;
+}
+message message::builder::build(node::id sender, id_type id) const
+{
+  return message(std::move(sender), std::move(id), *this);
+}
+
+/* message - Deserialization/Construction
+******************************************************************************/
+
 
 /******************************************************************************
  * message - Deserialization/Construction
@@ -38,7 +89,7 @@ message::message(const std::uint8_t* src, std::size_t len)
 /******************************************************************************
  * message - Serialization
  */
-std::size_t message::copy_to(byte_buf dst) const
+std::size_t message::serialize_to(byte_buf dst) const
 {
   assert(dst.remaining() >= total_len());
   std::size_t start = dst.position();
@@ -52,9 +103,9 @@ std::size_t message::copy_to(byte_buf dst) const
   dst << arrcopy(data, len);
   return dst.position() - start;
 }
-std::size_t message::copy_to(std::uint8_t* dst, std::size_t len) const
+std::size_t message::serialize_to(std::uint8_t* dst, std::size_t len) const
 {
-  return copy_to(byte_buf::wrap(dst, len));
+  return serialize_to(byte_buf::wrap(dst, len));
 }
 std::size_t message::total_len() const
 {
@@ -122,7 +173,7 @@ message& message::operator=(const message& rhs)
 
   sender_ = rhs.sender_;
   recipients_ = rhs.recipients_;
-  domain_= rhs.domain_;
+  domain_ = rhs.domain_;
   id_ = rhs.id_;
   len = rhs.len;
   data = pin_copy(rhs.data, len);
