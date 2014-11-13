@@ -1,82 +1,36 @@
 #pragma once
 
-#include <sma/abstract_socket.hpp>
-#include <sma/bytes.hpp>
-
-#include <sys/types.h>
+#include <sma/socket.hpp>
 #include <sys/socket.h>
-#include <netinet/in.h>
 
-#ifndef INVALID_SOCKET
-#define INVALID_SOCKET 0
-#endif
-
-#ifndef NO_ERROR
-#define NO_ERROR 0
-#endif
+#include <type_traits>
+#include <cerrno>
 
 
 namespace sma
 {
 
-#ifndef TYPEDEF_SOCKET_
-#define TYPEDEF_SOCKET_
-typedef int SOCKET;
-#endif
-
-class bsd_socket : public abstract_socket
+class bsd_socket final : public socket
 {
 public:
-  class Factory : public abstract_socket::factory
-  {
-  public:
-    Factory() {}
+  bsd_socket(protocol proto);
+  ~bsd_socket();
 
-    int create(abstract_socket::protocol proto,
-               std::unique_ptr<abstract_socket>& sock_out) override;
-  };
-
-  friend class Factory;
-
-  ~bsd_socket() { close(); }
-
-  int bind(const SocketAddress& address) override;
+  void bind(const socket_addr& address) override;
   void close() override;
 
-  std::size_t recv(std::uint8_t* dst, std::size_t len) override
-  {
-    return ::recv(sock, char_p(dst), len, 0);
-  }
-
+  std::size_t recv(std::uint8_t* dst, std::size_t len) override;
   int send(const std::uint8_t* src,
            std::size_t len,
-           const SocketAddress& recipient) override;
+           const socket_addr& recipient) override;
 
-  SOCKET native_socket() const { return sock; }
+  inline socket_type native_socket() const noexcept;
 
-  int blocking(bool block);
-  bool blocking() const { return is_blocking; }
-
-  int last_error() const override { return global_last_error(); }
+  void blocking(bool block);
+  inline bool blocking() const noexcept;
 
 private:
-  bsd_socket() { blocking(true); }
-
-  int create(protocol proto);
-
-  int last_error(int error) override { return global_last_error(error); }
-
-  static void log_last_error();
-  static int global_last_error(int error) { return (errno = error); }
-
-  static int global_last_error()
-  {
-    int error = errno;
-    log_last_error();
-    return error;
-  }
-
-  SOCKET sock{INVALID_SOCKET};
-  bool is_blocking;
+  int sock;
+  bool is_blocking{false};
 };
 }

@@ -1,4 +1,4 @@
-#include <sma/concurrent/threadpool.hpp>
+#include <sma/threadpool.hpp>
 #include <sma/log.hpp>
 
 #include <mutex>

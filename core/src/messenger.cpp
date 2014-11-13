@@ -23,7 +23,7 @@ messenger messenger::new_concurrent(node::id this_sender,
 }
 
 messenger::messenger(messenger&& rhs)
-  : handlers(std::move(rhs.handler))
+  : handlers(std::move(rhs.handlers))
   , next_id(rhs.next_id.load())
   , this_sender(std::move(rhs.this_sender))
   , outbound(rhs.outbound)

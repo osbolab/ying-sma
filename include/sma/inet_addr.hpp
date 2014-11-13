@@ -26,6 +26,7 @@ struct inet_addr final {
   }
 
   operator in_addr() const { return addr; }
+  operator std::uint32_t() const { return addr.s_addr; }
 
   friend std::ostream& operator<<(std::ostream& os, const inet_addr& addr);
 

@@ -1,4 +1,4 @@
-#include <sma/concurrent/cyclic_barrier.hpp>
+#include <sma/cyclic_barrier.hpp>
 
 #include <thread>
 

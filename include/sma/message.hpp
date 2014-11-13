@@ -19,13 +19,15 @@ class messenger;
  * node and optional recipient nodes. Also specifies parameters on which
  * the message can be sorted for delivery at its destination node.
  */
-struct message {
+class message
+{
+public:
   using domain_type = std::uint8_t;
   using id_type = std::uint64_t;
 
   class builder
   {
-    friend struct message;
+    friend class message;
 
   public:
     builder(domain_type domain)

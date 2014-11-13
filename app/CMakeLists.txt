@@ -1,47 +1,39 @@
-cmake_minimum_required(VERSION 2.8)
-
-# Include config options, gtest setup, and output paths
-include("${CMAKE_CURRENT_SOURCE_DIR}/../cmake/project.cmake" REQUIRED)
-
-set(LIB_APP "smaapp" CACHE STRING "Application library")
-set(LIB_APP_INC "${CMAKE_CURRENT_SOURCE_DIR}/${INC}"
-    CACHE STRING "Application library include directory")
-
+project(smaapp)
 
 ###############################################################################
 # SOURCES
 
-set(LIB_APP_SOURCES
-  "${SRC}/md5.cc"
-  "${SRC}/json.cc"
-  "${SRC}/split_regroup.cc"
+set(sources
+  "src/md5.cpp"
+  "src/json.cpp"
+  "src/split_regroup.cpp"
 
-  "${SRC}/echoclient.cc"
-  "${SRC}/echoserver.cc"
+  "src/echoclient.cpp"
+  "src/echoserver.cpp"
 
-  "${SRC}/emulator.cc"
-  "${SRC}/batchscriptgenerator.cc"
+  "src/emulator.cpp"
+  "src/batchscriptgenerator.cpp"
 
-  "${SRC}/devicewithgps.cc"
-  "${SRC}/devicelogger.cc"
+  "src/devicewithgps.cpp"
+  "src/devicelogger.cpp"
 
-  "${SRC}/datablock.cc"
-  "${SRC}/adhocnetworkemulator.cc"
+  "src/datablock.cpp"
+  "src/adhocnetworkemulator.cpp"
 
-  "${SRC}/plainchunkstore.cc"
-  "${SRC}/pendingchunkmanager.cc"
-  "${SRC}/flowtable.cc"
-  "${SRC}/datalayer.cc"
+  "src/plainchunkstore.cpp"
+  "src/pendingchunkmanager.cpp"
+  "src/flowtable.cpp"
+  "src/datalayer.cpp"
 
-  "${SRC}/signalhandler.cc"
-  "${SRC}/segmenter.cc"
-  "${SRC}/pendingfilemanager.cc"
-  "${SRC}/neighborrecords.cc"
-  "${SRC}/neighborrecordentry.cc"
-  "${SRC}/gpsdriver.cc"
-  "${SRC}/controllayer.cc"
-  "${SRC}/contentdiscription.cc"
-  "${SRC}/contentdirectory.cc"
+  "src/signalhandler.cpp"
+  "src/segmenter.cpp"
+  "src/pendingfilemanager.cpp"
+  "src/neighborrecords.cpp"
+  "src/neighborrecordentry.cpp"
+  "src/gpsdriver.cpp"
+  "src/controllayer.cpp"
+  "src/contentdiscription.cpp"
+  "src/contentdirectory.cpp"
 )
 
 
@@ -49,12 +41,9 @@ set(LIB_APP_SOURCES
 # TARGETS
 
 # Depend on the core library project
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../core/" "core")
-include_directories("${LIB_CORE_INC}")
+add_library("${PROJECT_NAME}" STATIC ${sources})
+target_link_libraries("${PROJECT_NAME}" "smacore")
 
-add_library("${LIB_APP}" STATIC ${LIB_APP_SOURCES})
-target_link_libraries("${LIB_APP}" "${LIB_CORE}")
-
-add_test_exe("${LIB_APP}_test" "${TEST}/test_main.cc")
+add_test_exe("${PROJECT_NAME}_test" "test/test_main.cpp")
   
 
