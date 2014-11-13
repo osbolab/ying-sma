@@ -1,8 +1,8 @@
 #pragma once
 
 #include <sma/scheduler.hpp>
-#include <sma/concurrent/delay_queue.hpp>
-#include <sma/concurrent/threadpool.hpp>
+#include <sma/delay_queue.hpp>
+#include <sma/threadpool.hpp>
 #include <sma/log.hpp>
 
 #include <cstdlib>

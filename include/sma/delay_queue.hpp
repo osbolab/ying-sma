@@ -1,7 +1,7 @@
 #pragma once
 
-#include <sma/concurrent/priority_queue.hpp>
-#include <sma/concurrent/thread_interrupted.hpp>
+#include <sma/priority_queue.hpp>
+#include <sma/thread_interrupted.hpp>
 #include <sma/log.hpp>
 
 #include <utility>

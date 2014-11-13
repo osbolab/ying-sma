@@ -1,9 +1,9 @@
 #pragma once
 
-#include <sma/msg/message.hpp>
+#include <sma/message.hpp>
 #include <sma/sink.hpp>
 #include <sma/node.hpp>
-#include <sma/concurrent/rws_mutex.hpp>
+#include <sma/rws_mutex.hpp>
 
 #include <cstdint>
 #include <atomic>

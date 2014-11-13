@@ -1,4 +1,4 @@
-#include <sma/msg/message.hpp>
+#include <sma/message.hpp>
 #include <sma/node.hpp>
 #include <sma/byte_buf.hpp>
 

@@ -2,9 +2,9 @@
 #define MESSAGE_THREAD_H_
 
 
-#include <sma/msg/message.hpp>
-#include <sma/msg/messenger.hpp>
-#include <sma/msg/channel.hpp>
+#include <sma/message.hpp>
+#include <sma/messenger.hpp>
+#include <sma/channel.hpp>
 
 #include <cstdlib>
 #include <cstdint>

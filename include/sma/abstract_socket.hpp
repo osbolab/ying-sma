@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sma/net/inet_address.hpp>
+#include <sma/inet_address.hpp>
 
 #include <memory>
 #include <cstdlib>

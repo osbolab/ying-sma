@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sma/net/abstract_socket.hpp>
+#include <sma/abstract_socket.hpp>
 #include <sma/bytes.hpp>
 
 #include <sys/types.h>
