@@ -97,7 +97,8 @@
 #include <sma/ns3/ns3_socket.hpp>
 #include <sma/ns3/ns3_channel.hpp>
 #include <sma/ns3/ns3_scheduler.hpp>
-#include <sma/messenger.hpp>
+#include <sma/message_dispatch.hpp>
+#include <sma/app/application.hpp>
 
 #include <ns3/application.h>
 
@@ -130,10 +131,8 @@ protected:
 private:
   std::unique_ptr<ns3_socket> sock{nullptr};
   std::unique_ptr<ns3_channel> chan{nullptr};
-  std::unique_ptr<messenger> msgr{nullptr};
+  std::unique_ptr<message_dispatch> msgr{nullptr};
   std::unique_ptr<scheduler> sched{nullptr};
-  // TODO: temporary part of demoing the container
-  std::uint16_t id;
-  std::uint16_t port;
+  std::unique_ptr<application> app{nullptr};
 };
 }

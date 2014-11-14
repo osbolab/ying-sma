@@ -10,7 +10,6 @@ _INITIALIZE_EASYLOGGINGPP
 
 #include <sma/test.hpp>
 
-#include "test_ns3_socket.hpp"
 
 
 int main(int argc, char** argv)

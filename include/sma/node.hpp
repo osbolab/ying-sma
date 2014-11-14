@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sma/byte_buf.hpp>
+#include <sma/buffer.hpp>
 
 #include <cstdint>
 #include <iostream>
@@ -23,16 +23,16 @@ public:
 
 inline node::~node() {}
 
-inline byte_buf& operator<<(byte_buf& dst, const node::id& id)
+inline buffer& operator<<(buffer& dst, const node::id& id)
 {
   return dst.put(id.data, node::id::size);
 }
-inline byte_buf& operator>>(byte_buf& src, node::id& id)
+inline buffer& operator>>(buffer& src, node::id& id)
 {
   src.get(id.data, node::id::size);
   return src;
 }
-inline byte_buf::view& operator>>(byte_buf::view& src, node::id& id)
+inline buffer::view& operator>>(buffer::view& src, node::id& id)
 {
   src.get(id.data, node::id::size);
   return src;

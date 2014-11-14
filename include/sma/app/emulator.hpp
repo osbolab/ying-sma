@@ -1,16 +1,17 @@
 #pragma once
 
-
 #include <sma/app/networkemulator.hpp>
 #include <sma/app/device.hpp>
+
 #include <vector>
 #include <unordered_map>
+
 
 class Emulator
 {
 public:
   Emulator();
-  void initEnv(bool inBatchMode);
+  void initEnv(bool inBatchMode = false);
 
 private:
   void runInBatch();
@@ -23,5 +24,3 @@ private:
   Device* getDeviceByID(std::string) const;
   bool running;
 };
-
-

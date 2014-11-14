@@ -1,4 +1,4 @@
-#pragma once
+#include "simple_launcher.hpp"
 
 #include <sma/ns3/ns3_socket.hpp>
 #include <sma/ns3/container_app.hpp>
@@ -14,8 +14,6 @@
 
 
 namespace sma
-{
-TEST(ns3_socket, bind)
 {
   const std::size_t nnodes = 2;
 

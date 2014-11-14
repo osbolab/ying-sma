@@ -4,20 +4,23 @@ PROJECT(smacore)
 # SOURCES
 
 SET(sources
-  "src/byte_buf.cpp"
-  "src/byte_view.cpp"
+  "src/buffer.cpp"
+  "src/buffer_view.cpp"
 
   "src/cyclic_barrier.cpp"
   "src/threadpool.cpp"
   "src/thread_scheduler.cpp"
 
   "src/message.cpp"
-  "src/messenger.cpp"
+  "src/message_dispatch.cpp"
 
   "src/inet_addr.cpp"
   "src/channel.cpp"
 
   "src/node.cpp"
+
+  "src/device/gps.cpp"
+  "src/device/gps_dummy_device.cpp"
 )
 
 

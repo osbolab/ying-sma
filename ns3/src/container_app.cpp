@@ -1,9 +1,10 @@
 #include <sma/ns3/container_app.hpp>
 
 #include <sma/channel.hpp>
-#include <sma/messenger.hpp>
+#include <sma/message_dispatch.hpp>
 #include <sma/scheduler.hpp>
-#include <sma/thread_scheduler.hpp>
+
+#include <sma/app/application.hpp>
 
 #include <sma/bytes.hpp>
 #include <sma/log.hpp>
@@ -23,17 +24,7 @@ ns3::TypeId container_app::TypeId()
   static ns3::TypeId tid
       = ns3::TypeId("sma::container_app")
             .SetParent<ns3::Application>()
-            .AddConstructor<container_app>()
-            .AddAttribute("ID",
-                          "Node ID",
-                          ns3::UintegerValue(0),
-                          ns3::MakeUintegerAccessor(&container_app::id),
-                          ns3::MakeUintegerChecker<std::uint16_t>())
-            .AddAttribute("Port",
-                          "UDP port that the nodes are listening on.",
-                          ns3::UintegerValue(9999),
-                          ns3::MakeUintegerAccessor(&container_app::port),
-                          ns3::MakeUintegerChecker<std::uint16_t>());
+            .AddConstructor<container_app>();
   return tid;
 }
 
@@ -51,6 +42,7 @@ void container_app::DoDispose() { LOG(DEBUG); }
 
 void container_app::StartApplication()
 {
+  app = std::make_unique<application>();
   // Construct the message chain from the bottom up
   ns3::TypeId udp_sock_factory
       = ns3::TypeId::LookupByName("ns3::UdpSocketFactory");
@@ -59,25 +51,14 @@ void container_app::StartApplication()
 
   chan = std::make_unique<ns3_channel>(sock.get());
 
-  msgr = messenger::new_single_threaded(
-      node::id{std::uint8_t(this->id >> 8), std::uint8_t(this->id & 0xFF)},
-      chan.get());
+  node::id this_node { 0xE8, 0xF2 };
+  msgr = message_dispatch::new_single_threaded(this_node);
 
   chan->deliver_to(msgr.get());
+  msgr->post_via(chan.get());
 
   // The scheduler is less of a chain
   sched = std::make_unique<ns3_scheduler>();
-  // Ready to rock and roll!
-  sched->schedule(std::chrono::seconds(1),
-                  [=]() { LOG(DEBUG) << "Hello, scheduler! I'm node " << id; });
-
-  msgr->subscribe(17, [=](const message& msg) {
-    LOG(DEBUG) << "Node " << id << " got:\n" << msg;
-  });
-  std::string s("Hello, world!");
-  auto msg = message::builder(17).containing(uint8_cp(s.c_str()), s.size());
-  LOG(DEBUG) << "Node " << id << " sending:\n" << msg;
-  msgr->send(msg);
 }
 
 void container_app::StopApplication()

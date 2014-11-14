@@ -1,6 +1,6 @@
 #include <sma/message.hpp>
 #include <sma/node.hpp>
-#include <sma/byte_buf.hpp>
+#include <sma/buffer.hpp>
 
 #include <cstdint>
 #include <cassert>
@@ -13,46 +13,47 @@ namespace sma
 {
 
 // clang-format off
-std::ostream& operator<<(std::ostream& os, const message::builder& bld)
+std::ostream& operator<<(std::ostream& os, const message::stub& stb)
 {
-  os << "partial-message {\n   domain: " << std::size_t{bld.domain}
+  os << "partial-message {\n   domain: " << std::size_t{stb.domain}
      << "\n , recipients: [";
-      for (auto& recp : bld.recipients) os << recp << ", ";
-  os << "]\n , data: (" << bld.len << " bytes)\n}";
+      for (auto& recp : stb.recipients) os << recp << ", ";
+  os << "]\n , content: (" << stb.len << " bytes)\n}";
   return os;
 }
 
 std::ostream& operator<<(std::ostream& os, const message& msg)
 {
   os << "message {\n   domain: " << std::size_t{msg.domain_}
-     << "\n , id: " << std::size_t{msg.id_} << "\n  , sender: " << msg.sender_
+     << "\n , id: " << std::size_t{msg.id_}
+     << "\n , sender: " << msg.sender_
      << "\n , recipients: [";
       for (auto& recp : msg.recipients_) os << recp << ", ";
-  os << "]\n , data: (" << msg.len << " bytes)\n}";
+  os << "]\n , content: (" << msg.content_len_ << " bytes)\n}";
   return os;
 }
 // clang-format on
 
 /******************************************************************************
- * message builder
+ * message stub
  */
-message::builder::builder(domain_type domain)
+message::stub::stub(domain_type domain)
   : domain(domain)
 {
 }
-message::builder& message::builder::add_recipient(node::id recipient)
+message::stub& message::stub::add_recipient(node::id recipient)
 {
   recipients.push_back(recipient);
   return *this;
 }
-message::builder& message::builder::containing(const std::uint8_t* src,
-                                               std::size_t len)
+message::stub& message::stub::wrap_contents(const std::uint8_t* src,
+                                            std::size_t len)
 {
-  data = src;
+  content = src;
   this->len = len;
   return *this;
 }
-message message::builder::build(node::id sender, id_type id) const
+message message::stub::build(node::id sender, id_type id) const
 {
   return message(std::move(sender), std::move(id), *this);
 }
@@ -64,11 +65,12 @@ message message::builder::build(node::id sender, id_type id) const
 /******************************************************************************
  * message - Deserialization/Construction
  */
-message::message(byte_buf::view src)
+message::message(buffer::view src)
 {
   src >> sender_;
 
-  const auto nrecipients = src.get<field_nrecp_type>();
+  field_nrecp_type nrecipients;
+  src >> nrecipients;
   recipients_.resize(nrecipients);
   for (std::size_t i = 0; i < nrecipients; ++i)
     src >> recipients_[i];
@@ -76,11 +78,13 @@ message::message(byte_buf::view src)
   src >> domain_;
   src >> id_;
 
-  len = static_cast<std::size_t>(src.get<field_len_type>());
-  data = src.cbuf();
+  field_len_type len;
+  src >> len;
+  content_len_ = static_cast<std::size_t>(len);
+  content_ = src.cbuf();
 }
 message::message(const std::uint8_t* src, std::size_t len)
-  : message(byte_buf::view::of(src, len))
+  : message(buffer::view::of(src, len))
 {
 }
 /* message - Deserialization/Construction
@@ -89,9 +93,9 @@ message::message(const std::uint8_t* src, std::size_t len)
 /******************************************************************************
  * message - Serialization
  */
-std::size_t message::serialize_to(byte_buf dst) const
+std::size_t message::serialize_to(buffer dst) const
 {
-  assert(dst.remaining() >= total_len());
+  assert(dst.remaining() >= serial_size());
   std::size_t start = dst.position();
   dst << sender_;
   dst << static_cast<field_nrecp_type>(recipients_.size());
@@ -99,15 +103,15 @@ std::size_t message::serialize_to(byte_buf dst) const
     dst << recp;
   dst << domain_;
   dst << id_;
-  dst << static_cast<field_len_type>(len);
-  dst << arrcopy(data, len);
+  dst << static_cast<field_len_type>(content_len_);
+  dst << arrcopy(content_, content_len_);
   return dst.position() - start;
 }
 std::size_t message::serialize_to(std::uint8_t* dst, std::size_t len) const
 {
-  return serialize_to(byte_buf::wrap(dst, len));
+  return serialize_to(buffer::wrap(dst, len));
 }
-std::size_t message::total_len() const
+std::size_t message::serial_size() const
 {
   // clang-format off
   return node::id::size
@@ -115,7 +119,7 @@ std::size_t message::total_len() const
        + node::id::size * recipients_.size()
        + sizeof(domain_type)
        + sizeof(field_len_type)
-       + len;
+       + content_len_;
   // clang-format on
 }
 /* message - Serialization
@@ -124,13 +128,13 @@ std::size_t message::total_len() const
 /******************************************************************************
  * message - Regular Constructon
  */
-message::message(node::id sender, id_type id, const builder& bld)
-  : domain_(bld.domain)
+message::message(node::id sender, id_type id, const stub& stb)
+  : domain_(stb.domain)
   , sender_(sender)
-  , recipients_(bld.recipients)
+  , recipients_(stb.recipients)
   , id_(id)
-  , data(bld.data)
-  , len(bld.len)
+  , content_(stb.content)
+  , content_len_(stb.len)
 {
 }
 message::message(message&& rhs)
@@ -138,8 +142,8 @@ message::message(message&& rhs)
   , recipients_(std::move(rhs.recipients_))
   , domain_(std::move(rhs.domain_))
   , id_(std::move(rhs.id_))
-  , data(std::move(rhs.data))
-  , len(std::move(rhs.len))
+  , content_(std::move(rhs.content_))
+  , content_len_(std::move(rhs.content_len_))
   , pinned(std::move(rhs.pinned))
 {
 }
@@ -148,11 +152,11 @@ message::message(const message& rhs)
   , recipients_(rhs.recipients_)
   , domain_(rhs.domain_)
   , id_(rhs.id_)
-  , len(rhs.len)
+  , content_len_(rhs.content_len_)
 {
   if (!rhs.pinned)
     throw_not_pinned();
-  data = pin_copy(rhs.data, len);
+  content_ = pin_copy(rhs.content_, content_len_);
 }
 
 message& message::operator=(message&& rhs)
@@ -161,8 +165,8 @@ message& message::operator=(message&& rhs)
   std::swap(recipients_, rhs.recipients_);
   std::swap(domain_, rhs.domain_);
   std::swap(id_, rhs.id_);
-  std::swap(data, rhs.data);
-  std::swap(len, rhs.len);
+  std::swap(content_, rhs.content_);
+  std::swap(content_len_, rhs.content_len_);
   std::swap(pinned, rhs.pinned);
   return *this;
 }
@@ -175,8 +179,8 @@ message& message::operator=(const message& rhs)
   recipients_ = rhs.recipients_;
   domain_ = rhs.domain_;
   id_ = rhs.id_;
-  len = rhs.len;
-  data = pin_copy(rhs.data, len);
+  content_len_= rhs.content_len_;
+  content_ = pin_copy(rhs.content_, content_len_);
   return *this;
 }
 /* message - Regular Construction
@@ -186,13 +190,14 @@ std::uint8_t* message::pin_copy(const void* src, std::size_t len)
 {
   pinned = std::make_unique<std::uint8_t[]>(len);
   std::memcpy(pinned.get(), src, len);
-  data = pinned.get();
+  content_ = pinned.get();
   return pinned.get();
 }
+
 std::uint8_t* message::pin()
 {
   if (!pinned) {
-    return pin_copy(data, len);
+    return pin_copy(content_, content_len_);
   }
   return pinned.get();
 }

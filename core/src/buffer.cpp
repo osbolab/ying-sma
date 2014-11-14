@@ -1,4 +1,4 @@
-#include <sma/byte_buf.hpp>
+#include <sma/buffer.hpp>
 #include <sma/bytes.hpp>
 
 #include <cassert>
@@ -12,26 +12,26 @@ namespace sma
 
 
 /******************************************************************************
- * byte_buf - Static Factories
+ * buffer - Static Factories
  */
-byte_buf byte_buf::allocate(std::size_t len) { return byte_buf(len); }
-byte_buf byte_buf::wrap(void* buf, std::size_t len)
+buffer buffer::allocate(std::size_t len) { return buffer(len); }
+buffer buffer::wrap(void* buf, std::size_t len)
 {
-  return byte_buf(static_cast<std::uint8_t*>(buf), len);
+  return buffer(static_cast<std::uint8_t*>(buf), len);
 }
-byte_buf byte_buf::copy(const void* buf, std::size_t len)
+buffer buffer::copy(const void* buf, std::size_t len)
 {
-  return byte_buf(static_cast<const std::uint8_t*>(buf), len);
+  return buffer(static_cast<const std::uint8_t*>(buf), len);
 }
-/* byte_buf- Static Factories
+/* buffer- Static Factories
  *****************************************************************************/
 
 
 /******************************************************************************
- * byte_buf - C/dtor / allocator
+ * buffer - C/dtor / allocator
  */
-byte_buf::byte_buf(byte_buf&& rhs)
-  : byte_buf::view(std::move(rhs.b), rhs.lim, rhs.pos)
+buffer::buffer(buffer&& rhs)
+  : buffer::view(std::move(rhs.b), rhs.lim, rhs.pos)
   , owner(rhs.owner)
   , cap(rhs.cap)
 {
@@ -39,37 +39,37 @@ byte_buf::byte_buf(byte_buf&& rhs)
   rhs.owner = false;
   rhs.cap = rhs.lim = rhs.pos = 0;
 }
-byte_buf::byte_buf(const byte_buf& rhs)
-  : byte_buf::view(new std::uint8_t[rhs.cap], rhs.lim, rhs.pos)
+buffer::buffer(const buffer& rhs)
+  : buffer::view(new std::uint8_t[rhs.cap], rhs.lim, rhs.pos)
   , cap(rhs.cap)
   , owner(true)
 {
   std::memcpy(b, rhs.b, cap);
 }
-byte_buf::byte_buf(std::size_t capacity)
-  : byte_buf::view(new std::uint8_t[capacity], capacity)
+buffer::buffer(std::size_t capacity)
+  : buffer::view(new std::uint8_t[capacity], capacity)
   , cap(capacity)
   , owner(true)
 {
 }
-byte_buf::byte_buf(const std::uint8_t* src, std::size_t len)
-  : byte_buf::view(new std::uint8_t[len], len)
+buffer::buffer(const std::uint8_t* src, std::size_t len)
+  : buffer::view(new std::uint8_t[len], len)
   , cap(len)
   , owner(true)
 {
   std::memcpy(b, src, len);
 }
-byte_buf::byte_buf(std::uint8_t* buf, std::size_t len)
-  : byte_buf::view(buf, len)
+buffer::buffer(std::uint8_t* buf, std::size_t len)
+  : buffer::view(buf, len)
   , cap(len)
   , owner(false)
 {
 }
-byte_buf::byte_buf(std::uint8_t* buf,
+buffer::buffer(std::uint8_t* buf,
                  std::size_t cap,
                  std::size_t lim,
                  std::size_t pos)
-  : byte_buf::view(buf, lim, pos)
+  : buffer::view(buf, lim, pos)
   , cap(cap)
   , owner(false)
 {
@@ -77,20 +77,20 @@ byte_buf::byte_buf(std::uint8_t* buf,
 
 // Allocate a new buffer equal in len to this and copy this buffer's full
 // contents to it.
-byte_buf byte_buf::duplicate() { return byte_buf(*this); }
+buffer buffer::duplicate() { return buffer(*this); }
 
-byte_buf::~byte_buf()
+buffer::~buffer()
 {
   if (owner)
     delete[] b;
 }
-/* byte_buf- C/dtor / allocator
+/* buffer- C/dtor / allocator
  *****************************************************************************/
 
 /******************************************************************************
- * byte_buf - Operators
+ * buffer - Operators
  */
-byte_buf& byte_buf::operator=(byte_buf&& rhs)
+buffer& buffer::operator=(buffer&& rhs)
 {
   if (owner)
     delete[] b;
@@ -104,7 +104,7 @@ byte_buf& byte_buf::operator=(byte_buf&& rhs)
   rhs.cap = rhs.lim = rhs.pos = 0;
   return *this;
 }
-byte_buf& byte_buf::operator=(const byte_buf& rhs)
+buffer& buffer::operator=(const buffer& rhs)
 {
   if (owner)
     delete[] b;
@@ -116,28 +116,28 @@ byte_buf& byte_buf::operator=(const byte_buf& rhs)
   std::memcpy(b, rhs.b, cap);
   return *this;
 }
-std::uint8_t& byte_buf::operator[](std::size_t i)
+std::uint8_t& buffer::operator[](std::size_t i)
 {
   assert(i < lim);
   return b[i];
 }
-std::uint8_t& byte_buf::operator*()
+std::uint8_t& buffer::operator*()
 {
   assert(pos < lim);
   return b[pos];
 }
-/* byte_buf- Operators
+/* buffer- Operators
  *****************************************************************************/
 
 /******************************************************************************
- * byte_buf - Navigation
+ * buffer - Navigation
  */
-byte_buf& byte_buf::seek(std::size_t i)
+buffer& buffer::seek(std::size_t i)
 {
-  byte_buf::view::seek(i);
+  buffer::view::seek(i);
   return *this;
 }
-byte_buf& byte_buf::limit(std::size_t newlim)
+buffer& buffer::limit(std::size_t newlim)
 {
   assert(newlim <= cap);
   lim = newlim;
@@ -145,68 +145,68 @@ byte_buf& byte_buf::limit(std::size_t newlim)
     pos = lim;
   return *this;
 }
-byte_buf& byte_buf::flip()
+buffer& buffer::flip()
 {
   lim = pos;
   pos = 0;
   return *this;
 }
-byte_buf& byte_buf::clear()
+buffer& buffer::clear()
 {
   lim = cap;
   pos = 0;
   return *this;
 }
-/* byte_buf - Navigation
+/* buffer - Navigation
  *****************************************************************************/
 
 /******************************************************************************
- * byte_buf  - Covariant overrides on read
+ * buffer  - Covariant overrides on read
  */
 template <>
-byte_buf& byte_buf::operator>>(const arrcopy_w<std::uint8_t>& dst)
+buffer& buffer::operator>>(const arrcopy_w<std::uint8_t>& dst)
 {
-  byte_buf::view::operator>>(dst);
+  buffer::view::operator>>(dst);
   return *this;
 }
 template <>
-byte_buf& byte_buf::operator>>(const arrcopy_w<char>& dst)
+buffer& buffer::operator>>(const arrcopy_w<char>& dst)
 {
-  byte_buf::view::operator>>(dst);
+  buffer::view::operator>>(dst);
   return *this;
 }
 template <>
-byte_buf& byte_buf::operator>>(std::uint8_t& v)
+buffer& buffer::operator>>(std::uint8_t& v)
 {
-  byte_buf::view::operator>>(v);
+  buffer::view::operator>>(v);
   return *this;
 }
 template <>
-byte_buf& byte_buf::operator>>(std::uint16_t& v)
+buffer& buffer::operator>>(std::uint16_t& v)
 {
   v = get<std::uint16_t>();
   return *this;
 }
 template <>
-byte_buf& byte_buf::operator>>(std::uint32_t& v)
+buffer& buffer::operator>>(std::uint32_t& v)
 {
   v = get<std::uint32_t>();
   return *this;
 }
 template <>
-byte_buf& byte_buf::operator>>(std::uint64_t& v)
+buffer& buffer::operator>>(std::uint64_t& v)
 {
   v = get<std::uint64_t>();
   return *this;
 }
-/* byte_buf - Covariant overrides on read
+/* buffer - Covariant overrides on read
  *****************************************************************************/
 
 
 /******************************************************************************
- * byte_buf - Writing
+ * buffer - Writing
  */
-byte_buf& byte_buf::put(const void* src, std::size_t len)
+buffer& buffer::put(const void* src, std::size_t len)
 {
   assert(remaining() >= len);
   std::memcpy(b + pos, src, len);
@@ -214,7 +214,7 @@ byte_buf& byte_buf::put(const void* src, std::size_t len)
   return *this;
 }
 
-byte_buf& byte_buf::replace(const void* src, std::size_t len)
+buffer& buffer::replace(const void* src, std::size_t len)
 {
   assert(len >= cap);
   std::memcpy(b, src, cap);
@@ -223,14 +223,14 @@ byte_buf& byte_buf::replace(const void* src, std::size_t len)
 }
 
 template <>
-byte_buf& byte_buf::put(const std::uint8_t& v)
+buffer& buffer::put(const std::uint8_t& v)
 {
   assert(remaining() >= 1);
   b[pos++] = v;
   return *this;
 }
 template <>
-byte_buf& byte_buf::put(const std::uint16_t& v)
+buffer& buffer::put(const std::uint16_t& v)
 {
   assert(remaining() >= 2);
   b[pos++] = v >> 8;
@@ -238,7 +238,7 @@ byte_buf& byte_buf::put(const std::uint16_t& v)
   return *this;
 }
 template <>
-byte_buf& byte_buf::put(const std::uint32_t& v)
+buffer& buffer::put(const std::uint32_t& v)
 {
   assert(remaining() >= 4);
   b[pos++] = v >> 24;
@@ -248,7 +248,7 @@ byte_buf& byte_buf::put(const std::uint32_t& v)
   return *this;
 }
 template <>
-byte_buf& byte_buf::put(const std::uint64_t& v)
+buffer& buffer::put(const std::uint64_t& v)
 {
   assert(remaining() >= 8);
   b[pos++] = v >> 56;
@@ -261,6 +261,6 @@ byte_buf& byte_buf::put(const std::uint64_t& v)
   b[pos++] = v & 0xFF;
   return *this;
 }
-/* byte_buf - Writing
+/* buffer - Writing
  *****************************************************************************/
 }

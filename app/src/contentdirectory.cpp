@@ -1,5 +1,5 @@
 #include <sma/app/contentdirectory.hpp>
-#include <sma/app/contentdescription.hpp>
+#include <sma/app/contentdescriptor.hpp>
 #include <mutex>
 #include <algorithm>
 #include <sma/app/sortdirectory.hpp>
@@ -16,7 +16,7 @@ void ContentDirectory::addContentToDirectory (const ContentDescriptor& descripti
   // check whether the description is already in the directory
   // if yes and newer than the old record, replace.
   // otherwise, simply add it.
-  
+
   std::string nameOfNewFile = description.getContentName();
   std::vector<ContentDescriptor>::iterator iter = directory.begin();
   while (iter != directory.end())
@@ -31,7 +31,7 @@ void ContentDirectory::addContentToDirectory (const ContentDescriptor& descripti
       }
 //      std::cout << "not updated..." << std::endl;
       break;
-    } 
+    }
     iter++;
   }
   if (iter == directory.end())
@@ -43,9 +43,9 @@ void ContentDirectory::rankDirectory()  //dummy argument
 {
   std::unique_lock<std::mutex> lock_directory (m_mutex, std::defer_lock);
   lock_directory.lock();
-//  std::sort(directory.begin(), directory.end(), SortDirectoryByRank()); 
+//  std::sort(directory.begin(), directory.end(), SortDirectoryByRank());
   std::sort(directory.begin(), directory.end(), SortDirectoryByPublishTime());
-  lock_directory.unlock(); 
+  lock_directory.unlock();
 }
 
 

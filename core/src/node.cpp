@@ -1,5 +1,4 @@
 #include <sma/node.hpp>
-#include <sma/byte_buf.hpp>
 
 
 namespace sma

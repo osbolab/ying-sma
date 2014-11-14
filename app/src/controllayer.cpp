@@ -1,5 +1,5 @@
 #include <sma/app/controllayer.hpp>
-#include <sma/app/contentdescription.hpp>
+#include <sma/app/contentdescriptor.hpp>
 #include <string>
 #include <sma/app/contentdirectory.hpp>
 #include <sma/app/segmenter.hpp>
@@ -42,7 +42,7 @@ void ControlLayer::publishContent(std::string inFileName, std::string outFileNam
   }
 
   std::vector<std::pair<ContentAttribute::META_TYPE, std::string> >::const_iterator attri_iter = fileMeta.begin();
-  while (attri_iter != fileMeta.end()) 
+  while (attri_iter != fileMeta.end())
   {
     newFile.addAttribute(attri_iter->first, attri_iter->second);
     attri_iter++;
@@ -86,14 +86,14 @@ void ControlLayer::notifyDownloadCompleted(std::string fileName)
   if (!saveFileName.empty())
   {
     this->restoreContentAs(fileName, saveFileName);
-    pendingFileTable.delTask(fileName); 
+    pendingFileTable.delTask(fileName);
   }
 }
 
 
 void ControlLayer::restoreContentAs(std::string readFileName, std::string saveFileName)
 {
-  std::ostringstream oss; 
+  std::ostringstream oss;
   oss << "Restoring the file: " << readFileName << std::endl;
   device->getLoggerPtr()->log (oss.str());
   std::vector<ChunkID> chunkList = directory.getChunkList(readFileName);
@@ -130,7 +130,7 @@ void ControlLayer::showPendingChunksOfFile (std::string fileName) const
 
 std::vector<ContentDescriptor> ControlLayer::getContentDirectory (int numOfEntries) const
 {
-  return directory.getNDirectory(numOfEntries); 
+  return directory.getNDirectory(numOfEntries);
 }
 
 void ControlLayer::addFlowRule (ChunkID chunk, int rule)
@@ -156,7 +156,7 @@ void ControlLayer::forwardRequest (ChunkID chunk)
 
 void ControlLayer::updateNeighborRecord(std::string id, double latitude, double longitude)
 {
-  neighborManager.updateRecord(id, latitude, longitude); 
+  neighborManager.updateRecord(id, latitude, longitude);
 }
 
 std::string ControlLayer::getNeighborInfo(std::string id) const
@@ -180,7 +180,7 @@ void ControlLayer::transmitChunk (ChunkID chunk)
       int sizeOfChunk = fin.tellg();
       fin.seekg(0, std::ios::beg);
       char* buffer = new char [sizeOfChunk];
-      fin.read (buffer, sizeOfChunk); 
+      fin.read (buffer, sizeOfChunk);
       fin.close();
       DataBlock block (SMA::CHUNK);
       block.setChunkID (chunk);
@@ -201,13 +201,13 @@ void ControlLayer::storeChunk (char* buffer, int sizeOfBuffer, bool requestedByS
 {
   std::ostringstream oss;
   oss << TMP_FOLDER << chunkID;
-  std::ofstream tmpOut (oss.str()); 
+  std::ofstream tmpOut (oss.str());
   tmpOut.write (buffer, sizeOfBuffer);
   tmpOut.close();
   datalayer.storeChunk (oss.str(), requestedBySelf);
   if (!chunkID.empty())
   {
-    std::remove(oss.str().c_str());  
+    std::remove(oss.str().c_str());
   }
 }
 
