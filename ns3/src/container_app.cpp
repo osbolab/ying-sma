@@ -24,7 +24,12 @@ ns3::TypeId container_app::TypeId()
   static ns3::TypeId tid
       = ns3::TypeId("sma::container_app")
             .SetParent<ns3::Application>()
-            .AddConstructor<container_app>();
+            .AddConstructor<container_app>()
+            .AddAttribute("ID",
+                          "Node ID",
+                          ns3::UintegerValue(0),
+                          ns3::MakeUintegerAccessor(&container_app::id),
+                          ns3::MakeUintegerChecker<std::uint16_t>());
   return tid;
 }
 
@@ -42,7 +47,6 @@ void container_app::DoDispose() { LOG(DEBUG); }
 
 void container_app::StartApplication()
 {
-  app = std::make_unique<application>();
   // Construct the message chain from the bottom up
   ns3::TypeId udp_sock_factory
       = ns3::TypeId::LookupByName("ns3::UdpSocketFactory");
@@ -51,7 +55,7 @@ void container_app::StartApplication()
 
   chan = std::make_unique<ns3_channel>(sock.get());
 
-  node::id this_node { 0xE8, 0xF2 };
+  node::id this_node{std::uint8_t(id >> 8), std::uint8_t(id & 0xFF)};
   msgr = message_dispatch::new_single_threaded(this_node);
 
   chan->deliver_to(msgr.get());
@@ -59,10 +63,14 @@ void container_app::StartApplication()
 
   // The scheduler is less of a chain
   sched = std::make_unique<ns3_scheduler>();
+
+  context ctx { id, msgr.get(), sched.get() };
+  app = std::make_unique<application>(std::move(ctx));
 }
 
 void container_app::StopApplication()
 {
+  app = nullptr;
   // Close the channel and, transitively, the sockets
   chan->close();
 }

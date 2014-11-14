@@ -8,9 +8,16 @@
 
 #include <sma/json.hpp>
 
+#include <sma/app/context.hpp>
+#include <sma/message.hpp>
+#include <sma/messenger.hpp>
+#include <sma/scheduler.hpp>
+#include <sma/log.hpp>
+
 #include <iostream>
 #include <iomanip>
 
+#include <cstring>
 #include <string>
 #include <sstream>
 
@@ -19,24 +26,32 @@
 
 #include <vector>
 
-#include <thread>
-
 
 int DeviceWithGPS::HEARTBEAT_INTERVAL = 10;
 int DeviceWithGPS::DIRECTORY_SYNC_INTERVAL = 30;
 std::string DeviceWithGPS::LOG_DIR = "./log/";
 unsigned int DeviceWithGPS::DEFAULT_POWER_LEVEL = 10000;
 
-DeviceWithGPS::DeviceWithGPS(std::string id)
-  : deviceID(id)
+DeviceWithGPS::DeviceWithGPS(sma::context ctx)
+  : deviceID(std::to_string(ctx.node_id))
   , network(nullptr)
-  , controlPlane(id)
+  , controlPlane(std::to_string(ctx.node_id))
+  , ctx(ctx)
 {
+  for (std::size_t message_type = 0; message_type < 5; ++message_type) {
+    ctx.msgr->subscribe(static_cast<sma::message::domain_type>(message_type),
+                        [this](const sma::message& msg) { on_message(msg); });
+  }
   gpsDriver.setGPS(0.0, 0.0);
   powerLevel = DEFAULT_POWER_LEVEL;
-  std::string logFileName = LOG_DIR + id + ".log";
+  std::string logFileName = LOG_DIR + deviceID + ".log";
   logger = new DeviceLogger(logFileName);
   controlPlane.setDevicePtr(this);
+
+  LOG(DEBUG) << "Node " << deviceID << " starting broadcast";
+  // Start the background notification cycles
+  beaconing();
+  broadcastDirectory();
 }
 
 DeviceWithGPS::~DeviceWithGPS()
@@ -44,39 +59,22 @@ DeviceWithGPS::~DeviceWithGPS()
   logger->close();
   delete logger;
   logger = nullptr;
-  beaconingThread.detach();    // these two signals can be move to SignalHandler
-  directorySyncThread.detach();
 }
 
-std::string DeviceWithGPS::getDeviceID() const
-{
-  return deviceID;
-}
+std::string DeviceWithGPS::getDeviceID() const { return deviceID; }
 
-bool DeviceWithGPS::hasGPS()
-{
-  return gpsDriver.hasGPS();
-}
+bool DeviceWithGPS::hasGPS() { return gpsDriver.hasGPS(); }
 
 void DeviceWithGPS::setGPS(double latitude, double longitude)
 {
   gpsDriver.setGPS(latitude, longitude);
 }
 
-void DeviceWithGPS::setPowerLevel(unsigned int level)
-{
-  powerLevel = level;
-}
+void DeviceWithGPS::setPowerLevel(unsigned int level) { powerLevel = level; }
 
-unsigned int DeviceWithGPS::getPowerLevel() const
-{
-  return powerLevel;
-}
+unsigned int DeviceWithGPS::getPowerLevel() const { return powerLevel; }
 
-GPSinfo DeviceWithGPS::getGPS() const
-{
-  return gpsDriver.getGPS();
-}
+GPSinfo DeviceWithGPS::getGPS() const { return gpsDriver.getGPS(); }
 
 /* Services will be launched once the device is connected to the network
  */
@@ -86,8 +84,6 @@ void DeviceWithGPS::connectToNetwork(NetworkEmulator* networkToAttach)
     logger->log("Connected.\n");
     networkToAttach->acceptDevice(this);
     network = networkToAttach;
-    beaconingThread = std::thread(&DeviceWithGPS::beaconing, this);
-    directorySyncThread = std::thread(&DeviceWithGPS::broadcastDirectory, this);
   }
 }
 
@@ -103,25 +99,23 @@ void DeviceWithGPS::leaveFromNetwork(NetworkEmulator* networkAttached)
 void DeviceWithGPS::beaconing()
 {
   // broadcast GPS
-  while (true) {
-    if (network == nullptr)
-      break;
-    DataBlock block(SMA::GPSBCAST);
-    std::string gpsBroadCastData =
-        getJsonGPS();    // create Json-formatted beaconing message
-    int size = gpsBroadCastData.size() + 1;
-    char* payload = new char[size];
-    gpsBroadCastData.copy(payload, size - 1, 0);
-    payload[size - 1] = '\0';
-    block.createData(this, payload, size);
-    sendSignal(block);
-    delete[] payload;
+  DataBlock block(SMA::GPSBCAST);
+  std::string gpsBroadCastData
+      = getJsonGPS();    // create Json-formatted beaconing message
+  int size = gpsBroadCastData.size() + 1;
+  char* payload = new char[size];
+  gpsBroadCastData.copy(payload, size - 1, 0);
+  payload[size - 1] = '\0';
+  block.createData(this, payload, size);
+  sendSignal(block);
+  delete[] payload;
 
-    std::ostringstream logStr;
-    logStr << "Heartbeating...\n";
-    logger->log(logStr.str());
-    std::this_thread::sleep_for(std::chrono::seconds(HEARTBEAT_INTERVAL));
-  }
+  std::ostringstream logStr;
+  logStr << "Heartbeating...\n";
+  logger->log(logStr.str());
+
+  ctx.sched->schedule(std::chrono::seconds(HEARTBEAT_INTERVAL),
+                      std::bind(&DeviceWithGPS::beaconing, this));
 }
 
 void DeviceWithGPS::broadcastDirectory()
@@ -129,24 +123,22 @@ void DeviceWithGPS::broadcastDirectory()
   // broadcast content directory
   int numOfEntries = 5;    // Temp solution: The number should be provided by
                            // the profiling module.
-  while (true) {
-    if (network == nullptr)
-      break;
-    DataBlock block(SMA::DIRBCAST);
-    std::string dirBroadCastData = getJsonDirectory(numOfEntries);
-    int size = dirBroadCastData.size() + 1;
-    char* payload = new char[size];
-    dirBroadCastData.copy(payload, size - 1, 0);
-    payload[size - 1] = '\0';
-    block.createData(this, payload, size);
-    sendSignal(block);
-    delete[] payload;
+  DataBlock block(SMA::DIRBCAST);
+  std::string dirBroadCastData = getJsonDirectory(numOfEntries);
+  int size = dirBroadCastData.size() + 1;
+  char* payload = new char[size];
+  dirBroadCastData.copy(payload, size - 1, 0);
+  payload[size - 1] = '\0';
+  block.createData(this, payload, size);
+  sendSignal(block);
+  delete[] payload;
 
-    std::ostringstream logStr;
-    logStr << "Broadcast directory sync to the network...\n";
-    logger->log(logStr.str());
-    std::this_thread::sleep_for(std::chrono::seconds(DIRECTORY_SYNC_INTERVAL));
-  }
+  std::ostringstream logStr;
+  logStr << "Broadcast directory sync to the network...\n";
+  logger->log(logStr.str());
+
+  ctx.sched->schedule(std::chrono::seconds(DIRECTORY_SYNC_INTERVAL),
+                      std::bind(&DeviceWithGPS::broadcastDirectory, this));
 }
 
 void DeviceWithGPS::forwardRequest(ChunkID chunk)
@@ -173,9 +165,24 @@ void DeviceWithGPS::sendSignal(const DataBlock& block)
   //  if (block.getMsgType() == "CHUNK")
   //    std::cout << "In DeviceWithGPS::sendSignal: "<< '\n'
   //              << "The chunk id is " << block.getChunkID() << '\n';
-  network->receiveMsg(block);
+  // network->receiveMsg(block);
+  assert(block.payloadSize > 0);
+
+  // narrowing
+  sma::message::stub m(static_cast<sma::message::domain_type>(block.dataType));
+  auto dp = reinterpret_cast<const std::uint8_t*>(block.dataArray);
+  m.wrap_contents(std::move(dp), block.payloadSize);
+  assert(ctx.msgr);
+  ctx.msgr->post(m);
 }
 
+void DeviceWithGPS::on_message(const sma::message& msg)
+{
+  DataBlock data(static_cast<SMA::MESSAGE_TYPE>(msg.domain()));
+  auto csrc = reinterpret_cast<const char*>(msg.content());
+  data.createData(this, csrc, msg.content_len());
+  receiveSignal(data);
+}
 void DeviceWithGPS::receiveSignal(const DataBlock& block)
 {
   //  char* payload = new char [block.getPayloadSize()];
@@ -205,8 +212,8 @@ void DeviceWithGPS::publishContent(std::string inFileName,
                                    std::string outFileName)
 {
   std::vector<std::pair<ContentAttribute::META_TYPE, std::string>> attri_pair;
-  std::chrono::system_clock::time_point timestamp =
-      std::chrono::system_clock::now();
+  std::chrono::system_clock::time_point timestamp
+      = std::chrono::system_clock::now();
   std::time_t t = std::chrono::system_clock::to_time_t(timestamp);
   std::tm* gmtm = std::gmtime(&t);
   std::ostringstream oss;
@@ -255,8 +262,8 @@ std::string DeviceWithGPS::getJsonFwd(ChunkID chunk) const
 std::string DeviceWithGPS::getJsonDirectory(int numOfEntries) const
 {
   Json::Value result;
-  std::vector<ContentDescriptor> directory =
-      controlPlane.getContentDirectory(numOfEntries);
+  std::vector<ContentDescriptor> directory
+      = controlPlane.getContentDirectory(numOfEntries);
   std::vector<ContentDescriptor>::iterator iter = directory.begin();
   while (iter != directory.end()) {
     Json::Value file;
@@ -272,10 +279,10 @@ std::string DeviceWithGPS::getJsonDirectory(int numOfEntries) const
     file["chunk_list"] = chunks;
     // add attribute list
     Json::Value metas;
-    std::map<ContentAttribute::META_TYPE, std::string> metaPairs =
-        iter->getMetaPairList();
-    std::map<ContentAttribute::META_TYPE, std::string>::iterator attri_iter =
-        metaPairs.begin();
+    std::map<ContentAttribute::META_TYPE, std::string> metaPairs
+        = iter->getMetaPairList();
+    std::map<ContentAttribute::META_TYPE, std::string>::iterator attri_iter
+        = metaPairs.begin();
     while (attri_iter != metaPairs.end()) {
       ContentAttribute::META_TYPE enumValue = attri_iter->first;
       metas[ContentAttribute::META_TYPE_STR[enumValue]] = attri_iter->second;
@@ -291,10 +298,7 @@ std::string DeviceWithGPS::getJsonDirectory(int numOfEntries) const
   return jsonMessage;
 }
 
-void DeviceWithGPS::showDirectory() const
-{
-  controlPlane.showDirectory();
-}
+void DeviceWithGPS::showDirectory() const { controlPlane.showDirectory(); }
 
 void DeviceWithGPS::showPendingFiles() const
 {
@@ -306,7 +310,4 @@ void DeviceWithGPS::showPendingChunksOfFile(std::string fileName) const
   controlPlane.showPendingChunksOfFile(fileName);
 }
 
-DeviceLogger* DeviceWithGPS::getLoggerPtr() const
-{
-  return logger;
-}
+DeviceLogger* DeviceWithGPS::getLoggerPtr() const { return logger; }

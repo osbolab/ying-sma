@@ -4,7 +4,9 @@
 #include <sma/app/gpsinfo.hpp>
 #include <sma/app/device.hpp>
 #include <sma/app/networkemulator.hpp>
-#include <thread>
+
+#include <sma/app/context.hpp>
+
 #include <sma/app/datablock.hpp>
 #include <mutex>
 #include <queue>
@@ -14,11 +16,12 @@
 #include <sma/app/devicelogger.hpp>
 #include <sma/app/typedefinition.hpp>
 
+
 class DeviceWithGPS : public Device
 {
 
 public:
-  DeviceWithGPS(std::string id);
+  DeviceWithGPS(sma::context ctx);
   ~DeviceWithGPS();
   std::string getDeviceID() const;
   /* GPS driver delegation
@@ -37,14 +40,18 @@ public:
   void retrieveContentAs(std::string fileName, std::string exportFileName);
 
   void showDirectory() const;
-  void showPendingFiles() const; 
+  void showPendingFiles() const;
   void showPendingChunksOfFile(std::string fileName) const;
-  /* 
+  /*
  * interface exposed to the network to receive broadcast message, e.g., NS3.
  * cuirrently, the data transmitted is a user-defined network. It should be
  * changed to the byte array when connecting to the real network.
  */
-  void receiveSignal(const DataBlock& block); 
+  // Callback from sma::messenger (from NS3)
+  // Unpacks the contents as a DataBlock and gives it to receiveSignal(1)
+  void on_message(const sma::message& msg);
+
+  void receiveSignal(const DataBlock& block);
   void sendSignal(const DataBlock& block); //interface to deliver data to the network.
   /* for test use
  * commands come from the terminals
@@ -55,11 +62,10 @@ public:
 private:
   static std::string LOG_DIR;
   NetworkEmulator* network;
+  sma::context ctx;
   std::string deviceID;
   std::queue<DataBlock> inputQueue; //listening to the network
   std::mutex m_mutex_queue_i;
-  std::thread beaconingThread;
-  std::thread directorySyncThread;
   unsigned int powerLevel;
 
   static int HEARTBEAT_INTERVAL;
@@ -82,7 +88,7 @@ private:
   void processBeaconing (const DataBlock& block);
   void processDirectorySync (const DataBlock& block);
 
-  
+
 };
 
 

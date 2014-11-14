@@ -137,75 +137,75 @@ message::message(node::id sender, id_type id, const stub& stb)
   , content_len_(stb.len)
 {
 }
-message::message(message&& rhs)
-  : sender_(std::move(rhs.sender_))
-  , recipients_(std::move(rhs.recipients_))
-  , domain_(std::move(rhs.domain_))
-  , id_(std::move(rhs.id_))
-  , content_(std::move(rhs.content_))
-  , content_len_(std::move(rhs.content_len_))
-  , pinned(std::move(rhs.pinned))
+message::message(message&& r)
+  : sender_(std::move(r.sender_))
+  , recipients_(std::move(r.recipients_))
+  , domain_(std::move(r.domain_))
+  , id_(std::move(r.id_))
+  , content_(std::move(r.content_))
+  , content_len_(std::move(r.content_len_))
 {
 }
-message::message(const message& rhs)
-  : sender_(rhs.sender_)
-  , recipients_(rhs.recipients_)
-  , domain_(rhs.domain_)
-  , id_(rhs.id_)
-  , content_len_(rhs.content_len_)
+message::message(const message& r)
+  : sender_(r.sender_)
+  , recipients_(r.recipients_)
+  , domain_(r.domain_)
+  , id_(r.id_)
+  , content_len_(r.content_len_)
+  , content_(r.content_)
 {
-  if (!rhs.pinned)
-    throw_not_pinned();
-  content_ = pin_copy(rhs.content_, content_len_);
 }
 
-message& message::operator=(message&& rhs)
+pinned_message message::pin() const
 {
-  std::swap(sender_, rhs.sender_);
-  std::swap(recipients_, rhs.recipients_);
-  std::swap(domain_, rhs.domain_);
-  std::swap(id_, rhs.id_);
-  std::swap(content_, rhs.content_);
-  std::swap(content_len_, rhs.content_len_);
-  std::swap(pinned, rhs.pinned);
+  return pinned_message(*this);
+}
+
+pinned_message::pinned_message(const message& r)
+  : message(r)
+  , pinned(pin_copy(r.content_, r.content_len_))
+{
+  content_ = pinned.get();
+}
+pinned_message::pinned_message(const pinned_message& r)
+  : pinned_message(static_cast<const message&>(r))
+{
+}
+pinned_message::pinned_message(pinned_message&& r)
+  : message(r)
+  , pinned(std::move(r.pinned))
+{
+  content_ = pinned.get();
+}
+
+message& message::operator=(message&& r)
+{
+  std::swap(sender_, r.sender_);
+  std::swap(recipients_, r.recipients_);
+  std::swap(domain_, r.domain_);
+  std::swap(id_, r.id_);
+  std::swap(content_len_, r.content_len_);
+  std::swap(content_, r.content_);
   return *this;
 }
-message& message::operator=(const message& rhs)
+message& message::operator=(const message& r)
 {
-  if (!rhs.pinned)
-    throw_not_pinned();
-
-  sender_ = rhs.sender_;
-  recipients_ = rhs.recipients_;
-  domain_ = rhs.domain_;
-  id_ = rhs.id_;
-  content_len_= rhs.content_len_;
-  content_ = pin_copy(rhs.content_, content_len_);
+  sender_ = r.sender_;
+  recipients_ = r.recipients_;
+  domain_ = r.domain_;
+  id_ = r.id_;
+  content_len_ = r.content_len_;
+  content_ = r.content_;
   return *this;
 }
 /* message - Regular Construction
  *****************************************************************************/
 
-std::uint8_t* message::pin_copy(const void* src, std::size_t len)
+std::unique_ptr<std::uint8_t[]> pinned_message::pin_copy(const void* src,
+                                                  std::size_t len)
 {
-  pinned = std::make_unique<std::uint8_t[]>(len);
-  std::memcpy(pinned.get(), src, len);
-  content_ = pinned.get();
-  return pinned.get();
-}
-
-std::uint8_t* message::pin()
-{
-  if (!pinned) {
-    return pin_copy(content_, content_len_);
-  }
-  return pinned.get();
-}
-
-void message::throw_not_pinned()
-{
-  throw std::runtime_error(
-      "message was copied without being pinned first"
-      " and illegally increased the visibility of unmanaged memory.");
+  auto pin = std::make_unique<std::uint8_t[]>(len);
+  std::memcpy(pin.get(), src, len);
+  return pin;
 }
 }

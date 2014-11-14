@@ -129,6 +129,9 @@ protected:
   virtual void StopApplication() override;
 
 private:
+  // TODO: remove me
+  std::uint16_t id;
+
   std::unique_ptr<ns3_socket> sock{nullptr};
   std::unique_ptr<ns3_channel> chan{nullptr};
   std::unique_ptr<message_dispatch> msgr{nullptr};

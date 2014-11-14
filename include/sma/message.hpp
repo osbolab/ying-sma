@@ -16,14 +16,17 @@ namespace sma
 class messenger;
 
 
+class pinned_message;
 /**
  * A lightweight wrapper around serialized message data that attaches
  * low-level network routing information, namely the message's sending
  * node and optional recipient nodes. Also specifies parameters on which
  * the message can be sorted for delivery at its destination node.
  */
-class message final
+class message
 {
+  friend class pinned_message;
+
 public:
   using domain_type = std::uint8_t;
   // The type of the sender-unique ID embedded in every message.
@@ -59,18 +62,6 @@ public:
 
   message(message&& rhs);
   message& operator=(message&& rhs);
-
-  // Copying a message is an error unless the message has been pinned by
-  // a call to pin().
-  // Pinning the message causes the backing buffer to be copied and stored
-  // local to the message so that it can leave the scope of its
-  // creator's call stack.
-  //
-  // The default error behavior is intended to draw attention to
-  // erroneous move semantics that might otherwise lead to frequent
-  // unexpected memory allocations.
-  message(const message& rhs);
-  message& operator=(const message& rhs);
 
   // Deserialize a message from the contents of the given byte buffer.
   // If the buffer does not contain a full message, or contains an invalid
@@ -120,21 +111,18 @@ public:
   // visibility of the message's original backing buffer.
   // Calling this function multiple times has no effect and simply returns
   // the already pinned array.
-  std::uint8_t* pin();
+  pinned_message pin() const;
 
   // Pretty-pring the message to a stream (log helper)
   friend std::ostream& operator<<(std::ostream& os, const message& msg);
 
-private:
+protected:
   // Complete the given stub by designating the message's origin and unique
   // origin ID, producing a message.
   message(node::id sender, id_type id, const stub& stb);
 
-  // Copy the message contents so the message can be copied or held.
-  std::uint8_t* pin_copy(const void* src, std::size_t len);
-  // Throw an exception if a copy operation is performed while the message is
-  // not pinned. This is a pessimistic failure mode to avoid accidental copying.
-  void throw_not_pinned();
+  message(const message& rhs);
+  message& operator=(const message& rhs);
 
   // ----------------- SERIALIZED FIELDS (in serial order) --------------------
   // The order reflects the order of the field's relevance:
@@ -163,6 +151,22 @@ private:
   // this pointer until you return, but no longer.
   const std::uint8_t* content_{nullptr};
   std::size_t content_len_{0};
+};
+
+class pinned_message : public message
+{
+  friend class message;
+
+public:
+  pinned_message(const message& r);
+  pinned_message(const pinned_message& r);
+  pinned_message(pinned_message&& r);
+
+  std::uint8_t* mutable_content() { return pinned.get(); }
+
+protected:
+  // Copy the message contents so the message can be copied or held.
+  std::unique_ptr<std::uint8_t[]> pin_copy(const void* src, std::size_t len);
   // The aforementioned guarantee can be extended indefinitely by pinning the
   // contents in the heap. This just means we allocate and take a copy and you
   // gain ownership of its lifetime.

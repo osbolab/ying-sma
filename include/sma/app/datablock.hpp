@@ -3,6 +3,8 @@
 
 #include <sma/app/device.hpp>
 #include <sma/app/typedefinition.hpp>
+#include <sma/messenger.hpp>
+
 
 namespace SMA
 {
@@ -18,7 +20,7 @@ public:
   DataBlock(SMA::MESSAGE_TYPE type);
   DataBlock(const DataBlock& block);
   DataBlock& operator= (const DataBlock& block);
-  void createData(Device* devicePtr, char* carray, int size);
+  void createData(Device* devicePtr, const char* csrc, int size);
   ~DataBlock();
   int getPayloadSize() const;
   std::string getMsgType() const;
@@ -27,12 +29,14 @@ public:
   SMA::MESSAGE_TYPE _getMsgTypeEnum() const;
   void setChunkID (ChunkID chunk);
   std::string getChunkID() const;
-  
 
-private:
+
+  // publicized so the network layer can steal this from you in
+  // DeviceWithGPS::sendSignal
+//private:
   int payloadSize;
   SMA::MESSAGE_TYPE dataType;
-  char* dataArray; 
+  char* dataArray;
   std::string srcDeviceID;
   std::string chunkID; //only valid if this block is a chunk block
 };

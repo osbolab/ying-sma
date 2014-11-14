@@ -5,6 +5,9 @@
 #include <sma/app/device.hpp>
 #include <sma/app/batchscriptgenerator.hpp>
 
+#include <sma/messenger.hpp>
+#include <sma/scheduler.hpp>
+
 #include <iostream>
 #include <sstream>
 #include <cassert>
@@ -16,15 +19,18 @@
 #include <locale>
 #include <utility>
 
-Emulator::Emulator()
+
+Emulator::Emulator(sma::context ctx)
   : network(nullptr)
   , running(true)
+  , ctx(ctx)
 {
   //  initEnv();
 }
 
 void Emulator::runInBatch()
 {
+  #if 0
   BatchScriptGenerator newBatch;
   std::ifstream fin;
   newBatch.getScriptFin(fin);
@@ -32,6 +38,7 @@ void Emulator::runInBatch()
   while (running && std::getline(fin, line)) {
     processCommand(line);
   }
+  #endif
 }
 
 void Emulator::runInRealtime()
@@ -50,7 +57,6 @@ void Emulator::runInRealtime()
 
 void Emulator::initEnv(bool inBatchMode)
 {
-
   if (inBatchMode) {
     runInBatch();
     std::cout << "Enter any key to stop the emulation..." << std::endl;
@@ -91,7 +97,7 @@ void Emulator::processCommand(std::string cmdLine)
       std::cout << "Creating device " << deviceID << "..." << std::endl;
       // create device before the network is created.
       // currently, by default, only GPS-enabled devices can be created.
-      DeviceWithGPS* mobileDevice = new DeviceWithGPS(deviceID);
+      DeviceWithGPS* mobileDevice = new DeviceWithGPS(deviceID, ctx);
       //      mobileDevice->connectToNetwork(network);
       devices.insert(make_pair(
           deviceID, mobileDevice));    // keep track of the devices created.

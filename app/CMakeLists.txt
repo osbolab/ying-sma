@@ -4,21 +4,17 @@ project(smaapp)
 # SOURCES
 
 set(sources
+  "src/application.cpp"
+
   "src/md5.cpp"
   "src/json.cpp"
-  "src/split_regroup.cpp"
 
-  "src/echoclient.cpp"
-  "src/echoserver.cpp"
-
-  "src/emulator.cpp"
   "src/batchscriptgenerator.cpp"
 
   "src/devicewithgps.cpp"
   "src/devicelogger.cpp"
 
   "src/datablock.cpp"
-  "src/adhocnetworkemulator.cpp"
 
   "src/plainchunkstore.cpp"
   "src/pendingchunkmanager.cpp"

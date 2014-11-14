@@ -99,10 +99,9 @@ void ns3_socket::broadcast(const std::uint8_t* src, std::size_t len) {
 void ns3_socket::on_packet(ns3::Ptr<ns3::Socket> s)
 {
   ns3::Ptr<ns3::Packet> p;
-  ns3::Address src;
+  ns3::Address sender;
 
-  while ((p = s->RecvFrom(src))) {
-    LOG(DEBUG) << p->GetSize() << " bytes from " << src;
+  while ((p = s->RecvFrom(sender))) {
     inbound->on_packet(std::move(p));
   }
 }

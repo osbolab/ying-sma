@@ -31,8 +31,6 @@ message_dispatch::message_dispatch(node::id this_sender,
   : this_sender(std::move(this_sender))
   , outbound(outbound)
 {
-  if (!outbound)
-    LOG(WARNING) << "Messenger has no outbound channel.";
 }
 message_dispatch::message_dispatch(node::id this_sender)
   : message_dispatch(this_sender, nullptr)
@@ -66,9 +64,10 @@ message_dispatch& message_dispatch::post_via(csink<message>* outbound)
 
 messenger& message_dispatch::post(const message::stub& stub)
 {
-  if (outbound)
-    outbound->accept(stub.build(this_sender, next_id.fetch_add(1)));
-  else
+  if (outbound) {
+    auto msg = stub.build(this_sender, next_id.fetch_add(1));
+    outbound->accept(std::move(msg));
+  } else
     LOG(WARNING) << "Message dropped: messenger has no outbound channel";
   return *this;
 }

@@ -10,6 +10,7 @@ _INITIALIZE_EASYLOGGINGPP
 
 #include <sma/test.hpp>
 
+#include "test_container_app.hpp"
 
 
 int main(int argc, char** argv)
