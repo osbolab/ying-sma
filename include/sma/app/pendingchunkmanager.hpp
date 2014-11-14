@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <set>
 #include <mutex>
-#include <sma/typedefinition.hpp>
+#include <sma/app/typedefinition.hpp>
 
 class PendingChunkManager
 {

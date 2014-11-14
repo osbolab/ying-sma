@@ -2,13 +2,13 @@
 
 
 #include <string>
-#include <sma/chunkstore.hpp>
+#include <sma/app/chunkstore.hpp>
 #include <fstream>
-#include <sma/typedefinition.hpp>
+#include <sma/app/typedefinition.hpp>
 #include <unordered_map>
 #include <set>
-#include <sma/pendingchunkmanager.hpp>
-#include <sma/flowtable.hpp>
+#include <sma/app/pendingchunkmanager.hpp>
+#include <sma/app/flowtable.hpp>
 
 class ControlLayer;
 class DeviceLogger;

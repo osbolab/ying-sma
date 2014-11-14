@@ -2,10 +2,10 @@
 
 
 #include <vector>
-#include <sma/contentdescriptor.hpp>
+#include <sma/app/contentdescriptor.hpp>
 #include <mutex>
-#include <sma/sortdirectory.hpp>
-#include <sma/segmenter.hpp>
+#include <sma/app/sortdirectory.hpp>
+#include <sma/app/segmenter.hpp>
 
 class ContentDirectory
 {

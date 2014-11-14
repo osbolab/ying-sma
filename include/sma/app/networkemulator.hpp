@@ -1,11 +1,11 @@
 #pragma once
 
 
-#include <sma/device.hpp>
+#include <sma/app/device.hpp>
 #include <string>
 #include <mutex>
 #include <fstream>
-#include <sma/datablock.hpp>
+#include <sma/app/datablock.hpp>
 
 class Device;
 class DataBlock;

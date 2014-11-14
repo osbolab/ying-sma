@@ -1,10 +1,10 @@
 #pragma once
 
 
-#include <sma/networkemulator.hpp>
-#include <sma/datablock.hpp>
-#include <sma/devicelogger.hpp>
-#include <sma/typedefinition.hpp>    //temp
+#include <sma/app/networkemulator.hpp>
+#include <sma/app/datablock.hpp>
+#include <sma/app/devicelogger.hpp>
+#include <sma/app/typedefinition.hpp>    //temp
 
 #include <string>
 

@@ -4,10 +4,10 @@
 #include <string>
 #include <fstream>
 #include <vector>
-#include <sma/chunkstore.hpp>
-#include <sma/datalayer.hpp>
-#include <sma/typedefinition.hpp>
-#include <sma/devicelogger.hpp>
+#include <sma/app/chunkstore.hpp>
+#include <sma/app/datalayer.hpp>
+#include <sma/app/typedefinition.hpp>
+#include <sma/app/devicelogger.hpp>
 
 class DataLayer;
 

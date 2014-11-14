@@ -3,7 +3,7 @@
 
 #include <unordered_map>
 #include <mutex>
-#include <sma/typedefinition.hpp>
+#include <sma/app/typedefinition.hpp>
 #include <string>
 /*
  * getRule

@@ -1,16 +1,16 @@
 #pragma once
 
 
-#include <sma/gpsinfo.hpp>
-#include <sma/device.hpp>
-#include <sma/devicewithgps.hpp>
+#include <sma/app/gpsinfo.hpp>
+#include <sma/app/device.hpp>
+#include <sma/app/devicewithgps.hpp>
 #include <string>
 #include <mutex>
 #include <unordered_map>
 #include <queue>
-#include <sma/datablock.hpp>
+#include <sma/app/datablock.hpp>
 #include <condition_variable>
-#include <sma/networkemulator.hpp>
+#include <sma/app/networkemulator.hpp>
 #include <vector>
 #include <map>
 

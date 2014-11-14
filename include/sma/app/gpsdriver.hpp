@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <sma/gpsinfo.hpp>
+#include <sma/app/gpsinfo.hpp>
 
 class GPSDriver
 {

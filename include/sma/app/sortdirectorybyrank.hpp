@@ -1,8 +1,8 @@
 #pragma once
 
 
-#include <sma/sortdirectory.hpp>
-#include <sma/contentdescriptor.hpp>
+#include <sma/app/sortdirectory.hpp>
+#include <sma/app/contentdescriptor.hpp>
 #include <string>
 #include <sstream>
 
