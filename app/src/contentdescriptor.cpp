@@ -1,4 +1,5 @@
-#include <sma/app/contentdescription.hpp>
+#include <sma/app/contentdescriptor.hpp>
+
 #include <iostream>
 #include <map>
 #include <string>
@@ -9,34 +10,31 @@
 #include <iomanip>
 #include <ctime>
 
-#ifdef WIN32
-#define timegm _mkgmtime
-#endif
 
-ContentDiscription::ContentDiscription(std::string filename)
+ContentDescriptor::ContentDescriptor(std::string filename)
   : contentName(filename)
 {
 }
 
-void ContentDiscription::addNewChunk(unsigned int seqNo, std::string chunkID)
+void ContentDescriptor::addNewChunk(unsigned int seqNo, std::string chunkID)
 {
   chunkList.insert(make_pair(seqNo, chunkID));
 }
 
-void ContentDiscription::addAttribute(ContentAttribute::META_TYPE type,
+void ContentDescriptor::addAttribute(ContentAttribute::META_TYPE type,
                                       std::string typeValue)
 {
   attriList.insert(make_pair(type, typeValue));
 }
 
-void ContentDiscription::delChunk(unsigned int seqNo)
+void ContentDescriptor::delChunk(unsigned int seqNo)
 {
   std::map<unsigned int, std::string>::iterator iter = chunkList.find(seqNo);
   if (iter != chunkList.end())
     chunkList.erase(iter);
 }
 
-void ContentDiscription::delAttribute(ContentAttribute::META_TYPE type)
+void ContentDescriptor::delAttribute(ContentAttribute::META_TYPE type)
 {
   std::map<ContentAttribute::META_TYPE, std::string>::iterator iter =
       attriList.find(type);
@@ -44,17 +42,17 @@ void ContentDiscription::delAttribute(ContentAttribute::META_TYPE type)
     attriList.erase(iter);
 }
 
-std::string ContentDiscription::getContentName() const
+std::string ContentDescriptor::getContentName() const
 {
   return contentName;
 }
 
-void ContentDiscription::setContentName(std::string filename)
+void ContentDescriptor::setContentName(std::string filename)
 {
   this->contentName = filename;
 }
 
-std::string ContentDiscription::getChunkID(unsigned int seqNo) const
+std::string ContentDescriptor::getChunkID(unsigned int seqNo) const
 {
   std::map<unsigned int, std::string>::const_iterator iter =
       chunkList.find(seqNo);
@@ -62,14 +60,14 @@ std::string ContentDiscription::getChunkID(unsigned int seqNo) const
 }
 
 std::string
-ContentDiscription::getTypeValue(ContentAttribute::META_TYPE type) const
+ContentDescriptor::getTypeValue(ContentAttribute::META_TYPE type) const
 {
   std::map<ContentAttribute::META_TYPE, std::string>::const_iterator iter =
       attriList.find(type);
   return ((iter == attriList.end()) ? "" : iter->second);
 }
 
-void ContentDiscription::print() const
+void ContentDescriptor::print() const
 {
   std::cout << "ContentName: " << this->contentName << std::endl;
   std::map<unsigned int, std::string>::const_iterator chunk_iter =
@@ -90,7 +88,7 @@ void ContentDiscription::print() const
   std::cout << std::endl;
 }
 
-std::vector<std::string> ContentDiscription::getChunkList() const
+std::vector<std::string> ContentDescriptor::getChunkList() const
 {
   std::vector<std::string> result;
   int size = chunkList.size();
@@ -104,12 +102,12 @@ std::vector<std::string> ContentDiscription::getChunkList() const
 }
 
 std::map<ContentAttribute::META_TYPE, std::string>
-ContentDiscription::getMetaPairList() const
+ContentDescriptor::getMetaPairList() const
 {
   return attriList;
 }
 
-bool ContentDiscription::newerThan(const ContentDiscription& description) const
+bool ContentDescriptor::newerThan(const ContentDescriptor& description) const
 {
   // must make sure the timestamp field always exists when creating the meta
   // data.
@@ -125,7 +123,7 @@ bool ContentDiscription::newerThan(const ContentDiscription& description) const
   return std::difftime(time1, time2) > 0.0;
 }
 
-std::time_t ContentDiscription::ContentDiscription::timestampToTimeT() const
+std::time_t ContentDescriptor::ContentDescriptor::timestampToTimeT() const
 {
   std::string timeStampStr = this->getTypeValue(ContentAttribute::PublishTime);
   std::istringstream iss(timeStampStr);

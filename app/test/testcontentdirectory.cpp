@@ -12,7 +12,7 @@ int main ()
   ContentDirectory directory;
   // create content description 1
 
-  ContentDiscription file1("file1");
+  ContentDescriptor file1("file1");
   file1.addNewChunk(0, "ajfdklajfklaj");
   file1.addNewChunk(1, "dkjfaklfjalja");
   file1.addNewChunk(2, "dakjfieijfifa");
@@ -21,7 +21,7 @@ int main ()
   directory.addContentToDirectory(file1);
   
   //create content description 2
-  ContentDiscription file2("file2");
+  ContentDescriptor file2("file2");
   file2.addNewChunk(0, "fajfijfiejfeajf");
   file2.addNewChunk(1, "fjakfjiejfiejfi");
   file2.addNewChunk(2, "dajiafijeufebub");
@@ -30,7 +30,7 @@ int main ()
   directory.addContentToDirectory(file2);
 
   //create content description 3
-  ContentDiscription file3("file3");
+  ContentDescriptor file3("file3");
   file3.addNewChunk(0, "akjfiajfiajfaaf");
   file3.addNewChunk(1, "ajfiajifjafnjdn");
   file3.addNewChunk(2, "jaifjiajfanfjah");
@@ -40,7 +40,7 @@ int main ()
   directory.addContentToDirectory(file3);
 
   //create content description 4
-  ContentDiscription file4("file4");
+  ContentDescriptor file4("file4");
   file4.addNewChunk(0, "jijinjajfakf");
   file4.addAttribute(ContentAttribute::Rank, "1");
   file4.addAttribute(ContentAttribute::Category, "Comedy");
@@ -48,7 +48,7 @@ int main ()
   directory.addContentToDirectory(file4);
   
   //create content description 5
-  ContentDiscription file5("file5");
+  ContentDescriptor file5("file5");
   file5.addNewChunk(0, "jakfjakjfakf");
   file5.addNewChunk(1, "ajfiajiajfaa");
   file5.addAttribute(ContentAttribute::Rank, "400");
@@ -56,8 +56,8 @@ int main ()
   directory.addContentToDirectory(file5);
 
   // print directory without ranking, should be in order
-  vector<ContentDiscription> withoutRankList = directory.getNDirectory(5);
-  vector<ContentDiscription>::iterator iter = withoutRankList.begin();
+  vector<ContentDescriptor> withoutRankList = directory.getNDirectory(5);
+  vector<ContentDescriptor>::iterator iter = withoutRankList.begin();
   while (iter != withoutRankList.end())
   {
     iter->print();
@@ -66,8 +66,8 @@ int main ()
  
   // print directory after ranking, should be 4->1->5->2->3 
   directory.rankDirectory();
-  vector<ContentDiscription> afterRankList = directory.getNDirectory(5);
-  vector<ContentDiscription>::iterator iter2 = afterRankList.begin();
+  vector<ContentDescriptor> afterRankList = directory.getNDirectory(5);
+  vector<ContentDescriptor>::iterator iter2 = afterRankList.begin();
   while (iter2 != afterRankList.end())
   {
     iter2->print();

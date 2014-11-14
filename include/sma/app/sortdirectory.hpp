@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include "contentdirectory.hpp"
+#include <sma/contentdirectory.hpp>
 
 class SortDirectory
 {

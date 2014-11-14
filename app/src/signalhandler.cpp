@@ -147,7 +147,7 @@ void SignalHandler::processDirectorySync(const DataBlock& block)
   bool success = reader.parse(payloadJson, parsedFromString);
   if (success) {
     for (unsigned int index = 0; index < parsedFromString.size(); index++) {
-      ContentDiscription newEntry(parsedFromString[index]["name"].asString());
+      ContentDescriptor newEntry(parsedFromString[index]["name"].asString());
       Json::Value chunkList = parsedFromString[index]["chunk_list"];
       for (auto const& id : chunkList.getMemberNames()) {
         newEntry.addNewChunk(atoi(id.c_str()), chunkList[id].asString());

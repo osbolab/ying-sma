@@ -1,8 +1,8 @@
 #pragma once
 
 
-#include "networkemulator.hpp"
-#include "device.hpp"
+#include <sma/networkemulator.hpp>
+#include <sma/device.hpp>
 #include <vector>
 #include <unordered_map>
 

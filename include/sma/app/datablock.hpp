@@ -1,8 +1,8 @@
 #pragma once
 
 
-#include "device.hpp"
-#include "typedefinition.hpp"
+#include <sma/device.hpp>
+#include <sma/typedefinition.hpp>
 
 namespace SMA
 {

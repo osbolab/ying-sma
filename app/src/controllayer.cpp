@@ -31,7 +31,7 @@ void ControlLayer::publishContent(std::string inFileName, std::string outFileNam
 {
   std::vector<ChunkID> chunkIDs;
   segmenter.storeFile(inFileName, chunkIDs, datalayer);
-  ContentDiscription newFile(outFileName);
+  ContentDescriptor newFile(outFileName);
   std::vector<ChunkID>::iterator chunk_iter = chunkIDs.begin();
   int id = 0;
   while (chunk_iter != chunkIDs.end())
@@ -51,7 +51,7 @@ void ControlLayer::publishContent(std::string inFileName, std::string outFileNam
   updateDirectory(newFile);
 }
 
-void ControlLayer::updateDirectory(ContentDiscription description)
+void ControlLayer::updateDirectory(ContentDescriptor description)
 {
   directory.addContentToDirectory(description);
 }
@@ -109,8 +109,8 @@ void ControlLayer::restoreContentAs(std::string readFileName, std::string saveFi
 
 void ControlLayer::showDirectory() const
 {
-  std::vector<ContentDiscription> serviceDirectory = directory.getDirectory();
-  std::vector<ContentDiscription>::iterator iter = serviceDirectory.begin();
+  std::vector<ContentDescriptor> serviceDirectory = directory.getDirectory();
+  std::vector<ContentDescriptor>::iterator iter = serviceDirectory.begin();
   while (iter != serviceDirectory.end())
   {
     iter->print();
@@ -128,7 +128,7 @@ void ControlLayer::showPendingChunksOfFile (std::string fileName) const
   datalayer.showPendingChunksOfFile (fileName);
 }
 
-std::vector<ContentDiscription> ControlLayer::getContentDirectory (int numOfEntries) const
+std::vector<ContentDescriptor> ControlLayer::getContentDirectory (int numOfEntries) const
 {
   return directory.getNDirectory(numOfEntries); 
 }

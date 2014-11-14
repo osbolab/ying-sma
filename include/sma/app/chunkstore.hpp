@@ -3,8 +3,8 @@
 
 #include <string>
 #include <fstream>
-#include "typedefinition.hpp"
-#include "devicelogger.hpp"
+#include <sma/typedefinition.hpp>
+#include <sma/devicelogger.hpp>
 
 class ChunkStore
 {

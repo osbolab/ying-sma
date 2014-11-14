@@ -32,7 +32,7 @@ set(sources
   "src/neighborrecordentry.cpp"
   "src/gpsdriver.cpp"
   "src/controllayer.cpp"
-  "src/contentdescription.cpp"
+  "src/contentdescriptor.cpp"
   "src/contentdirectory.cpp"
 )
 

@@ -1,12 +1,12 @@
 #pragma once
 
 
-#include "chunkstore.hpp"
+#include <sma/chunkstore.hpp>
 #include <unordered_map>
 #include <mutex>
 #include <string>
 #include <fstream>
-#include "typedefinition.hpp"
+#include <sma/typedefinition.hpp>
 
 class PlainChunkStore : public ChunkStore
 {

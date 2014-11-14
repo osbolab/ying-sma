@@ -1,10 +1,10 @@
 #pragma once
 
 
-#include "datablock.hpp"
-#include "devicelogger.hpp"
-//#include "controllayer.hpp"
-#include "devicelogger.hpp"
+#include <sma/datablock.hpp>
+#include <sma/devicelogger.hpp>
+//#include <sma/controllayer.hpp>
+#include <sma/devicelogger.hpp>
 
 class ControlLayer;
 

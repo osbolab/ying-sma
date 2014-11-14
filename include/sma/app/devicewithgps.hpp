@@ -1,18 +1,18 @@
 #pragma once
 
 
-#include "gpsinfo.hpp"
-#include "device.hpp"
-#include "networkemulator.hpp"
+#include <sma/gpsinfo.hpp>
+#include <sma/device.hpp>
+#include <sma/networkemulator.hpp>
 #include <thread>
-#include "datablock.hpp"
+#include <sma/datablock.hpp>
 #include <mutex>
 #include <queue>
-#include "neighborrecords.hpp"
-#include "controllayer.hpp"
-#include "gpsdriver.hpp"
-#include "devicelogger.hpp"
-#include "typedefinition.hpp"
+#include <sma/neighborrecords.hpp>
+#include <sma/controllayer.hpp>
+#include <sma/gpsdriver.hpp>
+#include <sma/devicelogger.hpp>
+#include <sma/typedefinition.hpp>
 
 class DeviceWithGPS : public Device
 {

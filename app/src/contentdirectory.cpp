@@ -9,7 +9,7 @@
 #include <sma/app/sortdirectorybypublishtime.hpp>
 #include <iostream>
 
-void ContentDirectory::addContentToDirectory (const ContentDiscription& description)
+void ContentDirectory::addContentToDirectory (const ContentDescriptor& description)
 {
   std::unique_lock<std::mutex> lock_directory (m_mutex, std::defer_lock);
   lock_directory.lock();
@@ -18,7 +18,7 @@ void ContentDirectory::addContentToDirectory (const ContentDiscription& descript
   // otherwise, simply add it.
   
   std::string nameOfNewFile = description.getContentName();
-  std::vector<ContentDiscription>::iterator iter = directory.begin();
+  std::vector<ContentDescriptor>::iterator iter = directory.begin();
   while (iter != directory.end())
   {
     if (iter->getContentName() == nameOfNewFile)
@@ -50,23 +50,23 @@ void ContentDirectory::rankDirectory()  //dummy argument
 
 
 
-std::vector<ContentDiscription> ContentDirectory::getNDirectory(int num) const
+std::vector<ContentDescriptor> ContentDirectory::getNDirectory(int num) const
 {
   num = (num > directory.size() ? directory.size() : num);
-  std::vector<ContentDiscription>::const_iterator begin = directory.begin();
-  std::vector<ContentDiscription>::const_iterator end = directory.begin() + num;
-  std::vector<ContentDiscription> result (begin, end);
+  std::vector<ContentDescriptor>::const_iterator begin = directory.begin();
+  std::vector<ContentDescriptor>::const_iterator end = directory.begin() + num;
+  std::vector<ContentDescriptor> result (begin, end);
   return result;
 }
 
-std::vector<ContentDiscription> ContentDirectory::getDirectory() const
+std::vector<ContentDescriptor> ContentDirectory::getDirectory() const
 {
   return directory;
 }
 
 std::vector<ChunkID> ContentDirectory::getChunkList(std::string fileName) const
 {
-  std::vector<ContentDiscription>::const_iterator iter = directory.begin();
+  std::vector<ContentDescriptor>::const_iterator iter = directory.begin();
   std::vector<ChunkID> result;
   while (iter != directory.end())
   {

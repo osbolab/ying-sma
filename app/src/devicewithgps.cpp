@@ -4,7 +4,7 @@
 #include <sma/app/datablock.hpp>
 
 #include <sma/app/controllayer.hpp>
-#include <sma/app/contentdescription.hpp>
+#include <sma/app/contentdescriptor.hpp>
 
 #include <sma/json.hpp>
 
@@ -255,9 +255,9 @@ std::string DeviceWithGPS::getJsonFwd(ChunkID chunk) const
 std::string DeviceWithGPS::getJsonDirectory(int numOfEntries) const
 {
   Json::Value result;
-  std::vector<ContentDiscription> directory =
+  std::vector<ContentDescriptor> directory =
       controlPlane.getContentDirectory(numOfEntries);
-  std::vector<ContentDiscription>::iterator iter = directory.begin();
+  std::vector<ContentDescriptor>::iterator iter = directory.begin();
   while (iter != directory.end()) {
     Json::Value file;
     file["name"] = iter->getContentName();

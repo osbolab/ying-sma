@@ -1,20 +1,20 @@
 #pragma once
 
 
-#include "datalayer.hpp"
-#include "segmenter.hpp"
-#include "contentdirectory.hpp"
+#include <sma/datalayer.hpp>
+#include <sma/segmenter.hpp>
+#include <sma/contentdirectory.hpp>
 #include <string>
-#include "contentdescriptor.hpp"
+#include <sma/contentdescriptor.hpp>
 #include <vector>
 #include <unordered_map>
 #include <mutex>
-#include "device.hpp"
-#include "neighborrecords.hpp"
-#include "datablock.hpp"
-#include "signalhandler.hpp"
-#include "pendingfilemanager.hpp"
-#include "typedefinition.hpp"
+#include <sma/device.hpp>
+#include <sma/neighborrecords.hpp>
+#include <sma/datablock.hpp>
+#include <sma/signalhandler.hpp>
+#include <sma/pendingfilemanager.hpp>
+#include <sma/typedefinition.hpp>
 
 class ControlLayer
 {
