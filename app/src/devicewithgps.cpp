@@ -47,8 +47,6 @@ DeviceWithGPS::DeviceWithGPS(sma::context ctx)
   std::string logFileName = LOG_DIR + deviceID + ".log";
   logger = new DeviceLogger(logFileName);
   controlPlane.setDevicePtr(this);
-
-  LOG(DEBUG) << "Node " << deviceID << " starting broadcast";
   // Start the background notification cycles
   beaconing();
   broadcastDirectory();
