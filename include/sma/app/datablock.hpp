@@ -1,5 +1,5 @@
-#ifndef DATA_BLOCK_H
-#define DATA_BLOCK_H
+#pragma once
+
 
 #include "device.hpp"
 #include "typedefinition.hpp"
@@ -37,4 +37,4 @@ private:
   std::string chunkID; //only valid if this block is a chunk block
 };
 
-#endif
+

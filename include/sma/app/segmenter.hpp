@@ -1,5 +1,5 @@
-#ifndef SEGMENTER_H
-#define SEGMENTER_H
+#pragma once
+
 
 #include <string>
 #include <fstream>
@@ -22,4 +22,4 @@ private:
   static std::ifstream::pos_type DEFAULT_CHUNK_SIZE;
 };
 
-#endif
+

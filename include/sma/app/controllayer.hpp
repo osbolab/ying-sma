@@ -1,11 +1,11 @@
-#ifndef CONTROL_LAYER_H
-#define CONTROL_LAYER_H
+#pragma once
+
 
 #include "datalayer.hpp"
 #include "segmenter.hpp"
 #include "contentdirectory.hpp"
 #include <string>
-#include "contentdiscription.hpp"
+#include "contentdescriptor.hpp"
 #include <vector>
 #include <unordered_map>
 #include <mutex>
@@ -21,8 +21,8 @@ class ControlLayer
 public:
   ControlLayer(std::string cacheNameInDatalayer);
   void publishContent(std::string inFileName, std::string outFileName, const std::vector<std::pair<ContentAttribute::META_TYPE, std::string> >& fileMeta);
-  std::vector<ContentDiscription> getContentDirectory (int numOfEntries) const;  
-  void updateDirectory(ContentDiscription discription);
+  std::vector<ContentDescriptor> getContentDirectory (int numOfEntries) const;  
+  void updateDirectory(ContentDescriptor descriptor);
 
   void showDirectory() const; //for test use
   void showPendingFiles() const;
@@ -63,4 +63,4 @@ private:
   SignalHandler signalHandler;
 };
 
-#endif
+

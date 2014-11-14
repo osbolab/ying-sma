@@ -1,5 +1,5 @@
-#ifndef CHUNK_STORE_H
-#define CHUNK_STORE_H
+#pragma once
+
 
 #include <string>
 #include <fstream>
@@ -17,4 +17,4 @@ public:
   virtual ~ChunkStore(){};
 };
 
-#endif
+

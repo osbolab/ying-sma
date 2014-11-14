@@ -1,5 +1,5 @@
-#ifndef DATA_LAYER_H
-#define DATA_LAYER_H
+#pragma once
+
 
 #include <string>
 #include "chunkstore.hpp"
@@ -41,4 +41,4 @@ private:
   FlowTable flowTable;
 };
 
-#endif
+

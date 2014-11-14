@@ -1,5 +1,5 @@
 #include <sma/app/contentdirectory.hpp>
-#include <sma/app/contentdiscription.hpp>
+#include <sma/app/contentdescription.hpp>
 #include <mutex>
 #include <algorithm>
 #include <sma/app/sortdirectory.hpp>
@@ -9,25 +9,25 @@
 #include <sma/app/sortdirectorybypublishtime.hpp>
 #include <iostream>
 
-void ContentDirectory::addContentToDirectory (const ContentDiscription& discription)
+void ContentDirectory::addContentToDirectory (const ContentDiscription& description)
 {
   std::unique_lock<std::mutex> lock_directory (m_mutex, std::defer_lock);
   lock_directory.lock();
-  // check whether the discription is already in the directory
+  // check whether the description is already in the directory
   // if yes and newer than the old record, replace.
   // otherwise, simply add it.
   
-  std::string nameOfNewFile = discription.getContentName();
+  std::string nameOfNewFile = description.getContentName();
   std::vector<ContentDiscription>::iterator iter = directory.begin();
   while (iter != directory.end())
   {
     if (iter->getContentName() == nameOfNewFile)
     {
-      if (discription.newerThan(*iter))
+      if (description.newerThan(*iter))
       {
 //        std::cout << "updating directory entry..." << std::endl;
         directory.erase(iter);
-        directory.push_back(discription);
+        directory.push_back(description);
       }
 //      std::cout << "not updated..." << std::endl;
       break;
@@ -35,7 +35,7 @@ void ContentDirectory::addContentToDirectory (const ContentDiscription& discript
     iter++;
   }
   if (iter == directory.end())
-    directory.push_back(discription);
+    directory.push_back(description);
   lock_directory.unlock();
 }
 

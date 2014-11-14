@@ -1,5 +1,5 @@
-#ifndef ADHOC_NETWORK_EMULATOR_H
-#define ADHOC_NETWORK_EMULATOR_H
+#pragma once
+
 
 #include "gpsinfo.hpp"
 #include "device.hpp"
@@ -48,4 +48,4 @@ private:
   DeviceLogger* logger;
 };
 
-#endif
+

@@ -1,4 +1,4 @@
-#include <sma/app/contentdiscription.hpp>
+#include <sma/app/contentdescription.hpp>
 #include <iostream>
 #include <map>
 #include <string>
@@ -109,17 +109,17 @@ ContentDiscription::getMetaPairList() const
   return attriList;
 }
 
-bool ContentDiscription::newerThan(const ContentDiscription& discription) const
+bool ContentDiscription::newerThan(const ContentDiscription& description) const
 {
   // must make sure the timestamp field always exists when creating the meta
   // data.
   //  std::string time1Str = this->getTypeValue(ContentAttribute::PublishTime);
   //  std::string time2Str =
-  //  discription.getTypeValue(ContentAttribute::PublishTime);
+  //  description.getTypeValue(ContentAttribute::PublishTime);
   //  std::cout << "compare time " << time1Str
   //            << " and " << time2Str << std::endl;
   time_t time1 = this->timestampToTimeT();
-  time_t time2 = discription.timestampToTimeT();
+  time_t time2 = description.timestampToTimeT();
   //  std::cout << "time_t: " << time1 << " v.s. " << time2 << std::endl;
   //  std::cout << std::difftime(time1, time2) << std::endl;
   return std::difftime(time1, time2) > 0.0;

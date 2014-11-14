@@ -1,5 +1,5 @@
-#ifndef CHUNK_ENTRY_H
-#define CHUNK_ENTRY_H
+#pragma once
+
 
 #include <ChunkEntry.h>
 
@@ -9,4 +9,4 @@ struct ChunkEntry
   std::string chunkID;
 };
 
-#endif
+

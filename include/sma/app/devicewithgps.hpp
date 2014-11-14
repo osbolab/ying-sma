@@ -1,5 +1,5 @@
-#ifndef DEVICE_WITH_GPS_H
-#define DEVICE_WITH_GPS_H
+#pragma once
+
 
 #include "gpsinfo.hpp"
 #include "device.hpp"
@@ -85,4 +85,4 @@ private:
   
 };
 
-#endif
+

@@ -1,5 +1,5 @@
-#ifndef NEIGHBOR_RECORD_ENTRY_H
-#define NEIGHBOR_RECORD_ENTRY_H
+#pragma once
+
 
 #include <chrono>
 #include <string>
@@ -19,4 +19,4 @@ private:
   std::chrono::system_clock::time_point timestamp;
 };
 
-#endif
+

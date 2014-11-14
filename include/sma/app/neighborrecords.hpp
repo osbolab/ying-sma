@@ -1,5 +1,5 @@
-#ifndef NEIGHBOR_RECORDS_H
-#define NEIGHBOR_RECORDS_H
+#pragma once
+
 
 #include <unordered_map>
 #include <mutex>
@@ -19,4 +19,4 @@ class NeighborRecords
     //shoudl have a private method to delete thos outdated record, like 10 mins ago.
 };
 
-#endif
+

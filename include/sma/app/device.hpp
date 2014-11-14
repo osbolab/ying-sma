@@ -1,5 +1,5 @@
-#ifndef DEVICE_H
-#define DEVICE_H
+#pragma once
+
 
 #include "networkemulator.hpp"
 #include "datablock.hpp"
@@ -27,4 +27,4 @@ public:
   virtual void forwardRequest(ChunkID chunk) = 0;
 };
 
-#endif
+

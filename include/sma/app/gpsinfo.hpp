@@ -1,5 +1,5 @@
-#ifndef GPSINFO
-#define GPSINFO 
+#pragma once
+
 
 struct GPSinfo
 {
@@ -7,4 +7,4 @@ struct GPSinfo
   double longitude;
 };
 
-#endif
+

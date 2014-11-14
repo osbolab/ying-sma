@@ -5,6 +5,8 @@ cmake_minimum_required(VERSION 2.8)
 
 project(sma)
 
+set(CMAKE_BUILD_TYPE "Debug")
+
 option(ALL "Configure all projects" OFF)
 
 # Allow C++11/14

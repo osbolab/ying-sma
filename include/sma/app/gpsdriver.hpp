@@ -1,5 +1,5 @@
-#ifndef GPS_DRIVER_H
-#define GPS_DRIVER_H
+#pragma once
+
 
 #include "gpsinfo.hpp"
 
@@ -14,4 +14,4 @@ private:
   GPSinfo data;
 };
 
-#endif
+

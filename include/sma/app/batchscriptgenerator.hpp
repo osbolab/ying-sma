@@ -1,5 +1,5 @@
-#ifndef BATCH_SCRIPT_GENERATOR_H
-#define BATCH_SCRIPT_GENERATOR_H
+#pragma once
+
 
 #include <string>
 #include <fstream>
@@ -25,4 +25,4 @@ private:
   static int DEFAULT_NUM_OF_NODES; // 10000
 };
 
-#endif
+

@@ -1,5 +1,5 @@
 #include <sma/app/controllayer.hpp>
-#include <sma/app/contentdiscription.hpp>
+#include <sma/app/contentdescription.hpp>
 #include <string>
 #include <sma/app/contentdirectory.hpp>
 #include <sma/app/segmenter.hpp>
@@ -51,9 +51,9 @@ void ControlLayer::publishContent(std::string inFileName, std::string outFileNam
   updateDirectory(newFile);
 }
 
-void ControlLayer::updateDirectory(ContentDiscription discription)
+void ControlLayer::updateDirectory(ContentDiscription description)
 {
-  directory.addContentToDirectory(discription);
+  directory.addContentToDirectory(description);
 }
 
 bool ControlLayer::processSignal (const DataBlock& block)

@@ -1,5 +1,5 @@
-#ifndef FLOW_TABLE_H
-#define FLOW_TABLE_H
+#pragma once
+
 
 #include <unordered_map>
 #include <mutex>
@@ -23,4 +23,4 @@ private:
   std::mutex m_mutex_table;
 };
 
-#endif
+

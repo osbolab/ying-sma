@@ -1,18 +1,18 @@
-#ifndef SORT_DIRECTORY_BY_PUBLISHTIME_H
-#define SORT_DIRECTORY_BY_PUBLISHTIME_H
+#pragma once
+
 
 #include "sortdirectory.hpp"
-#include "contentdiscription.hpp"
+#include "contentdescriptor.hpp"
 #include <string>
 
 
 class SortDirectoryByPublishTime : public SortDirectory
 {
 public:
-  bool operator() (const ContentDiscription& discriptionA, const ContentDiscription& discriptionB)
+  bool operator() (const ContentDescriptor& descriptorA, const ContentDescriptor& descriptorB)
   {
-    return discriptionA.newerThan(discriptionB);
+    return descriptorA.newerThan(descriptorB);
   }
 };
 
-#endif
+

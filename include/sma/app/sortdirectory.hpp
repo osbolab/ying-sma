@@ -1,12 +1,12 @@
-#ifndef SORT_DIRECTORY_H
-#define SORT_DIRECTORY_H
+#pragma once
+
 
 #include "contentdirectory.hpp"
 
 class SortDirectory
 {
 public:  
-  virtual bool operator() (const ContentDiscription& discriptionA, const ContentDiscription& discriptionB) = 0;
+  virtual bool operator() (const ContentDescriptor& descriptorA, const ContentDescriptor& descriptorB) = 0;
 };
 
-#endif
+

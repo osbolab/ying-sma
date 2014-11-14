@@ -1,7 +1,7 @@
 #include <sma/app/signalhandler.hpp>
 
 #include <sma/app/datablock.hpp>
-#include <sma/app/contentdiscription.hpp>
+#include <sma/app/contentdescription.hpp>
 #include <sma/app/devicelogger.hpp>
 #include <sma/app/controllayer.hpp>
 #include <sma/json.hpp>

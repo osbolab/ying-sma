@@ -25,5 +25,5 @@ SET(sources
 # TARGETS
 
 ADD_LIBRARY(${PROJECT_NAME} STATIC ${sources})
-add_test_exe("${PROJECT_NAME}_test" "test/test_main.cpp")
-TARGET_LINK_LIBRARIES("${PROJECT_NAME}_test" ${PROJECT_NAME})
+add_test_exe("corelib_test" "test/test_main.cpp")
+TARGET_LINK_LIBRARIES("corelib_test" ${PROJECT_NAME})

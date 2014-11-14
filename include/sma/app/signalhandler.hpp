@@ -1,5 +1,5 @@
-#ifndef SIGNAL_HANDLER_H
-#define SIGNAL_HANDLER_H
+#pragma once
+
 
 #include "datablock.hpp"
 #include "devicelogger.hpp"
@@ -28,4 +28,4 @@ private:
 };
 
 
-#endif
+

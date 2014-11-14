@@ -1,5 +1,5 @@
-#ifndef PLAIN_CHUNK_STORE_H
-#define PLAIN_CHUNK_STORE_H
+#pragma once
+
 
 #include "chunkstore.hpp"
 #include <unordered_map>
@@ -31,4 +31,4 @@ private:
 };
 
 
-#endif
+

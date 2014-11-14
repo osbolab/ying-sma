@@ -1,5 +1,5 @@
-#ifndef EMULATOR_H
-#define EMULATOR_H
+#pragma once
+
 
 #include "networkemulator.hpp"
 #include "device.hpp"
@@ -24,4 +24,4 @@ private:
   bool running;
 };
 
-#endif
+

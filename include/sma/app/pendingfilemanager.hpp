@@ -1,5 +1,5 @@
-#ifndef PENDING_FILE_MANAGER_H
-#define PENDING_FILE_MANAGER_H
+#pragma once
+
 
 #include <string>
 #include <unordered_map>
@@ -18,4 +18,4 @@ private:
   std::mutex m_mutex_map;
 };
 
-#endif
+

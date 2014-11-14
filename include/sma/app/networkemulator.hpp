@@ -1,5 +1,5 @@
-#ifndef NETWORK_EMULATOR_H
-#define NETWORK_EMULATOR_H
+#pragma once
+
 
 #include "device.hpp"
 #include <string>
@@ -21,4 +21,4 @@ public:
 //  virtual void scheduleTransmission() const = 0;
 };
 
-#endif
+

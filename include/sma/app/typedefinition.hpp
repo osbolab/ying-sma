@@ -1,8 +1,8 @@
-#ifndef TYPE_DEFINITION_H
-#define TYPE_DEFINITION_H
+#pragma once
+
 
 #include <string>
 
 typedef std::string ChunkID;
 
-#endif
+

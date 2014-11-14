@@ -1,18 +1,18 @@
-#ifndef SORT_DIRECTORY_BY_RANK_H
-#define SORT_DIRECTORY_BY_RANK_H
+#pragma once
+
 
 #include "sortdirectory.hpp"
-#include "contentdiscription.hpp"
+#include "contentdescriptor.hpp"
 #include <string>
 #include <sstream>
 
 class SortDirectoryByRank : public SortDirectory
 {
 public:
-  bool operator() (const ContentDiscription& discriptionA, const ContentDiscription& discriptionB)
+  bool operator() (const ContentDescriptor& descriptorA, const ContentDescriptor& descriptorB)
   {
-    std::string sRankA = discriptionA.getTypeValue(ContentAttribute::Rank);
-    std::string sRankB = discriptionB.getTypeValue(ContentAttribute::Rank);
+    std::string sRankA = descriptorA.getTypeValue(ContentAttribute::Rank);
+    std::string sRankB = descriptorB.getTypeValue(ContentAttribute::Rank);
     if (!sRankA.empty() && !sRankB.empty())
     {
       int iRankA, iRankB;
@@ -31,4 +31,4 @@ public:
   }
 };
 
-#endif
+

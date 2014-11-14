@@ -1,5 +1,5 @@
-#ifndef CONTENT_DISCRIPTION
-#define CONTENT_DISCRIPTION
+#pragma once
+
 
 #include <map>
 #include <string>
@@ -34,10 +34,10 @@ inline META_TYPE to_META_TYPE(const char* str)
 }
 }
 
-class ContentDiscription
+class ContentDescriptor
 {
 public:
-  ContentDiscription(std::string filename);
+  ContentDescriptor(std::string filename);
   void addNewChunk(unsigned int seqNo,
                    std::string chunkID);    // only owner can do that
   void delChunk(unsigned int seqNo);        // only owner can do that
@@ -53,7 +53,7 @@ public:
                          // network use
   std::vector<std::string> getChunkList() const;
   std::map<ContentAttribute::META_TYPE, std::string> getMetaPairList() const;
-  bool newerThan(const ContentDiscription& discription) const;
+  bool newerThan(const ContentDescriptor& descriptor) const;
   std::time_t timestampToTimeT() const;
   static time_t timestampToTime(std::string timestamp);
 
@@ -63,4 +63,4 @@ private:
   std::map<ContentAttribute::META_TYPE, std::string> attriList;
 };
 
-#endif
+

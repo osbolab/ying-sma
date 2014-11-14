@@ -1,5 +1,5 @@
-#ifndef PENDING_CHUNK_MANAGER_H
-#define PENDING_CHUNK_MANAGER_H
+#pragma once
+
 
 #include <vector>
 #include <string>
@@ -23,4 +23,4 @@ private:
   std::mutex m_mutex_chunk;
 };
 
-#endif
+

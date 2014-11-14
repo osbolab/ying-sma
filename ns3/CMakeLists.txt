@@ -27,10 +27,10 @@ set(sources
 add_library("${PROJECT_NAME}" STATIC ${sources})
 target_link_libraries("${PROJECT_NAME}" "smacore" "smaapp")
 
-add_test_exe("${PROJECT_NAME}_test" "test/test_main.cpp")
-target_link_libraries("${PROJECT_NAME}_test" "${PROJECT_NAME}")
+add_test_exe("ns3lib_test" "test/test_main.cpp")
+target_link_libraries("ns3lib_test" "${PROJECT_NAME}")
 # Unfortunately, the nice thing waf does for us is build up their
 # configuration-encoded dependency hierarchy.
 # We have to figure it out by adding stuff until we stop getting link errors.
-use_ns3_modules("${PROJECT_NAME}_test"
+use_ns3_modules("ns3lib_test"
   "core" "network" "internet" "csma" "applications")

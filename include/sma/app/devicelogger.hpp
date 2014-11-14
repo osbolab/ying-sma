@@ -1,5 +1,5 @@
-#ifndef DEVICE_LOGGER_H
-#define DEVICE_LOGGER_H
+#pragma once
+
 
 #include <fstream>
 #include <mutex>
@@ -18,4 +18,4 @@ private:
   std::mutex m_mutex_log;
 };
 
-#endif
+

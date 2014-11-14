@@ -1,7 +1,7 @@
 #include <sma/app/contentdirectory.hpp>
 #include <sma/app/sortdirectorybyrank.hpp>
 #include <iostream>
-#include <sma/app/contentdiscription.hpp>
+#include <sma/app/contentdescription.hpp>
 #include <string>
 
 using namespace std;
@@ -10,7 +10,7 @@ int main ()
 {
 
   ContentDirectory directory;
-  // create content discription 1
+  // create content description 1
 
   ContentDiscription file1("file1");
   file1.addNewChunk(0, "ajfdklajfklaj");
@@ -20,7 +20,7 @@ int main ()
   file1.addAttribute(ContentAttribute::Rank,"234");
   directory.addContentToDirectory(file1);
   
-  //create content discription 2
+  //create content description 2
   ContentDiscription file2("file2");
   file2.addNewChunk(0, "fajfijfiejfeajf");
   file2.addNewChunk(1, "fjakfjiejfiejfi");
@@ -29,7 +29,7 @@ int main ()
   file2.addAttribute(ContentAttribute::PublishTime, "2014/10/14 13:30:15");
   directory.addContentToDirectory(file2);
 
-  //create content discription 3
+  //create content description 3
   ContentDiscription file3("file3");
   file3.addNewChunk(0, "akjfiajfiajfaaf");
   file3.addNewChunk(1, "ajfiajifjafnjdn");
@@ -39,7 +39,7 @@ int main ()
   file3.addAttribute(ContentAttribute::PublishTime, "2014/10/13 13:30:11");
   directory.addContentToDirectory(file3);
 
-  //create content discription 4
+  //create content description 4
   ContentDiscription file4("file4");
   file4.addNewChunk(0, "jijinjajfakf");
   file4.addAttribute(ContentAttribute::Rank, "1");
@@ -47,7 +47,7 @@ int main ()
   file4.addAttribute(ContentAttribute::PublishTime, "2014/10/16 13:30:11");
   directory.addContentToDirectory(file4);
   
-  //create content discription 5
+  //create content description 5
   ContentDiscription file5("file5");
   file5.addNewChunk(0, "jakfjakjfakf");
   file5.addNewChunk(1, "ajfiajiajfaa");

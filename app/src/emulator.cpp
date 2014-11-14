@@ -48,7 +48,7 @@ void Emulator::runInRealtime()
   std::cout << std::endl;
 }
 
-void Emulator::initEnv(bool inBatchMode = false)
+void Emulator::initEnv(bool inBatchMode)
 {
 
   if (inBatchMode) {

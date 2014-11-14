@@ -1,5 +1,5 @@
-#ifndef ATTRI_ENTRY_H
-#define ATTRI_ENTRY_H
+#pragma once
+
 
 enum META_TYPE {PublishTime, Category, Location};
 
@@ -11,4 +11,4 @@ struct AttriEntry
   AttriEntry(META_TYPE newType, std::string newTypeValue):type(newType), typeValue(newTypeValue) {}
 };
 
-#endif
+

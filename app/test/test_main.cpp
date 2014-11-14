@@ -9,8 +9,9 @@
 _INITIALIZE_EASYLOGGINGPP
 
 // Include tests here
-
 #include <sma/test.hpp>
+
+#include "test_emulator.hpp"
 
 
 int main(int argc, char** argv)
