@@ -12,7 +12,7 @@
 #include <sma/message.hpp>
 #include <sma/messenger.hpp>
 #include <sma/scheduler.hpp>
-#include <sma/log.hpp>
+#include <sma/log>
 
 #include <iostream>
 #include <iomanip>
@@ -52,8 +52,15 @@ DeviceWithGPS::DeviceWithGPS(sma::context ctx)
   broadcastDirectory();
 }
 
+void DeviceWithGPS::dispose()
+{
+  disposed = true;
+}
+
 DeviceWithGPS::~DeviceWithGPS()
 {
+  while (beacon_scheduled || broadcast_scheduled)
+    std::this_thread::sleep_for(std::chrono::seconds(HEARTBEAT_INTERVAL));
   logger->close();
   delete logger;
   logger = nullptr;
@@ -96,6 +103,9 @@ void DeviceWithGPS::leaveFromNetwork(NetworkEmulator* networkAttached)
  */
 void DeviceWithGPS::beaconing()
 {
+  beacon_scheduled = false;
+  if (disposed) return;
+
   // broadcast GPS
   DataBlock block(SMA::GPSBCAST);
   std::string gpsBroadCastData
@@ -112,12 +122,18 @@ void DeviceWithGPS::beaconing()
   logStr << "Heartbeating...\n";
   logger->log(logStr.str());
 
-  ctx.sched->schedule(std::chrono::seconds(HEARTBEAT_INTERVAL),
-                      std::bind(&DeviceWithGPS::beaconing, this));
+  if (!disposed) {
+    ctx.sched->schedule(std::chrono::seconds(HEARTBEAT_INTERVAL),
+                        std::bind(&DeviceWithGPS::beaconing, this));
+    beacon_scheduled = true;
+  }
 }
 
 void DeviceWithGPS::broadcastDirectory()
 {
+  broadcast_scheduled = false;
+  if (disposed) return;
+
   // broadcast content directory
   int numOfEntries = 5;    // Temp solution: The number should be provided by
                            // the profiling module.
@@ -135,8 +151,11 @@ void DeviceWithGPS::broadcastDirectory()
   logStr << "Broadcast directory sync to the network...\n";
   logger->log(logStr.str());
 
-  ctx.sched->schedule(std::chrono::seconds(DIRECTORY_SYNC_INTERVAL),
-                      std::bind(&DeviceWithGPS::broadcastDirectory, this));
+  if (!disposed) {
+    ctx.sched->schedule(std::chrono::seconds(DIRECTORY_SYNC_INTERVAL),
+                        std::bind(&DeviceWithGPS::broadcastDirectory, this));
+    broadcast_scheduled = true;
+  }
 }
 
 void DeviceWithGPS::forwardRequest(ChunkID chunk)

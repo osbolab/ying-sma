@@ -1,20 +1,23 @@
-#include "simple_launcher.hpp"
+#include <sma/log>
+// Call only once per application
+_INITIALIZE_EASYLOGGINGPP
 
 #include <sma/ns3/ns3_socket.hpp>
-#include <sma/ns3/container_app.hpp>
-#include <sma/log.hpp>
+#include <sma/ns3/app_container.hpp>
 
 #include <ns3/core-module.h>
 #include <ns3/csma-module.h>
 #include <ns3/applications-module.h>
 #include <ns3/internet-module.h>
 
-#include <cstdint>
-#include <fstream>
 
-
-namespace sma
+int main(int argc, char** argv)
 {
+  el::Loggers::reconfigureAllLoggers(
+      el::ConfigurationType::Format,
+      "%datetime{%m:%s.%g} %levshort [%thread] %func (%fbase:%line) %msg");
+
+
   const std::size_t nnodes = 2;
 
   LOG(DEBUG) << "Create CSMA channel (5MBps - 2ms delay - 1400b MTU)";
@@ -48,27 +51,28 @@ namespace sma
   // application.
   LOG(DEBUG) << "Install SMA application instances in simulator nodes";
   ns3::ObjectFactory sma_factory;
-  sma_factory.SetTypeId(container_app::TypeId());
-  sma_factory.Set("Port", ns3::UintegerValue(9999));
+  sma_factory.SetTypeId(sma::app_container::TypeId());
 
   // We can keep using that injection template to spawn applications and
   // attach them to nodes.
   for (std::size_t i = 0; i < nnodes; ++i) {
     sma_factory.Set("ID", ns3::UintegerValue(i));
-    auto app = sma_factory.Create<container_app>();
+    auto app = sma_factory.Create<sma::app_container>();
     auto apps = ns3::ApplicationContainer(app);
     apps.Start(ns3::Seconds(0));
+    apps.Stop(ns3::Seconds(60));
     nodes.Get(i)->AddApplication(app);
   }
   // ^^^^^^^^^^^^^^^^^^^^^^^^^ SMA STUFF ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
   LOG(DEBUG) << "Will output pcap data for traffic analysis";
   ns3::AsciiTraceHelper ascii;
-  csma.EnablePcapAll("test_ns3_socket", false);
+  csma.EnablePcapAll("wifi_simple", false);
 
   LOG(DEBUG) << "Simulating";
   ns3::Simulator::Run();
   ns3::Simulator::Destroy();
   LOG(DEBUG) << "done.";
-}
+
+  return 0;
 }

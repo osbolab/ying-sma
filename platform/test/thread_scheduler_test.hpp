@@ -1,6 +1,6 @@
 #include <sma/core/thread_scheduler.hpp>
 
-#include <sma/log.hpp>
+#include <sma/log>
 
 #include "gtest/gtest.h"
 

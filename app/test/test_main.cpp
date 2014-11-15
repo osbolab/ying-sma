@@ -4,12 +4,12 @@
  *
  *****************************************************************************/
 
-#include <sma/log.hpp>
+#include <sma/log>
 // Call only once per application
 _INITIALIZE_EASYLOGGINGPP
 
 // Include tests here
-#include <sma/test.hpp>
+#include <sma/test>
 
 
 

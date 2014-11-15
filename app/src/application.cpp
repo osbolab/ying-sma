@@ -3,7 +3,7 @@
 
 #include <sma/app/devicewithgps.hpp>
 
-#include <sma/log.hpp>
+#include <sma/log>
 
 
 namespace sma
@@ -12,7 +12,12 @@ application::application(context ctx)
   : device(std::make_unique<DeviceWithGPS>(ctx))
 {
   LOG(DEBUG) << "Node " << ctx.node_id;
-  if (ctx.node_id == 1)
-    device->
+
+}
+
+void application::dispose()
+{
+  if (device)
+    device->dispose();
 }
 }

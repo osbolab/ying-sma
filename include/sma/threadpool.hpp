@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sma/log.hpp>
+#include <sma/log>
 
 #include <cstdlib>
 #include <vector>

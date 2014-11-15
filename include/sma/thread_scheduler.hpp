@@ -3,7 +3,7 @@
 #include <sma/scheduler.hpp>
 #include <sma/delay_queue.hpp>
 #include <sma/threadpool.hpp>
-#include <sma/log.hpp>
+#include <sma/log>
 
 #include <cstdlib>
 #include <cassert>

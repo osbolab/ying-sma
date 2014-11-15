@@ -1,4 +1,7 @@
 #include <sma/app/devicelogger.hpp>
+
+#include <sma/time>
+
 #include <fstream>
 #include <mutex>
 #include <string>
@@ -20,9 +23,9 @@ void DeviceLogger::log(std::string content)
 {
   std::unique_lock<std::mutex> lockLog(m_mutex_log, std::defer_lock);
   lockLog.lock();
-  std::chrono::system_clock::time_point timestamp =
-      std::chrono::system_clock::now();
-  std::time_t t = std::chrono::system_clock::to_time_t(timestamp);
+  sma::chrono::system_clock::time_point timestamp =
+      sma::chrono::system_clock::now();
+  std::time_t t = sma::chrono::system_clock::to_time_t(timestamp);
   struct std::tm* gmtm = std::gmtime(&t);
   auto duration = timestamp.time_since_epoch();
   auto mseconds =

@@ -2,7 +2,7 @@
 #include <sma/message.hpp>
 #include <sma/sink.hpp>
 #include <sma/rws_mutex.hpp>
-#include <sma/log.hpp>
+#include <sma/log>
 
 #include <cstdint>
 #include <cassert>

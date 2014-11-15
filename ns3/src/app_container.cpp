@@ -1,4 +1,4 @@
-#include <sma/ns3/container_app.hpp>
+#include <sma/ns3/app_container.hpp>
 
 #include <sma/channel.hpp>
 #include <sma/message_dispatch.hpp>
@@ -7,7 +7,7 @@
 #include <sma/app/application.hpp>
 
 #include <sma/bytes.hpp>
-#include <sma/log.hpp>
+#include <sma/log>
 
 #include <ns3/application.h>
 #include <ns3/uinteger.h>
@@ -19,16 +19,16 @@
 
 namespace sma
 {
-ns3::TypeId container_app::TypeId()
+ns3::TypeId app_container::TypeId()
 {
   static ns3::TypeId tid
-      = ns3::TypeId("sma::container_app")
+      = ns3::TypeId("sma::app_container")
             .SetParent<ns3::Application>()
-            .AddConstructor<container_app>()
+            .AddConstructor<app_container>()
             .AddAttribute("ID",
                           "Node ID",
                           ns3::UintegerValue(0),
-                          ns3::MakeUintegerAccessor(&container_app::id),
+                          ns3::MakeUintegerAccessor(&app_container::id),
                           ns3::MakeUintegerChecker<std::uint16_t>());
   return tid;
 }
@@ -36,16 +36,16 @@ ns3::TypeId container_app::TypeId()
 /******************************************************************************
  * c/dtor and assignment
  */
-container_app::container_app() { LOG(DEBUG); }
-container_app::container_app(Myt&& rhs) {}
-container_app& container_app::operator=(Myt&& rhs) { return *this; }
-container_app::~container_app() {}
+app_container::app_container() { LOG(DEBUG); }
+app_container::app_container(Myt&& rhs) {}
+app_container& app_container::operator=(Myt&& rhs) { return *this; }
+app_container::~app_container() {}
 // Inherited from ns3::Application; part of their lifecycle management I guess
-void container_app::DoDispose() { LOG(DEBUG); }
+void app_container::DoDispose() { LOG(DEBUG); }
 /* c/dtor and assignment
  *****************************************************************************/
 
-void container_app::StartApplication()
+void app_container::StartApplication()
 {
   // Construct the message chain from the bottom up
   ns3::TypeId udp_sock_factory
@@ -68,9 +68,9 @@ void container_app::StartApplication()
   app = std::make_unique<application>(std::move(ctx));
 }
 
-void container_app::StopApplication()
+void app_container::StopApplication()
 {
-  app = nullptr;
+  app->dispose();
   // Close the channel and, transitively, the sockets
   chan->close();
 }

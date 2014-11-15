@@ -64,7 +64,7 @@
  * | ----------------------------------------------------------------------- |
  * | |                     ns3::ApplicationContainer                       | |
  * | | ------------------------------------------------------------------- | |
- * | | |               container_app --> ns3::Application              | | | |
+ * | | |               app_container --> ns3::Application              | | | |
  * | | | --------------------------------------------------------------| | | |
  * | | | |                                                             | | | |
  * | | | |    ------------------      -------------------------------  | | | |
@@ -109,19 +109,19 @@
 namespace sma
 {
 
-class container_app final : public ns3::Application
+class app_container final : public ns3::Application
 {
-  using Myt = container_app;
+  using Myt = app_container;
 
 public:
   // ns3 constructs our object while injecting config parameters into it.
   // We use this to look up the class when giving ns3 applications.
   static ns3::TypeId TypeId();
 
-  container_app();
-  container_app(Myt&& rhs);
+  app_container();
+  app_container(Myt&& rhs);
   Myt& operator=(Myt&& rhs);
-  virtual ~container_app();
+  virtual ~app_container();
 
 protected:
   virtual void DoDispose() override;

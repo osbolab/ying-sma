@@ -1,7 +1,7 @@
 #include <sma/linux/bsd_socket.hpp>
 #include <sma/net/socket.hpp>
 #include <sma/bytes.hpp>
-#include <sma/log.hpp>
+#include <sma/log>
 
 // BSD sockets stuff
 #include <unistd.h>

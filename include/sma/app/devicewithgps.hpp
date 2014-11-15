@@ -9,6 +9,7 @@
 
 #include <sma/app/datablock.hpp>
 #include <mutex>
+#include <atomic>
 #include <queue>
 #include <sma/app/neighborrecords.hpp>
 #include <sma/app/controllayer.hpp>
@@ -23,6 +24,9 @@ class DeviceWithGPS : public Device
 public:
   DeviceWithGPS(sma::context ctx);
   ~DeviceWithGPS();
+
+  void dispose();
+
   std::string getDeviceID() const;
   /* GPS driver delegation
  */
@@ -59,7 +63,11 @@ public:
   void processNeighborQuery () const;
   DeviceLogger* getLoggerPtr() const;
 
+
 private:
+  std::atomic_bool disposed{false};
+  std::atomic_bool broadcast_scheduled{false};
+  std::atomic_bool beacon_scheduled{false};
   static std::string LOG_DIR;
   NetworkEmulator* network;
   sma::context ctx;

@@ -1,0 +1,26 @@
+#pragma once
+
+#include <chrono>
+#include <ctime>
+
+
+namespace sma
+{
+namespace chrono
+{
+  struct system_clock {
+  public:
+    using duration = std::chrono::nanoseconds;
+    using rep = duration::rep;
+    using period = duration::period;
+    using time_point = std::chrono::time_point<system_clock, duration>;
+
+    static const bool is_monotonic = false;
+
+    static time_point now();
+
+    static std::time_t to_time_t(const time_point& t);
+    static time_point from_time_t(std::time_t t);
+  };
+}
+}

@@ -4,7 +4,7 @@
 #include <sma/messenger.hpp>
 #include <sma/message.hpp>
 #include <sma/socket.hpp>
-#include <sma/log.hpp>
+#include <sma/log>
 
 #include <ns3/ptr.h>
 #include <ns3/packet.h>

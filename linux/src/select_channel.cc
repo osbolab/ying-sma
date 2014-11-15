@@ -1,6 +1,6 @@
 #include <sma/linux/select_channel.hpp>
 #include <sma/linux/bsd_socket.hpp>
-#include <sma/log.hpp>
+#include <sma/log>
 
 #include <sys/types.h>
 #include <sys/socket.h>

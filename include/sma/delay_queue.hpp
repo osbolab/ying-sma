@@ -2,7 +2,7 @@
 
 #include <sma/priority_queue.hpp>
 #include <sma/thread_interrupted.hpp>
-#include <sma/log.hpp>
+#include <sma/log>
 
 #include <utility>
 #include <chrono>

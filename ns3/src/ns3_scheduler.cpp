@@ -1,5 +1,5 @@
 #include <sma/ns3/ns3_scheduler.hpp>
-#include <sma/log.hpp>
+#include <sma/log>
 
 #include <ns3/simulator.h>
 #include <ns3/nstime.h>

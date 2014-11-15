@@ -1,5 +1,5 @@
 #include <sma/ns3/ns3_socket.hpp>
-#include <sma/log.hpp>
+#include <sma/log>
 
 #include <ns3/ptr.h>
 #include <ns3/node.h>
