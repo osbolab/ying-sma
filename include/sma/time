@@ -13,7 +13,7 @@ namespace chrono
     using duration = std::chrono::nanoseconds;
     using rep = duration::rep;
     using period = duration::period;
-    using time_point = std::chrono::time_point<system_clock, duration>;
+    using time_point = std::chrono::time_point<std::chrono::system_clock, duration>;
 
     static const bool is_monotonic = false;
 

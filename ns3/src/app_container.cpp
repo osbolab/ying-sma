@@ -5,6 +5,7 @@
 #include <sma/scheduler.hpp>
 
 #include <sma/app/application.hpp>
+#include <sma/time>
 
 #include <sma/bytes.hpp>
 #include <sma/log>
@@ -47,6 +48,10 @@ void app_container::DoDispose() { LOG(DEBUG); }
 
 void app_container::StartApplication()
 {
+  // Force the clock to use the current real wall time as the beginning
+  // of the simulation.
+  sma::chrono::system_clock::now();
+
   // Construct the message chain from the bottom up
   ns3::TypeId udp_sock_factory
       = ns3::TypeId::LookupByName("ns3::UdpSocketFactory");

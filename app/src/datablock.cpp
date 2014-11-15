@@ -54,9 +54,7 @@ DataBlock::~DataBlock()
 
 void DataBlock::createData(Device* devicePtr, const char* csrc, int size)
 {
-  LOG(DEBUG) << "createData";
   srcDeviceID = devicePtr->getDeviceID();
-  LOG(DEBUG) << srcDeviceID;
   payloadSize = size;
   if (dataArray != nullptr)
     delete[] dataArray;

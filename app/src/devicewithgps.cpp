@@ -26,10 +26,14 @@
 
 #include <vector>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
+
 
 int DeviceWithGPS::HEARTBEAT_INTERVAL = 10;
 int DeviceWithGPS::DIRECTORY_SYNC_INTERVAL = 30;
-std::string DeviceWithGPS::LOG_DIR = "./log/";
+std::string DeviceWithGPS::LOG_DIR = "logs/nodes/";
 unsigned int DeviceWithGPS::DEFAULT_POWER_LEVEL = 10000;
 
 DeviceWithGPS::DeviceWithGPS(sma::context ctx)
@@ -44,6 +48,15 @@ DeviceWithGPS::DeviceWithGPS(sma::context ctx)
   }
   gpsDriver.setGPS(0.0, 0.0);
   powerLevel = DEFAULT_POWER_LEVEL;
+
+  struct stat info;
+  if (stat(LOG_DIR.c_str(), &info) == -1) {
+    if (mkdir(LOG_DIR.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1)
+      LOG(ERROR) << "Can't make directory " << LOG_DIR;
+    else
+      LOG(DEBUG) << "Created log directory " << LOG_DIR;
+  } else if (!(info.st_mode & S_IFDIR))
+    LOG(ERROR) << LOG_DIR << " isn't a directory";
   std::string logFileName = LOG_DIR + deviceID + ".log";
   logger = new DeviceLogger(logFileName);
   controlPlane.setDevicePtr(this);
@@ -237,7 +250,6 @@ void DeviceWithGPS::publishContent(std::string inFileName,
   char tmc[30];
   std::strftime(tmc, 30, "%Y/%m/%d %T", gmtm);
   oss << tmc;
-  oss.put(0);
   attri_pair.push_back(
       std::make_pair(ContentAttribute::PublishTime, oss.str()));
   controlPlane.publishContent(inFileName, outFileName, attri_pair);

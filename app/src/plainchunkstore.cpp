@@ -12,6 +12,7 @@
 #include <iterator>
 #include <algorithm>
 #include <sstream>
+#include <exception>
 
 
 // std::string PlainChunkStore::DEFAULT_DIR = "./cache/";
@@ -24,14 +25,8 @@ PlainChunkStore::PlainChunkStore(std::string dirName)
   std::ostringstream oss;
   //  oss << "Trying to link to content store " << dirName << "..." <<
   //  std::endl;
-  std::cout << "Trying to link to content store " << dirName << "..."
-            << std::endl;
   if (!std::ifstream(dirName))
-    std::cout << "Fail" << std::endl;
-  //    oss << "Fail" << std::endl;
-  else
-    std::cout << "Success" << std::endl;
-  //    oss << "Success" << std::endl;
+    throw std::exception();
 
   //  logger->log (oss.str());
 }

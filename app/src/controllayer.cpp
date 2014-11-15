@@ -11,7 +11,7 @@
 #include <sstream>
 #include <cstdio>
 
-std::string ControlLayer::TMP_FOLDER = "./build/tmp/";
+std::string ControlLayer::TMP_FOLDER = "tmp/";
 
 ControlLayer::ControlLayer(std::string cacheNameInDatalayer):datalayer(cacheNameInDatalayer)
 {

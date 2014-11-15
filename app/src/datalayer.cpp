@@ -7,18 +7,39 @@
 #include <sma/app/segmenter.hpp>
 #include <sma/app/controllayer.hpp>
 
+#include <sma/log>
+
 #include <string>
 #include <sys/stat.h>
 #include <vector>
 #include <sstream>
 
+#include <exception>
 
-std::string DataLayer::DEFAULT_CACHE_PREFIX = "./cache/";
+#include <sys/types.h>
+#include <sys/stat.h>
+
+
+std::string DataLayer::DEFAULT_CACHE_PREFIX = "cache/";
 
 DataLayer::DataLayer(std::string cacheDirName)
 {
-  std::string completeCachePath =
-      DataLayer::DEFAULT_CACHE_PREFIX + cacheDirName + "/";
+  struct stat info;
+  if (stat(DEFAULT_CACHE_PREFIX.c_str(), &info) == -1) {
+    if (mkdir(DEFAULT_CACHE_PREFIX.c_str(),
+              S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1) {
+      LOG(ERROR) << "Can't make directory " << DEFAULT_CACHE_PREFIX;
+      throw std::exception();
+    } else
+      LOG(DEBUG) << "Created log directory " << DEFAULT_CACHE_PREFIX;
+  } else if (!(info.st_mode & S_IFDIR)) {
+    LOG(ERROR) << DEFAULT_CACHE_PREFIX << " isn't a directory";
+    throw std::exception();
+  }
+
+
+  std::string completeCachePath = DataLayer::DEFAULT_CACHE_PREFIX + cacheDirName
+                                  + "/";
   mkdir(completeCachePath.c_str(), 0777);
   store = new PlainChunkStore(completeCachePath);
 }
@@ -94,10 +115,7 @@ void DataLayer::addFlowRule(ChunkID chunk, int rule)
   flowTable.addRule(chunk, rule);
 }
 
-void DataLayer::delFlowRule(ChunkID chunk)
-{
-  flowTable.delRule(chunk);
-}
+void DataLayer::delFlowRule(ChunkID chunk) { flowTable.delRule(chunk); }
 
 int DataLayer::getFlowRule(ChunkID chunk) const
 {
@@ -109,7 +127,4 @@ void DataLayer::showPendingChunksOfFile(std::string fileName) const
   pendingChunkMgr.printRemainingChunksOfFile(fileName);
 }
 
-void DataLayer::setLogger(DeviceLogger* loggerPtr)
-{
-  logger = loggerPtr;
-}
+void DataLayer::setLogger(DeviceLogger* loggerPtr) { logger = loggerPtr; }

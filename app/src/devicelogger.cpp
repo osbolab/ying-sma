@@ -1,4 +1,5 @@
 #include <sma/app/devicelogger.hpp>
+#include <sma/log>
 
 #include <sma/time>
 
@@ -34,7 +35,6 @@ void DeviceLogger::log(std::string content)
   char tmc[30];
   std::strftime(tmc, 30, "%Y/%m/%d %T", gmtm);
   oss << tmc;
-  oss.put(0);
   logFile << "[" << oss.str() << "|" << mseconds << "]  " << content;
   logFile.flush();
   lockLog.unlock();
