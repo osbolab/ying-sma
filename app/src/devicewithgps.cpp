@@ -11,7 +11,7 @@
 #include <sma/app/context.hpp>
 #include <sma/message.hpp>
 #include <sma/messenger.hpp>
-#include <sma/scheduler.hpp>
+#include <sma/async>
 #include <sma/log>
 
 #include <iostream>
@@ -133,8 +133,8 @@ void DeviceWithGPS::beaconing()
   logger->log(logStr.str());
 
   if (!disposed) {
-    ctx.sched->schedule(std::chrono::seconds(HEARTBEAT_INTERVAL),
-                        std::bind(&DeviceWithGPS::beaconing, this));
+    sma::async(std::bind(&DeviceWithGPS::beaconing, this))
+        .do_in(std::chrono::seconds(HEARTBEAT_INTERVAL));
     beacon_scheduled = true;
   }
 }
@@ -163,8 +163,8 @@ void DeviceWithGPS::broadcastDirectory()
   logger->log(logStr.str());
 
   if (!disposed) {
-    ctx.sched->schedule(std::chrono::seconds(DIRECTORY_SYNC_INTERVAL),
-                        std::bind(&DeviceWithGPS::broadcastDirectory, this));
+    sma::async(std::bind(&DeviceWithGPS::broadcastDirectory, this))
+        .do_in(std::chrono::seconds(DIRECTORY_SYNC_INTERVAL));
     broadcast_scheduled = true;
   }
 }

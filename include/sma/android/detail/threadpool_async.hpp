@@ -1,8 +1,8 @@
 #pragma once
 
-#include <sma/scheduler.hpp>
-#include <sma/delay_queue.hpp>
-#include <sma/threadpool.hpp>
+#include <sma/async>
+#include <sma/collect/delay_queue.hpp>
+#include <sma/concurrent/threadpool.hpp>
 #include <sma/log>
 
 #include <cstdlib>
@@ -15,13 +15,14 @@
 namespace sma
 {
 
-class thread_scheduler final : public scheduler
+class threadpool_async final
 {
-  using Lock = std::unique_lock<std::mutex>;
-
 public:
-  thread_scheduler(std::size_t nthreads);
-  virtual ~thread_scheduler();
+  static threadpool_async& instance()
+  {
+    static threadpool_async& instance;
+    return instance;
+  }
 
 protected:
   // The front-end scheduler packages the task function and its arguments for
@@ -29,6 +30,12 @@ protected:
   virtual void schedule(std::function<void()> task, millis delay) override;
 
 private:
+  using Lock = std::unique_lock<std::mutex>;
+
+  threadpool_async();
+  threadpool_async(threadpool_async const&);
+  void operator=(threadpool_async const&);
+
   std::mutex mutex;
   threadpool threads;
   delay_queue<std::function<void()>> tasks;

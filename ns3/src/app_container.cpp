@@ -2,7 +2,6 @@
 
 #include <sma/channel.hpp>
 #include <sma/message_dispatch.hpp>
-#include <sma/scheduler.hpp>
 
 #include <sma/app/application.hpp>
 #include <sma/chrono>
@@ -57,10 +56,7 @@ void app_container::StartApplication()
   msgr = message_dispatch::new_single_threaded(chan.get());
   chan->inbox(msgr.get());
 
-  // The scheduler is less of a chain
-  sched = std::make_unique<ns3_scheduler>();
-
-  context ctx { id, msgr.get(), sched.get() };
+  context ctx { id, msgr.get() };
   app = std::make_unique<application>(std::move(ctx));
 }
 

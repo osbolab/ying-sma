@@ -11,9 +11,9 @@ include("cmake/ns3.cmake")
 # The main library implements the abstract core services using NS3 facilities.
 set(sources
   "src/chrono.cpp"
+  "src/async.cpp"
   "src/ns3_socket.cpp"
   "src/ns3_channel.cpp"
-  "src/ns3_scheduler.cpp"
 )
 
 ###############################################################################
@@ -26,6 +26,8 @@ set(sources
 # symbols by linking NS3 modules.
 add_library("smans3" STATIC ${sources})
 target_link_libraries("smans3" "smacore")
+
+include_directories("include")
 
 add_executable("wifi_simple" "sim/wifi_simple.cpp" "src/app_container.cpp")
 target_link_libraries("wifi_simple" "smaapp" "smans3")

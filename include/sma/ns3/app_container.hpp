@@ -96,7 +96,6 @@
 
 #include <sma/ns3/ns3_socket.hpp>
 #include <sma/ns3/ns3_channel.hpp>
-#include <sma/ns3/ns3_scheduler.hpp>
 #include <sma/message_dispatch.hpp>
 #include <sma/app/application.hpp>
 
@@ -135,7 +134,6 @@ private:
   std::unique_ptr<ns3_socket> sock{nullptr};
   std::unique_ptr<ns3_channel> chan{nullptr};
   std::unique_ptr<message_dispatch> msgr{nullptr};
-  std::unique_ptr<scheduler> sched{nullptr};
   std::unique_ptr<application> app{nullptr};
 };
 }
