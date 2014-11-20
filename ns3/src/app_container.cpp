@@ -1,16 +1,16 @@
 #include <sma/ns3/app_container.hpp>
 
+#include <sma/app/application.hpp>
+
+#include <sma/device.hpp>
 #include <sma/channel.hpp>
 #include <sma/message_dispatch.hpp>
-
-#include <sma/app/application.hpp>
 #include <sma/chrono>
-
-#include <sma/bytes.hpp>
 #include <sma/log>
 
+#include <ns3/ptr.h>
+#include <ns3/pointer.h>
 #include <ns3/application.h>
-#include <ns3/uinteger.h>
 
 #include <cstdint>
 #include <memory>
@@ -42,21 +42,20 @@ void app_container::DoDispose() { LOG(DEBUG); }
 
 void app_container::StartApplication()
 {
+  assert(dev);
   // Force the clock to use the current real wall time as the beginning
   // of the simulation.
   sma::chrono::system_clock::now();
 
-  // Construct the message chain from the bottom up
-  ns3::TypeId udp_sock_factory
-      = ns3::TypeId::LookupByName("ns3::UdpSocketFactory");
-  sock = std::make_unique<ns3_socket>(udp_sock_factory, GetNode());
+  // Create an endpoint for the messaging to send and receive through
+  sock = std::make_unique<ns3_socket>(GetNode());
   sock->bind(socket_addr("0.0.0.0", 9999));
   chan = std::make_unique<ns3_channel>(sock.get());
 
   msgr = message_dispatch::new_single_threaded(chan.get());
   chan->inbox(msgr.get());
 
-  context ctx { msgr.get() };
+  context ctx{dev.get(), msgr.get() };
   app = std::make_unique<application>(std::move(ctx));
 }
 

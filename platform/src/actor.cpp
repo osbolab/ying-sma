@@ -20,14 +20,17 @@ actor::~actor()
 
 void actor::subscribe(message_type type)
 {
+  ctx.msgr->subscribe(type, this);
 }
 
 void actor::unsubscribe(message_type type)
 {
+  ctx.msgr->unsubscribe(type, this);
 }
 
 void actor::post(message const& msg)
 {
+  ctx.msgr->post(msg);
 }
 
 }

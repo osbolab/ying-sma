@@ -7,6 +7,9 @@ set(sources
   "src/buffer.cpp"
   "src/buffer_view.cpp"
 
+  "src/device/gps.cpp"
+  "src/device/dummy_gps.cpp"
+
   "src/actor.cpp"
 
   "src/message.cpp"

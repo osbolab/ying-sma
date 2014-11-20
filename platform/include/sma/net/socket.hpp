@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sma/inet_addr.hpp>
+#include <sma/net/inet_addr.hpp>
 
 #include <memory>
 #include <cstdlib>
@@ -29,7 +29,7 @@ public:
 
   socket() {}
   socket(socket&& rhs) {}
-  socket& operator=(socket&& rhs) {}
+  socket& operator=(socket&& rhs) { return *this; }
   virtual ~socket() {}
 
   virtual void bind(const socket_addr& address) = 0;

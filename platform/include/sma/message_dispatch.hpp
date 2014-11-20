@@ -1,10 +1,10 @@
 #pragma once
 
-#include <sma/messenger.hpp>
 #include <sma/message.hpp>
+#include <sma/messenger.hpp>
 #include <sma/detail/message_type.hpp>
 #include <sma/sink.hpp>
-#include <sma/rws_mutex.hpp>
+#include <sma/concurrent/rws_mutex.hpp>
 
 #include <cstdint>
 #include <memory>

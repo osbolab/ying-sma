@@ -94,11 +94,14 @@
  * ---------------------------------------------------------------------------
  */
 
-#include <sma/ns3/ns3_socket.hpp>
-#include <sma/ns3/ns3_channel.hpp>
+#include <sma/device.hpp>
 #include <sma/message_dispatch.hpp>
 #include <sma/app/application.hpp>
 
+#include <sma/ns3/ns3_socket.hpp>
+#include <sma/ns3/ns3_channel.hpp>
+
+#include <ns3/ptr.h>
 #include <ns3/application.h>
 
 #include <cstdint>
@@ -128,12 +131,16 @@ protected:
   virtual void StopApplication() override;
 
 private:
-  // TODO: remove me
-  std::uint16_t id;
+  void this_device(std::unique_ptr<device> d)
+  {
+    dev = std::move(d);
+  }
 
-  std::unique_ptr<ns3_socket> sock{nullptr};
-  std::unique_ptr<ns3_channel> chan{nullptr};
-  std::unique_ptr<message_dispatch> msgr{nullptr};
-  std::unique_ptr<application> app{nullptr};
+
+  std::unique_ptr<device> dev;
+  std::unique_ptr<ns3_socket> sock;
+  std::unique_ptr<ns3_channel> chan;
+  std::unique_ptr<message_dispatch> msgr;
+  std::unique_ptr<application> app;
 };
 }

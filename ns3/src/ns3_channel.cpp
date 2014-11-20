@@ -1,9 +1,11 @@
 #include <sma/ns3/ns3_channel.hpp>
 #include <sma/ns3/ns3_socket.hpp>
+#include <sma/net/socket.hpp>
+
 #include <sma/channel.hpp>
 #include <sma/messenger.hpp>
 #include <sma/message.hpp>
-#include <sma/socket.hpp>
+
 #include <sma/log>
 
 #include <ns3/ptr.h>

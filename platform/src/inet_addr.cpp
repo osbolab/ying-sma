@@ -1,4 +1,4 @@
-#include <sma/inet_addr.hpp>
+#include <sma/net/inet_addr.hpp>
 
 #include <arpa/inet.h>
 

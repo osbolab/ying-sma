@@ -15,7 +15,7 @@
 namespace sma
 {
 
-static ns3::InetSocketAddress ns3_address(const socket_addr& addr)
+static ns3::InetSocketAddress ns3_address(socket_addr const& addr)
 {
   return ns3::InetSocketAddress(
       ns3::Ipv4Address(static_cast<std::uint32_t>(addr.addr)), addr.port);
@@ -25,9 +25,10 @@ static ns3::InetSocketAddress ns3_address(const socket_addr& addr)
 /******************************************************************************
  * ns3_socket c/dtors
  */
-ns3_socket::ns3_socket(ns3::TypeId socket_factory_tid, ns3::Ptr<ns3::Node> node)
+ns3_socket::ns3_socket(ns3::Ptr<ns3::Node> node)
   : bind_addr(ns3::InetSocketAddress(ns3::Ipv4Address(), 0))
 {
+  auto socket_factory_tid = ns3::TypeId::LookupByName("ns3::UdpSocketFactory");
   sock = ns3::Socket::CreateSocket(node, socket_factory_tid);
   assert(sock);
 }
@@ -43,10 +44,7 @@ ns3_socket& ns3_socket::operator=(ns3_socket&& rhs)
   std::swap(bind_addr, rhs.bind_addr);
   return *this;
 }
-ns3_socket::~ns3_socket()
-{
-  close();
-}
+ns3_socket::~ns3_socket() { close(); }
 /* ns3_socket c/dtors
  *****************************************************************************/
 
@@ -54,7 +52,7 @@ ns3_socket::~ns3_socket()
 /******************************************************************************
  * ns3_socket public member functions
  */
-void ns3_socket::bind(const socket_addr& address)
+void ns3_socket::bind(socket_addr const& address)
 {
   assert(sock);
   auto saddr = ns3_address(address);
@@ -79,16 +77,17 @@ std::size_t ns3_socket::recv(std::uint8_t* dst, std::size_t len)
   return sock->Recv(dst, len, 0);
 }
 
-void ns3_socket::send(const std::uint8_t* src,
+void ns3_socket::send(std::uint8_t const* src,
                       std::size_t len,
-                      const socket_addr& dest)
+                      socket_addr const& dest)
 {
   assert(sock);
   if (sock->SendTo(src, len, 0, ns3_address(dest)) != len)
     throw_last_error();
 }
 
-void ns3_socket::broadcast(const std::uint8_t* src, std::size_t len) {
+void ns3_socket::broadcast(std::uint8_t const* src, std::size_t len)
+{
   assert(sock);
   auto ip = ns3::Ipv4Address("10.1.1.255");
   auto saddr = ns3::InetSocketAddress(ip, std::uint16_t{9999});

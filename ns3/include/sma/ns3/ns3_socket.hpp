@@ -1,7 +1,7 @@
 #pragma once
 
-#include <sma/socket.hpp>
-#include <sma/inet_addr.hpp>
+#include <sma/net/socket.hpp>
+#include <sma/net/inet_addr.hpp>
 #include <sma/ns3/ns3_channel.hpp>
 
 #include <ns3/ptr.h>
@@ -21,7 +21,7 @@ namespace sma
 class ns3_socket final : public socket
 {
 public:
-  ns3_socket(ns3::TypeId socket_factory_tid, ns3::Ptr<ns3::Node> node);
+  ns3_socket(ns3::Ptr<ns3::Node> node);
 
   ns3_socket(ns3_socket&& rhs);
   ns3_socket& operator=(ns3_socket&& rhs);

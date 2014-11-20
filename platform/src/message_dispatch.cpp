@@ -2,7 +2,7 @@
 #include <sma/message.hpp>
 #include <sma/actor.hpp>
 #include <sma/sink.hpp>
-#include <sma/rws_mutex.hpp>
+#include <sma/concurrent/rws_mutex.hpp>
 #include <sma/log>
 
 #include <cstdint>

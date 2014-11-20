@@ -43,7 +43,7 @@ DeviceWithGPS::DeviceWithGPS(sma::context ctx)
 {
   deviceID = "0";
   for (std::size_t message_type = 0; message_type < 5; ++message_type) {
-    ctx.msgr->subscribe(static_cast<sma::message_type>(message_type), this);
+    subscribe(static_cast<sma::message_type>(message_type));
   }
   gpsDriver.setGPS(0.0, 0.0);
 
@@ -160,14 +160,13 @@ void DeviceWithGPS::forwardRequest(ChunkID chunk)
 void DeviceWithGPS::sendSignal(const DataBlock& block)
 {
   assert(block.payloadSize > 0);
-  assert(ctx.msgr);
 
   // narrowing
   auto dp = reinterpret_cast<const std::uint8_t*>(block.dataArray);
   sma::message m(static_cast<sma::message_type>(block.dataType),
                  std::move(dp),
                  block.payloadSize);
-  ctx.msgr->post(m);
+  post(m);
 }
 
 void DeviceWithGPS::on_message(const sma::message& msg)
