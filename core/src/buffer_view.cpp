@@ -121,30 +121,26 @@ namespace detail
     return copy_to(dst, 0, len);
   }
 
-  buffer_view& buffer_view::get(void* dst, std::size_t len)
+  void* buffer_view::get(void* dst, std::size_t len)
   {
     assert(remaining() >= len);
     copy_to(dst, len, pos);
     pos += len;
-    return *this;
+    return dst;
   }
-
-  template <>
-  std::uint8_t buffer_view::get<std::uint8_t>()
+  std::uint8_t buffer_view::get_uint8()
   {
     assert(remaining() >= 1);
     return b[pos++];
   }
-  template <>
-  std::uint16_t buffer_view::get<std::uint16_t>()
+  std::uint16_t buffer_view::get_uint16()
   {
     assert(remaining() >= 2);
     auto v = std::uint16_t{b[pos++]} << 8;
     v |= b[pos++];
     return v;
   }
-  template <>
-  std::uint32_t buffer_view::get<std::uint32_t>()
+  std::uint32_t buffer_view::get_uint32()
   {
     assert(remaining() >= 4);
     auto v = std::uint32_t{b[pos++]} << 24;
@@ -153,8 +149,7 @@ namespace detail
     v |= b[pos++];
     return v;
   }
-  template <>
-  std::uint64_t buffer_view::get<std::uint64_t>()
+  std::uint64_t buffer_view::get_uint64()
   {
     assert(remaining() >= 8);
     auto v = std::uint64_t{b[pos++]} << 56;
@@ -171,47 +166,25 @@ namespace detail
   /*************************************
    * buffer_view readers
    */
-  template <>
-  buffer_view& buffer_view::operator>>(const arrcopy_w<std::uint8_t>& dst)
-  {
-    copy_to(dst.arr, dst.len);
-    return *this;
-  }
-  template <>
-  buffer_view& buffer_view::operator>>(const arrcopy_w<char>& dst)
-  {
-    copy_to(dst.arr, dst.len);
-    return *this;
-  }
-  template <>
-  buffer_view& buffer_view::operator>>(const arrcopy_w<void>& dst)
-  {
-    copy_to(dst.arr, dst.len);
-    return *this;
-  }
-  template <>
-  buffer_view& buffer_view::operator>>(std::uint8_t& v)
+  buffer_view& buffer_view::operator>>(std::uint8_t& dst)
   {
     assert(remaining() >= 1);
-    v = b[pos++];
+    dst = b[pos++];
     return *this;
   }
-  template <>
-  buffer_view& buffer_view::operator>>(std::uint16_t& v)
+  buffer_view& buffer_view::operator>>(std::uint16_t& dst)
   {
-    v = get<std::uint16_t>();
+    dst = get_uint16();
     return *this;
   }
-  template <>
-  buffer_view& buffer_view::operator>>(std::uint32_t& v)
+  buffer_view& buffer_view::operator>>(std::uint32_t& dst)
   {
-    v = get<std::uint32_t>();
+    dst = get_uint32();
     return *this;
   }
-  template <>
-  buffer_view& buffer_view::operator>>(std::uint64_t& v)
+  buffer_view& buffer_view::operator>>(std::uint64_t& dst)
   {
-    v = get<std::uint64_t>();
+    dst = get_uint64();
     return *this;
   }
 

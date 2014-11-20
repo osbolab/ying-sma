@@ -1,24 +1,25 @@
 #pragma once
 
-
-#include <sma/app/gpsinfo.hpp>
-#include <sma/app/device.hpp>
-#include <sma/app/networkemulator.hpp>
-
+#include <sma/actor.hpp>
 #include <sma/app/context.hpp>
 
+#include <sma/app/device.hpp>
+
+#include <sma/app/gpsinfo.hpp>
+
 #include <sma/app/datablock.hpp>
-#include <mutex>
-#include <atomic>
-#include <queue>
 #include <sma/app/neighborrecords.hpp>
 #include <sma/app/controllayer.hpp>
 #include <sma/app/gpsdriver.hpp>
 #include <sma/app/devicelogger.hpp>
 #include <sma/app/typedefinition.hpp>
 
+#include <mutex>
+#include <atomic>
+#include <queue>
 
-class DeviceWithGPS : public Device
+
+class DeviceWithGPS : public sma::actor, public Device
 {
 
 public:
@@ -53,10 +54,10 @@ public:
  */
   // Callback from sma::messenger (from NS3)
   // Unpacks the contents as a DataBlock and gives it to receiveSignal(1)
-  void on_message(const sma::message& msg);
+  virtual void on_message(sma::message const& msg) override;
 
-  void receiveSignal(const DataBlock& block);
-  void sendSignal(const DataBlock& block); //interface to deliver data to the network.
+  void receiveSignal(DataBlock const& block);
+  void sendSignal(DataBlock const& block); //interface to deliver data to the network.
   /* for test use
  * commands come from the terminals
  */
@@ -93,8 +94,8 @@ private:
   std::string getJsonGPS() const;   //format the gps data returned from GPS driver.
   std::string getJsonDirectory(int numOfEntries) const;
   std::string getJsonFwd(ChunkID chunk) const;
-  void processBeaconing (const DataBlock& block);
-  void processDirectorySync (const DataBlock& block);
+  void processBeaconing (DataBlock const& block);
+  void processDirectorySync (DataBlock const& block);
 
 
 };

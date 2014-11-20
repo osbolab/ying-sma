@@ -9,8 +9,6 @@
 
 namespace sma
 {
-
-
 /******************************************************************************
  * buffer - Static Factories
  */
@@ -19,9 +17,9 @@ buffer buffer::wrap(void* buf, std::size_t len)
 {
   return buffer(static_cast<std::uint8_t*>(buf), len);
 }
-buffer buffer::copy(const void* buf, std::size_t len)
+buffer buffer::copy(void const* buf, std::size_t len)
 {
-  return buffer(static_cast<const std::uint8_t*>(buf), len);
+  return buffer(static_cast<std::uint8_t const*>(buf), len);
 }
 /* buffer- Static Factories
  *****************************************************************************/
@@ -39,7 +37,7 @@ buffer::buffer(buffer&& rhs)
   rhs.owner = false;
   rhs.cap = rhs.lim = rhs.pos = 0;
 }
-buffer::buffer(const buffer& rhs)
+buffer::buffer(buffer const& rhs)
   : buffer::view(new std::uint8_t[rhs.cap], rhs.lim, rhs.pos)
   , cap(rhs.cap)
   , owner(true)
@@ -52,7 +50,7 @@ buffer::buffer(std::size_t capacity)
   , owner(true)
 {
 }
-buffer::buffer(const std::uint8_t* src, std::size_t len)
+buffer::buffer(std::uint8_t const* src, std::size_t len)
   : buffer::view(new std::uint8_t[len], len)
   , cap(len)
   , owner(true)
@@ -104,7 +102,7 @@ buffer& buffer::operator=(buffer&& rhs)
   rhs.cap = rhs.lim = rhs.pos = 0;
   return *this;
 }
-buffer& buffer::operator=(const buffer& rhs)
+buffer& buffer::operator=(buffer const& rhs)
 {
   if (owner)
     delete[] b;
@@ -163,40 +161,24 @@ buffer& buffer::clear()
 /******************************************************************************
  * buffer  - Covariant overrides on read
  */
-template <>
-buffer& buffer::operator>>(const arrcopy_w<std::uint8_t>& dst)
+buffer& buffer::operator>>(std::uint8_t& dst)
 {
-  buffer::view::operator>>(dst);
+  dst = get_uint8();
   return *this;
 }
-template <>
-buffer& buffer::operator>>(const arrcopy_w<char>& dst)
+buffer& buffer::operator>>(std::uint16_t& dst)
 {
-  buffer::view::operator>>(dst);
+  dst = get_uint16();
   return *this;
 }
-template <>
-buffer& buffer::operator>>(std::uint8_t& v)
+buffer& buffer::operator>>(std::uint32_t& dst)
 {
-  buffer::view::operator>>(v);
+  dst = get_uint32();
   return *this;
 }
-template <>
-buffer& buffer::operator>>(std::uint16_t& v)
+buffer& buffer::operator>>(std::uint64_t& dst)
 {
-  v = get<std::uint16_t>();
-  return *this;
-}
-template <>
-buffer& buffer::operator>>(std::uint32_t& v)
-{
-  v = get<std::uint32_t>();
-  return *this;
-}
-template <>
-buffer& buffer::operator>>(std::uint64_t& v)
-{
-  v = get<std::uint64_t>();
+  dst = get_uint64();
   return *this;
 }
 /* buffer - Covariant overrides on read
@@ -206,59 +188,74 @@ buffer& buffer::operator>>(std::uint64_t& v)
 /******************************************************************************
  * buffer - Writing
  */
-buffer& buffer::put(const void* src, std::size_t len)
-{
-  assert(remaining() >= len);
-  std::memcpy(b + pos, src, len);
-  pos += len;
-  return *this;
-}
-
-buffer& buffer::replace(const void* src, std::size_t len)
+buffer& buffer::replace(void const* src, std::size_t len)
 {
   assert(len >= cap);
   std::memcpy(b, src, cap);
   clear();
   return *this;
 }
-
-template <>
-buffer& buffer::put(const std::uint8_t& v)
+buffer& buffer::put(void const* src, std::size_t len)
+{
+  assert(remaining() >= len);
+  std::memcpy(b + pos, src, len);
+  pos += len;
+  return *this;
+}
+buffer& buffer::put_8(std::uint8_t const& src)
 {
   assert(remaining() >= 1);
-  b[pos++] = v;
+  b[pos++] = src;
   return *this;
 }
-template <>
-buffer& buffer::put(const std::uint16_t& v)
+buffer& buffer::put_16(std::uint16_t const& src)
 {
   assert(remaining() >= 2);
-  b[pos++] = v >> 8;
-  b[pos++] = v & 0xFF;
+  b[pos++] = src >> 8;
+  b[pos++] = src & 0xFF;
   return *this;
 }
-template <>
-buffer& buffer::put(const std::uint32_t& v)
+buffer& buffer::put_32(std::uint32_t const& src)
 {
   assert(remaining() >= 4);
-  b[pos++] = v >> 24;
-  b[pos++] = (v >> 16) & 0xFF;
-  b[pos++] = (v >> 8) & 0xFF;
-  b[pos++] = v & 0xFF;
+  b[pos++] = src >> 24;
+  b[pos++] = (src >> 16) & 0xFF;
+  b[pos++] = (src >> 8) & 0xFF;
+  b[pos++] = src & 0xFF;
   return *this;
 }
-template <>
-buffer& buffer::put(const std::uint64_t& v)
+buffer& buffer::put_64(std::uint64_t const& src)
 {
   assert(remaining() >= 8);
-  b[pos++] = v >> 56;
-  b[pos++] = (v >> 48) & 0xFF;
-  b[pos++] = (v >> 40) & 0xFF;
-  b[pos++] = (v >> 32) & 0xFF;
-  b[pos++] = (v >> 24) & 0xFF;
-  b[pos++] = (v >> 16) & 0xFF;
-  b[pos++] = (v >> 8) & 0xFF;
-  b[pos++] = v & 0xFF;
+  b[pos++] = src >> 56;
+  b[pos++] = (src >> 48) & 0xFF;
+  b[pos++] = (src >> 40) & 0xFF;
+  b[pos++] = (src >> 32) & 0xFF;
+  b[pos++] = (src >> 24) & 0xFF;
+  b[pos++] = (src >> 16) & 0xFF;
+  b[pos++] = (src >> 8) & 0xFF;
+  b[pos++] = src & 0xFF;
+  return *this;
+}
+
+buffer& buffer::operator<<(std::uint8_t const& src)
+{
+  put_8(src);
+  return *this;
+}
+buffer& buffer::operator<<(std::uint16_t const& src)
+{
+  put_16(src);
+  return *this;
+}
+buffer& buffer::operator<<(std::uint32_t const& src)
+{
+  put_32(src);
+  return *this;
+}
+buffer& buffer::operator<<(std::uint64_t const& src)
+{
+  put_64(src);
   return *this;
 }
 /* buffer - Writing

@@ -43,8 +43,7 @@ DeviceWithGPS::DeviceWithGPS(sma::context ctx)
   , ctx(ctx)
 {
   for (std::size_t message_type = 0; message_type < 5; ++message_type) {
-    ctx.msgr->subscribe(static_cast<sma::message::domain_type>(message_type),
-                        [this](const sma::message& msg) { on_message(msg); });
+    ctx.msgr->subscribe(static_cast<sma::message_type>(message_type), this);
   }
   gpsDriver.setGPS(0.0, 0.0);
   powerLevel = DEFAULT_POWER_LEVEL;
@@ -65,10 +64,7 @@ DeviceWithGPS::DeviceWithGPS(sma::context ctx)
   broadcastDirectory();
 }
 
-void DeviceWithGPS::dispose()
-{
-  disposed = true;
-}
+void DeviceWithGPS::dispose() { disposed = true; }
 
 DeviceWithGPS::~DeviceWithGPS()
 {
@@ -117,7 +113,8 @@ void DeviceWithGPS::leaveFromNetwork(NetworkEmulator* networkAttached)
 void DeviceWithGPS::beaconing()
 {
   beacon_scheduled = false;
-  if (disposed) return;
+  if (disposed)
+    return;
 
   // broadcast GPS
   DataBlock block(SMA::GPSBCAST);
@@ -145,7 +142,8 @@ void DeviceWithGPS::beaconing()
 void DeviceWithGPS::broadcastDirectory()
 {
   broadcast_scheduled = false;
-  if (disposed) return;
+  if (disposed)
+    return;
 
   // broadcast content directory
   int numOfEntries = 5;    // Temp solution: The number should be provided by
@@ -192,25 +190,22 @@ void DeviceWithGPS::forwardRequest(ChunkID chunk)
 
 void DeviceWithGPS::sendSignal(const DataBlock& block)
 {
-  //  if (block.getMsgType() == "CHUNK")
-  //    std::cout << "In DeviceWithGPS::sendSignal: "<< '\n'
-  //              << "The chunk id is " << block.getChunkID() << '\n';
-  // network->receiveMsg(block);
   assert(block.payloadSize > 0);
+  assert(ctx.msgr);
 
   // narrowing
-  sma::message::stub m(static_cast<sma::message::domain_type>(block.dataType));
   auto dp = reinterpret_cast<const std::uint8_t*>(block.dataArray);
-  m.wrap_contents(std::move(dp), block.payloadSize);
-  assert(ctx.msgr);
+  sma::message m(static_cast<sma::message_type>(block.dataType),
+                 std::move(dp),
+                 block.payloadSize);
   ctx.msgr->post(m);
 }
 
 void DeviceWithGPS::on_message(const sma::message& msg)
 {
-  DataBlock data(static_cast<SMA::MESSAGE_TYPE>(msg.domain()));
-  auto csrc = reinterpret_cast<const char*>(msg.content());
-  data.createData(this, csrc, msg.content_len());
+  DataBlock data(static_cast<SMA::MESSAGE_TYPE>(msg.type()));
+  auto csrc = reinterpret_cast<const char*>(msg.cdata());
+  data.createData(this, csrc, msg.size());
   receiveSignal(data);
 }
 void DeviceWithGPS::receiveSignal(const DataBlock& block)

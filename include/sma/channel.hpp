@@ -6,7 +6,7 @@
 namespace sma
 {
 
-  class message;
+  struct message;
   class messenger;
 /**
  * The channel is the interface between messaging and the underlying transport.
@@ -20,27 +20,27 @@ namespace sma
  * memory pipe. A bluetooth "socket" could write a single byte to the pipe when
  * data are available, for example.
  */
-class channel : public csink<message>
+class channel : public sink<message const&>
 {
 public:
   channel();
-  channel(csink<message>* inbound);
+  channel(sink<message const&>* inbox);
 
   channel(channel&& rhs);
   channel& operator=(channel&& rhs);
-  channel(const channel& rhs);
-  channel& operator=(const channel& rhs);
+  channel(channel const& rhs);
+  channel& operator=(channel const& rhs);
 
   virtual ~channel();
 
-  virtual void deliver_to(csink<message>* inbound) = 0;
+  virtual void deliver_to(sink<message const&>* inbox) = 0;
 
   // Send the given message to this channel.
-  virtual void accept(const message& m) override = 0;
+  virtual void accept(message const& m) override = 0;
   // Close this channel and all underlying channels.
   virtual void close() = 0;
 
 protected:
-  csink<message>* inbound{nullptr};
+  sink<message const&>* inbox{nullptr};
 };
 }

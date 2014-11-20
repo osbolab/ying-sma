@@ -60,8 +60,7 @@ void app_container::StartApplication()
 
   chan = std::make_unique<ns3_channel>(sock.get());
 
-  node::id this_node{std::uint8_t(id >> 8), std::uint8_t(id & 0xFF)};
-  msgr = message_dispatch::new_single_threaded(this_node);
+  msgr = message_dispatch::new_single_threaded();
 
   chan->deliver_to(msgr.get());
   msgr->post_via(chan.get());

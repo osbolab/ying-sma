@@ -12,7 +12,6 @@ application::application(context ctx)
   : device(std::make_unique<DeviceWithGPS>(ctx))
 {
   LOG(DEBUG) << "Node " << ctx.node_id;
-
 }
 
 void application::dispose()

@@ -10,28 +10,28 @@ namespace sma
 channel::channel()
 {
 }
-channel::channel(csink<message>* inbound)
-  : inbound(inbound)
+channel::channel(sink<message const&>* inbox)
+  : inbox(inbox)
 {
-  assert(inbound);
+  assert(inbox);
 }
-channel::channel(channel&& rhs)
-  : inbound(rhs.inbound)
+channel::channel(channel&& r)
+  : inbox(r.inbox)
 {
-  rhs.inbound = nullptr;
+  r.inbox = nullptr;
 }
-channel::channel(const channel& rhs)
-  : inbound(rhs.inbound)
+channel::channel(const channel& r)
+  : inbox(r.inbox)
 {
 }
-channel& channel::operator=(channel&& rhs)
+channel& channel::operator=(channel&& r)
 {
-  std::swap(inbound, rhs.inbound);
+  std::swap(inbox, r.inbox);
   return *this;
 }
-channel& channel::operator=(const channel& rhs)
+channel& channel::operator=(const channel& r)
 {
-  inbound = rhs.inbound;
+  inbox = r.inbox;
   return *this;
 }
 channel::~channel() {}
