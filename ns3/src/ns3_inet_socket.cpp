@@ -1,4 +1,4 @@
-#include <sma/ns3/ns3_socket.hpp>
+#include <sma/ns3/ns3_inet_socket.hpp>
 #include <sma/log>
 
 #include <ns3/ptr.h>
@@ -23,9 +23,9 @@ static ns3::InetSocketAddress ns3_address(socket_addr const& addr)
 
 
 /******************************************************************************
- * ns3_socket c/dtors
+ * ns3_inet_socket c/dtors
  */
-ns3_socket::ns3_socket(ns3::Ptr<ns3::Node> node)
+ns3_inet_socket::ns3_inet_socket(ns3::Ptr<ns3::Node> node)
   : bind_addr(ns3::InetSocketAddress(ns3::Ipv4Address(), 0))
 {
   auto socket_factory_tid = ns3::TypeId::LookupByName("ns3::UdpSocketFactory");
@@ -33,26 +33,26 @@ ns3_socket::ns3_socket(ns3::Ptr<ns3::Node> node)
   assert(sock);
 }
 
-ns3_socket::ns3_socket(ns3_socket&& rhs)
+ns3_inet_socket::ns3_inet_socket(ns3_inet_socket&& rhs)
   : sock(std::move(rhs.sock))
   , bind_addr(std::move(rhs.bind_addr))
 {
 }
-ns3_socket& ns3_socket::operator=(ns3_socket&& rhs)
+ns3_inet_socket& ns3_inet_socket::operator=(ns3_inet_socket&& rhs)
 {
   std::swap(sock, rhs.sock);
   std::swap(bind_addr, rhs.bind_addr);
   return *this;
 }
-ns3_socket::~ns3_socket() { close(); }
-/* ns3_socket c/dtors
+ns3_inet_socket::~ns3_inet_socket() { close(); }
+/* ns3_inet_socket c/dtors
  *****************************************************************************/
 
 
 /******************************************************************************
- * ns3_socket public member functions
+ * ns3_inet_socket public member functions
  */
-void ns3_socket::bind(socket_addr const& address)
+void ns3_inet_socket::bind(socket_addr const& address)
 {
   assert(sock);
   auto saddr = ns3_address(address);
@@ -62,31 +62,31 @@ void ns3_socket::bind(socket_addr const& address)
   sock->SetAllowBroadcast(true);
   assert(sock->GetAllowBroadcast());
   bind_addr = saddr;
-  sock->SetRecvCallback(ns3::MakeCallback(&ns3_socket::on_packet, this));
+  sock->SetRecvCallback(ns3::MakeCallback(&ns3_inet_socket::on_packet, this));
 }
 
-void ns3_socket::close()
+void ns3_inet_socket::close()
 {
   if (sock)
     sock->Close();
 }
 
-std::size_t ns3_socket::recv(std::uint8_t* dst, std::size_t len)
+std::size_t ns3_inet_socket::recv(std::uint8_t* dst, std::size_t len)
 {
   assert(sock);
   return sock->Recv(dst, len, 0);
 }
 
-void ns3_socket::send(std::uint8_t const* src,
-                      std::size_t len,
-                      socket_addr const& dest)
+void ns3_inet_socket::send(std::uint8_t const* src,
+                           std::size_t len,
+                           socket_addr const& dest)
 {
   assert(sock);
   if (sock->SendTo(src, len, 0, ns3_address(dest)) != len)
     throw_last_error();
 }
 
-void ns3_socket::broadcast(std::uint8_t const* src, std::size_t len)
+void ns3_inet_socket::broadcast(std::uint8_t const* src, std::size_t len)
 {
   assert(sock);
   auto ip = ns3::Ipv4Address("10.1.1.255");
@@ -95,22 +95,20 @@ void ns3_socket::broadcast(std::uint8_t const* src, std::size_t len)
     throw_last_error();
 }
 
-void ns3_socket::on_packet(ns3::Ptr<ns3::Socket> s)
+void ns3_inet_socket::on_packet(ns3::Ptr<ns3::Socket> s)
 {
   ns3::Ptr<ns3::Packet> p;
   ns3::Address sender;
 
   while ((p = s->RecvFrom(sender))) {
-    inbound->on_packet(std::move(p));
+    ibx->on_packet(std::move(p));
   }
 }
 
-void ns3_socket::receive_to(ns3_channel* inbound) { this->inbound = inbound; }
-
-/* ns3_socket public member functions
+/* ns3_inet_socket public member functions
  *****************************************************************************/
 
-void ns3_socket::throw_last_error()
+void ns3_inet_socket::throw_last_error()
 {
   assert(sock);
   LOG(FATAL) << "Uncaught socket exception no: " << sock->GetErrno();

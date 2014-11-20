@@ -1,11 +1,8 @@
 #pragma once
 
-#include <sma/device/component.hpp>
-
-
 namespace sma
 {
-class gps : public component
+class gps final
 {
 public:
   struct coord {
@@ -23,9 +20,7 @@ public:
     double lat;
   };
 
-
-  virtual ~gps() {}
-
-  virtual coord position() const = 0;
+private:
+  gps();
 };
 }

@@ -1,11 +1,12 @@
 #pragma once
 
+#include <sma/device/gps_component.hpp>
 #include <sma/device/gps.hpp>
 
 
 namespace sma
 {
-class dummy_gps : public gps
+class dummy_gps : public gps_component
 {
 public:
   dummy_gps(gps::coord pos)

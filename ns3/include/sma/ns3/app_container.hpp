@@ -125,18 +125,14 @@ public:
   Myt& operator=(Myt&& rhs);
   virtual ~app_container();
 
+  void add_component(std::unique_ptr<component> c);
+
 protected:
   virtual void DoDispose() override;
   virtual void StartApplication() override;
   virtual void StopApplication() override;
 
 private:
-  void this_device(std::unique_ptr<device> d)
-  {
-    dev = std::move(d);
-  }
-
-
   std::unique_ptr<device> dev;
   std::unique_ptr<ns3_socket> sock;
   std::unique_ptr<ns3_channel> chan;

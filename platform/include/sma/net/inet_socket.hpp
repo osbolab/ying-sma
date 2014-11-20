@@ -10,7 +10,6 @@
 
 namespace sma
 {
-
 class socket_exception : public std::exception
 {
 public:
@@ -20,17 +19,13 @@ private:
   int err;
 };
 
-class socket
+class inet_socket
 {
 public:
-  enum protocol {
-    UDP,
-  };
-
-  socket() {}
-  socket(socket&& rhs) {}
-  socket& operator=(socket&& rhs) { return *this; }
-  virtual ~socket() {}
+  inet_socket() {}
+  inet_socket(inet_socket&& rhs) {}
+  inet_socket& operator=(inet_socket&& rhs) { return *this; }
+  virtual ~inet_socket() {}
 
   virtual void bind(const socket_addr& address) = 0;
   virtual void close() = 0;
