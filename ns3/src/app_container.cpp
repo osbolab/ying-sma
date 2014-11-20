@@ -5,7 +5,7 @@
 #include <sma/scheduler.hpp>
 
 #include <sma/app/application.hpp>
-#include <sma/time>
+#include <sma/chrono>
 
 #include <sma/bytes.hpp>
 #include <sma/log>
@@ -25,12 +25,7 @@ ns3::TypeId app_container::TypeId()
   static ns3::TypeId tid
       = ns3::TypeId("sma::app_container")
             .SetParent<ns3::Application>()
-            .AddConstructor<app_container>()
-            .AddAttribute("ID",
-                          "Node ID",
-                          ns3::UintegerValue(0),
-                          ns3::MakeUintegerAccessor(&app_container::id),
-                          ns3::MakeUintegerChecker<std::uint16_t>());
+            .AddConstructor<app_container>();
   return tid;
 }
 
@@ -57,13 +52,10 @@ void app_container::StartApplication()
       = ns3::TypeId::LookupByName("ns3::UdpSocketFactory");
   sock = std::make_unique<ns3_socket>(udp_sock_factory, GetNode());
   sock->bind(socket_addr("0.0.0.0", 9999));
-
   chan = std::make_unique<ns3_channel>(sock.get());
 
-  msgr = message_dispatch::new_single_threaded();
-
-  chan->deliver_to(msgr.get());
-  msgr->post_via(chan.get());
+  msgr = message_dispatch::new_single_threaded(chan.get());
+  chan->inbox(msgr.get());
 
   // The scheduler is less of a chain
   sched = std::make_unique<ns3_scheduler>();

@@ -18,20 +18,20 @@ public:
   // Create a new instance of a message_dispatch with no synchronization between
   // subscription and dispatch. The result of performing any operations on this
   // instance from concurrent threads is undefined.
-  static std::unique_ptr<message_dispatch> new_single_threaded();
+  static std::unique_ptr<message_dispatch>
+  new_single_threaded(sink<message const&>* outbox);
   // Create a new instance of a message_dispatch that synchronizes subscription
   // and
   // dispatch so that both can safely occur with any degree of concurrency.
   // Generally this would be implemented with a Readers/Writer lock that allows
   // unlimited concurrent reading, but blocks all readers and writers for each
   // write access.
-  static std::unique_ptr<message_dispatch> new_concurrent();
+  static std::unique_ptr<message_dispatch>
+  new_concurrent(sink<message const&>* outbox);
 
   message_dispatch(message_dispatch&& rhs);
   message_dispatch& operator=(message_dispatch&& rhs);
 
-  // Set the outgoing message channel.
-  message_dispatch& post_via(sink<message const&>* outbound);
   // Distribute the given message to all handlers subscribed to its type.
   // The concurrency factor of distribution is implementation-defined.
   // Handlers are not allowed to modify the message and may not expect it to
@@ -45,13 +45,12 @@ public:
   virtual messenger& post(message const& msg) override;
 
 protected:
-  message_dispatch(sink<message const&>* outbound);
-  message_dispatch();
+  message_dispatch(sink<message const&>* outbox);
 
   using mapping = std::pair<message_type, actor*>;
   std::vector<mapping> subs;
 
-  sink<message const&>* outbound{nullptr};
+  sink<message const&>* outbox{nullptr};
 };
 
 namespace detail
@@ -60,7 +59,7 @@ namespace detail
   {
   public:
     concurrent_dispatch();
-    concurrent_dispatch(sink<message const&>* outbound);
+    concurrent_dispatch(sink<message const&>* outbox);
     concurrent_dispatch(concurrent_dispatch&& rhs);
     concurrent_dispatch& operator=(concurrent_dispatch&& rhs);
 

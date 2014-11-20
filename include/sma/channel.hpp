@@ -33,7 +33,7 @@ public:
 
   virtual ~channel();
 
-  virtual void deliver_to(sink<message const&>* inbox) = 0;
+  void inbox(sink<message const&>* inbox) { inbox_ = inbox; }
 
   // Send the given message to this channel.
   virtual void accept(message const& m) override = 0;
@@ -41,6 +41,6 @@ public:
   virtual void close() = 0;
 
 protected:
-  sink<message const&>* inbox{nullptr};
+  sink<message const&>* inbox_{nullptr};
 };
 }

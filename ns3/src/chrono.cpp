@@ -1,4 +1,4 @@
-#include <sma/time>
+#include <sma/chrono>
 
 #include <ns3/simulator.h>
 #include <ns3/nstime.h>

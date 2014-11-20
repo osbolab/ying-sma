@@ -30,8 +30,6 @@ public:
 
   virtual ~ns3_channel();
 
-  virtual void deliver_to(sink<message const&>* inbound) override;
-
   virtual void accept(const message& m) override;
   virtual void close() override;
 

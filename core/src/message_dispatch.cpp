@@ -13,52 +13,44 @@
 namespace sma
 {
 
-std::unique_ptr<message_dispatch> message_dispatch::new_single_threaded()
+std::unique_ptr<message_dispatch>
+message_dispatch::new_single_threaded(sink<message const&>* outbox)
 {
-  return std::unique_ptr<message_dispatch>(new message_dispatch());
+  return std::unique_ptr<message_dispatch>(
+      new message_dispatch(std::move(outbox)));
 }
 
-std::unique_ptr<message_dispatch> message_dispatch::new_concurrent()
+std::unique_ptr<message_dispatch>
+message_dispatch::new_concurrent(sink<message const&>* outbox)
 {
-  return std::unique_ptr<message_dispatch>(new detail::concurrent_dispatch());
+  return std::unique_ptr<message_dispatch>(
+      new detail::concurrent_dispatch(std::move(outbox)));
 }
 
-message_dispatch::message_dispatch(sink<message const&>* outbound)
-  : outbound(outbound)
+message_dispatch::message_dispatch(sink<message const&>* outbox)
+  : outbox(outbox)
 {
+  assert(outbox);
 }
-message_dispatch::message_dispatch()
-  : message_dispatch(nullptr)
-{
-}
-
 message_dispatch::message_dispatch(message_dispatch&& rhs)
   : subs(std::move(rhs.subs))
-  , outbound(rhs.outbound)
+  , outbox(rhs.outbox)
 {
-  rhs.outbound = nullptr;
+  rhs.outbox = nullptr;
 }
 message_dispatch& message_dispatch::operator=(message_dispatch&& rhs)
 {
   std::swap(subs, rhs.subs);
-  std::swap(outbound, rhs.outbound);
-  return *this;
-}
-
-message_dispatch& message_dispatch::post_via(sink<message const&>* outbound)
-{
-  this->outbound = outbound;
-  if (!outbound)
-    LOG(WARNING) << "Messenger has no outbound channel.";
+  std::swap(outbox, rhs.outbox);
   return *this;
 }
 
 messenger& message_dispatch::post(message const& msg)
 {
-  if (outbound)
-    outbound->accept(msg);
+  if (outbox)
+    outbox->accept(msg);
   else
-    LOG(WARNING) << "Message dropped: messenger has no outbound channel";
+    LOG(WARNING) << "Message dropped: messenger has no outbox channel";
   return *this;
 }
 
@@ -95,16 +87,13 @@ void message_dispatch::accept(const message& msg)
 
 namespace detail
 {
-  concurrent_dispatch::concurrent_dispatch(sink<message const&>* outbound)
-    : message_dispatch(std::move(outbound))
-  {
-  }
-  concurrent_dispatch::concurrent_dispatch()
-    : message_dispatch()
+  concurrent_dispatch::concurrent_dispatch(sink<message const&>* outbox)
+    : message_dispatch(std::move(outbox))
   {
   }
 
-  messenger& concurrent_dispatch::subscribe(message_type type, actor* subscriber)
+  messenger& concurrent_dispatch::subscribe(message_type type,
+                                            actor* subscriber)
   {
     {
       writer_lock lock(mx);

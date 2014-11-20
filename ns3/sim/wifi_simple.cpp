@@ -56,7 +56,6 @@ int main(int argc, char** argv)
   // We can keep using that injection template to spawn applications and
   // attach them to nodes.
   for (std::size_t i = 0; i < nnodes; ++i) {
-    sma_factory.Set("ID", ns3::UintegerValue(i));
     auto app = sma_factory.Create<sma::app_container>();
     auto apps = ns3::ApplicationContainer(app);
     apps.Start(ns3::Seconds(0));

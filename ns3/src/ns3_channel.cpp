@@ -25,7 +25,7 @@ ns3_channel::ns3_channel(ns3_socket* sock)
 ns3_channel::ns3_channel(std::vector<ns3_socket*> socks)
   : socks(std::move(socks))
 {
-  assert(this->inbox);
+  assert(this->inbox_);
   for (auto& sock : socks)
     sock->receive_to(this);
 }
@@ -55,12 +55,6 @@ ns3_channel& ns3_channel::operator=(const ns3_channel& rhs)
 
 ns3_channel::~ns3_channel() {}
 
-void ns3_channel::deliver_to(sink<message const&>* inbox)
-{
-  assert(inbox);
-  this->inbox = inbox;
-}
-
 void ns3_channel::accept(const message& m)
 {
   if (socks.empty())
@@ -75,7 +69,7 @@ void ns3_channel::accept(const message& m)
 
 void ns3_channel::close()
 {
-  inbox = nullptr;
+  inbox_ = nullptr;
   for (auto& s : socks)
     s->close();
   socks.clear();
@@ -83,7 +77,7 @@ void ns3_channel::close()
 
 void ns3_channel::on_packet(ns3::Ptr<ns3::Packet> p)
 {
-  if (!inbox) {
+  if (!inbox_) {
     LOG(WARNING) << "Channel has no sink to deliver to";
     return;
   }
@@ -105,7 +99,7 @@ void ns3_channel::on_packet(ns3::Ptr<ns3::Packet> p)
   // IN THIS THREAD
   // Pass this message all the way up the chain to whomever ends up handling
   // it in the application level.
-  inbox->accept(message(buf, len));
+  inbox_->accept(message(buf, len));
   // THEN return and let the message contents go out of scope.
   // If this runs concurrently or is reentered, you might die.
 }

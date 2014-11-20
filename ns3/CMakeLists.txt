@@ -10,7 +10,7 @@ include("cmake/ns3.cmake")
 
 # The main library implements the abstract core services using NS3 facilities.
 set(sources
-  "src/time.cpp"
+  "src/chrono.cpp"
   "src/ns3_socket.cpp"
   "src/ns3_channel.cpp"
   "src/ns3_scheduler.cpp"
