@@ -55,7 +55,7 @@ set(ext_headers    "${EXT_DIR}/easyloggingpp/include")
 include_directories(BEFORE SYSTEM ${user_headers} ${ext_headers})
 
 while(subproject_count EQUAL 0)
-  subproject("platform")
+  subproject("core")
   subproject("app")
   subproject("ns3")
   if (subproject_count EQUAL 0)

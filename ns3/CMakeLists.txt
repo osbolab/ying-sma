@@ -25,7 +25,7 @@ set(sources
 # Whatever simulation links to the library will have to make up the missing
 # symbols by linking NS3 modules.
 add_library("smans3" STATIC ${sources})
-target_link_libraries("smans3" "smaplatform")
+target_link_libraries("smans3" "smacore")
 
 add_executable("wifi_simple" "sim/wifi_simple.cpp" "src/app_container.cpp")
 target_link_libraries("wifi_simple" "smaapp" "smans3")

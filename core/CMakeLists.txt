@@ -1,4 +1,4 @@
-PROJECT(smaplatform)
+PROJECT(smacore)
 
 ###############################################################################
 # SOURCES
@@ -28,5 +28,5 @@ SET(sources
 # TARGETS
 
 ADD_LIBRARY(${PROJECT_NAME} STATIC ${sources})
-add_test_exe("platformlib_test" "test/test_main.cpp")
-TARGET_LINK_LIBRARIES("platformlib_test" ${PROJECT_NAME})
+add_test_exe("corelib_test" "test/test_main.cpp")
+TARGET_LINK_LIBRARIES("corelib_test" ${PROJECT_NAME})
