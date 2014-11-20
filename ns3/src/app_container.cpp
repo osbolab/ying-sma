@@ -31,7 +31,7 @@ ns3::TypeId app_container::TypeId()
 /******************************************************************************
  * c/dtor and assignment
  */
-app_container::app_container() { LOG(DEBUG); }
+app_container::app_container() {}
 app_container::app_container(Myt&& rhs) {}
 app_container& app_container::operator=(Myt&& rhs) { return *this; }
 app_container::~app_container() {}
@@ -56,7 +56,7 @@ void app_container::StartApplication()
   msgr = message_dispatch::new_single_threaded(chan.get());
   chan->inbox(msgr.get());
 
-  context ctx { id, msgr.get() };
+  context ctx { msgr.get() };
   app = std::make_unique<application>(std::move(ctx));
 }
 

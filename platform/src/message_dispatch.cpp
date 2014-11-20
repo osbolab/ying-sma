@@ -68,6 +68,34 @@ messenger& message_dispatch::subscribe(message_type type, actor* subscriber)
   return *this;
 }
 
+messenger& message_dispatch::unsubscribe(message_type type, actor* subscriber)
+{
+  bool type_checked = false;
+  auto it = subs.begin();
+  while (it != subs.end()) {
+    if (it->first == type) {
+      type_checked = true;
+      if (it->second == subscriber)
+        subs.erase(it++);
+    } else if (type_checked)
+      break;
+    ++it;
+  }
+
+  return *this;
+}
+
+messenger& message_dispatch::unsubscribe(actor* subscriber)
+{
+  auto it = subs.begin();
+  while (it != subs.end())
+    if (it->second == subscriber)
+      subs.erase(it++);
+    else
+      ++it;
+  return *this;
+}
+
 void message_dispatch::accept(const message& msg)
 {
   bool handled = false;

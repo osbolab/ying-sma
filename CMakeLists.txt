@@ -23,6 +23,8 @@ endif()
 
 # Set up output directory by binary type
 macro(set_build_dir path)
+  # Public headers
+  set(PUBLIC_HEADER_DIRECTORY  "${path}/include")
   # Executables
   set(RUNTIME_OUTPUT_DIRECTORY "${path}")
   # Test executables
@@ -50,17 +52,20 @@ endforeach()
 
 ###############################################################################
 # Configure subprojects 
-set(user_headers   "${CMAKE_SOURCE_DIR}/include")
-set(ext_headers    "${EXT_DIR}/easyloggingpp/include")
-include_directories(BEFORE SYSTEM ${user_headers} ${ext_headers})
+set(SMA_PLATFORM_LIB  "smaplatform")
+set(SMA_NS3_LIB       "smans3")
+set(SMA_APP_LIB       "smaapp")
 
-while(subproject_count EQUAL 0)
-  subproject("core")
-  subproject("app")
-  subproject("ns3")
-  if (subproject_count EQUAL 0)
-    message(STATUS "No projects were specified; configuring everything")
-    set(ALL ON)
-  endif()
-endwhile()
-message(STATUS "")
+set(user_headers   "${PUBLIC_HEADER_DIRECTORY}")
+#include_directories(BEFORE SYSTEM ${user_headers} ${ext_headers})
+
+# Everyone depends on the platform headers
+include_directories("platform/include")
+add_subdirectory("platform")
+
+# NS3 simulations depend on the application headers 
+include_directories("app/include")
+add_subdirectory("app")
+
+include_directories("ns3/include")
+add_subdirectory("ns3")

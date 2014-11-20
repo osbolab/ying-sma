@@ -1,4 +1,4 @@
-project(smans3)
+project("${SMA_NS3_LIB}")
 
 # Configure cmake to find the NS3 headers and shared libraries for linking.
 # Also defines the use_cmake_modules(target modules...) macro to link the
@@ -24,13 +24,11 @@ set(sources
 # we won't bother linking any modules to the library.
 # Whatever simulation links to the library will have to make up the missing
 # symbols by linking NS3 modules.
-add_library("smans3" STATIC ${sources})
-target_link_libraries("smans3" "smacore")
-
-include_directories("include")
+add_library("${PROJECT_NAME}" STATIC ${sources})
+target_link_libraries("${PROJECT_NAME}" "${SMA_PLATFORM_LIB}")
 
 add_executable("wifi_simple" "sim/wifi_simple.cpp" "src/app_container.cpp")
-target_link_libraries("wifi_simple" "smaapp" "smans3")
+target_link_libraries("wifi_simple" "${SMA_APP_LIB}" "${SMA_NS3_LIB}")
 # Unfortunately, the nice thing waf does for us is build up their
 # configuration-encoded dependency hierarchy.
 # We have to figure it out by adding stuff until we stop getting link errors.

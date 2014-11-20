@@ -8,7 +8,7 @@
 
 #include <sma/json.hpp>
 
-#include <sma/app/context.hpp>
+#include <sma/context.hpp>
 #include <sma/message.hpp>
 #include <sma/messenger.hpp>
 #include <sma/async>
@@ -34,19 +34,18 @@
 int DeviceWithGPS::HEARTBEAT_INTERVAL = 10;
 int DeviceWithGPS::DIRECTORY_SYNC_INTERVAL = 30;
 std::string DeviceWithGPS::LOG_DIR = "logs/nodes/";
-unsigned int DeviceWithGPS::DEFAULT_POWER_LEVEL = 10000;
 
 DeviceWithGPS::DeviceWithGPS(sma::context ctx)
-  : deviceID(std::to_string(ctx.node_id))
+  : actor(std::move(ctx))
   , network(nullptr)
-  , controlPlane(std::to_string(ctx.node_id))
+  , controlPlane("0")
   , ctx(ctx)
 {
+  deviceID = "0";
   for (std::size_t message_type = 0; message_type < 5; ++message_type) {
     ctx.msgr->subscribe(static_cast<sma::message_type>(message_type), this);
   }
   gpsDriver.setGPS(0.0, 0.0);
-  powerLevel = DEFAULT_POWER_LEVEL;
 
   struct stat info;
   if (stat(LOG_DIR.c_str(), &info) == -1) {
@@ -76,36 +75,6 @@ DeviceWithGPS::~DeviceWithGPS()
 }
 
 std::string DeviceWithGPS::getDeviceID() const { return deviceID; }
-
-bool DeviceWithGPS::hasGPS() { return gpsDriver.hasGPS(); }
-
-void DeviceWithGPS::setGPS(double latitude, double longitude)
-{
-  gpsDriver.setGPS(latitude, longitude);
-}
-
-void DeviceWithGPS::setPowerLevel(unsigned int level) { powerLevel = level; }
-
-unsigned int DeviceWithGPS::getPowerLevel() const { return powerLevel; }
-
-GPSinfo DeviceWithGPS::getGPS() const { return gpsDriver.getGPS(); }
-
-/* Services will be launched once the device is connected to the network
- */
-void DeviceWithGPS::connectToNetwork(NetworkEmulator* networkToAttach)
-{
-  if (network == nullptr && networkToAttach) {
-    logger->log("Connected.\n");
-    networkToAttach->acceptDevice(this);
-    network = networkToAttach;
-  }
-}
-
-void DeviceWithGPS::leaveFromNetwork(NetworkEmulator* networkAttached)
-{
-  if (networkAttached)
-    networkAttached->dropDevice(this);
-}
 
 /* Currently, the beconning message broadcast the GPS information
  * together with the user ID to the network.

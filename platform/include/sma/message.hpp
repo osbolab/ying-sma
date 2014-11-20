@@ -1,6 +1,6 @@
 #pragma once
 
-#include "detail/message_type.hpp"
+#include <sma/detail/message_type.hpp>
 
 #include <sma/buffer.hpp>
 #include <sma/bytes.hpp>

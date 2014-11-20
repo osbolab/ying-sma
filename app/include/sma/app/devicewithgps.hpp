@@ -1,7 +1,7 @@
 #pragma once
 
 #include <sma/actor.hpp>
-#include <sma/app/context.hpp>
+#include <sma/context.hpp>
 
 #include <sma/app/device.hpp>
 
@@ -28,19 +28,8 @@ public:
 
   void dispose();
 
-  std::string getDeviceID() const;
-  /* GPS driver delegation
- */
-  bool hasGPS();
-  GPSinfo getGPS() const;
-  void setGPS(double latitude, double longitude); // should be a private method later, reflected by the user mobility.
+  virtual std::string getDeviceID() const override;
 
-
-  void setPowerLevel (unsigned int level);
-  unsigned int getPowerLevel () const;
-
-  void connectToNetwork(NetworkEmulator* networkToAttach);
-  void leaveFromNetwork(NetworkEmulator* networkAttached);
   void publishContent(std::string inFileName, std::string outFileName);
   void retrieveContentAs(std::string fileName, std::string exportFileName);
 
@@ -56,13 +45,13 @@ public:
   // Unpacks the contents as a DataBlock and gives it to receiveSignal(1)
   virtual void on_message(sma::message const& msg) override;
 
-  void receiveSignal(DataBlock const& block);
-  void sendSignal(DataBlock const& block); //interface to deliver data to the network.
+  virtual void receiveSignal(DataBlock const& block) override;
+  virtual void sendSignal(DataBlock const& block) override;
   /* for test use
  * commands come from the terminals
  */
   void processNeighborQuery () const;
-  DeviceLogger* getLoggerPtr() const;
+  virtual DeviceLogger* getLoggerPtr() const override;
 
 
 private:
@@ -75,7 +64,6 @@ private:
   std::string deviceID;
   std::queue<DataBlock> inputQueue; //listening to the network
   std::mutex m_mutex_queue_i;
-  unsigned int powerLevel;
 
   static int HEARTBEAT_INTERVAL;
   static int DIRECTORY_SYNC_INTERVAL;
@@ -89,7 +77,7 @@ private:
 
 
   void beaconing();
-  void forwardRequest(ChunkID chunk);
+  virtual void forwardRequest(ChunkID chunk) override;
   void broadcastDirectory();
   std::string getJsonGPS() const;   //format the gps data returned from GPS driver.
   std::string getJsonDirectory(int numOfEntries) const;

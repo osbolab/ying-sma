@@ -15,10 +15,8 @@ if(BUILD_TESTS)
   endif()
   # When we build gtest it'll go in our build path instead of whatever it
   # specifies.
-  message(STATUS "\nConfiguring ${gtest_name}")
   add_subdirectory("${gtest_dir}" "${EXT_OUTPUT_DIRECTORY}/gtest")
   include_directories("${gtest_dir}/include")
-  message(STATUS "Leaving ${gtest_name}\n")
 
   # Automatically generate an executable and link it with gtest
   macro(add_test_exe name)

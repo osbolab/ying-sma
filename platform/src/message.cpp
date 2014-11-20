@@ -1,5 +1,4 @@
 #include <sma/message.hpp>
-#include <sma/node.hpp>
 #include <sma/buffer.hpp>
 
 #include <cstdint>
