@@ -1,9 +1,9 @@
-#include <sma/app/signalhandler.hpp>
+#include <sma/ccn/signalhandler.hpp>
 
-#include <sma/app/datablock.hpp>
-#include <sma/app/contentdescriptor.hpp>
-#include <sma/app/devicelogger.hpp>
-#include <sma/app/controllayer.hpp>
+#include <sma/ccn/datablock.hpp>
+#include <sma/ccn/contentdescriptor.hpp>
+#include <sma/ccn/devicelogger.hpp>
+#include <sma/ccn/controllayer.hpp>
 #include <sma/json.hpp>
 
 #include <sstream>

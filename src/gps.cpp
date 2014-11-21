@@ -1,4 +1,4 @@
-#include <sma/device/gps.hpp>
+#include <sma/gps.hpp>
 
 #include <cassert>
 #include <cmath>

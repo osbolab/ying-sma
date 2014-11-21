@@ -1,19 +1,19 @@
-#include <sma/app/application.hpp>
+#include <sma/ccn/devicewithgps.hpp>
+#include <sma/ccn/application.hpp>
 #include <sma/context.hpp>
 
-#include <sma/app/devicewithgps.hpp>
 
 #include <sma/io/log>
 
 
 namespace sma
 {
-application::application(context ctx)
+Application::Application(Context* ctx)
   : device(std::make_unique<DeviceWithGPS>(ctx))
 {
 }
 
-void application::dispose()
+void Application::dispose()
 {
   if (device)
     device->dispose();

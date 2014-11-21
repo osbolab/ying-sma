@@ -64,10 +64,8 @@ include_directories("include")
 
 set(${PROJECT_NAME}_sources
   "src/actor.cpp"
-  "src/buffer.cpp"
-  "src/channel.cpp"
-  "src/device/gps.cpp"
-  "src/device/dummy_gps.cpp"
+  "src/gps.cpp"
+  "src/dummy_gps.cpp"
   "src/inet_addr.cpp"
   "src/message.cpp"
   "src/messagedispatch.cpp"

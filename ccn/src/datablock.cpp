@@ -1,8 +1,8 @@
-#include <sma/app/datablock.hpp>
+#include <sma/ccn/datablock.hpp>
 #include <sma/io/log>
 
 #include <cstring>
-#include <sma/app/device.hpp>
+#include <sma/ccn/device.hpp>
 #include <iostream>
 
 DataBlock::DataBlock(SMA::MESSAGE_TYPE type)
@@ -81,6 +81,6 @@ void DataBlock::getPayload(char* outputBuffer) const
 
 std::string DataBlock::getSrcDeviceID() const { return srcDeviceID; }
 
-void DataBlock::setChunkID(ChunkID chunk) { chunkID = chunk; }
+void DataBlock::setChunkID(std::string chunk) { chunkID = chunk; }
 
-ChunkID DataBlock::getChunkID() const { return chunkID; }
+std::string DataBlock::getChunkID() const { return chunkID; }

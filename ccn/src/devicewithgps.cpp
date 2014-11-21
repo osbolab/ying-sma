@@ -1,17 +1,18 @@
-#include <sma/app/devicewithgps.hpp>
-#include <sma/app/devicelogger.hpp>
+#include <sma/ccn/devicewithgps.hpp>
+#include <sma/ccn/devicelogger.hpp>
 
-#include <sma/app/datablock.hpp>
+#include <sma/ccn/datablock.hpp>
 
-#include <sma/app/controllayer.hpp>
-#include <sma/app/contentdescriptor.hpp>
+#include <sma/ccn/controllayer.hpp>
+#include <sma/ccn/contentdescriptor.hpp>
 
 #include <sma/json.hpp>
 
+#include <sma/actor.hpp>
 #include <sma/context.hpp>
 #include <sma/message.hpp>
 #include <sma/messenger.hpp>
-#include <sma/async>
+#include <sma/async.hpp>
 #include <sma/io/log>
 
 #include <iostream>
@@ -35,17 +36,14 @@ int DeviceWithGPS::HEARTBEAT_INTERVAL = 10;
 int DeviceWithGPS::DIRECTORY_SYNC_INTERVAL = 30;
 std::string DeviceWithGPS::LOG_DIR = "logs/nodes/";
 
-DeviceWithGPS::DeviceWithGPS(sma::context ctx)
-  : actor(std::move(ctx))
-  , network(nullptr)
+DeviceWithGPS::DeviceWithGPS(sma::Context* ctx)
+  : sma::Actor(ctx)
   , controlPlane("0")
-  , ctx(ctx)
 {
   deviceID = "0";
   for (std::size_t message_type = 0; message_type < 5; ++message_type) {
-    subscribe(static_cast<sma::message_type>(message_type));
+    subscribe(static_cast<sma::Message::Type>(message_type));
   }
-  gpsDriver.setGPS(0.0, 0.0);
 
   struct stat info;
   if (stat(LOG_DIR.c_str(), &info) == -1) {
@@ -87,8 +85,7 @@ void DeviceWithGPS::beaconing()
 
   // broadcast GPS
   DataBlock block(SMA::GPSBCAST);
-  std::string gpsBroadCastData
-      = getJsonGPS();    // create Json-formatted beaconing message
+  std::string gpsBroadCastData = getJsonGPS();
   int size = gpsBroadCastData.size() + 1;
   char* payload = new char[size];
   gpsBroadCastData.copy(payload, size - 1, 0);
@@ -102,7 +99,7 @@ void DeviceWithGPS::beaconing()
   logger->log(logStr.str());
 
   if (!disposed) {
-    sma::async(std::bind(&DeviceWithGPS::beaconing, this))
+    async(std::bind(&DeviceWithGPS::beaconing, this))
         .do_in(std::chrono::seconds(HEARTBEAT_INTERVAL));
     beacon_scheduled = true;
   }
@@ -132,29 +129,27 @@ void DeviceWithGPS::broadcastDirectory()
   logger->log(logStr.str());
 
   if (!disposed) {
-    sma::async(std::bind(&DeviceWithGPS::broadcastDirectory, this))
+    async(std::bind(&DeviceWithGPS::broadcastDirectory, this))
         .do_in(std::chrono::seconds(DIRECTORY_SYNC_INTERVAL));
     broadcast_scheduled = true;
   }
 }
 
-void DeviceWithGPS::forwardRequest(ChunkID chunk)
+void DeviceWithGPS::forwardRequest(std::string chunk)
 {
-  if (network != nullptr) {
-    DataBlock block(SMA::REQUESTFWD);
-    std::string requestFwdData = getJsonFwd(chunk);
-    int size = requestFwdData.size() + 1;
-    char* payload = new char[size];
-    requestFwdData.copy(payload, size - 1, 0);
-    payload[size - 1] = '\0';
-    block.createData(this, payload, size);
-    sendSignal(block);
-    delete[] payload;
-    payload = nullptr;
-    std::ostringstream logStr;
-    logStr << deviceID << ": Request Forwarding for " << chunk << '\n';
-    logger->log(logStr.str());
-  }
+  DataBlock block(SMA::REQUESTFWD);
+  std::string requestFwdData = getJsonFwd(chunk);
+  int size = requestFwdData.size() + 1;
+  char* payload = new char[size];
+  requestFwdData.copy(payload, size - 1, 0);
+  payload[size - 1] = '\0';
+  block.createData(this, payload, size);
+  sendSignal(block);
+  delete[] payload;
+  payload = nullptr;
+  std::ostringstream logStr;
+  logStr << deviceID << ": Request Forwarding for " << chunk << '\n';
+  logger->log(logStr.str());
 }
 
 void DeviceWithGPS::sendSignal(const DataBlock& block)
@@ -163,19 +158,21 @@ void DeviceWithGPS::sendSignal(const DataBlock& block)
 
   // narrowing
   auto dp = reinterpret_cast<const std::uint8_t*>(block.dataArray);
-  sma::message m(static_cast<sma::message_type>(block.dataType),
-                 std::move(dp),
-                 block.payloadSize);
+  auto m = sma::Message::wrap(static_cast<sma::Message::Type>(block.dataType),
+                              sma::Message::LIGHT,
+                              std::move(dp),
+                              block.payloadSize);
   post(m);
 }
 
-void DeviceWithGPS::on_message(const sma::message& msg)
+void DeviceWithGPS::receive(sma::Message const& msg)
 {
   DataBlock data(static_cast<SMA::MESSAGE_TYPE>(msg.type()));
   auto csrc = reinterpret_cast<const char*>(msg.cdata());
   data.createData(this, csrc, msg.size());
   receiveSignal(data);
 }
+void receive(sma::Message const& msg, sma::Actor* sender) {}
 void DeviceWithGPS::receiveSignal(const DataBlock& block)
 {
   //  char* payload = new char [block.getPayloadSize()];
@@ -229,9 +226,8 @@ std::string DeviceWithGPS::getJsonGPS() const
 {
   Json::Value result;
   Json::Value gps;
-  GPSinfo gpsData = gpsDriver.getGPS();
-  gps["latitude"] = gpsData.latitude;
-  gps["longitude"] = gpsData.longitude;
+  gps["latitude"] = 0.0;
+  gps["longitude"] = 0.0;
   result["gps"] = gps;
   result["device_id"] = this->getDeviceID();
   Json::StyledWriter styledWriter;    // should change fastWriter
@@ -239,7 +235,7 @@ std::string DeviceWithGPS::getJsonGPS() const
   return jsonMessage;
 }
 
-std::string DeviceWithGPS::getJsonFwd(ChunkID chunk) const
+std::string DeviceWithGPS::getJsonFwd(std::string chunk) const
 {
   //  Json::Value result;
   Json::Value fwd;

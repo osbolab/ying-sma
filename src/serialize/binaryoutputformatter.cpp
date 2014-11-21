@@ -2,8 +2,9 @@
 
 #include <ostream>
 #include <string>
-
+#include <cstring>
 #include <cassert>
+#include <limits>
 
 
 namespace sma
@@ -50,38 +51,38 @@ void put_xint(T t, std::ostream* os)
     buf[i] = (t >> sh) & 0xff;
   }
 
-  os->write(reinterpret_cast<std::istream::char_type*>(buf), size);
+  os->write(reinterpret_cast<std::ostream::char_type*>(buf), size);
   assert(os->good());
 }
 
 template <>
 Myt& Myt::put(std::int8_t t)
 {
-  os->put(reinterpret_cast<std::ostream::char_type>(t));
+  os->put(static_cast<std::ostream::char_type>(t));
   assert(os->good());
   return *this;
 }
 template <>
 Myt& Myt::put(std::uint8_t t)
 {
-  os->put(reinterpret_cast<std::ostream::char_type>(t));
+  os->put(static_cast<std::ostream::char_type>(t));
   assert(os->good());
   return *this;
 }
 
 // clang-format off
 template<>
-Myt& put(std::int16_t t) { put_xint(t, os); return *this; }
+Myt& Myt::put(std::int16_t t) { put_xint(t, os); return *this; }
 template<>
-Myt& put(std::int32_t t) { put_xint(t, os); return *this; }
+Myt& Myt::put(std::int32_t t) { put_xint(t, os); return *this; }
 template<>
-Myt& put(std::int64_t t) { put_xint(t, os); return *this; }
+Myt& Myt::put(std::int64_t t) { put_xint(t, os); return *this; }
 template<>
-Myt& put(std::uint16_t t) { put_xint(t, os); return *this; }
+Myt& Myt::put(std::uint16_t t) { put_xint(t, os); return *this; }
 template<>
-Myt& put(std::uint32_t t) { put_xint(t, os); return *this; }
+Myt& Myt::put(std::uint32_t t) { put_xint(t, os); return *this; }
 template<>
-Myt& put(std::uint64_t t) { put_xint(t, os); return *this; }
+Myt& Myt::put(std::uint64_t t) { put_xint(t, os); return *this; }
 // clang-format on
 
 
@@ -98,7 +99,7 @@ Myt& Myt::put(float t)
                 "implementation.");
 
   unsigned int ui = 0;
-  std::memcpy((void*) &ui, (void const*) &f, sizeof(float));
+  std::memcpy((void*) &ui, (void const*) &t, sizeof(float));
   put_xint(ui, os);
   return *this;
 }
@@ -112,21 +113,21 @@ Myt& Myt::put(double t)
       "implementation.");
 
   unsigned long ul = 0;
-  std::memcpy((void*) &ul, (void const*) &f, sizeof(double));
+  std::memcpy((void*) &ul, (void const*) &t, sizeof(double));
   put_xint(ul, os);
   return *this;
 }
 
 
-Myt& Myt::put(std::int8_t const* src, std::size_t size)
+Myt& Myt::put(char const* src, std::size_t size)
 {
-  os->write(reinterpret_cast<std::istream::char_type const*>(src), size);
+  os->write(reinterpret_cast<std::ostream::char_type const*>(src), size);
   assert(os->good());
   return *this;
 }
 Myt& Myt::put(std::uint8_t const* src, std::size_t size)
 {
-  os->write(reinterpret_cast<std::istream::char_type const*>(src), size);
+  os->write(reinterpret_cast<std::ostream::char_type const*>(src), size);
   assert(os->good());
   return *this;
 }
@@ -138,7 +139,7 @@ Myt& Myt::put(std::string const& s)
       "Your implementation's std::string::value_type isn't 8 bits; I "
       "don't know how to serialize strings with this implementation.");
 
-  assert(s.size() <= numeric_limits<std::uint16_t>::max);
+  assert(s.size() <= std::numeric_limits<std::uint16_t>::max());
   put(static_cast<std::uint16_t>(s.size()));
   put(s.c_str(), s.size());
   return *this;

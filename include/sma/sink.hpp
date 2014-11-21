@@ -18,8 +18,8 @@ class SinkSet
   using Myt = SinkSet<T>;
   using raw_ptr = Sink<T>*;
   using sinks_type = std::vector<raw_ptr>;
-  using iterator = sinks_type::iterator;
-  using const_iterator = sinks_type::const_iterator;
+  using iterator = typename sinks_type::iterator;
+  using const_iterator = typename sinks_type::const_iterator;
 
 public:
   Myt& add(raw_ptr sink);

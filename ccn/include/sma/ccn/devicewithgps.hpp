@@ -3,27 +3,28 @@
 #include <sma/actor.hpp>
 #include <sma/context.hpp>
 
-#include <sma/app/device.hpp>
+#include <sma/ccn/device.hpp>
 
-#include <sma/app/gpsinfo.hpp>
-
-#include <sma/app/datablock.hpp>
-#include <sma/app/neighborrecords.hpp>
-#include <sma/app/controllayer.hpp>
-#include <sma/app/gpsdriver.hpp>
-#include <sma/app/devicelogger.hpp>
-#include <sma/app/typedefinition.hpp>
+#include <sma/ccn/datablock.hpp>
+#include <sma/ccn/neighborrecords.hpp>
+#include <sma/ccn/controllayer.hpp>
+#include <sma/ccn/devicelogger.hpp>
 
 #include <mutex>
 #include <atomic>
 #include <queue>
 
 
-class DeviceWithGPS : public sma::actor, public Device
+namespace sma
+{
+struct Message;
+}
+
+class DeviceWithGPS : public sma::Actor, public Device
 {
 
 public:
-  DeviceWithGPS(sma::context ctx);
+  DeviceWithGPS(sma::Context* ctx);
   ~DeviceWithGPS();
 
   void dispose();
@@ -43,14 +44,15 @@ public:
  */
   // Callback from sma::messenger (from NS3)
   // Unpacks the contents as a DataBlock and gives it to receiveSignal(1)
-  virtual void on_message(sma::message const& msg) override;
+  virtual void receive(sma::Message const& msg) override;
+  virtual void receive(sma::Message const& msg, Actor* sender) override;
 
   virtual void receiveSignal(DataBlock const& block) override;
   virtual void sendSignal(DataBlock const& block) override;
   /* for test use
  * commands come from the terminals
  */
-  void processNeighborQuery () const;
+  void processNeighborQuery() const;
   virtual DeviceLogger* getLoggerPtr() const override;
 
 
@@ -59,10 +61,8 @@ private:
   std::atomic_bool broadcast_scheduled{false};
   std::atomic_bool beacon_scheduled{false};
   static std::string LOG_DIR;
-  NetworkEmulator* network;
-  sma::context ctx;
   std::string deviceID;
-  std::queue<DataBlock> inputQueue; //listening to the network
+  std::queue<DataBlock> inputQueue;    // listening to the network
   std::mutex m_mutex_queue_i;
 
   static int HEARTBEAT_INTERVAL;
@@ -72,20 +72,16 @@ private:
   /* task delegation
  */
   ControlLayer controlPlane;
-  GPSDriver gpsDriver;
   DeviceLogger* logger;
 
 
   void beaconing();
-  virtual void forwardRequest(ChunkID chunk) override;
+  virtual void forwardRequest(std::string chunk) override;
   void broadcastDirectory();
-  std::string getJsonGPS() const;   //format the gps data returned from GPS driver.
+  std::string
+  getJsonGPS() const;    // format the gps data returned from GPS driver.
   std::string getJsonDirectory(int numOfEntries) const;
-  std::string getJsonFwd(ChunkID chunk) const;
-  void processBeaconing (DataBlock const& block);
-  void processDirectorySync (DataBlock const& block);
-
-
+  std::string getJsonFwd(std::string chunk) const;
+  void processBeaconing(DataBlock const& block);
+  void processDirectorySync(DataBlock const& block);
 };
-
-

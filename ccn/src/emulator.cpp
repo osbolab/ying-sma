@@ -1,9 +1,9 @@
-#include <sma/app/emulator.hpp>
+#include <sma/ccn/emulator.hpp>
 
-#include <sma/app/adhocnetworkemulator.hpp>
-#include <sma/app/devicewithgps.hpp>
-#include <sma/app/device.hpp>
-#include <sma/app/batchscriptgenerator.hpp>
+#include <sma/ccn/adhocnetworkemulator.hpp>
+#include <sma/ccn/devicewithgps.hpp>
+#include <sma/ccn/device.hpp>
+#include <sma/ccn/batchscriptgenerator.hpp>
 
 #include <sma/messenger.hpp>
 #include <sma/scheduler.hpp>

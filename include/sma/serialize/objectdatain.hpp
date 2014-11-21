@@ -16,11 +16,21 @@ public:
   {
   }
 
-  // clang-format off
-  template <typename T> T get() { return f.get<T>(); }
-  Myt& get(std::int8_t* dst, std::size_t size) { f.get(dst, size); return *this; }
-  Myt& get(std::uint8_t* dst, std::size_t size) { f.get(dst, size); return *this; }
-  // clang-format on
+  template <typename T>
+  T get()
+  {
+    return f.template get<T>();
+  }
+  Myt& get(std::int8_t* dst, std::size_t size)
+  {
+    f.template get(dst, size);
+    return *this;
+  }
+  Myt& get(std::uint8_t* dst, std::size_t size)
+  {
+    f.template get(dst, size);
+    return *this;
+  }
 
 private:
   Formatter f;

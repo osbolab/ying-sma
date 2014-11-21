@@ -1,5 +1,5 @@
 #include <iostream>
-#include <sma/app/datalayer.hpp>
+#include <sma/ccn/datalayer.hpp>
 #include <cassert>
 
 using namespace std;

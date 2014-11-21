@@ -1,4 +1,4 @@
-#include <sma/app/plainchunkstore.hpp>
+#include <sma/ccn/plainchunkstore.hpp>
 #include <sma/md5.hpp>
 
 #include <cassert>
@@ -38,9 +38,9 @@ bool PlainChunkStore::hasChunk(std::string chunkID) const
   return (iter != m_chunkIndex.end());
 }
 
-ChunkID PlainChunkStore::storeChunk(std::string tmpChunkFile)
+std::string PlainChunkStore::storeChunk(std::string tmpChunkFile)
 {
-  ChunkID result = "";
+  std::string result = "";
   //  if (check_md5 && (chunkID != tmpChunkFile))
   //  {
   //    std::cerr<< "digest verification failed." << std::endl;

@@ -1,4 +1,4 @@
-#include <sma/app/neighborrecordentry.hpp>
+#include <sma/ccn/neighborrecordentry.hpp>
 #include <string>
 
 NeighborRecordEntry::NeighborRecordEntry(std::string id, double lat, double lon):deviceID(id),

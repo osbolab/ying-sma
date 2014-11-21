@@ -23,18 +23,10 @@ public:
 
   template <typename T>
   T get();
-  Myt& get(std::int8_t* dst, std::size_t size);
+  Myt& get(char* dst, std::size_t size);
   Myt& get(std::uint8_t* dst, std::size_t size);
 
 private:
   std::istream* is{nullptr};
 };
-
-template <typename T>
-T BinaryInputFormatter::get()
-{
-  static_assert(false,
-                "No specialization exists for reading the given type in "
-                "a binary format.");
-}
 }

@@ -1,12 +1,12 @@
-#include <sma/app/controllayer.hpp>
-#include <sma/app/contentdescriptor.hpp>
+#include <sma/ccn/controllayer.hpp>
+#include <sma/ccn/contentdescriptor.hpp>
 #include <string>
-#include <sma/app/contentdirectory.hpp>
-#include <sma/app/segmenter.hpp>
+#include <sma/ccn/contentdirectory.hpp>
+#include <sma/ccn/segmenter.hpp>
 #include <vector>
 #include <iostream>
 #include <mutex>
-#include <sma/app/signalhandler.hpp>
+#include <sma/ccn/signalhandler.hpp>
 #include <fstream>
 #include <sstream>
 #include <cstdio>
@@ -29,10 +29,10 @@ void ControlLayer::setDevicePtr (Device* devicePtr)
 
 void ControlLayer::publishContent(std::string inFileName, std::string outFileName, const std::vector<std::pair<ContentAttribute::META_TYPE, std::string> >& fileMeta)
 {
-  std::vector<ChunkID> chunkIDs;
+  std::vector<std::string> chunkIDs;
   segmenter.storeFile(inFileName, chunkIDs, datalayer);
   ContentDescriptor newFile(outFileName);
-  std::vector<ChunkID>::iterator chunk_iter = chunkIDs.begin();
+  std::vector<std::string>::iterator chunk_iter = chunkIDs.begin();
   int id = 0;
   while (chunk_iter != chunkIDs.end())
   {
@@ -67,7 +67,7 @@ void ControlLayer::retrieveContentAndSaveAs(std::string readFileName, std::strin
   std::ostringstream oss;
   oss << "Retrieving content " << readFileName << " which will be saved to " << saveFileName << std::endl;
   device->getLoggerPtr()->log (oss.str());
-  std::vector<ChunkID> chunkList = directory.getChunkList(readFileName);
+  std::vector<std::string> chunkList = directory.getChunkList(readFileName);
   if (chunkList.size() > 0)
   {
     pendingFileTable.addTask(readFileName, saveFileName);
@@ -96,7 +96,7 @@ void ControlLayer::restoreContentAs(std::string readFileName, std::string saveFi
   std::ostringstream oss;
   oss << "Restoring the file: " << readFileName << std::endl;
   device->getLoggerPtr()->log (oss.str());
-  std::vector<ChunkID> chunkList = directory.getChunkList(readFileName);
+  std::vector<std::string> chunkList = directory.getChunkList(readFileName);
   if (chunkList.size() > 0)
   {
     segmenter.loadFileFromChunks (saveFileName, chunkList, datalayer); //should change to a callback mechanism
@@ -133,23 +133,23 @@ std::vector<ContentDescriptor> ControlLayer::getContentDirectory (int numOfEntri
   return directory.getNDirectory(numOfEntries);
 }
 
-void ControlLayer::addFlowRule (ChunkID chunk, int rule)
+void ControlLayer::addFlowRule (std::string chunk, int rule)
 {
   datalayer.addFlowRule(chunk, rule);
 }
 
-void ControlLayer::removeFlowRule (ChunkID chunk)
+void ControlLayer::removeFlowRule (std::string chunk)
 {
   datalayer.delFlowRule(chunk);
 }
 
-int ControlLayer::getFlowRule (ChunkID chunk) const
+int ControlLayer::getFlowRule (std::string chunk) const
 {
   return datalayer.getFlowRule(chunk);
 }
 
 
-void ControlLayer::forwardRequest (ChunkID chunk)
+void ControlLayer::forwardRequest (std::string chunk)
 {
   device->forwardRequest (chunk); //for future revision: request should be properly scheduled.
 }
@@ -169,7 +169,7 @@ void ControlLayer::getNeighborIDs(std::vector<std::string>& list) const
   neighborManager.getNeighborIDs(list);
 }
 
-void ControlLayer::transmitChunk (ChunkID chunk)
+void ControlLayer::transmitChunk (std::string chunk)
 {
   if (this->hasChunk(chunk))
   {
@@ -192,12 +192,12 @@ void ControlLayer::transmitChunk (ChunkID chunk)
   }
 }
 
-bool ControlLayer::hasChunk (ChunkID chunk) const
+bool ControlLayer::hasChunk (std::string chunk) const
 {
   return datalayer.hasChunk(chunk);
 }
 
-void ControlLayer::storeChunk (char* buffer, int sizeOfBuffer, bool requestedBySelf, ChunkID chunkID)
+void ControlLayer::storeChunk (char* buffer, int sizeOfBuffer, bool requestedBySelf, std::string chunkID)
 {
   std::ostringstream oss;
   oss << TMP_FOLDER << chunkID;
@@ -211,17 +211,17 @@ void ControlLayer::storeChunk (char* buffer, int sizeOfBuffer, bool requestedByS
   }
 }
 
-void ControlLayer::addRuleToFlowTable (ChunkID chunk, int rule)
+void ControlLayer::addRuleToFlowTable (std::string chunk, int rule)
 {
   datalayer.addFlowRule (chunk, rule);
 }
 
-void ControlLayer::delRuleFromFlowTable (ChunkID chunk)
+void ControlLayer::delRuleFromFlowTable (std::string chunk)
 {
   datalayer.delFlowRule (chunk);
 }
 
-int ControlLayer::getRuleFromFlowTable (ChunkID chunk) const
+int ControlLayer::getRuleFromFlowTable (std::string chunk) const
 {
   return datalayer.getFlowRule (chunk);
 }

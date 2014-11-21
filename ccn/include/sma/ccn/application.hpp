@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sma/app/devicewithgps.hpp>
+#include <sma/ccn/devicewithgps.hpp>
 
 #include <memory>
 
@@ -8,12 +8,12 @@
 namespace sma
 {
 
-struct context;
+struct Context;
 
-class application
+class Application
 {
 public:
-  application(context ctx);
+  Application(Context* ctx);
 
   void dispose();
 

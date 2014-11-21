@@ -1,4 +1,4 @@
-#include <sma/app/neighborrecords.hpp>
+#include <sma/ccn/neighborrecords.hpp>
 #include <mutex>
 #include <string>
 #include <sstream>

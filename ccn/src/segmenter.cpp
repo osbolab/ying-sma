@@ -1,5 +1,5 @@
-#include <sma/app/segmenter.hpp>
-#include <sma/app/datalayer.hpp>
+#include <sma/ccn/segmenter.hpp>
+#include <sma/ccn/datalayer.hpp>
 #include <sma/md5.hpp>
 
 #include <string>

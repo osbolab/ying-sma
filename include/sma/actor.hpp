@@ -17,7 +17,7 @@ public:
   virtual void receive(Message const& msg, Actor* sender) = 0;
 
 protected:
-  Actor(Context ctx);
+  Actor(Context* ctx);
 
   // Messaging
 
@@ -33,19 +33,19 @@ protected:
   Async::Task<F, A...> async(F&& f, A&&... args);
 
 private:
-  Context ctx;
+  Context* ctx;
 };
 
 
 template <typename A>
 void Actor::post(Message const& msg)
 {
-  ctx.get_actor_by_type<A>()->receive(msg, this);
+  ctx->get_actor_by_type<A>()->receive(msg, this);
 }
 
 template <typename F, typename... A>
 Async::Task<F, A...> Actor::async(F&& f, A&&... args)
 {
-  return ctx.async->make_task(std::forward<F>(f), std::forward<A>(args)...);
+  return ctx->async->make_task(std::forward<F>(f), std::forward<A>(args)...);
 }
 }

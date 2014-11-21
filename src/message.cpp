@@ -6,19 +6,11 @@
 #include <utility>
 #include <vector>
 #include <iostream>
+#include <cstring>
 
 
 namespace sma
 {
-
-// clang-format off
-std::ostream& operator<<(std::ostream& os, const Message& msg)
-{
-  os << "Message {\n   type: " << std::size_t{msg.t}
-     <<          "\n , data: (" << msg.szdata << " bytes)\n}";
-  return os;
-}
-// clang-format on
 
 Message Message::wrap(Type type,
                       Weight weight,
@@ -48,7 +40,7 @@ Message::Message(Header header,
                  std::unique_ptr<std::uint8_t[]> owned_data,
                  Weight weight)
   : header(std::move(header))
-  , owned_data(std::move(data))
+  , owned_data(std::move(owned_data))
 {
   this->data = owned_data.get();
 }
@@ -75,8 +67,8 @@ Message& Message::operator=(Message&& r)
   return *this;
 }
 
-Message Message::duplicate()
+Message Message::duplicate() const
 {
-  return Message(this);
+  return Message(*this);
 }
 }

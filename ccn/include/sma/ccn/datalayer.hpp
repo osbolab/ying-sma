@@ -1,14 +1,13 @@
 #pragma once
 
+#include <sma/ccn/flowtable.hpp>
+#include <sma/ccn/chunkstore.hpp>
+#include <sma/ccn/pendingchunkmanager.hpp>
 
 #include <string>
-#include <sma/app/chunkstore.hpp>
 #include <fstream>
-#include <sma/app/typedefinition.hpp>
 #include <unordered_map>
 #include <set>
-#include <sma/app/pendingchunkmanager.hpp>
-#include <sma/app/flowtable.hpp>
 
 class ControlLayer;
 class DeviceLogger;
@@ -23,11 +22,11 @@ public:
   bool hasChunk (std::string chunkID) const;
   void deleteChunk (std::string chunkID) const;
   void fetchChunk (std::string chunkID, std::ifstream& fin) const;
-  void prepareChunks (std::string readFileName, std::vector<ChunkID> chunkList);  
+  void prepareChunks (std::string readFileName, std::vector<std::string> chunkList);
   void setControlLayer (ControlLayer* controlPtr);
-  void addFlowRule(ChunkID chunk, int rule);
-  void delFlowRule(ChunkID chunk);
-  int getFlowRule(ChunkID chunk) const;
+  void addFlowRule(std::string chunk, int rule);
+  void delFlowRule(std::string chunk);
+  int getFlowRule(std::string chunk) const;
   void setLogger(DeviceLogger* loggerPtr);
 
   void showPendingChunksOfFile (std::string fileName) const;

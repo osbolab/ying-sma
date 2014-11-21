@@ -1,7 +1,7 @@
 #include <iostream>
-#include <sma/app/segmenter.hpp>
-#include <sma/app/chunkstore.hpp>
-#include <sma/app/plainchunkstore.hpp>
+#include <sma/ccn/segmenter.hpp>
+#include <sma/ccn/chunkstore.hpp>
+#include <sma/ccn/plainchunkstore.hpp>
 
 using namespace std;
 

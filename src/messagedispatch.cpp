@@ -1,8 +1,8 @@
 #include <sma/messagedispatch.hpp>
-#include <sma/Message.hpp>
-#include <sma/Actor.hpp>
+#include <sma/message.hpp>
+#include <sma/actor.hpp>
 #include <sma/sink.hpp>
-#include <sma/concurrent/rws_mutex.hpp>
+#include <sma/concurrent/rwsmutex.hpp>
 
 #include <sma/io/log>
 
@@ -33,11 +33,8 @@ MessageDispatch& MessageDispatch::operator=(MessageDispatch&& rhs)
 
 Messenger& MessageDispatch::forward(Message const& msg)
 {
-  if (outbox_)
-    outbox_->accept(msg);
-  else
-    LOG(WARNING) << "Message dropped: messenger has no outbox channel:\n"
-                 << msg;
+  assert(outbox_);
+  outbox_->accept(msg);
   return *this;
 }
 
@@ -90,14 +87,14 @@ void MessageDispatch::accept(const Message& msg)
     for (std::size_t i = 0; i < subs.size(); ++i) {
       if (subs[i].first == msg.type()) {
         while (subs[i].first == msg.type())
-          subs[i++].second->on_message(msg);
+          subs[i++].second->receive(msg);
         handled = true;
       } else if (handled)
         return;
     }
   }
   if (!handled)
-    LOG(WARNING) << "Unhandled Message:\n" << msg;
+    LOG(WARNING) << "Unhandled Message: type = " << std::size_t{msg.type()};
 }
 
 ConcurrentDispatch::ConcurrentDispatch() {}
@@ -106,12 +103,12 @@ ConcurrentDispatch::ConcurrentDispatch(Sink<Message const&>* outbox)
 {
 }
 ConcurrentDispatch::ConcurrentDispatch(ConcurrentDispatch&& r)
-  : MessageDispatch(r)
+  : MessageDispatch(std::move(r))
 {
 }
 ConcurrentDispatch& ConcurrentDispatch::operator=(ConcurrentDispatch&& r)
 {
-  MessageDispatch::operator=(r);
+  MessageDispatch::operator=(std::move(r));
   return *this;
 }
 
@@ -138,6 +135,5 @@ void ConcurrentDispatch::accept(const Message& msg)
 {
   ReaderLock lock(mx);
   MessageDispatch::accept(msg);
-}
 }
 }

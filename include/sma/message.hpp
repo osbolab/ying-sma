@@ -8,11 +8,13 @@
 
 namespace sma
 {
+template <typename Formatter>
 class ObjectDataIn;
+template <typename Formatter>
 class ObjectDataOut;
 
 struct Message final {
-  enum Weight { LIGHT_MESSAGE, HEAVY_MESSAGE };
+  enum Weight { LIGHT, HEAVY };
 
   using Type = std::uint8_t;
   using data_size_type = std::uint16_t;
@@ -27,22 +29,20 @@ public:
   /*! \brief  Create a message pointing to, but not copying, the given byte
    *          array as its data.
    */
-  static Message wrap(Type type,
-                      Weight weight,
-                      std::uint8_t const* data,
-                      data_size_type size) noexcept;
+  static Message
+  wrap(Type type, Weight weight, std::uint8_t const* data, data_size_type size);
   /*! \brief  Create a message copying the given byte array as its data.
    */
-  static Message copy(Type type,
-                      Weight weight,
-                      std::uint8_t const* data,
-                      data_size_type size) noexcept;
+  static Message
+  copy(Type type, Weight weight, std::uint8_t const* data, data_size_type size);
 
 
   // Serialization
 
-  Message(ObjectDataIn in);
-  void write_fields(ObjectDataOut out);
+  template <typename Formatter>
+  Message(ObjectDataIn<Formatter> in);
+  template <typename Formatter>
+  void write_fields(ObjectDataOut<Formatter> out);
 
   Message(Message&& rhs);
   Message& operator=(Message&& rhs);
@@ -61,10 +61,7 @@ public:
   /*! \brief  Get the immutable message contents. */
   std::uint8_t const* cdata() const noexcept { return data; }
   /*! \brief  Get the size in octets of the message contents. */
-  std::size_t data_size() const noexcept
-  {
-    return std::size_t{header.data_size};
-  }
+  std::size_t size() const noexcept { return std::size_t{header.data_size}; }
 
 private:
   Message(Message const& r);
@@ -79,7 +76,4 @@ private:
   std::uint8_t const* data{nullptr};
   std::unique_ptr<std::uint8_t[]> owned_data;
 };
-
-/*! \brief  Print the given message in human-readable format to the stream. */
-std::ostream& operator<<(std::ostream& os, Message const& msg);
 }

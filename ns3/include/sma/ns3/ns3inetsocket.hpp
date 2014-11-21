@@ -1,8 +1,8 @@
 #pragma once
 
-#include <sma/net/inet_socket.hpp>
-#include <sma/net/inet_addr.hpp>
-#include <sma/net/ns3_inet_channel.hpp>
+#include <sma/inet_socket.hpp>
+#include <sma/inet_addr.hpp>
+#include <sma/ns3/ns3_inet_channel.hpp>
 
 #include <ns3/ptr.h>
 #include <ns3/socket.h>
@@ -18,14 +18,14 @@ class TypeId;
 
 namespace sma
 {
-class ns3_inet_socket final : public inet_socket
+class Ns3InetSocket final : public inet_socket
 {
 public:
-  ns3_inet_socket(ns3::Ptr<ns3::Node> node);
+  Ns3InetSocket(ns3::Ptr<ns3::Node> node);
 
-  ns3_inet_socket(ns3_inet_socket&& rhs);
-  ns3_inet_socket& operator=(ns3_inet_socket&& rhs);
-  virtual ~ns3_inet_socket();
+  Ns3InetSocket(Ns3InetSocket&& rhs);
+  Ns3InetSocket& operator=(Ns3InetSocket&& rhs);
+  virtual ~Ns3InetSocket();
 
   virtual void bind(const socket_addr& address) override;
   virtual void close() override;

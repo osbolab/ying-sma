@@ -1,10 +1,9 @@
 #pragma once
 
 
-#include <sma/app/networkemulator.hpp>
-#include <sma/app/datablock.hpp>
-#include <sma/app/devicelogger.hpp>
-#include <sma/app/typedefinition.hpp>    //temp
+#include <sma/ccn/networkemulator.hpp>
+#include <sma/ccn/datablock.hpp>
+#include <sma/ccn/devicelogger.hpp>
 
 #include <string>
 
@@ -21,7 +20,7 @@ public:
   virtual void sendSignal(const DataBlock& block) = 0;
   virtual DeviceLogger* getLoggerPtr() const = 0;
 
-  virtual void forwardRequest(ChunkID chunk) = 0;
+  virtual void forwardRequest(std::string chunk) = 0;
 };
 
 

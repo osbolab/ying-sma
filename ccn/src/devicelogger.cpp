@@ -1,4 +1,4 @@
-#include <sma/app/devicelogger.hpp>
+#include <sma/ccn/devicelogger.hpp>
 #include <sma/io/log>
 
 #include <sma/chrono>

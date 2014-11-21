@@ -1,5 +1,5 @@
-#include <sma/net/ns3_inet_channel.hpp>
-#include <sma/net/ns3_inet_socket.hpp>
+#include <sma/ns3_inet_channel.hpp>
+#include <sma/ns3_inet_socket.hpp>
 
 #include <sma/channel.hpp>
 #include <sma/messenger.hpp>

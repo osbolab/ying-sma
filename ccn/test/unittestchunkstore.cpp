@@ -1,8 +1,8 @@
 //this file is outdated. don't use.
 
 #include <iostream>
-#include <sma/app/chunkstore.hpp>
-#include <sma/app/plainchunkstore.hpp>
+#include <sma/ccn/chunkstore.hpp>
+#include <sma/ccn/plainchunkstore.hpp>
 #include <cassert>
 #include <fstream>
 

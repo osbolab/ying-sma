@@ -1,4 +1,4 @@
-#include <sma/app/contentdescriptor.hpp>
+#include <sma/ccn/contentdescriptor.hpp>
 
 #include <iostream>
 #include <map>

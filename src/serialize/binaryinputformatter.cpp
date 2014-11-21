@@ -2,6 +2,7 @@
 
 #include <istream>
 #include <string>
+#include <cstring>
 
 #include <cassert>
 
@@ -59,14 +60,14 @@ T get_xint(std::istream* is)
 template <>
 std::int8_t Myt::get<std::int8_t>()
 {
-  auto b = static_cast<std::int8_t>(is.get());
+  auto b = static_cast<std::int8_t>(is->get());
   assert(is->good());
   return b;
 }
 template <>
 std::uint8_t Myt::get<std::uint8_t>()
 {
-  auto b = static_cast<std::uint8_t>(is.get());
+  auto b = static_cast<std::uint8_t>(is->get());
   assert(is->good());
   return b;
 }
@@ -101,7 +102,7 @@ float Myt::get<float>()
       "implementation.");
 
   auto ui = get_xint<unsigned int>(is);
-  float f = 0f;
+  float f = 0.0f;
   std::memcpy((void*) &f, (void const*) &ui, sizeof(float));
   return f;
 }
@@ -121,13 +122,13 @@ double Myt::get<double>()
 }
 
 
-Myt& Myt::get(std::uint8_t* dst, std::size_t size)
+Myt& Myt::get(char* dst, std::size_t size)
 {
   is->read(reinterpret_cast<std::istream::char_type*>(dst), size);
   assert(is->good());
   return *this;
 }
-Myt& Myt::get(std::int8_t* dst, std::size_t size)
+Myt& Myt::get(std::uint8_t* dst, std::size_t size)
 {
   is->read(reinterpret_cast<std::istream::char_type*>(dst), size);
   assert(is->good());

@@ -6,7 +6,7 @@ namespace sma
 {
 class BinaryOutputFormatter
 {
-  static_assert(sizeof(std::uint8_t) == sizeof(std::istream::char_type),
+  static_assert(sizeof(std::uint8_t) == sizeof(std::ostream::char_type),
                 "std::istream::char_type isn't 8 bits; I don't know how to "
                 "serialize with this implementation.");
 
@@ -23,18 +23,10 @@ public:
 
   template <typename T>
   Myt& put(T t);
-  Myt& put(std::int8_t const* src, std::size_t size);
+  Myt& put(char const* src, std::size_t size);
   Myt& put(std::uint8_t const* src, std::size_t size);
 
 private:
   std::ostream* os{nullptr};
 };
-
-template <typename T>
-BinaryOutputFormatter& BinaryOutputFormatter::put(T t)
-{
-  static_assert(false,
-                "No specialization exists for writing the given type in "
-                "a binary format.");
-}
 }

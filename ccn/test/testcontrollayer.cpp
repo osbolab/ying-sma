@@ -1,5 +1,5 @@
 #include <iostream>
-#include <sma/app/controllayer.hpp>
+#include <sma/ccn/controllayer.hpp>
 #include <vector>
 #include <cassert>
 

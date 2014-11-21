@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <mutex>
 #include <string>
-#include <sma/app/neighborrecordentry.hpp>
+#include <sma/ccn/neighborrecordentry.hpp>
 #include <vector>
 
 class NeighborRecords

@@ -196,7 +196,7 @@ static inline void fixNumericLocale(char* begin, char* end)
 #include <json/assertions.h>
 #include <json/reader.h>
 #include <json/value.h>
-#include <sma/app/json_tool.hpp>
+#include <sma/ccn/json_tool.hpp>
 #endif    // if !defined(JSON_IS_AMALGAMATION)
 #include <utility>
 #include <cstdio>
@@ -1565,7 +1565,7 @@ ValueIterator& ValueIterator::operator=(const SelfType& other)
 #include <json/value.h>
 #include <json/writer.h>
 #ifndef JSON_USE_SIMPLE_INTERNAL_ALLOCATOR
-#include <sma/app/json_batchallocator.hpp>
+#include <sma/ccn/json_batchallocator.hpp>
 #endif    // #ifndef JSON_USE_SIMPLE_INTERNAL_ALLOCATOR
 #endif    // if !defined(JSON_IS_AMALGAMATION)
 #include <math.h>
@@ -3320,7 +3320,7 @@ Value& Path::make(Value& root) const
 
 #if !defined(JSON_IS_AMALGAMATION)
 #include <json/writer.h>
-#include <sma/app/json_tool.hpp>
+#include <sma/ccn/json_tool.hpp>
 #endif    // if !defined(JSON_IS_AMALGAMATION)
 #include <utility>
 #include <assert.h>

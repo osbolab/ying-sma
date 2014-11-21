@@ -1,10 +1,9 @@
 #pragma once
 
 
-#include <unordered_map>
 #include <mutex>
-#include <sma/app/typedefinition.hpp>
 #include <string>
+#include <unordered_map>
 /*
  * getRule
  * =-1, no rule
@@ -14,12 +13,12 @@
 class FlowTable
 {
 public:
-  void addRule(ChunkID chunkID, int rule);
-  void delRule(ChunkID chunkID);
-  int getRule(ChunkID chunkID) const;
- 
+  void addRule(std::string chunkID, int rule);
+  void delRule(std::string chunkID);
+  int getRule(std::string chunkID) const;
+
 private:
-  std::unordered_map <ChunkID, int> ruleTable;
+  std::unordered_map <std::string, int> ruleTable;
   std::mutex m_mutex_table;
 };
 

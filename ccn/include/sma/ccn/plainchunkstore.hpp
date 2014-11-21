@@ -1,19 +1,19 @@
 #pragma once
 
 
-#include <sma/app/chunkstore.hpp>
+#include <sma/ccn/chunkstore.hpp>
 #include <unordered_map>
 #include <mutex>
 #include <string>
 #include <fstream>
-#include <sma/app/typedefinition.hpp>
+
 
 class PlainChunkStore : public ChunkStore
 {
 public:
   PlainChunkStore(std::string dirName);
-  bool hasChunk (std::string chunkID) const; 
-  ChunkID storeChunk (std::string tmpChunkFile);
+  bool hasChunk (std::string chunkID) const;
+  std::string storeChunk (std::string tmpChunkFile);
   void deleteChunk (std::string chunkID);
   void fetchChunk (std::string chunkID, std::ifstream& fin) const;
   void setLogger (DeviceLogger* loggerPtr);

@@ -1,12 +1,12 @@
-#include <sma/app/contentdirectory.hpp>
-#include <sma/app/contentdescriptor.hpp>
+#include <sma/ccn/contentdirectory.hpp>
+#include <sma/ccn/contentdescriptor.hpp>
 #include <mutex>
 #include <algorithm>
-#include <sma/app/sortdirectory.hpp>
+#include <sma/ccn/sortdirectory.hpp>
 #include <vector>
 #include <functional>
-#include <sma/app/sortdirectorybyrank.hpp>
-#include <sma/app/sortdirectorybypublishtime.hpp>
+#include <sma/ccn/sortdirectorybyrank.hpp>
+#include <sma/ccn/sortdirectorybypublishtime.hpp>
 #include <iostream>
 
 void ContentDirectory::addContentToDirectory (const ContentDescriptor& description)
@@ -64,10 +64,10 @@ std::vector<ContentDescriptor> ContentDirectory::getDirectory() const
   return directory;
 }
 
-std::vector<ChunkID> ContentDirectory::getChunkList(std::string fileName) const
+std::vector<std::string> ContentDirectory::getChunkList(std::string fileName) const
 {
   std::vector<ContentDescriptor>::const_iterator iter = directory.begin();
-  std::vector<ChunkID> result;
+  std::vector<std::string> result;
   while (iter != directory.end())
   {
     if (iter->getContentName() == fileName)

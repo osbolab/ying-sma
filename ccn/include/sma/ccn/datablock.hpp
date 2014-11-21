@@ -1,8 +1,7 @@
 #pragma once
 
 
-#include <sma/app/device.hpp>
-#include <sma/app/typedefinition.hpp>
+#include <sma/ccn/device.hpp>
 #include <sma/messenger.hpp>
 
 
@@ -27,7 +26,7 @@ public:
   void getPayload(char* outputBuffer) const;
   std::string getSrcDeviceID() const;
   SMA::MESSAGE_TYPE _getMsgTypeEnum() const;
-  void setChunkID (ChunkID chunk);
+  void setChunkID (std::string chunk);
   std::string getChunkID() const;
 
 

@@ -12,7 +12,7 @@
 
 namespace sma
 {
-class actor;
+class Actor;
 
 class MessageDispatch : public Messenger, public Sink<Message const&>
 {
@@ -31,7 +31,7 @@ public:
   /*! \brief  Distribute the given Message to all handlers subscribed to its
    *          type.
    *
-   * The concurrency factor of distribution, that is how many handlers might be
+   * The concurrency fActor of distribution, that is how many handlers might be
    * active at once, is implementation-defined.
    * Handlers are not allowed to modify the Message and may not expect it to
    * be valid beyond the call stack in which they are called; that is no
@@ -42,15 +42,15 @@ public:
 
   // Messenger
 
-  virtual Messenger& subscribe(Message::Type type, actor* subscriber) override;
-  virtual Messenger& unsubscribe(actor* subscriber) override;
+  virtual Messenger& subscribe(Message::Type type, Actor* subscriber) override;
+  virtual Messenger& unsubscribe(Actor* subscriber) override;
   virtual Messenger& unsubscribe(Message::Type type,
-                                 actor* subscriber) override;
+                                 Actor* subscriber) override;
 
   virtual Messenger& forward(Message const& msg) override;
 
 protected:
-  using mapping = std::pair<Message::Type, actor*>;
+  using mapping = std::pair<Message::Type, Actor*>;
   std::vector<mapping> subs;
   Sink<Message const&>* outbox_;
 };
@@ -70,9 +70,9 @@ public:
 
   // Messenger
 
-  Messenger& subscribe(Message::Type type, actor* subscriber) override;
-  Messenger& unsubscribe(actor* subscriber) override;
-  Messenger& unsubscribe(Message::Type type, actor* subscriber) override;
+  Messenger& subscribe(Message::Type type, Actor* subscriber) override;
+  Messenger& unsubscribe(Actor* subscriber) override;
+  Messenger& unsubscribe(Message::Type type, Actor* subscriber) override;
 
 private:
   // Readers/writer mutex synchronizing the handlers table

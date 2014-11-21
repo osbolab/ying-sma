@@ -1,7 +1,7 @@
-#include <sma/app/contentdirectory.hpp>
-#include <sma/app/sortdirectorybyrank.hpp>
+#include <sma/ccn/contentdirectory.hpp>
+#include <sma/ccn/sortdirectorybyrank.hpp>
 #include <iostream>
-#include <sma/app/contentdescription.hpp>
+#include <sma/ccn/contentdescription.hpp>
 #include <string>
 
 using namespace std;

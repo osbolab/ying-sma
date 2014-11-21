@@ -60,6 +60,8 @@ public:
     return Task<F, A...>(this, std::forward<F>(f), std::forward<A>(args)...);
   }
 
+  virtual ~Async() {}
+
 protected:
   virtual void schedule(std::function<void()> f, std::chrono::nanoseconds delay)
       = 0;

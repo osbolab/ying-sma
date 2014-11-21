@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sma/net/inet_channel.hpp>
+#include <sma/inet_channel.hpp>
 
 #include <ns3/ptr.h>
 

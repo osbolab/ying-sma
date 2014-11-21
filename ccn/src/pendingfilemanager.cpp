@@ -1,4 +1,4 @@
-#include <sma/app/pendingfilemanager.hpp>
+#include <sma/ccn/pendingfilemanager.hpp>
 #include <string>
 #include <mutex>
 #include <unordered_map>

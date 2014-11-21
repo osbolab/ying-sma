@@ -1,11 +1,11 @@
-#include <sma/app/datalayer.hpp>
-#include <sma/app/plainchunkstore.hpp>
-#include <sma/app/pendingchunkmanager.hpp>
+#include <sma/ccn/datalayer.hpp>
+#include <sma/ccn/plainchunkstore.hpp>
+#include <sma/ccn/pendingchunkmanager.hpp>
 
-#include <sma/app/devicelogger.hpp>
+#include <sma/ccn/devicelogger.hpp>
 
-#include <sma/app/segmenter.hpp>
-#include <sma/app/controllayer.hpp>
+#include <sma/ccn/segmenter.hpp>
+#include <sma/ccn/controllayer.hpp>
 
 #include <sma/io/log>
 
@@ -52,7 +52,7 @@ DataLayer::~DataLayer()
 
 void DataLayer::storeChunk(std::string fileName, bool requestedBySelf)
 {
-  ChunkID chunkID = store->storeChunk(fileName);
+  std::string chunkID = store->storeChunk(fileName);
   // update pendingChunkMgr
   if (requestedBySelf) {
     std::vector<std::string> fileCompleted;
@@ -90,10 +90,10 @@ void DataLayer::setControlLayer(ControlLayer* controlPtr)
 
 
 void DataLayer::prepareChunks(std::string fileName,
-                              std::vector<ChunkID> chunkList)
+                              std::vector<std::string> chunkList)
 {
   bool chunkAllAvailable = true;
-  std::vector<ChunkID>::iterator iter = chunkList.begin();
+  std::vector<std::string>::iterator iter = chunkList.begin();
   while (iter != chunkList.end()) {
     if (!this->hasChunk(*iter)) {
       pendingChunkMgr.addDownloadTask(
@@ -110,14 +110,14 @@ void DataLayer::prepareChunks(std::string fileName,
         fileName);    // the call back function to notify the control layer
 }
 
-void DataLayer::addFlowRule(ChunkID chunk, int rule)
+void DataLayer::addFlowRule(std::string chunk, int rule)
 {
   flowTable.addRule(chunk, rule);
 }
 
-void DataLayer::delFlowRule(ChunkID chunk) { flowTable.delRule(chunk); }
+void DataLayer::delFlowRule(std::string chunk) { flowTable.delRule(chunk); }
 
-int DataLayer::getFlowRule(ChunkID chunk) const
+int DataLayer::getFlowRule(std::string chunk) const
 {
   return flowTable.getRule(chunk);
 }
