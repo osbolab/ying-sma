@@ -64,7 +64,7 @@
  * | ----------------------------------------------------------------------- |
  * | |                     ns3::ApplicationContainer                       | |
  * | | ------------------------------------------------------------------- | |
- * | | |               app_container --> ns3::Application              | | | |
+ * | | |               Ns3Container --> ns3::Application              | | | |
  * | | | --------------------------------------------------------------| | | |
  * | | | |                                                             | | | |
  * | | | |    ------------------      -------------------------------  | | | |
@@ -95,8 +95,8 @@
  */
 
 #include <sma/device.hpp>
-#include <sma/message_dispatch.hpp>
-#include <sma/app/application.hpp>
+#include <sma/messagedispatch.hpp>
+#include <sma/ccn/application.hpp>
 #include <sma/network.hpp>
 
 #include <ns3/ptr.h>
@@ -109,17 +109,17 @@
 namespace sma
 {
 
-class app_container final : public ns3::Application
+class Ns3AppContainer final : public ns3::Application
 {
 public:
   // ns3 constructs our object while injecting config parameters into it.
   // We use this to look up the class when giving ns3 applications.
   static ns3::TypeId TypeId();
 
-  app_container();
-  app_container(app_container&& rhs);
-  app_container& operator=(app_container&& rhs);
-  ~app_container();
+  Ns3Container();
+  Ns3Container(Ns3Container&& rhs);
+  Ns3Container& operator=(Ns3Container&& rhs);
+  ~Ns3Container();
 
   void add_component(std::unique_ptr<component> c);
 

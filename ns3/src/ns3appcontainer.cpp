@@ -1,6 +1,6 @@
-#include <sma/ns3/app_container.hpp>
+#include <sma/ns3/ns3appcontainer.hpp>
 
-#include <sma/app/application.hpp>
+#include <sma/ccn/application.hpp>
 
 #include <sma/device.hpp>
 #include <sma/device/inet_component.hpp>
@@ -24,35 +24,35 @@
 
 namespace sma
 {
-ns3::TypeId app_container::TypeId()
+ns3::TypeId Ns3AppContainer::TypeId()
 {
-  static ns3::TypeId tid = ns3::TypeId("sma::app_container")
+  static ns3::TypeId tid = ns3::TypeId("sma::Ns3AppContainer")
                                .SetParent<ns3::Application>()
-                               .AddConstructor<app_container>();
+                               .AddConstructor<Ns3AppContainer>();
   return tid;
 }
 
 /******************************************************************************
  * c/dtor and assignment
  */
-app_container::app_container()
+Ns3AppContainer::Ns3AppContainer()
   : dev(new device())
 {
 }
-app_container::app_container(app_container&& rhs) {}
-app_container& app_container::operator=(app_container&& rhs) { return *this; }
-app_container::~app_container() {}
+Ns3AppContainer::Ns3AppContainer(Ns3AppContainer&& rhs) {}
+Ns3AppContainer& Ns3AppContainer::operator=(Ns3AppContainer&& rhs) { return *this; }
+Ns3AppContainer::~Ns3AppContainer() {}
 // Inherited from ns3::Application; part of their lifecycle management I guess
-void app_container::DoDispose() { LOG(DEBUG); }
+void Ns3AppContainer::DoDispose() { LOG(DEBUG); }
 /* c/dtor and assignment
  *****************************************************************************/
 
-void app_container::add_component(std::unique_ptr<component> c)
+void Ns3AppContainer::add_component(std::unique_ptr<component> c)
 {
   dev->add_component(std::move(c));
 }
 
-void app_container::StartApplication()
+void Ns3AppContainer::StartApplication()
 {
   // Force the clock to use the current real wall time as the beginning
   // of the simulation.
@@ -73,7 +73,7 @@ void app_container::StartApplication()
   app = std::make_unique<application>(std::move(ctx));
 }
 
-void app_container::StopApplication()
+void Ns3AppContainer::StopApplication()
 {
   app->dispose();
   // Close the channel and, transitively, the sockets
