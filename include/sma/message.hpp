@@ -1,7 +1,5 @@
 #pragma once
 
-#include <sma/buffer.hpp>
-
 #include <cstdint>
 #include <vector>
 #include <memory>
@@ -10,6 +8,9 @@
 
 namespace sma
 {
+class ObjectDataIn;
+class ObjectDataOut;
+
 struct Message final {
   enum Weight { LIGHT_MESSAGE, HEAVY_MESSAGE };
 
@@ -37,15 +38,20 @@ public:
                       std::uint8_t const* data,
                       data_size_type size) noexcept;
 
+
+  // Serialization
+
+  Message(ObjectDataIn in);
+  void write_fields(ObjectDataOut out);
+
+  Message(Message&& rhs);
+  Message& operator=(Message&& rhs);
   /*! \brief  Allocate a new message and copy this message's content into it.
    *
    * This is distinct from the message's copy constructor to avoid unintentional
    * allocations when the message is wrapping an existing data array.
    */
   Message duplicate() const;
-
-  Message(Message&& rhs);
-  Message& operator=(Message&& rhs);
 
   /*! \brief  Get the message type used for forwarding and dispatching this
    *          message.
@@ -59,31 +65,21 @@ public:
   {
     return std::size_t{header.data_size};
   }
-  /*! \brief  Get an immutable view of the message's contents. */
-  Buffer::View view() { return Buffer::View(data, data_size()); }
 
 private:
+  Message(Message const& r);
   /*! \brief  Non-copying constructor. */
-  Message(Type type,
-          Weight weight,
-          std::uint8_t const* data,
-          data_size_type size);
+  Message(Header header, std::uint8_t const* data, Weight weight);
   /*! \brief  Copying constructor. */
-  Message(Type type,
-          Weight weight,
-          std::unique_ptr<std::uint8_t[]> data,
-          data_size_type size);
+  Message(Header header,
+          std::unique_ptr<std::uint8_t[]> owned_data,
+          Weight weight);
 
   Header header;
   std::uint8_t const* data{nullptr};
   std::unique_ptr<std::uint8_t[]> owned_data;
 };
 
-/*! \brief  Serialize the given message to the byte buffer.
- *
- * The buffer must be of sufficient capacity.
- */
-Buffer& operator<<(Buffer& dst, Message const& rhs);
 /*! \brief  Print the given message in human-readable format to the stream. */
 std::ostream& operator<<(std::ostream& os, Message const& msg);
 }

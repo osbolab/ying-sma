@@ -10,17 +10,35 @@
 
 namespace sma
 {
+class Actor;
 class Messenger;
 class Async;
 
 class Context final
 {
-  friend class actor;
+  friend class Actor;
 
   Context(Messenger* msgr, Async* async)
     : msgr(msgr)
     , async(async)
   {
+  }
+  Context(Context&& r)
+    : msgr(r.msgr)
+    , async(r.async)
+    , actors(std::move(r.actors))
+    , components(std::move(r.components))
+  {
+    r.msgr = nullptr;
+    r.async = nullptr;
+  }
+  Context& operator=(Context&& r)
+  {
+    std::swap(msgr, r.msgr);
+    std::swap(async, r.async);
+    std::swap(actors, r.actors);
+    std::swap(components, r.components);
+    return *this;
   }
 
   template <typename T>
@@ -34,6 +52,7 @@ private:
   Actor* get_actor_by_type();
 
   std::vector<std::pair<std::size_t, Actor*>> actors;
+  std::mutex mx;
 
   Messenger* msgr;
   Async* async;
@@ -46,7 +65,7 @@ Actor* Context::get_actor_by_type()
   static_assert(std::is_base_of<Actor, A>::value,
                 "Type must derive from Actor");
 
-  std::size_t const hash = typeid(a).hash_code();
+  std::size_t const hash = typeid(A).hash_code();
   std::lock_guard<std::mutex> lock(mx);
   for (auto& pair : actors)
     if (pair.first == hash)

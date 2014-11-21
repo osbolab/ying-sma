@@ -1,5 +1,5 @@
-#include <sma/Message.hpp>
-#include <sma/Buffer.hpp>
+#include <sma/message.hpp>
+#include <sma/serialize.hpp>
 
 #include <cstdint>
 #include <cassert>
@@ -25,7 +25,7 @@ Message Message::wrap(Type type,
                       std::uint8_t const* data,
                       data_size_type size)
 {
-  return Message(
+  return Message(Header{type, size}, data, weight);
 }
 
 
@@ -34,43 +34,49 @@ Message Message::copy(Type type,
                       std::uint8_t const* data,
                       data_size_type size)
 {
+  auto owned_data = std::make_unique<std::uint8_t[]>(size);
+  std::memcpy(owned_data.get(), data, size);
+  return Message(Header{type, size}, std::move(owned_data), weight);
 }
 
-Message::Message(Message_type type,
-                 std::uint8_t const* data,
-                 std::size_t szdata)
-  : t(type)
+Message::Message(Header header, std::uint8_t const* data, Weight weight)
+  : header(std::move(header))
   , data(data)
-  , szdata(szdata)
 {
+}
+Message::Message(Header header,
+                 std::unique_ptr<std::uint8_t[]> owned_data,
+                 Weight weight)
+  : header(std::move(header))
+  , owned_data(std::move(data))
+{
+  this->data = owned_data.get();
+}
+Message::Message(Message const& r)
+  : header(r.header)
+  , owned_data(std::make_unique<std::uint8_t[]>(r.header.data_size))
+{
+  std::memcpy(owned_data.get(), r.data, header.data_size);
+  data = owned_data.get();
 }
 Message::Message(Message&& r)
-  : t(std::move(r.t))
+  : header(std::move(r.header))
   , data(r.data)
-  , szdata(r.szdata)
+  , owned_data(std::move(r.owned_data))
 {
   r.data = nullptr;
-  r.szdata = 0;
+  std::memset((void*) &r.header, 0, sizeof(Header));
 }
-Message::Message(const Message& r)
-  : t(r.t)
-  , data(r.data)
-  , szdata(r.szdata)
-{
-}
-
 Message& Message::operator=(Message&& r)
 {
-  std::swap(t, r.t);
+  std::swap(header, r.header);
   std::swap(data, r.data);
-  std::swap(szdata, r.szdata);
+  std::swap(owned_data, r.owned_data);
   return *this;
 }
-Message& Message::operator=(const Message& r)
+
+Message Message::duplicate()
 {
-  t = r.t;
-  data = r.data;
-  szdata = r.szdata;
-  return *this;
+  return Message(this);
 }
 }

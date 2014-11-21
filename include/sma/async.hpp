@@ -47,7 +47,7 @@ public:
 
     template <typename Delay>
     std::future<R> do_in(Delay delay);
-    std::future<R> do() { return do_in(std::chrono::nanoseconds(0)); }
+    std::future<R> do_now() { return do_in(std::chrono::nanoseconds(0)); }
 
   private:
     Async* async;
@@ -55,9 +55,9 @@ public:
   };
 
   template <typename F, typename... A>
-  Task make_task(F&& f, A&&... args)
+  Task<F, A...> make_task(F&& f, A&&... args)
   {
-    return Task(this, std::forward<F>(f), std::forward<A>(args)...);
+    return Task<F, A...>(this, std::forward<F>(f), std::forward<A>(args)...);
   }
 
 protected:
@@ -66,8 +66,10 @@ protected:
 };
 
 
+template <typename F, typename... A>
 template <typename Delay>
-std::future<R> Async::Task::do_in(Delay delay)
+std::future<typename Async::Task<F, A...>::R>
+Async::Task<F, A...>::do_in(Delay delay)
 {
   auto task = std::move(this->task);
   assert(task);

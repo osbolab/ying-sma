@@ -9,8 +9,6 @@ set(sources
   "src/md5.cpp"
   "src/json.cpp"
 
-  "src/batchscriptgenerator.cpp"
-
   "src/devicewithgps.cpp"
   "src/devicelogger.cpp"
 
@@ -26,7 +24,6 @@ set(sources
   "src/pendingfilemanager.cpp"
   "src/neighborrecords.cpp"
   "src/neighborrecordentry.cpp"
-  "src/gpsdriver.cpp"
   "src/controllayer.cpp"
   "src/contentdescriptor.cpp"
   "src/contentdirectory.cpp"

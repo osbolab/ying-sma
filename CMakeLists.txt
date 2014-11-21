@@ -40,7 +40,7 @@ if(NOT EXISTS "${CMAKE_SCRIPTS_DIR}")
 endif()
 
 file(GLOB cmake_scripts "${CMAKE_SCRIPTS_DIR}/*.cmake")
-foreach(cmake_script IN LISTS ${cmake_scripts})
+foreach(cmake_script ${cmake_scripts})
   include("${cmake_script}")
 endforeach()
 
@@ -70,11 +70,11 @@ set(${PROJECT_NAME}_sources
   "src/device/dummy_gps.cpp"
   "src/inet_addr.cpp"
   "src/message.cpp"
-  "src/message_dispatch.cpp"
+  "src/messagedispatch.cpp"
   "src/serialize/binaryinputformatter.cpp"
   "src/serialize/binaryoutputformatter.cpp"
 )
-add_library("${PROJECT_NAME}" STATIC ${PROJECT_NAME}_sources})
+add_library("${PROJECT_NAME}" STATIC ${${PROJECT_NAME}_sources})
 add_test_exe("${PROJECT_NAME}_test" "test/test_main.cpp")
 target_link_libraries("${PROJECT_NAME}_test" "${PROJECT_NAME}")
 

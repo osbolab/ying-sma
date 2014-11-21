@@ -30,7 +30,7 @@ protected:
   // Scheduling
 
   template <typename F, typename... A>
-  AsyncTask async(F&& f, A&&... args);
+  Async::Task<F, A...> async(F&& f, A&&... args);
 
 private:
   Context ctx;
@@ -44,7 +44,7 @@ void Actor::post(Message const& msg)
 }
 
 template <typename F, typename... A>
-Async::Task Actor::async(F&& f, A&&... args)
+Async::Task<F, A...> Actor::async(F&& f, A&&... args)
 {
   return ctx.async->make_task(std::forward<F>(f), std::forward<A>(args)...);
 }

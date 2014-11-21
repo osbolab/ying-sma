@@ -7,6 +7,7 @@ option(BUILD_TESTS "Enables the output of test executables." ON)
 set(GTEST_VERSION  "1.7.0" CACHE STRING "Google Test library version")
 
 if(BUILD_TESTS)
+  message(STATUS "Tests are enabled")
   enable_testing()
   set(gtest_name "gtest-${GTEST_VERSION}")
   set(gtest_dir "${EXT_DIR}/${gtest_name}")
