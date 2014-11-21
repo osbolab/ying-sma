@@ -1,5 +1,5 @@
 #include <sma/app/devicelogger.hpp>
-#include <sma/log>
+#include <sma/io/log>
 
 #include <sma/chrono>
 

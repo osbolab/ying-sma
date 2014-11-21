@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sma/log>
+#include <sma/io/log>
 
 #include <sma/detail/bits.hpp>
 #include <sma/detail/pow2math.hpp>

@@ -3,7 +3,7 @@
 
 #include <sma/app/devicewithgps.hpp>
 
-#include <sma/log>
+#include <sma/io/log>
 
 
 namespace sma

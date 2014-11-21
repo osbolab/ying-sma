@@ -1,5 +1,5 @@
 #include <sma/async>
-#include <sma/log>
+#include <sma/io/log>
 
 #include <ns3/simulator.h>
 #include <ns3/nstime.h>

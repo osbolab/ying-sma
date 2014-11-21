@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sma/log>
+#include <sma/io/log>
 
 #include <cstdlib>
 #include <vector>
@@ -15,7 +15,7 @@
 namespace sma
 {
 
-class threadpool final
+class Threadpool final
 {
 public:
   using Task = std::function<void()>;
@@ -42,11 +42,11 @@ protected:
   };
 
 public:
-  threadpool(std::size_t nthreads);
-  threadpool(std::size_t nthreads, std::size_t initial_capacity);
-  threadpool(const threadpool& rhs) = delete;
-  threadpool& operator=(const threadpool& rhs) = delete;
-  virtual ~threadpool();
+  Threadpool(std::size_t nthreads);
+  Threadpool(std::size_t nthreads, std::size_t initial_capacity);
+  Threadpool(const Threadpool& rhs) = delete;
+  Threadpool& operator=(const Threadpool& rhs) = delete;
+  virtual ~Threadpool();
 
   void push_back(Task task);
   void join();
@@ -64,7 +64,7 @@ private:
 };
 
 template <typename T>
-void threadpool::ringmove(T& dst, T& src, std::size_t off, std::size_t len)
+void Threadpool::ringmove(T& dst, T& src, std::size_t off, std::size_t len)
 {
   const std::size_t sz = src.size();
   // Copy the old ring into the front of the new one

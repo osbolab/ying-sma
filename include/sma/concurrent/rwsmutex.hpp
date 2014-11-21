@@ -5,17 +5,17 @@
 
 namespace sma
 {
-struct rws_mutex {
+struct RwsMutex {
   std::atomic_size_t ww{0};                 // writers waiting for readers
   std::atomic_size_t w{0};                  // writers waiting to write
   std::atomic_size_t r{0};                  // readers reading
   std::atomic_flag f = ATOMIC_FLAG_INIT;    // writing now
 };
 
-class writer_lock
+class WriterLock
 {
 public:
-  writer_lock(rws_mutex& mx)
+  WriterLock(RwsMutex& mx)
     : mx(mx)
   {
     // Begin writer cohort by blocking new readers from joining while we
@@ -45,7 +45,7 @@ public:
     // readers and writers are locked; begin critical section
   }
 
-  ~writer_lock()
+  ~WriterLock()
   {
     if (stage > 0) {
       if (stage == 2) {
@@ -59,7 +59,7 @@ public:
       // cannot be unblocked until she also gets here.
       --mx.w;
     } else {
-      // We can only get here if writer_lock goes out of scope before
+      // We can only get here if WriterLock goes out of scope before
       // successfully acquiring a lock (e.g. exception while waiting for
       // mx.r).
       --mx.ww;
@@ -67,14 +67,14 @@ public:
   }
 
 private:
-  rws_mutex& mx;
+  RwsMutex& mx;
   int stage{0};
 };
 
-class reader_lock
+class ReaderLock
 {
 public:
-  reader_lock(rws_mutex& mx)
+  ReaderLock(RwsMutex& mx)
     : mx(mx)
   {
     while (mx.ww)
@@ -85,7 +85,7 @@ public:
       ;
   }
 
-  ~reader_lock()
+  ~ReaderLock()
   {
     if (locked) {
       --mx.r;
@@ -93,7 +93,7 @@ public:
   }
 
 private:
-  rws_mutex& mx;
+  RwsMutex& mx;
   bool locked{false};
 };
 }

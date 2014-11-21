@@ -12,7 +12,7 @@
 #include <sma/message.hpp>
 #include <sma/messenger.hpp>
 #include <sma/async>
-#include <sma/log>
+#include <sma/io/log>
 
 #include <iostream>
 #include <iomanip>

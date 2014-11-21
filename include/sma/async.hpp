@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sma/log>
+#include <sma/io/log>
 
 #include <cassert>
 #include <memory>

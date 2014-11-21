@@ -1,13 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-###############################################################################
-# Root project
-
-project(sma)
-
 set(CMAKE_BUILD_TYPE "Debug")
-
-option(ALL "Configure all projects" OFF)
 
 # Allow C++11/14
 set(LIBSTD "c++14" CACHE STRING "C++ Standard Library [nothing/c++11/c++14]")
@@ -21,6 +14,7 @@ if(NOT EXISTS "${EXT_DIR}/")
   message(FATAL_ERROR "External library directory doesn't exist: ${EXT_DIR}")
 endif()
 
+#------------------------------------------------------------------------------
 # Set up output directory by binary type
 macro(set_build_dir path)
   # Public headers
@@ -38,7 +32,7 @@ endmacro(set_build_dir)
 # Everything outputs in the root build dir by defailt
 set_build_dir("${CMAKE_BINARY_DIR}")
 
-###############################################################################
+#------------------------------------------------------------------------------
 # Pull in config scripts
 set(CMAKE_SCRIPTS_DIR "${CMAKE_SOURCE_DIR}/cmake")
 if(NOT EXISTS "${CMAKE_SCRIPTS_DIR}")
@@ -46,26 +40,48 @@ if(NOT EXISTS "${CMAKE_SCRIPTS_DIR}")
 endif()
 
 file(GLOB cmake_scripts "${CMAKE_SCRIPTS_DIR}/*.cmake")
-foreach(cmake_script ${cmake_scripts})
+foreach(cmake_script IN LISTS ${cmake_scripts})
   include("${cmake_script}")
 endforeach()
 
 ###############################################################################
-# Configure subprojects 
-set(SMA_PLATFORM_LIB  "smaplatform")
-set(SMA_NS3_LIB       "smans3")
-set(SMA_APP_LIB       "smaapp")
+###############################################################################
+#
+# PROJECTS
+#
 
-set(user_headers   "${PUBLIC_HEADER_DIRECTORY}")
-#include_directories(BEFORE SYSTEM ${user_headers} ${ext_headers})
+set(SMA_LIB     "sma")
+set(SMA_APP_LIB "smaccn")
+set(SMA_NS3_LIB "smans3")
+
+###############################################################################
+# Main SMA platform library project
+
+project("${SMA_LIB}")
 
 # Everyone depends on the platform headers
-include_directories("platform/include")
-add_subdirectory("platform")
+include_directories("include")
+
+set(${PROJECT_NAME}_sources
+  "src/actor.cpp"
+  "src/buffer.cpp"
+  "src/channel.cpp"
+  "src/device/gps.cpp"
+  "src/device/dummy_gps.cpp"
+  "src/inet_addr.cpp"
+  "src/message.cpp"
+  "src/message_dispatch.cpp"
+)
+add_library("${PROJECT_NAME}" STATIC ${PROJECT_NAME}_sources})
+add_test_exe("${PROJECT_NAME}_test" "test/test_main.cpp")
+target_link_libraries("${PROJECT_NAME}_test" "${PROJECT_NAME}")
+
+###############################################################################
+# Subprojects
 
 # NS3 simulations depend on the application headers 
-include_directories("app/include")
-add_subdirectory("app")
+include_directories("ccn/include")
+add_subdirectory("ccn")
 
 include_directories("ns3/include")
 add_subdirectory("ns3")

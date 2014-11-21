@@ -7,7 +7,7 @@
 #include <sma/app/segmenter.hpp>
 #include <sma/app/controllayer.hpp>
 
-#include <sma/log>
+#include <sma/io/log>
 
 #include <string>
 #include <sys/stat.h>

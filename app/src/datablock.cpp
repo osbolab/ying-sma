@@ -1,5 +1,5 @@
 #include <sma/app/datablock.hpp>
-#include <sma/log>
+#include <sma/io/log>
 
 #include <cstring>
 #include <sma/app/device.hpp>

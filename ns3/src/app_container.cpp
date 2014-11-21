@@ -11,7 +11,7 @@
 
 #include <sma/chrono>
 #include <sma/unique_cast>
-#include <sma/log>
+#include <sma/io/log>
 
 #include <ns3/ptr.h>
 #include <ns3/pointer.h>
