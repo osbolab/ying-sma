@@ -13,24 +13,18 @@
 namespace sma
 {
 
-std::unique_ptr<message_dispatch>
-message_dispatch::new_single_threaded(sink<message const&>* outbox)
+std::unique_ptr<message_dispatch> message_dispatch::new_single_threaded()
 {
-  return std::unique_ptr<message_dispatch>(
-      new message_dispatch(std::move(outbox)));
+  return std::unique_ptr<message_dispatch>(new message_dispatch());
 }
 
-std::unique_ptr<message_dispatch>
-message_dispatch::new_concurrent(sink<message const&>* outbox)
+std::unique_ptr<message_dispatch> message_dispatch::new_concurrent()
 {
-  return std::unique_ptr<message_dispatch>(
-      new detail::concurrent_dispatch(std::move(outbox)));
+  return std::unique_ptr<message_dispatch>(new detail::concurrent_dispatch());
 }
 
-message_dispatch::message_dispatch(sink<message const&>* outbox)
-  : outbox(outbox)
+message_dispatch::message_dispatch()
 {
-  assert(outbox);
 }
 message_dispatch::message_dispatch(message_dispatch&& rhs)
   : subs(std::move(rhs.subs))

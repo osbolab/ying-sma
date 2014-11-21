@@ -21,7 +21,8 @@ public:
 
   void add_component(std::unique_ptr<component> c)
   {
-    components.push_back(std::move(c));
+    if (c)
+      components.push_back(std::move(c));
   }
 
   template <typename T>
@@ -37,7 +38,7 @@ T* device::try_get()
   static_assert(std::is_base_of<component, T>::value,
                 "T must be a descendant of component.");
   for (auto& component : components) {
-    auto p = dynamic_cast<T*>(component);
+    auto p = dynamic_cast<T*>(component.get());
     if (p)
       return p;
   }

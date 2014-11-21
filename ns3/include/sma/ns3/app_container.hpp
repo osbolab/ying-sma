@@ -97,9 +97,7 @@
 #include <sma/device.hpp>
 #include <sma/message_dispatch.hpp>
 #include <sma/app/application.hpp>
-
-#include <sma/ns3/ns3_socket.hpp>
-#include <sma/ns3/ns3_channel.hpp>
+#include <sma/network.hpp>
 
 #include <ns3/ptr.h>
 #include <ns3/application.h>
@@ -113,17 +111,15 @@ namespace sma
 
 class app_container final : public ns3::Application
 {
-  using Myt = app_container;
-
 public:
   // ns3 constructs our object while injecting config parameters into it.
   // We use this to look up the class when giving ns3 applications.
   static ns3::TypeId TypeId();
 
   app_container();
-  app_container(Myt&& rhs);
-  Myt& operator=(Myt&& rhs);
-  virtual ~app_container();
+  app_container(app_container&& rhs);
+  app_container& operator=(app_container&& rhs);
+  ~app_container();
 
   void add_component(std::unique_ptr<component> c);
 
@@ -134,8 +130,7 @@ protected:
 
 private:
   std::unique_ptr<device> dev;
-  std::unique_ptr<ns3_socket> sock;
-  std::unique_ptr<ns3_channel> chan;
+  std::unique_ptr<network> net;
   std::unique_ptr<message_dispatch> msgr;
   std::unique_ptr<application> app;
 };

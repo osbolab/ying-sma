@@ -1,4 +1,4 @@
-#include <sma/ns3/ns3_inet_socket.hpp>
+#include <sma/net/ns3_inet_socket.hpp>
 #include <sma/log>
 
 #include <ns3/ptr.h>
@@ -62,7 +62,8 @@ void ns3_inet_socket::bind(socket_addr const& address)
   sock->SetAllowBroadcast(true);
   assert(sock->GetAllowBroadcast());
   bind_addr = saddr;
-  sock->SetRecvCallback(ns3::MakeCallback(&ns3_inet_socket::on_packet, this));
+  sock->SetRecvCallback(
+      ns3::MakeCallback(&ns3_inet_socket::on_packet_available, this));
 }
 
 void ns3_inet_socket::close()
@@ -95,7 +96,7 @@ void ns3_inet_socket::broadcast(std::uint8_t const* src, std::size_t len)
     throw_last_error();
 }
 
-void ns3_inet_socket::on_packet(ns3::Ptr<ns3::Socket> s)
+void ns3_inet_socket::on_packet_available(ns3::Ptr<ns3::Socket> s)
 {
   ns3::Ptr<ns3::Packet> p;
   ns3::Address sender;

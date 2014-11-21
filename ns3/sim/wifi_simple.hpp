@@ -1,9 +1,7 @@
-#include <sma/log>
-// Call only once per application
-_INITIALIZE_EASYLOGGINGPP
+#pragma once
 
-#include <sma/ns3/ns3_socket.hpp>
 #include <sma/ns3/app_container.hpp>
+#include <sma/ns3/ns3_inet_socket.hpp>
 
 #include <ns3/core-module.h>
 #include <ns3/csma-module.h>
@@ -11,13 +9,8 @@ _INITIALIZE_EASYLOGGINGPP
 #include <ns3/internet-module.h>
 
 
-int main(int argc, char** argv)
+TEST(simulation, wifi_simple)
 {
-  el::Loggers::reconfigureAllLoggers(
-      el::ConfigurationType::Format,
-      "%datetime{%m:%s.%g} %levshort [%thread] %func (%fbase:%line) %msg");
-
-
   const std::size_t nnodes = 2;
 
   LOG(DEBUG) << "Create CSMA channel (5MBps - 2ms delay - 1400b MTU)";
@@ -78,6 +71,4 @@ int main(int argc, char** argv)
   ns3::Simulator::Run();
   ns3::Simulator::Destroy();
   LOG(DEBUG) << "done.";
-
-  return 0;
 }

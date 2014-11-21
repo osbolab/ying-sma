@@ -11,27 +11,27 @@ channel::channel()
 {
 }
 channel::channel(sink<message const&>* inbox)
-  : inbox_(inbox)
+  : ibx(inbox)
 {
   assert(inbox);
 }
 channel::channel(channel&& r)
-  : inbox_(r.inbox_)
+  : ibx(r.ibx)
 {
-  r.inbox_ = nullptr;
+  r.ibx = nullptr;
 }
 channel::channel(const channel& r)
-  : inbox_(r.inbox_)
+  : ibx(r.ibx)
 {
 }
 channel& channel::operator=(channel&& r)
 {
-  std::swap(inbox_, r.inbox_);
+  std::swap(ibx, r.ibx);
   return *this;
 }
 channel& channel::operator=(const channel& r)
 {
-  inbox_ = r.inbox_;
+  ibx = r.ibx;
   return *this;
 }
 channel::~channel() {}

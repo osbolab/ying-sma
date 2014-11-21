@@ -33,14 +33,14 @@ public:
 
   virtual ~channel();
 
-  void inbox(sink<message const&>* inbox) { inbox_ = inbox; }
+  void inbox(sink<message const&>* inbox) { ibx = inbox; }
 
   // Send the given message to this channel.
   virtual void accept(message const& m) override = 0;
-  // Close this channel and all underlying channels.
+  // Close this channel and all underlying endpoints.
   virtual void close() = 0;
 
 protected:
-  sink<message const&>* inbox_{nullptr};
+  sink<message const&>* ibx;
 };
 }

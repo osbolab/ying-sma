@@ -21,18 +21,18 @@ public:
   /*! \brief  Create a new message dispatch that is not thread-safe with regards
    *          to subscribing and dispatching messages.
    */
-  static std::unique_ptr<message_dispatch>
-  new_single_threaded(sink<message const&>* outbox);
+  static std::unique_ptr<message_dispatch> new_single_threaded();
   /*! \brief  Create a new message dispatch that is thread-safe with regard to
    *          susbcribing and unsubscribing handlers and dispatching messages.
    */
-  static std::unique_ptr<message_dispatch>
-  new_concurrent(sink<message const&>* outbox);
+  static std::unique_ptr<message_dispatch> new_concurrent();
 
   message_dispatch(message_dispatch&& rhs);
   message_dispatch& operator=(message_dispatch&& rhs);
 
   virtual ~message_dispatch() {}
+
+  virtual void add_outbox(channel* outbox);
 
   /*! \brief  Distribute the given message to all handlers subscribed to its
    *          type.
@@ -53,12 +53,11 @@ public:
   virtual messenger& post(message const& msg) override;
 
 protected:
-  message_dispatch(sink<message const&>* outbox);
+  message_dispatch();
 
   using mapping = std::pair<message_type, actor*>;
   std::vector<mapping> subs;
-
-  sink<message const&>* outbox{nullptr};
+  std::vector<sink<message const&>*> outboxes;
 };
 
 namespace detail
@@ -67,7 +66,6 @@ namespace detail
   {
   public:
     concurrent_dispatch();
-    concurrent_dispatch(sink<message const&>* outbox);
     concurrent_dispatch(concurrent_dispatch&& rhs);
     concurrent_dispatch& operator=(concurrent_dispatch&& rhs);
 

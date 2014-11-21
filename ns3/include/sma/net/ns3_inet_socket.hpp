@@ -2,10 +2,10 @@
 
 #include <sma/net/inet_socket.hpp>
 #include <sma/net/inet_addr.hpp>
-#include <sma/ns3/ns3_channel.hpp>
+#include <sma/net/ns3_inet_channel.hpp>
 
 #include <ns3/ptr.h>
-#include <ns3/inet_socket.h>
+#include <ns3/socket.h>
 
 #include <cstdint>
 
@@ -37,15 +37,15 @@ public:
   virtual void broadcast(const std::uint8_t* src, std::size_t len) override;
 
   // Set the inbox receiving channel
-  void inbox(ns3_channel* inbox) { ibx = inbox; }
+  void inbox(ns3_inet_channel* inbox) { ibx = inbox; }
 
 private:
   // Target of callback from ns3::inet_socket when a packet arrives.
-  void on_packet(ns3::Ptr<ns3::inet_socket> s);
+  void on_packet_available(ns3::Ptr<ns3::Socket> s);
   void throw_last_error();
 
   ns3::Ptr<ns3::Socket> sock{0};
   ns3::InetSocketAddress bind_addr;
-  ns3_channel* ibx;
+  ns3_inet_channel* ibx;
 };
 }

@@ -9,11 +9,15 @@ include("cmake/ns3.cmake")
 # SOURCES
 
 # The main library implements the abstract core services using NS3 facilities.
-set(sources
+set(lib_sources
   "src/chrono.cpp"
   "src/async.cpp"
-  "src/ns3_socket.cpp"
-  "src/ns3_channel.cpp"
+  "src/ns3_inet_socket.cpp"
+  "src/ns3_inet_channel.cpp"
+)
+
+set(simulation_sources
+  "src/app_container.cpp"
 )
 
 ###############################################################################
@@ -24,13 +28,13 @@ set(sources
 # we won't bother linking any modules to the library.
 # Whatever simulation links to the library will have to make up the missing
 # symbols by linking NS3 modules.
-add_library("${PROJECT_NAME}" STATIC ${sources})
+add_library("${PROJECT_NAME}" STATIC ${lib_sources})
 target_link_libraries("${PROJECT_NAME}" "${SMA_PLATFORM_LIB}")
 
-add_executable("wifi_simple" "sim/wifi_simple.cpp" "src/app_container.cpp")
-target_link_libraries("wifi_simple" "${SMA_APP_LIB}" "${SMA_NS3_LIB}")
+add_executable("simulations" "sim/sim_main.cpp" ${simulation_sources})
+target_link_libraries("simulations" "${SMA_APP_LIB}" "${SMA_NS3_LIB}")
 # Unfortunately, the nice thing waf does for us is build up their
 # configuration-encoded dependency hierarchy.
 # We have to figure it out by adding stuff until we stop getting link errors.
-use_ns3_modules("wifi_simple"
-  "core" "network" "internet" "csma" "applications")
+use_ns3_modules("simulations"
+  "core" "network" "internet" "csma" "wifi" "applications")

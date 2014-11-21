@@ -3,9 +3,14 @@
 #include <sma/app/application.hpp>
 
 #include <sma/device.hpp>
+#include <sma/device/inet_component.hpp>
+
+#include <sma/network.hpp>
 #include <sma/channel.hpp>
 #include <sma/message_dispatch.hpp>
+
 #include <sma/chrono>
+#include <sma/unique_cast>
 #include <sma/log>
 
 #include <ns3/ptr.h>
@@ -34,8 +39,8 @@ app_container::app_container()
   : dev(new device())
 {
 }
-app_container::app_container(Myt&& rhs) {}
-app_container& app_container::operator=(Myt&& rhs) { return *this; }
+app_container::app_container(app_container&& rhs) {}
+app_container& app_container::operator=(app_container&& rhs) { return *this; }
 app_container::~app_container() {}
 // Inherited from ns3::Application; part of their lifecycle management I guess
 void app_container::DoDispose() { LOG(DEBUG); }
@@ -49,20 +54,20 @@ void app_container::add_component(std::unique_ptr<component> c)
 
 void app_container::StartApplication()
 {
-  assert(dev);
   // Force the clock to use the current real wall time as the beginning
   // of the simulation.
   sma::chrono::system_clock::now();
 
-  auto inet = dev->try_get<inet_component>();
-  assert(inet);
-  // Create an endpoint for the messaging to send and receive through
-  sock = inet->socket();
-  sock->bind(socket_addr("0.0.0.0", 9999));
-  chan = std::make_unique<ns3_channel>(sock.get());
+  assert(dev);
 
-  msgr = message_dispatch::new_single_threaded(chan.get());
-  chan->inbox(msgr.get());
+  auto inet = dev->try_get<ns3_inet_component>();
+  assert(inet);
+
+  msgr = message_dispatch::new_single_threaded();
+
+  net = std::make_unique<network>(dev.get());
+  net->heavy_chan->inbox(msgr.get());
+  msgr->add_outbox(net->heavy_chan);
 
   context ctx(dev.get(), msgr.get());
   app = std::make_unique<application>(std::move(ctx));
