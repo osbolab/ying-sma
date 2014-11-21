@@ -52,7 +52,6 @@ TEST(simulation, wifi_simple)
     auto node = nodes.Get(i);
 
     auto app = sma_factory.Create<sma::app_container>();
-    app->add_component(ns3_inet_component(node));
     app->add_component(dummy_gps(gps::coord{30.0, 18.45}));
 
     auto apps = ns3::ApplicationContainer(app);

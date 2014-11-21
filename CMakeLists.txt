@@ -51,7 +51,7 @@ endforeach()
 #
 
 set(SMA_LIB     "sma")
-set(SMA_APP_LIB "smaccn")
+set(SMA_CCN_LIB "smaccn")
 set(SMA_NS3_LIB "smans3")
 
 ###############################################################################
