@@ -20,56 +20,20 @@ std::ostream& operator<<(std::ostream& os, const Message& msg)
 }
 // clang-format on
 
-
-Buffer& operator<<(Buffer& dst, Message::Header const& src)
+Message Message::wrap(Type type,
+                      Weight weight,
+                      std::uint8_t const* data,
+                      data_size_type size)
 {
-  return dst << src.type << src.data_size;
-}
-Buffer::View& operator>>(Buffer::View& src, Message::Header& dst)
-{
-  src >> dst.type;
-  src >> dst.data_size;
+  return Message(
 }
 
-Message Message::wrap_from(std::uint8_t const* src, std::size_t size)
-{
-  auto view = Buffer::View(src, size);
-  Header header;
-  view >> header;
-  return Message(header, view.cbuf());
-}
 
-Message Message::copy_from(std::uint8_t const* src, std::size_t size)
+Message Message::copy(Type type,
+                      Weight weight,
+                      std::uint8_t const* data,
+                      data_size_type size)
 {
-  auto view = Buffer::View(src, size);
-  Header header;
-  view >> header;
-  auto data = std::make_unique<std::uint8_t[]>(header.data_size);
-  view.get(data.get(), header.data_size);
-  return Message(header, std::move(data));
-}
-
-std::size_t Message::serialize_to(Buffer& dst) const
-{
-  assert(dst.remaining() >= serialized_size());
-  std::size_t start = dst.position();
-  dst << t;
-  dst << static_cast<field_size_type>(szdata);
-  dst.put(data, szdata);
-  return dst.position() - start;
-}
-std::size_t Message::serialize_to(std::uint8_t* dst, std::size_t szdata) const
-{
-  auto buf = Buffer::wrap(dst, szdata);
-  return serialize_to(buf);
-}
-std::size_t Message::serialized_size() const
-{
-  // clang-format off
-  return sizeof(Message_type)
-         + sizeof(field_size_type)
-         + szdata;
-  // clang-format on
 }
 
 Message::Message(Message_type type,

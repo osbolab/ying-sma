@@ -1,26 +1,51 @@
 #pragma once
 
 #include <sma/context.hpp>
+#include <sma/messenger.hpp>
 #include <sma/message.hpp>
+#include <sma/async.hpp>
 
 
 namespace sma
 {
-struct message;
-
-class actor
+class Actor
 {
 public:
-  actor(context ctx);
-  virtual ~actor();
+  virtual ~Actor();
 
-  virtual void on_message(message const& msg) = 0;
+  virtual void receive(Message const& msg) = 0;
+  virtual void receive(Message const& msg, Actor* sender) = 0;
 
 protected:
-  void subscribe(message_type type);
-  void unsubscribe(message_type type);
-  void post(message const& msg);
+  Actor(Context ctx);
 
-  context ctx;
+  // Messaging
+
+  void subscribe(Message::Type type);
+  void unsubscribe(Message::Type type);
+  void post(Message const& msg);
+  template <typename A>
+  void post(Message const& msg);
+
+  // Scheduling
+
+  template <typename F, typename... A>
+  AsyncTask async(F&& f, A&&... args);
+
+private:
+  Context ctx;
 };
+
+
+template <typename A>
+void Actor::post(Message const& msg)
+{
+  ctx.get_actor_by_type<A>()->receive(msg, this);
+}
+
+template <typename F, typename... A>
+Async::Task Actor::async(F&& f, A&&... args)
+{
+  return ctx.async->make_task(std::forward<F>(f), std::forward<A>(args)...);
+}
 }

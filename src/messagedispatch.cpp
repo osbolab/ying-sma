@@ -15,25 +15,29 @@ namespace sma
 {
 
 MessageDispatch::MessageDispatch() {}
+MessageDispatch::MessageDispatch(Sink<Message const&>* outbox)
+  : outbox_(outbox)
+{
+}
 MessageDispatch::MessageDispatch(MessageDispatch&& rhs)
   : subs(std::move(rhs.subs))
-  , outboxes_(std::move(rhs.outboxes_))
+  , outbox_(std::move(rhs.outbox_))
 {
 }
 MessageDispatch& MessageDispatch::operator=(MessageDispatch&& rhs)
 {
   std::swap(subs, rhs.subs);
-  std::swap(outboxes_, rhs.outboxes_);
+  std::swap(outbox_, rhs.outbox_);
   return *this;
 }
 
-Messenger& MessageDispatch::post(Message const& msg)
+Messenger& MessageDispatch::forward(Message const& msg)
 {
-  if (!outboxes_.empty())
-    for (auto& outbox : outboxes_)
-      outbox->accept(msg);
+  if (outbox_)
+    outbox_->accept(msg);
   else
-    LOG(WARNING) << "Message dropped: Messenger has no outbox channel";
+    LOG(WARNING) << "Message dropped: messenger has no outbox channel:\n"
+                 << msg;
   return *this;
 }
 
@@ -96,7 +100,9 @@ void MessageDispatch::accept(const Message& msg)
     LOG(WARNING) << "Unhandled Message:\n" << msg;
 }
 
-ConcurrentDispatch::ConcurrentDispatch()
+ConcurrentDispatch::ConcurrentDispatch() {}
+ConcurrentDispatch::ConcurrentDispatch(Sink<Message const&>* outbox)
+  : MessageDispatch(outbox)
 {
 }
 ConcurrentDispatch::ConcurrentDispatch(ConcurrentDispatch&& r)

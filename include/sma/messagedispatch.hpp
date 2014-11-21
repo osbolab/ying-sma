@@ -18,13 +18,13 @@ class MessageDispatch : public Messenger, public Sink<Message const&>
 {
 public:
   MessageDispatch();
+  MessageDispatch(Sink<Message const&>* outbox);
   MessageDispatch(MessageDispatch&& rhs);
   MessageDispatch& operator=(MessageDispatch&& rhs);
 
   virtual ~MessageDispatch() {}
 
-  /*! \brief  Get the sinks into which posted messages are placed. */
-  SinkSet<Message const&>& outboxes() noexcept { return outboxes_; }
+  void outbox(Sink<Message const&>* outbox);
 
   // Sink
 
@@ -47,12 +47,12 @@ public:
   virtual Messenger& unsubscribe(Message::Type type,
                                  actor* subscriber) override;
 
-  virtual Messenger& post(Message const& msg) override;
+  virtual Messenger& forward(Message const& msg) override;
 
 protected:
   using mapping = std::pair<Message::Type, actor*>;
   std::vector<mapping> subs;
-  SinkSet<Message const&> outboxes_;
+  Sink<Message const&>* outbox_;
 };
 
 
@@ -60,6 +60,7 @@ class ConcurrentDispatch final : public MessageDispatch
 {
 public:
   ConcurrentDispatch();
+  ConcurrentDispatch(Sink<Message const&>* outbox);
   ConcurrentDispatch(ConcurrentDispatch&& rhs);
   ConcurrentDispatch& operator=(ConcurrentDispatch&& rhs);
 

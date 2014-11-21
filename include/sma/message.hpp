@@ -18,13 +18,8 @@ struct Message final {
 
 private:
   struct Header {
-    static constexpr std::size_t serialized_size()
-    {
-      return sizeof(Message::Type) + sizeof(std::uint16_t);
-    }
-
     Message::Type type;
-    std::uint16_t data_size;
+    data_size_type data_size;
   };
 
 public:
@@ -42,16 +37,6 @@ public:
                       std::uint8_t const* data,
                       data_size_type size) noexcept;
 
-  /*! \brief  Deserialize a message from the contents of the given byte array
-   *          and retain a pointer to the array as the message's data (without
-   *          copying).
-   */
-  static Message wrap_from(std::uint8_t const* data, std::size_t size);
-  /*! \brief  Deserialize a message from the contents of the given byte array
-   *          and copy the message's data from it, allocating a new array.
-   */
-  static Message copy_from(std::uint8_t const* data, std::size_t size);
-
   /*! \brief  Allocate a new message and copy this message's content into it.
    *
    * This is distinct from the message's copy constructor to avoid unintentional
@@ -61,25 +46,6 @@ public:
 
   Message(Message&& rhs);
   Message& operator=(Message&& rhs);
-
-  /*! \brief  Serialize this Message into the given byte array.
-   *
-   * The array's size must be at least equal to the serialized size of this
-   * message.
-   */
-  std::size_t serialize_to(Buffer& dst) const;
-  /*! \brief  Serialize this message into the given buffer. */
-  friend Buffer& operator<<(Buffer& dst, Message const& rhs);
-  /*! \brief  Serialize this message into the given byte array.
-   *
-   * The array's size must be at least equal to the serialized size of the
-   * message.
-   */
-  std::size_t serialize_to(std::uint8_t* dst, std::size_t size) const;
-  /*! \brief  Get the size in octets of this message when serialized including
-   *          any padding or termination.
-   */
-  std::size_t serialized_size() const noexcept;
 
   /*! \brief  Get the message type used for forwarding and dispatching this
    *          message.
@@ -107,11 +73,6 @@ private:
           Weight weight,
           std::unique_ptr<std::uint8_t[]> data,
           data_size_type size);
-
-  /*! \brief  Non-copying deserialization constructor. */
-  Message(Header header, std::uint8_t const* data);
-  /*! \brief  Copying deserialization constructor. */
-  Message(Header header, std::unique_ptr<std::uint8_t[]> data);
 
   Header header;
   std::uint8_t const* data{nullptr};

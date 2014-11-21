@@ -81,6 +81,18 @@ public:
   static Buffer wrap(void* buf, std::size_t size);
   static Buffer copy(void const* buf, std::size_t size);
 
+  // Allocate an underlying Buffer of `capacity` bytes with an initial limit
+  // equal to its capacity and a starting position of zero.
+  Buffer(std::size_t capacity);
+  // Allocate an underlying Buffer with a capacity of `size` bytes and copy
+  // `size` bytes from the given Buffer into it starting at its origin.
+  Buffer(std::uint8_t const* src, std::size_t size);
+  // Create a modifiable view of the given Buffer with a capacity of `size`
+  // bytes, a limit equal to its capacity, and a starting position of zero.
+  //
+  // Ownership of the Buffer's memory is not transferred.
+  Buffer(std::uint8_t* buf, std::size_t size);
+
   Buffer(Buffer&& rhs);
   Buffer& operator=(Buffer&& rhs);
 
@@ -161,17 +173,6 @@ private:
   // Unused capacity can be reclaimed by clear().
   std::size_t free() const { return cap - pos; }
 
-  // Allocate an underlying Buffer of `capacity` bytes with an initial limit
-  // equal to its capacity and a starting position of zero.
-  Buffer(std::size_t capacity);
-  // Allocate an underlying Buffer with a capacity of `size` bytes and copy
-  // `size` bytes from the given Buffer into it starting at its origin.
-  Buffer(std::uint8_t const* src, std::size_t size);
-  // Create a modifiable view of the given Buffer with a capacity of `size`
-  // bytes, a limit equal to its capacity, and a starting position of zero.
-  //
-  // Ownership of the Buffer's memory is not transferred.
-  Buffer(std::uint8_t* buf, std::size_t size);
   // Create a modifiable view of the given Buffer with the specified
   // capacity, limit, and starting position.
   //

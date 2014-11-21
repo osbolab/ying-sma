@@ -13,65 +13,67 @@
 
 namespace sma
 {
-
-namespace detail
+class Async
 {
-  class async_scheduler final
+  template <typename F, typename... A>
+  friend class Task;
+
+public:
+  template <typename F, typename... A>
+  class Task final
   {
-    template<typename F, typename... Args>
-    friend class async_task;
+  private:
+    using R = typename std::result_of<F(A...)>::type;
 
   public:
-    static async_scheduler& instance()
+    Task(Async* async, F&& f, A&&... args)
+      : async(async)
+      , task(std::make_shared<std::packaged_task<R()>>(
+            std::bind(std::forward<F>(f), std::forward<A>(args)...)))
     {
-      static async_scheduler instance;
-      return instance;
     }
-
-  private:
-    async_scheduler(){};
-    async_scheduler(async_scheduler const&);
-    void operator=(async_scheduler const&);
-
-    void schedule(std::function<void()> f, std::chrono::nanoseconds delay);
-  };
-
-
-  template <typename F, typename... Args>
-  class async_task final
-  {
-  private:
-    using R = typename std::result_of<F(Args...)>::type;
-
-  public:
-    async_task(F&& f, Args&&... args)
-      : task(std::make_shared<std::packaged_task<R()>>(
-            std::bind(std::forward<F>(f), std::forward<Args>(args)...)))
+    Task(Task&& t)
+      : async(t.async)
+      , task(std::move(t.task))
     {
+      t.async = nullptr;
+    }
+    Task& operator=(Task&& t)
+    {
+      std::swap(async, t.async);
+      std::swap(task, t.task);
+      return *this;
     }
 
     template <typename Delay>
-    std::future<R> do_in(Delay delay)
-    {
-      auto task = std::move(this->task);
-      assert(task);
-      auto fut = task->get_future();
-      async_scheduler::instance().schedule(
-          [=]() { (*task)(); },
-          std::chrono::duration_cast<std::chrono::nanoseconds>(delay));
-      return fut;
-    }
+    std::future<R> do_in(Delay delay);
+    std::future<R> do() { return do_in(std::chrono::nanoseconds(0)); }
 
   private:
+    Async* async;
     std::shared_ptr<std::packaged_task<R()>> task;
   };
-}
+
+  template <typename F, typename... A>
+  Task make_task(F&& f, A&&... args)
+  {
+    return Task(this, std::forward<F>(f), std::forward<A>(args)...);
+  }
+
+protected:
+  virtual void schedule(std::function<void()> f, std::chrono::nanoseconds delay)
+      = 0;
+};
 
 
-template <typename F, typename... Args>
-detail::async_task<F, Args...> async(F&& f, Args&&... args)
+template <typename Delay>
+std::future<R> Async::Task::do_in(Delay delay)
 {
-  return detail::async_task<F, Args...>(std::forward<F>(f),
-                                     std::forward<Args>(args)...);
+  auto task = std::move(this->task);
+  assert(task);
+  auto fut = task->get_future();
+  async->schedule([=]() { (*task)(); },
+                  std::chrono::duration_cast<std::chrono::nanoseconds>(delay));
+  return fut;
 }
 }

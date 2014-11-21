@@ -8,29 +8,21 @@
 
 namespace sma
 {
-actor::actor(context ctx)
-  : ctx(std::move(ctx))
+Actor::Actor(Context context)
+  : ctx(std::move(context))
 {
+  ctx.enter(this);
 }
-
-actor::~actor()
+Actor::~Actor()
 {
   ctx.msgr->unsubscribe(this);
+  ctx.leave(this);
 }
 
-void actor::subscribe(message_type type)
-{
-  ctx.msgr->subscribe(type, this);
-}
-
-void actor::unsubscribe(message_type type)
+void Actor::subscribe(Message::Type type) { ctx.msgr->subscribe(type, this); }
+void Actor::unsubscribe(Message::Type type)
 {
   ctx.msgr->unsubscribe(type, this);
 }
-
-void actor::post(message const& msg)
-{
-  ctx.msgr->post(msg);
-}
-
+void Actor::post(message const& msg) { ctx.msgr->forward(msg); }
 }
