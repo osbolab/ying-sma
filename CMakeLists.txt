@@ -71,6 +71,8 @@ set(${PROJECT_NAME}_sources
   "src/inet_addr.cpp"
   "src/message.cpp"
   "src/message_dispatch.cpp"
+  "src/serialize/binaryinputformatter.cpp"
+  "src/serialize/binaryoutputformatter.cpp"
 )
 add_library("${PROJECT_NAME}" STATIC ${PROJECT_NAME}_sources})
 add_test_exe("${PROJECT_NAME}_test" "test/test_main.cpp")

@@ -1,4 +1,4 @@
 #pragma once
 
-#include <sma/serialization/objectdatain.hpp>
-#include <sma/serialization/objectdataout.hpp>
+#include <sma/serialize/objectdatain.hpp>
+#include <sma/serialize/objectdataout.hpp>

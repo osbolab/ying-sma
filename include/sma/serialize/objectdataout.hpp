@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <utility>
 
 namespace sma
@@ -7,34 +8,21 @@ namespace sma
 template <typename Formatter>
 class ObjectDataOut final
 {
+  using Myt = ObjectDataOut<Formatter>;
+
 public:
   ObjectDataOut(Formatter formatter)
     : f(std::move(formatter))
   {
   }
 
-  template <typename T>
-  ObjectDataOut<Formatter>& put(T t);
-  ObjectDataOut<Formatter>& put(std::uint8_t const* src, std::size_t size);
+  // clang-format off
+  template <typename T> Myt& put(T t) { f.put(std::forward<T>(t)); return *this; }
+  Myt& put(std::int8_t const* src, std::size_t size) { f.put(src, size); return *this; }
+  Myt& put(std::uint8_t const* src, std::size_t size) { f.put(src, size); return *this; }
+  // clang-format on
 
 private:
   Formatter f;
 };
-
-
-template <typename Formatter>
-template <typename T>
-ObjectDataOut<Formatter>& ObjectDataOut<Formatter>::put(T t)
-{
-  f.put(std::forward<T>(t));
-  return *this;
-}
-
-template <typename Formatter>
-ObjectDataOut<Formatter>& ObjectDataOut<Formatter>::put(std::uint8_t const* src,
-                                                        std::size_t size)
-{
-  f.put(src, size);
-  return *this;
-}
 }
