@@ -1,12 +1,21 @@
 #pragma once
 
+#include <sma/link/linkmanager.hpp>
+
+#include <cstdint>
+#include <utility>
+
+
 namespace sma
 {
+class LinkManager;
+
 class Link
 {
   friend class LinkManager;
 
 public:
+  /*
   Link(Link&& r)
     : manager(r.manager)
   {
@@ -17,19 +26,16 @@ public:
     std::swap(manager, r.manager);
     return *this;
   }
-  virtual ~Link() { close(); }
+  */
+  virtual ~Link() {}
 
-  virtual std::size_t write(void const* src, std::size_t size) = 0;
   virtual std::size_t read(void* dst, std::size_t size) = 0;
+  virtual std::size_t write(void const* src, std::size_t size) = 0;
 
   virtual void close() = 0;
 
 protected:
-  void readable(bool r)
-  {
-    if ((is_readable = r) && manager)
-      manager->on_link_readable(this);
-  }
+  void readable(bool r);
 
 private:
   LinkManager* manager{nullptr};

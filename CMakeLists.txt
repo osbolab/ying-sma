@@ -67,10 +67,11 @@ set(${PROJECT_NAME}_sources
   "src/gps.cpp"
   "src/dummy_gps.cpp"
   "src/inet_addr.cpp"
+  "src/link/link.cpp"
+  "src/link/linkmanager.cpp"
   "src/message.cpp"
   "src/messagedispatch.cpp"
-  "src/serialize/binaryinputformatter.cpp"
-  "src/serialize/binaryoutputformatter.cpp"
+  "src/serialize/binaryformatter.cpp"
 )
 add_library("${PROJECT_NAME}" STATIC ${${PROJECT_NAME}_sources})
 add_test_exe("${PROJECT_NAME}_test" "test/test_main.cpp")

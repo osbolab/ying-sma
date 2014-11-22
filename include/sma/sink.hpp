@@ -1,5 +1,9 @@
 #pragma once
 
+#include <vector>
+#include <utility>
+
+
 namespace sma
 {
 template <typename T>

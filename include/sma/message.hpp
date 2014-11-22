@@ -9,9 +9,9 @@
 namespace sma
 {
 template <typename Formatter>
-class ObjectDataIn;
+class DataWriter;
 template <typename Formatter>
-class ObjectDataOut;
+class DataReader;
 
 struct Message final {
   enum Weight { LIGHT, HEAVY };
@@ -36,14 +36,6 @@ public:
   static Message
   copy(Type type, Weight weight, std::uint8_t const* data, data_size_type size);
 
-
-  // Serialization
-
-  template <typename Formatter>
-  Message(ObjectDataIn<Formatter> in);
-  template <typename Formatter>
-  void write_fields(ObjectDataOut<Formatter> out);
-
   Message(Message&& rhs);
   Message& operator=(Message&& rhs);
   /*! \brief  Allocate a new message and copy this message's content into it.
@@ -52,6 +44,13 @@ public:
    * allocations when the message is wrapping an existing data array.
    */
   Message duplicate() const;
+
+  // Serialization
+
+  template <typename Formatter>
+  Message(DataReader<Formatter>* in);
+  template <typename Formatter>
+  void write_fields(DataWriter<Formatter>* out) const;
 
   /*! \brief  Get the message type used for forwarding and dispatching this
    *          message.
@@ -65,12 +64,11 @@ public:
 
 private:
   Message(Message const& r);
-  /*! \brief  Non-copying constructor. */
-  Message(Header header, std::uint8_t const* data, Weight weight);
-  /*! \brief  Copying constructor. */
   Message(Header header,
           std::unique_ptr<std::uint8_t[]> owned_data,
           Weight weight);
+  /*! \brief  Non-copying constructor. */
+  Message(Header header, std::uint8_t const* data, Weight weight);
 
   Header header;
   std::uint8_t const* data{nullptr};

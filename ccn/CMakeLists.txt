@@ -35,7 +35,7 @@ set(sources
 
 # Depend on the platform interfaces library 
 add_library("${PROJECT_NAME}" STATIC ${sources})
-target_link_libraries("${PROJECT_NAME}" "${SMA_PLATFORM_LIB}")
+target_link_libraries("${PROJECT_NAME}" "${SMA_LIB}")
 
 add_test_exe("applib_test" "test/test_main.cpp")
 target_link_libraries("applib_test" "${PROJECT_NAME}")

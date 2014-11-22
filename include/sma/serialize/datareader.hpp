@@ -1,17 +1,18 @@
 #pragma once
 
 #include <cstdint>
+#include <utility>
 
 
 namespace sma
 {
 template <typename Formatter>
-class ObjectDataIn final
+class DataReader
 {
-  using Myt = ObjectDataIn<Formatter>;
+  using Myt = DataReader<Formatter>;
 
 public:
-  ObjectDataIn(Formatter formatter)
+  DataReader(Formatter formatter)
     : f(std::move(formatter))
   {
   }
@@ -21,7 +22,7 @@ public:
   {
     return f.template get<T>();
   }
-  Myt& get(std::int8_t* dst, std::size_t size)
+  Myt& get(char* dst, std::size_t size)
   {
     f.template get(dst, size);
     return *this;
@@ -32,7 +33,14 @@ public:
     return *this;
   }
 
-private:
+protected:
   Formatter f;
 };
+
+
+template <typename Formatter, typename... Args>
+DataReader<Formatter> make_data_reader(Args&&... args)
+{
+  return DataReader<Formatter>(Formatter(std::forward<Args>(args)...));
+}
 }

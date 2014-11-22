@@ -1,13 +1,13 @@
 #include <sma/ns3/ns3appcontainer.hpp>
 
+#include <sma/link/linkmanager.hpp>
+#include <sma/link/link.hpp>
+#include <sma/link/ns3inetlink.hpp>
+
+#include <sma/messagedispatch.hpp>
+#include <sma/component.hpp>
+
 #include <sma/ccn/application.hpp>
-
-#include <sma/device.hpp>
-#include <sma/device/inet_component.hpp>
-
-#include <sma/network.hpp>
-#include <sma/channel.hpp>
-#include <sma/message_dispatch.hpp>
 
 #include <sma/chrono>
 #include <sma/unique_cast>
@@ -35,22 +35,19 @@ ns3::TypeId Ns3AppContainer::TypeId()
 /******************************************************************************
  * c/dtor and assignment
  */
-Ns3AppContainer::Ns3AppContainer()
-  : dev(new device())
-{
-}
+Ns3AppContainer::Ns3AppContainer() {}
 Ns3AppContainer::Ns3AppContainer(Ns3AppContainer&& rhs) {}
-Ns3AppContainer& Ns3AppContainer::operator=(Ns3AppContainer&& rhs) { return *this; }
+Ns3AppContainer& Ns3AppContainer::operator=(Ns3AppContainer&& rhs)
+{
+  return *this;
+}
 Ns3AppContainer::~Ns3AppContainer() {}
 // Inherited from ns3::Application; part of their lifecycle management I guess
 void Ns3AppContainer::DoDispose() { LOG(DEBUG); }
 /* c/dtor and assignment
  *****************************************************************************/
 
-void Ns3AppContainer::add_component(std::unique_ptr<component> c)
-{
-  dev->add_component(std::move(c));
-}
+void Ns3AppContainer::add_component(std::unique_ptr<Component> c) {}
 
 void Ns3AppContainer::StartApplication()
 {
@@ -58,25 +55,15 @@ void Ns3AppContainer::StartApplication()
   // of the simulation.
   sma::chrono::system_clock::now();
 
-  assert(dev);
+  std::vector<std::unique_ptr<Link>> links;
+  auto inet = static_cast<Link*>(new Ns3InetLink(GetNode()));
+  links.emplace_back(inet);
+  linkmgr = std::make_unique<LinkManager>(std::move(links));
 
-  auto inet = dev->try_get<ns3_inet_component>();
-  assert(inet);
-
-  msgr = message_dispatch::new_single_threaded();
-
-  net = std::make_unique<network>(dev.get());
-  net->heavy_chan->inbox(msgr.get());
-  msgr->add_outbox(net->heavy_chan);
-
-  context ctx(dev.get(), msgr.get());
-  app = std::make_unique<application>(std::move(ctx));
+  msgr = std::make_unique<MessageDispatch>();
+  msgr->outbox(linkmgr.get());
+  linkmgr->inbox(msgr.get());
 }
 
-void Ns3AppContainer::StopApplication()
-{
-  app->dispose();
-  // Close the channel and, transitively, the sockets
-  chan->close();
-}
+void Ns3AppContainer::StopApplication() {}
 }

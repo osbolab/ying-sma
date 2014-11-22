@@ -102,7 +102,6 @@ void Ns3InetSocket::on_packet_available(ns3::Ptr<ns3::Socket> s)
   ns3::Address sender;
 
   while ((p = s->RecvFrom(sender))) {
-    ibx->on_packet(std::move(p));
   }
 }
 

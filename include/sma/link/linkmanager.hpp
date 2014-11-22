@@ -1,16 +1,19 @@
 #pragma once
 
 #include <sma/link/link.hpp>
-#include <sma/channel.hpp>
+#include <sma/message.hpp>
 #include <sma/sink.hpp>
 
 #include <vector>
 #include <memory>
+#include <istream>
+#include <ostream>
+#include <sstream>
 
 
 namespace sma
 {
-struct Message;
+class Link;
 
 class LinkManager final : public Sink<Message const&>
 {
@@ -18,12 +21,12 @@ class LinkManager final : public Sink<Message const&>
 
 public:
   LinkManager(std::vector<std::unique_ptr<Link>> links);
+  /*
   LinkManager(LinkManager&& r);
   LinkManager& operator=(LinkManager&& r);
+  */
 
   void inbox(Sink<Message const&>* ibx) { this->ibx = ibx; }
-
-  // Sink
 
   void accept(Message const& msg) override;
 
@@ -32,5 +35,14 @@ private:
 
   std::vector<std::unique_ptr<Link>> links;
   Sink<Message const&>* ibx{nullptr};
+
+  std::stringbuf::char_type send_buf[1024];
+  std::stringbuf::char_type recv_buf[1024];
+  std::stringbuf send_sbuf;
+  std::stringbuf recv_sbuf;
+  std::ostream send_os;
+  std::istream recv_is;
+  DataWriter<BinaryFormatter<std::ostream>> serializer;
+  DataReader<BinaryFormatter<std::istream>> deserializer;
 };
 }
