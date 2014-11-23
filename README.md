@@ -1,3 +1,4 @@
+
 ## Building
 
 Configure the makefile by invoking `cmake` in the build directory.
