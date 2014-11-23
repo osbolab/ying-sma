@@ -1,8 +1,7 @@
 #include <sma/link/linkmanager.hpp>
 
 #include <sma/message.hpp>
-#include <sma/serialize.hpp>
-#include <sma/binaryformat.hpp>
+#include <sma/binaryformatter.hpp>
 
 #include <istream>
 #include <ostream>
@@ -10,15 +9,14 @@
 #include <cstring>
 #include <cassert>
 
-
 namespace sma
 {
 LinkManager::LinkManager(std::vector<std::unique_ptr<Link>> links)
   : links(std::move(links))
   , send_os(&send_sbuf)
-  , recv_os(&recv_sbuf)
-  , serializer(BinaryFormatter<std::ostream>(&send_os))
-  , deserializer(BinaryFormatter<std::istream>(&recv_os))
+  , recv_is(&recv_sbuf)
+  , serializer(&send_os)
+  , deserializer(&recv_is)
 {
   assert(!this->links.empty());
   for (auto& link : this->links)
@@ -45,7 +43,7 @@ LinkManager& LinkManager::operator=(LinkManager&& r)
 void LinkManager::accept(Message const& msg)
 {
   send_sbuf.pubseekpos(0);
-  msg.write_fields(&serializer);
+  serializer << msg;
   std::size_t const msg_size = send_os.tellp();
 
   std::size_t wrote = 0;

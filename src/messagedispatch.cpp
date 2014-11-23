@@ -38,6 +38,8 @@ Messenger& MessageDispatch::forward(Message const& msg)
   return *this;
 }
 
+void MessageDispatch::outbox(Sink<Message const&>* outbox) { outbox_ = outbox; }
+
 Messenger& MessageDispatch::subscribe(Message::Type type, Actor* subscriber)
 {
   // We could use a binary search to find the insertion point, but
@@ -83,7 +85,7 @@ Messenger& MessageDispatch::unsubscribe(Actor* subscriber)
 void MessageDispatch::accept(const Message& msg)
 {
   bool handled = false;
-  if (!subs.empty()) {
+  if (!subs.empty())
     for (std::size_t i = 0; i < subs.size(); ++i) {
       if (subs[i].first == msg.type()) {
         while (subs[i].first == msg.type())
@@ -92,20 +94,22 @@ void MessageDispatch::accept(const Message& msg)
       } else if (handled)
         return;
     }
-  }
   if (!handled)
     LOG(WARNING) << "Unhandled Message: type = " << std::size_t{msg.type()};
 }
 
 ConcurrentDispatch::ConcurrentDispatch() {}
+
 ConcurrentDispatch::ConcurrentDispatch(Sink<Message const&>* outbox)
   : MessageDispatch(outbox)
 {
 }
+
 ConcurrentDispatch::ConcurrentDispatch(ConcurrentDispatch&& r)
   : MessageDispatch(std::move(r))
 {
 }
+
 ConcurrentDispatch& ConcurrentDispatch::operator=(ConcurrentDispatch&& r)
 {
   MessageDispatch::operator=(std::move(r));

@@ -1,5 +1,4 @@
 #include <sma/message.hpp>
-#include <sma/serialize.hpp>
 
 #include <cstdint>
 #include <cassert>
@@ -33,9 +32,11 @@ Message Message::copy(Type type,
 
 Message::Message(Header header, std::uint8_t const* data, Weight weight)
   : header(std::move(header))
-  , data(data)
+  , data(const_cast<std::uint8_t*>(data))
 {
 }
+
+
 Message::Message(Header header,
                  std::unique_ptr<std::uint8_t[]> owned_data,
                  Weight weight)
@@ -44,6 +45,7 @@ Message::Message(Header header,
 {
   this->data = owned_data.get();
 }
+
 Message::Message(Message const& r)
   : header(r.header)
   , owned_data(std::make_unique<std::uint8_t[]>(r.header.data_size))
@@ -51,6 +53,7 @@ Message::Message(Message const& r)
   std::memcpy(owned_data.get(), r.data, header.data_size);
   data = owned_data.get();
 }
+
 Message::Message(Message&& r)
   : header(std::move(r.header))
   , data(r.data)
@@ -59,6 +62,7 @@ Message::Message(Message&& r)
   r.data = nullptr;
   std::memset((void*) &r.header, 0, sizeof(Header));
 }
+
 Message& Message::operator=(Message&& r)
 {
   std::swap(header, r.header);

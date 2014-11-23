@@ -1,15 +1,15 @@
 #pragma once
 
 #include <sma/link/link.hpp>
-#include <sma/message.hpp>
 #include <sma/sink.hpp>
+#include <sma/message.hpp>
+#include <sma/binaryformatter.hpp>
 
 #include <vector>
 #include <memory>
 #include <istream>
 #include <ostream>
 #include <sstream>
-
 
 namespace sma
 {
@@ -40,9 +40,10 @@ private:
   std::stringbuf::char_type recv_buf[1024];
   std::stringbuf send_sbuf;
   std::stringbuf recv_sbuf;
+  // The order of these is important for
   std::ostream send_os;
   std::istream recv_is;
-  DataWriter<BinaryFormatter<std::ostream>> serializer;
-  DataReader<BinaryFormatter<std::istream>> deserializer;
+  BinaryFormatter<std::ostream> serializer;
+  BinaryFormatter<std::istream> deserializer;
 };
 }
