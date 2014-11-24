@@ -1,4 +1,8 @@
-project("${SMA_NS3_LIB}")
+depend(SMA_LIB)
+depend(SMA_CCN_LIB)
+depend(SMA_NS3_LIB)
+
+project(${SMA_NS3_LIB})
 
 # Configure cmake to find the NS3 headers and shared libraries for linking.
 # Also defines the use_cmake_modules(target modules...) macro to link the
@@ -13,6 +17,7 @@ set(lib_sources
   "src/chrono.cpp"
   "src/ns3async.cpp"
   "src/ns3inetsocket.cpp"
+  "src/link/ns3inetlink.cpp"
 )
 
 set(simulation_sources
@@ -31,7 +36,7 @@ add_library("${PROJECT_NAME}" STATIC ${lib_sources})
 target_link_libraries("${PROJECT_NAME}" "${SMA_LIB}")
 
 add_executable("simulations" "sim/sim_main.cpp" ${simulation_sources})
-target_link_libraries("simulations" "${SMA_APP_LIB}" "${SMA_NS3_LIB}" "gtest")
+target_link_libraries("simulations" "${SMA_CCN_LIB}" "${SMA_NS3_LIB}" "gtest")
 # Unfortunately, the nice thing waf does for us is build up their
 # configuration-encoded dependency hierarchy.
 # We have to figure it out by adding stuff until we stop getting link errors.

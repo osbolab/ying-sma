@@ -1,5 +1,6 @@
 #pragma once
 
+#include <sma/io/log>
 #include <sma/message.hpp>
 #include <sma/messenger.hpp>
 #include <sma/sink.hpp>
@@ -22,7 +23,7 @@ public:
   MessageDispatch(MessageDispatch&& rhs);
   MessageDispatch& operator=(MessageDispatch&& rhs);
 
-  virtual ~MessageDispatch() {}
+  virtual ~MessageDispatch() { LOG(TRACE); }
 
   void outbox(Sink<Message const&>* outbox);
 

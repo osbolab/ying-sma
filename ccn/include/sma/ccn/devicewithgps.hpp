@@ -27,7 +27,7 @@ public:
   DeviceWithGPS(sma::Context* ctx);
   ~DeviceWithGPS();
 
-  void dispose();
+  virtual void dispose() override;
 
   virtual std::string getDeviceID() const override;
 
@@ -37,11 +37,7 @@ public:
   void showDirectory() const;
   void showPendingFiles() const;
   void showPendingChunksOfFile(std::string fileName) const;
-  /*
- * interface exposed to the network to receive broadcast message, e.g., NS3.
- * cuirrently, the data transmitted is a user-defined network. It should be
- * changed to the byte array when connecting to the real network.
- */
+
   // Callback from sma::messenger (from NS3)
   // Unpacks the contents as a DataBlock and gives it to receiveSignal(1)
   virtual void receive(sma::Message const& msg) override;

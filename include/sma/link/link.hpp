@@ -29,6 +29,8 @@ public:
   */
   virtual ~Link() {}
 
+  bool readable();
+
   virtual std::size_t read(void* dst, std::size_t size) = 0;
   virtual std::size_t write(void const* src, std::size_t size) = 0;
 

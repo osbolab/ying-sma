@@ -1,7 +1,6 @@
 #pragma once
 
-#include <sma/ns3/app_container.hpp>
-#include <sma/ns3/ns3_inet_socket.hpp>
+#include <sma/ns3/ns3appcontainer.hpp>
 
 #include <ns3/core-module.h>
 #include <ns3/csma-module.h>
@@ -44,15 +43,15 @@ TEST(simulation, wifi_simple)
   // application.
   LOG(DEBUG) << "Install SMA application instances in simulator nodes";
   ns3::ObjectFactory sma_factory;
-  sma_factory.SetTypeId(sma::app_container::TypeId());
+  sma_factory.SetTypeId(sma::Ns3AppContainer::TypeId());
 
   // We can keep using that injection template to spawn applications and
   // attach them to nodes.
   for (std::size_t i = 0; i < nnodes; ++i) {
     auto node = nodes.Get(i);
 
-    auto app = sma_factory.Create<sma::app_container>();
-    app->add_component(dummy_gps(gps::coord{30.0, 18.45}));
+    auto app = sma_factory.Create<sma::Ns3AppContainer>();
+    //app->add_component(dummy_gps(gps::coord{30.0, 18.45}));
 
     auto apps = ns3::ApplicationContainer(app);
     apps.Start(ns3::Seconds(0));
@@ -62,12 +61,13 @@ TEST(simulation, wifi_simple)
   }
   // ^^^^^^^^^^^^^^^^^^^^^^^^^ SMA STUFF ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  LOG(DEBUG) << "Will output pcap data for traffic analysis";
   ns3::AsciiTraceHelper ascii;
   csma.EnablePcapAll("wifi_simple", false);
+  LOG(DEBUG) << "CSMA traffic will output to wifi_simp-x-x.pcap";
 
-  LOG(DEBUG) << "Simulating";
+  LOG(WARNING) << "Simulating";
   ns3::Simulator::Run();
+  LOG(DEBUG) << "Destroying";
   ns3::Simulator::Destroy();
-  LOG(DEBUG) << "done.";
+  LOG(INFO) << "done.";
 }

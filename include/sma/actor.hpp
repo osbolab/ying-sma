@@ -11,6 +11,7 @@ namespace sma
 class Actor
 {
 public:
+  virtual void dispose() = 0;
   virtual ~Actor();
 
   virtual void receive(Message const& msg) = 0;

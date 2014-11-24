@@ -3,6 +3,8 @@
 #include <sma/message.hpp>
 #include <sma/binaryformatter.hpp>
 
+#include <sma/io/log>
+
 #include <istream>
 #include <ostream>
 #include <sstream>

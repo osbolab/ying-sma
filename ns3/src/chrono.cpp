@@ -1,4 +1,5 @@
 #include <sma/chrono>
+#include <sma/io/log>
 
 #include <ns3/simulator.h>
 #include <ns3/nstime.h>
@@ -26,7 +27,7 @@ namespace chrono
               std::chrono::system_clock::now())};
 
     private:
-      start_time_s_(){};
+      start_time_s_() {}
       start_time_s_(start_time_s_ const&);
       void operator=(start_time_s_ const&);
     };
@@ -42,14 +43,14 @@ namespace chrono
   system_clock::time_point system_clock::from_time_t(std::time_t t)
   {
     return std::chrono::time_point_cast<duration>(
-        std::chrono::time_point<std::chrono::system_clock, std::chrono::seconds>(
-            std::chrono::seconds(t)));
+        std::chrono::time_point<std::chrono::system_clock,
+                                std::chrono::seconds>(std::chrono::seconds(t)));
   }
 
-  std::time_t system_clock::to_time_t(system_clock::time_point const& t)
+  std::time_t system_clock::to_time_t(system_clock::time_point const& tp)
   {
     return std::time_t(std::chrono::duration_cast<std::chrono::seconds>(
-                           t.time_since_epoch()).count());
+                           tp.time_since_epoch()).count());
   }
 }
 }

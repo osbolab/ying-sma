@@ -2,6 +2,7 @@
 #include <sma/context.hpp>
 #include <sma/message.hpp>
 #include <sma/messenger.hpp>
+#include <sma/io/log>
 
 #include <utility>
 
@@ -15,6 +16,7 @@ Actor::Actor(Context* context)
 }
 Actor::~Actor()
 {
+  LOG(TRACE);
   ctx->msgr->unsubscribe(this);
   ctx->leave(this);
 }

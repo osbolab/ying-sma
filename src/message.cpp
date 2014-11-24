@@ -4,12 +4,20 @@
 #include <cassert>
 #include <utility>
 #include <vector>
-#include <iostream>
+#include <ostream>
 #include <cstring>
 
 
 namespace sma
 {
+// clang-format off
+std::ostream& operator<<(std::ostream& os, Message const& m)
+{
+  os << "Message { type: " << std::uint64_t(m.type())
+     << ", data: <" << m.size() << " bytes> }";
+  return os;
+}
+// clang-format on
 
 Message Message::wrap(Type type,
                       Weight weight,

@@ -1,9 +1,10 @@
 #pragma once
 
+#include <sma/ns3/ns3async.hpp>
 #include <sma/link/linkmanager.hpp>
 #include <sma/messagedispatch.hpp>
 #include <sma/component.hpp>
-#include <sma/ccn/application.hpp>
+#include <sma/ccn/ccnapplication.hpp>
 
 #include <ns3/ptr.h>
 #include <ns3/application.h>
@@ -35,8 +36,10 @@ protected:
   virtual void StopApplication() override;
 
 private:
+  Ns3Async async;
+  std::unique_ptr<Context> ctx;
   std::unique_ptr<LinkManager> linkmgr;
   std::unique_ptr<MessageDispatch> msgr;
-  std::unique_ptr<Application> app;
+  std::unique_ptr<CcnApplication> app;
 };
 }

@@ -46,8 +46,9 @@ Messenger& MessageDispatch::subscribe(Message::Type type, Actor* subscriber)
   // it still then requires an O(n) step to create the gap, so
   // we'd have an O(log) search and an O(n) insert.
   // Instead just do them at the same time by sliding in the back (heh)
+  assert(subscriber);
 
-  subs.emplace_back(std::move(type), std::move(subscriber));
+  subs.emplace_back(std::move(type), subscriber);
   auto i = subs.size();
   while (--i > 0 && subs[i].first < subs[i - 1].first)
     std::swap(subs[i - 1], subs[i]);
@@ -62,7 +63,7 @@ Messenger& MessageDispatch::unsubscribe(Message::Type type, Actor* subscriber)
     if (it->first == type) {
       type_checked = true;
       if (it->second == subscriber)
-        subs.erase(it++);
+        it = subs.erase(it);
     } else if (type_checked)
       break;
     ++it;
@@ -75,8 +76,8 @@ Messenger& MessageDispatch::unsubscribe(Actor* subscriber)
 {
   auto it = subs.begin();
   while (it != subs.end())
-    if (it->second == subscriber)
-      subs.erase(it++);
+    if (it->second == nullptr || it->second == subscriber)
+      it = subs.erase(it);
     else
       ++it;
   return *this;
@@ -95,7 +96,7 @@ void MessageDispatch::accept(const Message& msg)
         return;
     }
   if (!handled)
-    LOG(WARNING) << "Unhandled Message: type = " << std::size_t{msg.type()};
+    LOG(WARNING) << "Unhandled " << msg;
 }
 
 ConcurrentDispatch::ConcurrentDispatch() {}

@@ -61,12 +61,19 @@ DeviceWithGPS::DeviceWithGPS(sma::Context* ctx)
   broadcastDirectory();
 }
 
-void DeviceWithGPS::dispose() { disposed = true; }
+void DeviceWithGPS::dispose()
+{
+  LOG(TRACE);
+  disposed = true;
+}
 
 DeviceWithGPS::~DeviceWithGPS()
 {
-  while (beacon_scheduled || broadcast_scheduled)
+  LOG(TRACE);
+  while (beacon_scheduled || broadcast_scheduled) {
+    LOG(DEBUG) << "Waiting for beacon to finish";
     std::this_thread::sleep_for(std::chrono::seconds(HEARTBEAT_INTERVAL));
+  }
   logger->close();
   delete logger;
   logger = nullptr;
@@ -167,12 +174,17 @@ void DeviceWithGPS::sendSignal(const DataBlock& block)
 
 void DeviceWithGPS::receive(sma::Message const& msg)
 {
+  LOG(DEBUG) << "Received " << msg;
   DataBlock data(static_cast<SMA::MESSAGE_TYPE>(msg.type()));
   auto csrc = reinterpret_cast<const char*>(msg.cdata());
   data.createData(this, csrc, msg.size());
   receiveSignal(data);
 }
-void receive(sma::Message const& msg, sma::Actor* sender) {}
+void DeviceWithGPS::receive(sma::Message const& msg, sma::Actor* sender)
+{
+  LOG(FATAL)
+      << "DeviceWithGPS::receive(Message const&, Actor*) is not implemented!";
+}
 void DeviceWithGPS::receiveSignal(const DataBlock& block)
 {
   //  char* payload = new char [block.getPayloadSize()];

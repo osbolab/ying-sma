@@ -1,4 +1,5 @@
 #include <sma/context.hpp>
+#include <sma/actor.hpp>
 
 #include <cstdint>
 #include <mutex>

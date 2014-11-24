@@ -3,30 +3,32 @@
 #include <cstdint>
 #include <vector>
 #include <memory>
+#include <ostream>
 
-namespace sma {
+namespace sma
+{
 struct Message final {
   enum Weight { LIGHT, HEAVY };
 
   using Type = std::uint8_t;
   using data_size_type = std::uint16_t;
 
- private:
+private:
   struct Header {
     Message::Type type;
     data_size_type data_size;
   };
 
- public:
+public:
   /*! \brief  Create a message pointing to, but not copying, the given byte
    *          array as its data.
    */
-  static Message wrap(Type type, Weight weight, std::uint8_t const* data,
-                      data_size_type size);
+  static Message
+  wrap(Type type, Weight weight, std::uint8_t const* data, data_size_type size);
   /*! \brief  Create a message copying the given byte array as its data.
    */
-  static Message copy(Type type, Weight weight, std::uint8_t const* data,
-                      data_size_type size);
+  static Message
+  copy(Type type, Weight weight, std::uint8_t const* data, data_size_type size);
 
   Message(Message&& rhs);
   Message& operator=(Message&& rhs);
@@ -55,9 +57,10 @@ struct Message final {
   /*! \brief  Get the size in octets of the message contents. */
   std::size_t size() const noexcept { return std::size_t{header.data_size}; }
 
- private:
+private:
   Message(Message const& r);
-  Message(Header header, std::unique_ptr<std::uint8_t[]> owned_data,
+  Message(Header header,
+          std::unique_ptr<std::uint8_t[]> owned_data,
           Weight weight);
   /*! \brief  Non-copying constructor. */
   Message(Header header, std::uint8_t const* data, Weight weight);
@@ -68,7 +71,8 @@ struct Message final {
 };
 
 template <typename Reader>
-Message::Message(Reader* in) {
+Message::Message(Reader* in)
+{
   *in >> header.type;
   *in >> header.data_size;
   owned_data = std::make_unique<std::uint8_t[]>(header.data_size);
@@ -77,9 +81,12 @@ Message::Message(Reader* in) {
 }
 
 template <typename Writer>
-void Message::write_fields(Writer* out) const {
+void Message::write_fields(Writer* out) const
+{
   *out << header.type;
   *out << header.data_size;
   out->write(data, header.data_size);
 }
+
+std::ostream& operator<<(std::ostream& os, Message const& m);
 }

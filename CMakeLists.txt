@@ -57,13 +57,16 @@ set(SMA_NS3_LIB "smans3")
 ###############################################################################
 # Main SMA platform library project
 
-project("${SMA_LIB}")
+depend(SMA_LIB)
+project(${SMA_LIB})
 
 # Everyone depends on the platform headers
 include_directories("include")
 
 set(${PROJECT_NAME}_sources
   "src/actor.cpp"
+  "src/chrono.cpp"
+  "src/context.cpp"
   "src/gps.cpp"
   "src/dummy_gps.cpp"
   "src/inet_addr.cpp"

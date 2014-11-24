@@ -339,7 +339,8 @@
 #endif    // _ELPP_OS_ANDROID
 #if _ELPP_OS_UNIX
 #include <sys/stat.h>
-#include <sys/time.h>
+#include <chrono>
+#include <sma/chrono>
 #elif _ELPP_OS_WINDOWS
 #include <direct.h>
 #include <Windows.h>
@@ -1988,7 +1989,10 @@ namespace base
           tv->tv_usec = static_cast<long>(present % usecOffSet);    // NOLINT
         }
 #else
-        ::gettimeofday(tv, nullptr);
+        auto usec = std::chrono::duration_cast<std::chrono::microseconds>(
+            sma::chrono::system_clock::now().time_since_epoch());
+        tv->tv_sec = usec.count()/1000000;
+        tv->tv_usec = usec.count()%1000000;
 #endif    // _ELPP_OS_WINDOWS
       }
 

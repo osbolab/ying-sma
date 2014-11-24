@@ -1,10 +1,13 @@
+depend(SMA_LIB)
+depend(SMA_CCN_LIB)
+
 project("${SMA_CCN_LIB}")
 
 ###############################################################################
 # SOURCES
 
 set(sources
-  "src/application.cpp"
+  "src/ccnapplication.cpp"
 
   "src/md5.cpp"
   "src/json.cpp"
@@ -37,7 +40,7 @@ set(sources
 add_library("${PROJECT_NAME}" STATIC ${sources})
 target_link_libraries("${PROJECT_NAME}" "${SMA_LIB}")
 
-add_test_exe("applib_test" "test/test_main.cpp")
-target_link_libraries("applib_test" "${PROJECT_NAME}")
+add_test_exe("ccnlib_test" "test/test_main.cpp")
+target_link_libraries("ccnlib_test" "${PROJECT_NAME}")
   
 

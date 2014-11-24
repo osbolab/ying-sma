@@ -18,6 +18,7 @@ class Context final
 {
   friend class Actor;
 
+public:
   Context(Messenger* msgr, Async* async)
     : msgr(msgr)
     , async(async)
