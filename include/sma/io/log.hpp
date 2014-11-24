@@ -13,7 +13,7 @@ namespace detail
   // Eventually I'll replace this with something less, you know, completely
   // horrible.
   struct Logger {
-    Logger(std::string id);
+    Logger(std::string id) : impl(el::Loggers::getLogger(id)) {}
     template <typename... Args> Logger const& t(Args&&... args) const;
     template <typename... Args> Logger const& d(Args&&... args) const;
     template <typename... Args> Logger const& i(Args&&... args) const;

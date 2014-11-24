@@ -48,8 +48,7 @@ void SignalHandler::processBeaconing(const DataBlock& block)
     auto lon = fields["gps"]["longitude"].asDouble();
     auto lat = fields["gps"]["latitude"].asDouble();
 
-    LOG(DEBUG) << "<-- beacon { from: " << sender << ", gps: (" << lon << ", "
-               << lat << ") }";
+    log.t("<-- beacon { from: %v, gps: (%v, %v) }", sender, lon, lat);
 
     control->updateNeighborRecord(sender, lat, lon);
   }
@@ -57,9 +56,10 @@ void SignalHandler::processBeaconing(const DataBlock& block)
 
 void SignalHandler::processIncomingChunk(const DataBlock& block)
 {
-  LOG(DEBUG) << "<-- chunk { from: " << block.getSrcDeviceID()
-             << ", chunk: " << block.getChunkID() << " ("
-             << block.getPayloadSize() << " bytes) }";
+  log.t("<-- chunk { from: %v, chunk: %v (%v bytes) }",
+        block.getSrcDeviceID(),
+        block.getChunkID(),
+        block.getPayloadSize());
   char* payload = new char[block.getPayloadSize()];
   block.getPayload(payload);
 
@@ -68,7 +68,7 @@ void SignalHandler::processIncomingChunk(const DataBlock& block)
 
   switch (rule) {
     case -1:
-      LOG(WARNING) << "dropped unsolicited chunk";
+      log.w("x-- dropped unsolicited chunk");
       break;
     case 0:
       // should be true, as requested by self.
@@ -83,8 +83,7 @@ void SignalHandler::processIncomingChunk(const DataBlock& block)
       control->delRuleFromFlowTable(block.getChunkID());
       break;
     default:
-      std::ostringstream oss;
-      LOG(ERROR) << "invalid chunk handling rule: " << rule;
+      log.e("x-- invalid chunk handling rule: %v", rule);
   }
   delete[] payload;
   payload = nullptr;
@@ -102,8 +101,9 @@ void SignalHandler::processRequestFwd(const DataBlock& block)
   bool success = reader.parse(payloadJson, fields);
   if (success) {
     std::string chunkID = fields["chunk_id"].asString();
-    LOG(DEBUG) << "<-- request-forward { from: " << block.getSrcDeviceID()
-               << ", chunk: " << chunkID << " }";
+    log.t("<-- request-forward { from: %v, chunk: %v }",
+          block.getSrcDeviceID(),
+          chunkID);
     if (control->hasChunk(chunkID))
       control->transmitChunk(chunkID);
     else {

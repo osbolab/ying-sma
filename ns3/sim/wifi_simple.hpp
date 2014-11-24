@@ -10,6 +10,8 @@
 #include <ns3/internet-module.h>
 #include <ns3/uinteger.h>
 
+#include <random>
+
 TEST(simulation, wifi_simple)
 {
   const std::size_t nnodes = 2;
@@ -47,6 +49,10 @@ TEST(simulation, wifi_simple)
   ns3::ObjectFactory sma_factory;
   sma_factory.SetTypeId(sma::Ns3AppContainer::TypeId());
 
+  std::uniform_real_distribution<double> lat_dist(40.68, 40.69);
+  std::uniform_real_distribution<double> lon_dist(-74, -73.99);
+  std::default_random_engine rnd;
+
   // We can keep using that injection template to spawn applications and
   // attach them to nodes.
   for (std::size_t i = 0; i < nnodes; ++i) {
@@ -54,8 +60,8 @@ TEST(simulation, wifi_simple)
 
     auto app = sma_factory.Create<sma::Ns3AppContainer>();
     app->SetAttribute("id", ns3::UintegerValue(i));
-    app->add_component(std::move(
-        std::make_unique<sma::DummyGps>(sma::GPS::Coord{30.0, 18.45})));
+    app->add_component(std::move(std::make_unique<sma::DummyGps>(
+        sma::GPS::Coord{lat_dist(rnd), lon_dist(rnd)})));
 
     auto apps = ns3::ApplicationContainer(app);
     apps.Start(ns3::Seconds(0));
