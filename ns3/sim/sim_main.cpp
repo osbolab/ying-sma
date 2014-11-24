@@ -1,3 +1,4 @@
+#define _ELPP_NO_DEFAULT_LOG_FILE
 #include <sma/io/log>
 // Call only once per application
 _INITIALIZE_EASYLOGGINGPP
@@ -12,13 +13,17 @@ int main(int argc, char** argv)
 {
   _START_EASYLOGGINGPP(argc, argv);
 
-  std::cout << "Configuring logging from log.conf...\n";
-  el::Configurations logconf("log.conf");
+  std::cout << "Configuring application logging from log.conf...\n";
+  el::Configurations logconf("../../conf/log.conf");
   el::Loggers::reconfigureAllLoggers(logconf);
+  LOG(DEBUG) << "Configuring node logging from nodelog.conf...";
+  el::Configurations nodelogconf("../../conf/nodelog.conf");
+  el::Loggers::setDefaultConfigurations(nodelogconf, false);
+
   el::Loggers::addFlag(el::LoggingFlag::LogDetailedCrashReason);
-  LOG(INFO) << "Detailed crash reports are enabled (--logging-flags=4)";
+  LOG(DEBUG) << "Detailed crash reports are enabled (--logging-flags=4)";
   el::Loggers::addFlag(el::LoggingFlag::ColoredTerminalOutput);
-  LOG(INFO) << "Colored terminal output is enabled (--logging-flags=64)";
+  LOG(DEBUG) << "Colored terminal output is enabled (--logging-flags=64)";
 
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

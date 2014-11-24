@@ -5,7 +5,6 @@
 #include <sma/ccn/segmenter.hpp>
 #include <sma/ccn/contentdirectory.hpp>
 #include <sma/ccn/contentdescriptor.hpp>
-#include <sma/ccn/device.hpp>
 #include <sma/ccn/neighborrecords.hpp>
 #include <sma/ccn/datablock.hpp>
 #include <sma/ccn/signalhandler.hpp>
@@ -16,10 +15,17 @@
 #include <vector>
 #include <unordered_map>
 
+namespace sma
+{
+  struct Context;
+}
+
+class DeviceWithGPS;
+
 class ControlLayer
 {
 public:
-  ControlLayer(std::string cacheNameInDatalayer);
+  ControlLayer(sma::Context* ctx, DeviceWithGPS* dev, std::string cacheNameInDatalayer);
   void publishContent(std::string inFileName, std::string outFileName, const std::vector<std::pair<ContentAttribute::META_TYPE, std::string> >& fileMeta);
   std::vector<ContentDescriptor> getContentDirectory (int numOfEntries) const;
   void updateDirectory(ContentDescriptor descriptor);
@@ -35,8 +41,6 @@ public:
   int getFlowRule(std::string) const;
 
   void forwardRequest(std::string chunk);
-
-  void setDevicePtr (Device* devicePtr);
 
   void updateNeighborRecord(std::string id, double latitude, double longitude);
   std::string getNeighborInfo(std::string id) const;
@@ -54,11 +58,12 @@ public:
 
 private:
   static std::string TMP_FOLDER;
+  sma::Context* ctx;
+  DeviceWithGPS* dev;
   DataLayer datalayer;
   Segmenter segmenter;
   ContentDirectory directory;
   PendingFileManager pendingFileTable;
-  Device* device;
   NeighborRecords neighborManager;
   SignalHandler signalHandler;
 };

@@ -2,7 +2,6 @@
 #include <sma/context.hpp>
 #include <sma/message.hpp>
 #include <sma/messenger.hpp>
-#include <sma/io/log>
 
 #include <utility>
 
@@ -11,15 +10,18 @@ namespace sma
 {
 Actor::Actor(Context* context)
   : ctx(context)
+  , log(context)
 {
   ctx->enter(this);
 }
 Actor::~Actor()
 {
-  LOG(TRACE);
   ctx->msgr->unsubscribe(this);
   ctx->leave(this);
 }
+
+Context* Actor::context() const { return ctx; }
+NodeInfo const* Actor::this_node() const { return ctx->this_node(); }
 
 // clang-format off
 void Actor::subscribe(Message::Type type) { ctx->msgr->subscribe(type, this); }

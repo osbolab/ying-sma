@@ -23,6 +23,7 @@ public:
 
 
   operator std::uint32_t() const { return id; }
+  operator std::string() const { return std::to_string(id); }
 
   id_type id;
 };

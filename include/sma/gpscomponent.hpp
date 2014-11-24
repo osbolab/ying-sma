@@ -1,16 +1,15 @@
 #pragma once
 
-#include <sma/device/component.hpp>
-#include <sma/device/gps.hpp>
-
+#include <sma/gps.hpp>
+#include <sma/component.hpp>
 
 namespace sma
 {
-class gps_component : public component
+class GpsComponent : public Component
 {
 public:
-  virtual ~gps_component() {}
+  virtual ~GpsComponent() {}
 
-  virtual gps::coord position() const = 0;
+  virtual GPS::Coord position() const = 0;
 };
 }

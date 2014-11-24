@@ -25,7 +25,7 @@ namespace chrono
     static time_point from_time_t(std::time_t t);
     static std::time_t to_time_t(const time_point& tp);
     static std::string strftime(const time_point& tp, const char* format);
-    static std::string utcstrtime(const time_point& tp);
+    static std::string utcstrftime(const time_point& tp);
   };
 }
 }

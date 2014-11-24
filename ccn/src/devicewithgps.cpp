@@ -1,5 +1,4 @@
 #include <sma/ccn/devicewithgps.hpp>
-#include <sma/ccn/devicelogger.hpp>
 
 #include <sma/ccn/datablock.hpp>
 
@@ -10,10 +9,10 @@
 
 #include <sma/actor.hpp>
 #include <sma/context.hpp>
+#include <sma/async.hpp>
 #include <sma/message.hpp>
 #include <sma/messenger.hpp>
-#include <sma/async.hpp>
-#include <sma/io/log>
+#include <sma/gpscomponent.hpp>
 
 #include <iostream>
 #include <iomanip>
@@ -34,52 +33,29 @@
 
 int DeviceWithGPS::HEARTBEAT_INTERVAL = 10;
 int DeviceWithGPS::DIRECTORY_SYNC_INTERVAL = 30;
-std::string DeviceWithGPS::LOG_DIR = "logs/nodes/";
 
 DeviceWithGPS::DeviceWithGPS(sma::Context* ctx)
   : sma::Actor(ctx)
-  , controlPlane(std::to_string(ctx->this_node()->id()))
+  , controlPlane(ctx, this, std::to_string(ctx->this_node()->id()))
 {
-  deviceID = std::to_string(ctx->this_node()->id());
-  for (std::size_t message_type = 0; message_type < 5; ++message_type) {
+  for (std::size_t message_type = 0; message_type < 5; ++message_type)
     subscribe(static_cast<sma::Message::Type>(message_type));
-  }
 
-  struct stat info;
-  if (stat(LOG_DIR.c_str(), &info) == -1) {
-    if (mkdir(LOG_DIR.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1)
-      LOG(ERROR) << "Can't make directory " << LOG_DIR;
-    else
-      LOG(DEBUG) << "Created log directory " << LOG_DIR;
-  } else if (!(info.st_mode & S_IFDIR))
-    LOG(ERROR) << LOG_DIR << " isn't a directory";
-  std::string logFileName = LOG_DIR + deviceID + ".log";
-  logger = new DeviceLogger(logFileName);
-  controlPlane.setDevicePtr(this);
   // Start the background notification cycles
   beaconing();
   broadcastDirectory();
 }
 
-void DeviceWithGPS::dispose()
-{
-  LOG(TRACE);
-  disposed = true;
-}
+void DeviceWithGPS::dispose() { disposed = true; }
 
 DeviceWithGPS::~DeviceWithGPS()
 {
-  LOG(TRACE);
+  log.t(__func__);
   while (beacon_scheduled || broadcast_scheduled) {
-    LOG(DEBUG) << "Waiting for beacon to finish";
+    log.w("beacon is scheduled; waiting for it to finish...");
     std::this_thread::sleep_for(std::chrono::seconds(HEARTBEAT_INTERVAL));
   }
-  logger->close();
-  delete logger;
-  logger = nullptr;
 }
-
-std::string DeviceWithGPS::getDeviceID() const { return deviceID; }
 
 /* Currently, the beconning message broadcast the GPS information
  * together with the user ID to the network.
@@ -93,17 +69,19 @@ void DeviceWithGPS::beaconing()
   // broadcast GPS
   DataBlock block(SMA::GPSBCAST);
   std::string gpsBroadCastData = getJsonGPS();
+  if (gpsBroadCastData.empty()) {
+    log.f("GPS is not available; cancelling beaconing");
+    return;
+  }
   int size = gpsBroadCastData.size() + 1;
   char* payload = new char[size];
   gpsBroadCastData.copy(payload, size - 1, 0);
   payload[size - 1] = '\0';
-  block.createData(this, payload, size);
+  block.createData(this_node(), payload, size);
   sendSignal(block);
   delete[] payload;
 
-  std::ostringstream logStr;
-  logStr << "Heartbeating...\n";
-  logger->log(logStr.str());
+  log.t("--> beacon");
 
   if (!disposed) {
     async(std::bind(&DeviceWithGPS::beaconing, this))
@@ -127,13 +105,11 @@ void DeviceWithGPS::broadcastDirectory()
   char* payload = new char[size];
   dirBroadCastData.copy(payload, size - 1, 0);
   payload[size - 1] = '\0';
-  block.createData(this, payload, size);
+  block.createData(this_node(), payload, size);
   sendSignal(block);
   delete[] payload;
 
-  std::ostringstream logStr;
-  logStr << "Broadcast directory sync to the network...\n";
-  logger->log(logStr.str());
+  log.t("--> directory sync");
 
   if (!disposed) {
     async(std::bind(&DeviceWithGPS::broadcastDirectory, this))
@@ -150,13 +126,12 @@ void DeviceWithGPS::forwardRequest(std::string chunk)
   char* payload = new char[size];
   requestFwdData.copy(payload, size - 1, 0);
   payload[size - 1] = '\0';
-  block.createData(this, payload, size);
+  block.createData(this_node(), payload, size);
   sendSignal(block);
   delete[] payload;
   payload = nullptr;
   std::ostringstream logStr;
-  logStr << deviceID << ": Request Forwarding for " << chunk << '\n';
-  logger->log(logStr.str());
+  log.t("--> forward request for chunk %v", chunk);
 }
 
 void DeviceWithGPS::sendSignal(const DataBlock& block)
@@ -176,24 +151,17 @@ void DeviceWithGPS::receive(sma::Message const& msg)
 {
   DataBlock data(static_cast<SMA::MESSAGE_TYPE>(msg.type()));
   auto csrc = reinterpret_cast<const char*>(msg.cdata());
-  data.createData(this, csrc, msg.size());
+  data.createData(this_node(), csrc, msg.size());
   receiveSignal(data);
 }
 void DeviceWithGPS::receive(sma::Message const& msg, sma::Actor* sender)
 {
-  LOG(FATAL)
-      << "DeviceWithGPS::receive(Message const&, Actor*) is not implemented!";
+  log.f("DeviceWithGPS::receive(Message const&, Actor*) is not implemented!");
 }
 void DeviceWithGPS::receiveSignal(const DataBlock& block)
 {
-  //  char* payload = new char [block.getPayloadSize()];
-  //  block.getPayload(payload);
-  //  logFile << "The payload is: " << payload << '\n';
-  //  lockLog.unlock();
-  if (controlPlane.processSignal(block) == false)    // fail to process signal
-  {
-    logger->log("Error: Invalid Signal.\n");
-  }
+  if (!controlPlane.processSignal(block))
+    log.e("<-- invalid data block");
 }
 
 void DeviceWithGPS::processNeighborQuery() const
@@ -201,12 +169,14 @@ void DeviceWithGPS::processNeighborQuery() const
   std::vector<std::string> ids;
   controlPlane.getNeighborIDs(ids);
   std::vector<std::string>::iterator iter = ids.begin();
-  std::cout << "The neighbor records of " << this->getDeviceID()
-            << " is:" << std::endl;
+  std::stringstream buf;
+  buf << "Neighbors (" << ids.size() << " {\n";
   while (iter != ids.end()) {
-    std::cout << controlPlane.getNeighborInfo(*iter) << std::endl;
+    buf << "  " << controlPlane.getNeighborInfo(*iter) << '\n';
     iter++;
   }
+  buf << '}';
+  log.i(buf.str());
 }
 
 void DeviceWithGPS::publishContent(std::string inFileName,
@@ -235,12 +205,18 @@ void DeviceWithGPS::retrieveContentAs(std::string fileName,
 
 std::string DeviceWithGPS::getJsonGPS() const
 {
+  auto gps = context()->try_get_component<sma::GpsComponent>();
+  if (!gps)
+    return "";
+
+  auto pos = gps->position();
+
   Json::Value result;
-  Json::Value gps;
-  gps["latitude"] = 0.0;
-  gps["longitude"] = 0.0;
-  result["gps"] = gps;
-  result["device_id"] = this->getDeviceID();
+  Json::Value gpsobj;
+  gpsobj["latitude"] = pos.lon;
+  gpsobj["longitude"] = pos.lat;
+  result["gps"] = gpsobj;
+  result["device_id"] = std::string(this_node()->id());
   Json::StyledWriter styledWriter;    // should change fastWriter
   std::string jsonMessage = styledWriter.write(result);
   return jsonMessage;
@@ -308,5 +284,3 @@ void DeviceWithGPS::showPendingChunksOfFile(std::string fileName) const
 {
   controlPlane.showPendingChunksOfFile(fileName);
 }
-
-DeviceLogger* DeviceWithGPS::getLoggerPtr() const { return logger; }

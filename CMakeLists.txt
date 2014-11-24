@@ -68,8 +68,6 @@ set(${PROJECT_NAME}_sources
   "src/chrono.cpp"
   "src/context.cpp"
   "src/gps.cpp"
-  "src/dummy_gps.cpp"
-  "src/inet_addr.cpp"
   "src/link/link.cpp"
   "src/link/linkmanager.cpp"
   "src/message.cpp"
@@ -77,8 +75,8 @@ set(${PROJECT_NAME}_sources
   "src/nodeinfo.cpp"
 )
 add_library("${PROJECT_NAME}" STATIC ${${PROJECT_NAME}_sources})
-add_test_exe("${PROJECT_NAME}_test" "test/test_main.cpp")
-target_link_libraries("${PROJECT_NAME}_test" "${PROJECT_NAME}")
+#add_test_exe("${PROJECT_NAME}_test" "test/test_main.cpp")
+#target_link_libraries("${PROJECT_NAME}_test" "${PROJECT_NAME}")
 
 ###############################################################################
 # Subprojects

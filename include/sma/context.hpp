@@ -2,6 +2,7 @@
 
 #include <sma/nodeinfo.hpp>
 #include <sma/component.hpp>
+#include <sma/io/log>
 
 #include <utility>
 #include <vector>
@@ -17,17 +18,18 @@ class Async;
 
 class Context final
 {
-  friend class Actor;
-
 public:
   Context(NodeInfo node_info, Messenger* msgr, Async* async)
     : node_info(node_info)
     , msgr(msgr)
     , async(async)
   {
+    // Create if doesn't exist
+    logger = el::Loggers::getLogger(this->node_info.id());
   }
   Context(Context&& r)
     : node_info(std::move(r.node_info))
+    , logger(r.logger)
     , msgr(r.msgr)
     , async(r.async)
     , actors(std::move(r.actors))
@@ -39,6 +41,7 @@ public:
   Context& operator=(Context&& r)
   {
     std::swap(node_info, r.node_info);
+    logger = r.logger;
     std::swap(msgr, r.msgr);
     std::swap(async, r.async);
     std::swap(actors, r.actors);
@@ -46,12 +49,18 @@ public:
     return *this;
   }
 
-  NodeInfo* this_node();
+  NodeInfo const* this_node() const;
 
+  void add_component(Component* c);
   template <typename T>
-  T* try_get_component();
+  T* try_get_component() const;
 
 private:
+  friend class Actor;
+
+  using log_type = el::Logger;
+  log_type* log() const;
+
   void enter(Actor* actor);
   void leave(Actor* actor);
 
@@ -61,19 +70,21 @@ private:
   std::vector<std::pair<std::size_t, Actor*>> actors;
   std::mutex mx;
 
+  log_type* logger;
   NodeInfo node_info;
   Messenger* msgr;
   Async* async;
   std::vector<Component*> components;
 };
 
-template <typename A>
+
+template <typename T>
 Actor* Context::get_actor_by_type()
 {
-  static_assert(std::is_base_of<Actor, A>::value,
+  static_assert(std::is_base_of<Actor, T>::value,
                 "Type must derive from Actor");
 
-  std::size_t const hash = typeid(A).hash_code();
+  std::size_t const hash = typeid(T).hash_code();
   std::lock_guard<std::mutex> lock(mx);
   for (auto& pair : actors)
     if (pair.first == hash)
@@ -81,15 +92,17 @@ Actor* Context::get_actor_by_type()
   return nullptr;
 }
 
+
 template <typename T>
-T* Context::try_get_component()
+T* Context::try_get_component() const
 {
   static_assert(std::is_base_of<Component, T>::value,
                 "Type must derive from Component");
 
   for (auto& c : components) {
-    if (typeid(*c) == typeid(T))
-      return static_cast<T*>(c);
+    auto t = dynamic_cast<T*>(c);
+    if (t)
+      return t;
   }
   return nullptr;
 }

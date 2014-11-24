@@ -11,6 +11,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <vector>
 
 
 namespace sma
@@ -42,6 +43,7 @@ private:
   std::unique_ptr<Context> ctx;
   std::unique_ptr<LinkManager> linkmgr;
   std::unique_ptr<MessageDispatch> msgr;
+  std::vector<std::unique_ptr<Component>> components;
   std::unique_ptr<CcnApplication> app;
 };
 }

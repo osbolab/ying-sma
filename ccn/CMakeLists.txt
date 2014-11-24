@@ -40,7 +40,7 @@ set(sources
 add_library("${PROJECT_NAME}" STATIC ${sources})
 target_link_libraries("${PROJECT_NAME}" "${SMA_LIB}")
 
-add_test_exe("ccnlib_test" "test/test_main.cpp")
+add_test_exe("ccnlib_test" "test/test_main.cpp" "test/chrono.cpp")
 target_link_libraries("ccnlib_test" "${PROJECT_NAME}")
   
 

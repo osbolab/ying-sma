@@ -1,8 +1,8 @@
 #include <sma/ccn/datablock.hpp>
-#include <sma/io/log>
+#include <sma/ccn/devicewithgps.hpp>
+#include <sma/nodeinfo.hpp>
 
 #include <cstring>
-#include <sma/ccn/device.hpp>
 #include <iostream>
 
 DataBlock::DataBlock(SMA::MESSAGE_TYPE type)
@@ -52,9 +52,11 @@ DataBlock::~DataBlock()
   dataArray = nullptr;
 }
 
-void DataBlock::createData(Device* devicePtr, const char* csrc, int size)
+void DataBlock::createData(sma::NodeInfo const* sender,
+                           const char* csrc,
+                           int size)
 {
-  srcDeviceID = devicePtr->getDeviceID();
+  srcDeviceID = std::string(sender->id());
   payloadSize = size;
   if (dataArray != nullptr)
     delete[] dataArray;

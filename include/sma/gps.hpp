@@ -2,25 +2,27 @@
 
 namespace sma
 {
-class gps final
+class GPS final
 {
 public:
-  struct coord {
-    static double dist(coord const& lhs, coord const& rhs);
-    static double dist_sq(coord const& lhs, coord const& rhs);
+  struct Coord {
+    static double dist(Coord const& lhs, Coord const& rhs);
+    static double dist_sq(Coord const& lhs, Coord const& rhs);
 
-    coord();
-    coord(double lon, double lat);
+    Coord();
+    Coord(double lon, double lat);
 
-    double operator-(coord const& rhs);
-    bool operator==(coord const& rhs);
-    bool operator!=(coord const& rhs);
+    double operator-(Coord const& rhs);
+    bool operator==(Coord const& rhs);
+    bool operator!=(Coord const& rhs);
 
     double lon;
     double lat;
   };
 
 private:
-  gps();
+  GPS();
+  GPS(GPS const&);
+  void operator=(GPS const&);
 };
 }

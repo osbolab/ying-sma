@@ -1,7 +1,6 @@
 #pragma once
 
 
-#include <sma/ccn/device.hpp>
 #include <sma/messenger.hpp>
 
 
@@ -11,7 +10,10 @@ namespace SMA
   static const char* MESSAGE_TYPE_STR[] = {"GPSBCAST", "REQUESTFWD", "CHUNK", "SUPER", "DIRBCAST"};
 }
 
-class Device;
+namespace sma
+{
+  struct NodeInfo;
+}
 
 class DataBlock
 {
@@ -19,7 +21,7 @@ public:
   DataBlock(SMA::MESSAGE_TYPE type);
   DataBlock(const DataBlock& block);
   DataBlock& operator= (const DataBlock& block);
-  void createData(Device* devicePtr, const char* csrc, int size);
+  void createData(sma::NodeInfo const* sender, const char* csrc, int size);
   ~DataBlock();
   int getPayloadSize() const;
   std::string getMsgType() const;

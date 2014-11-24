@@ -1,6 +1,8 @@
 #pragma once
 
 #include <sma/ns3/ns3appcontainer.hpp>
+#include <sma/gps.hpp>
+#include <sma/dummygps.hpp>
 
 #include <ns3/core-module.h>
 #include <ns3/csma-module.h>
@@ -52,7 +54,8 @@ TEST(simulation, wifi_simple)
 
     auto app = sma_factory.Create<sma::Ns3AppContainer>();
     app->SetAttribute("id", ns3::UintegerValue(i));
-    app->add_component(DummyGps(GPS::Coord{30.0, 18.45}));
+    app->add_component(std::move(
+        std::make_unique<sma::DummyGps>(sma::GPS::Coord{30.0, 18.45})));
 
     auto apps = ns3::ApplicationContainer(app);
     apps.Start(ns3::Seconds(0));

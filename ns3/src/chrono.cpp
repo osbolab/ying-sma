@@ -1,5 +1,4 @@
 #include <sma/chrono>
-#include <sma/io/log>
 
 #include <ns3/simulator.h>
 #include <ns3/nstime.h>
@@ -38,19 +37,6 @@ namespace chrono
     auto start_time = detail::start_time_s_<system_clock>::get().start_time;
     return start_time
            + std::chrono::nanoseconds(ns3::Simulator::Now().GetNanoSeconds());
-  }
-
-  system_clock::time_point system_clock::from_time_t(std::time_t t)
-  {
-    return std::chrono::time_point_cast<duration>(
-        std::chrono::time_point<std::chrono::system_clock,
-                                std::chrono::seconds>(std::chrono::seconds(t)));
-  }
-
-  std::time_t system_clock::to_time_t(system_clock::time_point const& tp)
-  {
-    return std::time_t(std::chrono::duration_cast<std::chrono::seconds>(
-                           tp.time_since_epoch()).count());
   }
 }
 }

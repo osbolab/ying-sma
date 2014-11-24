@@ -57,7 +57,10 @@ void Ns3AppContainer::DoDispose() {}
 /* c/dtor and assignment
  *****************************************************************************/
 
-void Ns3AppContainer::add_component(std::unique_ptr<Component> c) {}
+void Ns3AppContainer::add_component(std::unique_ptr<Component> c)
+{
+  components.push_back(std::move(c));
+}
 
 void Ns3AppContainer::StartApplication()
 {
@@ -78,8 +81,15 @@ void Ns3AppContainer::StartApplication()
   linkmgr->inbox(msgr.get());
 
   NodeInfo ninfo{NodeId{prop_id}};
+  // clang-format off
   ctx = std::make_unique<Context>(
-      std::move(ninfo), msgr.get(), static_cast<Async*>(&async));
+      std::move(ninfo),
+      msgr.get(),
+      static_cast<Async*>(&async)
+  );
+  // clang-format on
+  for (auto& component : components)
+    ctx->add_component(component.get());
 
   app = std::make_unique<CcnApplication>(ctx.get());
 }
