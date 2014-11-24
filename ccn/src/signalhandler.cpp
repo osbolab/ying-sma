@@ -2,15 +2,20 @@
 
 #include <sma/ccn/datablock.hpp>
 #include <sma/ccn/contentdescriptor.hpp>
-#include <sma/ccn/devicelogger.hpp>
 #include <sma/ccn/controllayer.hpp>
 #include <sma/json.hpp>
+
+#include <sma/io/log>
 
 #include <sstream>
 #include <iostream>
 
-// SignalHandler::SignalHandler (ControlLayer* controlPtr, DeviceLogger*
-// loggerPtr) : control (controlPtr), logger (loggerPtr) {}
+
+SignalHandler::SignalHandler(sma::Logger log, ControlLayer* cl)
+  : log(log)
+  , control(cl)
+{
+}
 
 bool SignalHandler::processSignal(const DataBlock& block)
 {
@@ -29,48 +34,32 @@ bool SignalHandler::processSignal(const DataBlock& block)
   return result;
 }
 
-void SignalHandler::setControlLayer(ControlLayer* controlPtr)
-{
-  control = controlPtr;
-}
-
-void SignalHandler::setLogger(DeviceLogger* loggerPtr)
-{
-  logger = loggerPtr;
-}
-
 void SignalHandler::processBeaconing(const DataBlock& block)
 {
   char* payload = new char[block.getPayloadSize()];
   block.getPayload(payload);
   std::string payloadJson(payload);
   delete[] payload;
-  Json::Value parsedFromString;
+  Json::Value fields;
   Json::Reader reader;
-  bool success = reader.parse(payloadJson, parsedFromString);
+  bool success = reader.parse(payloadJson, fields);
   if (success) {
+    auto sender = fields["device_id"].asString();
+    auto lon = fields["gps"]["longitude"].asDouble();
+    auto lat = fields["gps"]["latitude"].asDouble();
 
-    std::ostringstream oss;
-    oss << "Handling Beaconing Message:";
-    oss << " the device id is " << parsedFromString["device_id"].asString();
-    oss << " with GPS  " << parsedFromString["gps"]["latitude"].asDouble()
-        << ',' << parsedFromString["gps"]["longitude"].asDouble() << '\n';
-    logger->log(oss.str());
+    LOG(DEBUG) << "<-- beacon { from: " << sender << ", gps: (" << lon << ", "
+               << lat << ") }";
 
-    control->updateNeighborRecord(
-        parsedFromString["device_id"].asString(),
-        parsedFromString["gps"]["latitude"].asDouble(),
-        parsedFromString["gps"]["longitude"].asDouble());
+    control->updateNeighborRecord(sender, lat, lon);
   }
 }
 
 void SignalHandler::processIncomingChunk(const DataBlock& block)
 {
-  std::ostringstream oss;
-  oss << "Receiving chunk " << block.getChunkID() << " from "
-      << block.getSrcDeviceID() << '\n';
-  //  oss << "The chunk size is " << block.getPayloadSize() << '\n';
-  logger->log(oss.str());
+  LOG(DEBUG) << "<-- chunk { from: " << block.getSrcDeviceID()
+             << ", chunk: " << block.getChunkID() << " ("
+             << block.getPayloadSize() << " bytes) }";
   char* payload = new char[block.getPayloadSize()];
   block.getPayload(payload);
 
@@ -78,9 +67,8 @@ void SignalHandler::processIncomingChunk(const DataBlock& block)
   int rule = control->getRuleFromFlowTable(block.getChunkID());
 
   switch (rule) {
-    case -1:    // unsolicited chunk block
-      // drop
-      logger->log("Dropping unsolicited chunk block...\n");
+    case -1:
+      LOG(WARNING) << "dropped unsolicited chunk";
       break;
     case 0:
       // should be true, as requested by self.
@@ -96,8 +84,7 @@ void SignalHandler::processIncomingChunk(const DataBlock& block)
       break;
     default:
       std::ostringstream oss;
-      oss << "Invalid rule type: " << rule << '\n';
-      logger->log(oss.str());
+      LOG(ERROR) << "invalid chunk handling rule: " << rule;
   }
   delete[] payload;
   payload = nullptr;
@@ -110,29 +97,21 @@ void SignalHandler::processRequestFwd(const DataBlock& block)
   std::string payloadJson(payload);
   delete[] payload;
   payload = nullptr;
-  Json::Value parsedFromString;
+  Json::Value fields;
   Json::Reader reader;
-  bool success = reader.parse(payloadJson, parsedFromString);
+  bool success = reader.parse(payloadJson, fields);
   if (success) {
-    std::ostringstream oss;
-    oss << "Handling request-forward message ";
-    oss << "from device id " << block.getSrcDeviceID() << ": chunk ID is "
-        << parsedFromString["chunk_id"].asString() << '\n';
-    logger->log(oss.str());
-    //   for (unsigned int index=0; index<parsedFromString.size(); index++)
-    //   {
-    //      control->transmitChunk(parsedFromString[index]["chunk_id"].asString());
-    std::string chunkID = parsedFromString["chunk_id"].asString();
+    std::string chunkID = fields["chunk_id"].asString();
+    LOG(DEBUG) << "<-- request-forward { from: " << block.getSrcDeviceID()
+               << ", chunk: " << chunkID << " }";
     if (control->hasChunk(chunkID))
-      control->transmitChunk(parsedFromString["chunk_id"].asString());
+      control->transmitChunk(chunkID);
     else {
       if (control->getRuleFromFlowTable(chunkID) == -1) {
-        control->addRuleToFlowTable(chunkID, 1);    // forward
-        // forward request
+        control->addRuleToFlowTable(chunkID, 1);
         control->forwardRequest(chunkID);
       }
     }
-    //    }
   }
 }
 
@@ -142,17 +121,17 @@ void SignalHandler::processDirectorySync(const DataBlock& block)
   block.getPayload(payload);
   std::string payloadJson(payload);
   delete[] payload;
-  Json::Value parsedFromString;
+  Json::Value fields;
   Json::Reader reader;
-  bool success = reader.parse(payloadJson, parsedFromString);
+  bool success = reader.parse(payloadJson, fields);
   if (success) {
-    for (unsigned int index = 0; index < parsedFromString.size(); index++) {
-      ContentDescriptor newEntry(parsedFromString[index]["name"].asString());
-      Json::Value chunkList = parsedFromString[index]["chunk_list"];
+    for (unsigned int index = 0; index < fields.size(); index++) {
+      ContentDescriptor newEntry(fields[index]["name"].asString());
+      Json::Value chunkList = fields[index]["chunk_list"];
       for (auto const& id : chunkList.getMemberNames()) {
         newEntry.addNewChunk(atoi(id.c_str()), chunkList[id].asString());
       }
-      Json::Value attrList = parsedFromString[index]["attr_list"];
+      Json::Value attrList = fields[index]["attr_list"];
       for (auto const& id : attrList.getMemberNames()) {
         newEntry.addAttribute(ContentAttribute::to_META_TYPE(id.c_str()),
                               attrList[id].asString());

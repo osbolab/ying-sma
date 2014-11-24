@@ -18,14 +18,15 @@ class Async;
 
 class Context final
 {
+  friend class Actor;
+
 public:
   Context(NodeInfo node_info, Messenger* msgr, Async* async)
     : node_info(node_info)
+    , logger(node_info.id())
     , msgr(msgr)
     , async(async)
   {
-    // Create if doesn't exist
-    logger = el::Loggers::getLogger(this->node_info.id());
   }
   Context(Context&& r)
     : node_info(std::move(r.node_info))
@@ -50,17 +51,13 @@ public:
   }
 
   NodeInfo const* this_node() const;
+  Logger const log() const;
 
   void add_component(Component* c);
   template <typename T>
   T* try_get_component() const;
 
 private:
-  friend class Actor;
-
-  using log_type = el::Logger;
-  log_type* log() const;
-
   void enter(Actor* actor);
   void leave(Actor* actor);
 
@@ -70,7 +67,7 @@ private:
   std::vector<std::pair<std::size_t, Actor*>> actors;
   std::mutex mx;
 
-  log_type* logger;
+  Logger logger;
   NodeInfo node_info;
   Messenger* msgr;
   Async* async;

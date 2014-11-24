@@ -10,7 +10,7 @@ namespace sma
 {
 Actor::Actor(Context* context)
   : ctx(context)
-  , log(context)
+  , log(context->log())
 {
   ctx->enter(this);
 }

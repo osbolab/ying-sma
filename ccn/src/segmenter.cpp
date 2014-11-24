@@ -27,7 +27,7 @@ void Segmenter::storeFile(std::string fileName,
     std::ostringstream oss;
     oss << "Segmenting File " << fileName << "..."
         << "Size: " << nSize << '\n';
-    logger->log(oss.str());
+    // logger->log(oss.str());
     //    std::cout << "Segmenting File " << fileName << "..."
     //              << "Size: " << nSize << std::endl;
 
@@ -41,9 +41,9 @@ void Segmenter::storeFile(std::string fileName,
         break;    // have reached the end of the file.
       }
       fin.seekg(currPointer, std::ios::beg);
-      int size_to_read =
-          ((currPointer + nChunkSize > nSize) ? nSize % nChunkSize :
-                                                nChunkSize);
+      int size_to_read
+          = ((currPointer + nChunkSize > nSize) ? nSize % nChunkSize
+                                                : nChunkSize);
       char* memBlock = new char[size_to_read];
       fin.read(memBlock, size_to_read);
       std::string exportFileName;
@@ -57,7 +57,7 @@ void Segmenter::storeFile(std::string fileName,
 
       std::ostringstream oss;
       oss << "Exporting chunk: " << exportFileName << '\n';
-      logger->log(oss.str());
+      // logger->log(oss.str());
       //      std::cout << "Exporting chunk: " << exportFileName << std::endl;
       std::ofstream fout(exportFileName.c_str());
       fout.write(memBlock, size_to_read);
@@ -83,7 +83,7 @@ void Segmenter::storeFile(std::string fileName,
     oss << "Can't open the file " << fileName << '\n';
     //    std::cout << "Can't open the so-store file..." << fileName <<
     //    std::endl;
-    logger->log(oss.str());
+    // logger->log(oss.str());
   }
 }
 
@@ -98,7 +98,7 @@ void Segmenter::loadFileFromChunks(std::string assembledFileName,
     //    std::cout << "Reading chunk: " << *iter << std::endl;
     std::ostringstream oss;
     oss << "Reading chunk: " << *iter << '\n';
-    logger->log(oss.str());
+    // logger->log(oss.str());
     assert(datalayer.hasChunk(*iter));
     std::ifstream fin;
     datalayer.fetchChunk(*iter, fin);
@@ -113,9 +113,4 @@ void Segmenter::loadFileFromChunks(std::string assembledFileName,
     memBlock = nullptr;
   }
   fout.close();
-}
-
-void Segmenter::setLogger(DeviceLogger* loggerPtr)
-{
-  logger = loggerPtr;
 }

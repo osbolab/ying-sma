@@ -21,10 +21,9 @@ std::string ControlLayer::TMP_FOLDER = "tmp/";
 ControlLayer::ControlLayer(sma::Context* ctx, DeviceWithGPS* dev, std::string cacheNameInDatalayer)
   : ctx(ctx)
   , dev(dev)
-  , datalayer(cacheNameInDatalayer)
+  , signalHandler(ctx->log(), this)
+  , datalayer(ctx->log(), this, cacheNameInDatalayer)
 {
-  datalayer.setControlLayer(this);
-  signalHandler.setControlLayer(this);
 }
 
 void ControlLayer::publishContent(

@@ -70,6 +70,7 @@ set(${PROJECT_NAME}_sources
   "src/gps.cpp"
   "src/link/link.cpp"
   "src/link/linkmanager.cpp"
+  "src/io/log.cpp"
   "src/message.cpp"
   "src/messagedispatch.cpp"
   "src/nodeinfo.cpp"

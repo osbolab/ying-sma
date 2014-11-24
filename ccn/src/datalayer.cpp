@@ -2,8 +2,6 @@
 #include <sma/ccn/plainchunkstore.hpp>
 #include <sma/ccn/pendingchunkmanager.hpp>
 
-#include <sma/ccn/devicelogger.hpp>
-
 #include <sma/ccn/segmenter.hpp>
 #include <sma/ccn/controllayer.hpp>
 
@@ -22,18 +20,22 @@
 
 std::string DataLayer::DEFAULT_CACHE_PREFIX = "cache/";
 
-DataLayer::DataLayer(std::string cacheDirName)
+DataLayer::DataLayer(sma::Logger log,
+                     ControlLayer* cl,
+                     std::string cacheDirName)
+  : log(std::move(log))
+  , control(cl)
 {
   struct stat info;
   if (stat(DEFAULT_CACHE_PREFIX.c_str(), &info) == -1) {
     if (mkdir(DEFAULT_CACHE_PREFIX.c_str(),
               S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1) {
-      LOG(ERROR) << "Can't make directory " << DEFAULT_CACHE_PREFIX;
+      log.f("can't make cache directory '%v'", DEFAULT_CACHE_PREFIX);
       throw std::exception();
     } else
-      LOG(DEBUG) << "Created log directory " << DEFAULT_CACHE_PREFIX;
+      log.d("created cache directory '%v'", DEFAULT_CACHE_PREFIX);
   } else if (!(info.st_mode & S_IFDIR)) {
-    LOG(ERROR) << DEFAULT_CACHE_PREFIX << " isn't a directory";
+    log.f("cache path '%v' isn't a directory", DEFAULT_CACHE_PREFIX);
     throw std::exception();
   }
 
@@ -57,13 +59,9 @@ void DataLayer::storeChunk(std::string fileName, bool requestedBySelf)
   if (requestedBySelf) {
     std::vector<std::string> fileCompleted;
     pendingChunkMgr.completeDownloadTask(chunkID, fileCompleted);
-    std::vector<std::string>::iterator iter = fileCompleted.begin();
-    while (iter != fileCompleted.end()) {
-      std::ostringstream oss;
-      oss << "file completed: " << *iter << '\n';
-      logger->log(oss.str());
-      control->notifyDownloadCompleted(*iter);
-      iter++;
+    for (auto it = fileCompleted.begin(); it != fileCompleted.end(); ++it) {
+      log.d("file complete: %v", *it);
+      control->notifyDownloadCompleted(*it);
     }
   }
 }
@@ -83,31 +81,23 @@ void DataLayer::fetchChunk(std::string chunkID, std::ifstream& fin) const
   store->fetchChunk(chunkID, fin);
 }
 
-void DataLayer::setControlLayer(ControlLayer* controlPtr)
-{
-  control = controlPtr;
-}
-
-
 void DataLayer::prepareChunks(std::string fileName,
                               std::vector<std::string> chunkList)
 {
   bool chunkAllAvailable = true;
-  std::vector<std::string>::iterator iter = chunkList.begin();
-  while (iter != chunkList.end()) {
-    if (!this->hasChunk(*iter)) {
-      pendingChunkMgr.addDownloadTask(
-          fileName, *iter);    // for file requested by the application layer
-      flowTable.addRule(*iter, 0);
-      control->forwardRequest(*iter);
-      chunkAllAvailable = false;
-      this->addFlowRule(*iter, 0);    // requested by self;
-    }
-    iter++;
+  for (auto it = chunkList.begin(); it != chunkList.end(); ++it) {
+    if (this->hasChunk(*it))
+      continue;
+    // for file requested by the application layer
+    pendingChunkMgr.addDownloadTask(fileName, *it);
+    flowTable.addRule(*it, 0);
+    control->forwardRequest(*it);
+    chunkAllAvailable = false;
+    // requested by self;
+    this->addFlowRule(*it, 0);
   }
   if (chunkAllAvailable)
-    control->notifyDownloadCompleted(
-        fileName);    // the call back function to notify the control layer
+    control->notifyDownloadCompleted(fileName);
 }
 
 void DataLayer::addFlowRule(std::string chunk, int rule)
@@ -126,5 +116,3 @@ void DataLayer::showPendingChunksOfFile(std::string fileName) const
 {
   pendingChunkMgr.printRemainingChunksOfFile(fileName);
 }
-
-void DataLayer::setLogger(DeviceLogger* loggerPtr) { logger = loggerPtr; }

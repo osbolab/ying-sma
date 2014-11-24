@@ -1,26 +1,19 @@
 #pragma once
 
-
 #include <sma/ccn/datablock.hpp>
-#include <sma/ccn/devicelogger.hpp>
-//#include <sma/ccn/controllayer.hpp>
-#include <sma/ccn/devicelogger.hpp>
+
+#include <sma/io/log>
 
 class ControlLayer;
 
 class SignalHandler
 {
 public:
-//  SignalHandler (ControlLayer* controlPtr, DeviceLogger* loggerPtr);
-/* true - valid signal
- * flase - invalid signal
- */
+  SignalHandler(sma::Logger log, ControlLayer* cl);
   bool processSignal (const DataBlock& block);
-  void setControlLayer (ControlLayer* controlPtr);
-  void setLogger (DeviceLogger* logger);
 private:
+  sma::Logger log;
   ControlLayer* control;
-  DeviceLogger* logger;
   void processBeaconing (const DataBlock& block);
   void processDirectorySync (const DataBlock& block);
   void processRequestFwd (const DataBlock& block);

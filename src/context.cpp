@@ -2,6 +2,7 @@
 #include <sma/actor.hpp>
 #include <sma/nodeinfo.hpp>
 #include <sma/component.hpp>
+#include <sma/io/log>
 
 #include <cstdint>
 #include <mutex>
@@ -11,7 +12,7 @@
 namespace sma
 {
 NodeInfo const* Context::this_node() const { return &node_info; }
-Context::log_type* Context::log() const { return logger; }
+Logger const Context::log() const { return logger; }
 
 void Context::add_component(Component* c)
 {
@@ -32,9 +33,9 @@ void Context::enter(Actor* actor)
       return;
     }
   actors.push_back(std::make_pair(hash, actor));
-  logger->trace("context { actors: %v, components: %v }",
-                actors.size(),
-                components.size());
+  logger.t("context { actors: %v, components: %v }",
+           actors.size(),
+           components.size());
 }
 
 void Context::leave(Actor* actor)

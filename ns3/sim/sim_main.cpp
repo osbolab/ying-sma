@@ -16,6 +16,7 @@ int main(int argc, char** argv)
   std::cout << "Configuring application logging from log.conf...\n";
   el::Configurations logconf("../../conf/log.conf");
   el::Loggers::reconfigureAllLoggers(logconf);
+  LOG(INFO) << "\n\n----------------------------------- session -----------------------------------";
   LOG(DEBUG) << "Configuring node logging from nodelog.conf...";
   el::Configurations nodelogconf("../../conf/nodelog.conf");
   el::Loggers::setDefaultConfigurations(nodelogconf, false);

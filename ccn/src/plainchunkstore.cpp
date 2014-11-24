@@ -13,28 +13,22 @@
 #include <algorithm>
 #include <sstream>
 #include <exception>
+#include <stdexcept>
 
-
-// std::string PlainChunkStore::DEFAULT_DIR = "./cache/";
-// std::mutex PlainChunkStore::m_mutex;
-// std::unordered_map <std::string, std::string> PlainChunkStore::m_chunkIndex;
 
 PlainChunkStore::PlainChunkStore(std::string dirName)
   : cacheDir(dirName)
 {
   std::ostringstream oss;
-  //  oss << "Trying to link to content store " << dirName << "..." <<
-  //  std::endl;
   if (!std::ifstream(dirName))
     throw std::exception();
-
-  //  logger->log (oss.str());
 }
+PlainChunkStore::~PlainChunkStore() {}
 
 bool PlainChunkStore::hasChunk(std::string chunkID) const
 {
-  std::unordered_map<std::string, std::string>::const_iterator iter =
-      m_chunkIndex.find(chunkID);
+  std::unordered_map<std::string, std::string>::const_iterator iter
+      = m_chunkIndex.find(chunkID);
   return (iter != m_chunkIndex.end());
 }
 
@@ -55,14 +49,10 @@ std::string PlainChunkStore::storeChunk(std::string tmpChunkFile)
         m_mutex, std::defer_lock);    // synchronization
     lock_index.lock();
     std::string storedAsName = cacheDir + chunkID;
-    std::pair<std::string, std::string> newEntry =
-        std::make_pair(chunkID, storedAsName);
+    std::pair<std::string, std::string> newEntry
+        = std::make_pair(chunkID, storedAsName);
     m_chunkIndex.insert(newEntry);
     if (std::ifstream(storedAsName)) {
-      //      std::cout << "Chunk " << storedAsName << " exists!" << std::endl;
-      std::ostringstream oss;
-      oss << "Chunk " << storedAsName << " exists!" << std::endl;
-      //      logger->log (oss.str());
       fin.close();
       return result;
     }
@@ -101,8 +91,8 @@ void PlainChunkStore::deleteChunk(std::string chunkID)
     std::string filename;
     std::unique_lock<std::mutex> lock_index(m_mutex, std::defer_lock);
     lock_index.lock();
-    std::unordered_map<std::string, std::string>::iterator const_iter =
-        m_chunkIndex.find(chunkID);
+    std::unordered_map<std::string, std::string>::iterator const_iter
+        = m_chunkIndex.find(chunkID);
     filename = const_iter->second;
     m_chunkIndex.erase(const_iter);
     lock_index.unlock();
@@ -113,25 +103,12 @@ void PlainChunkStore::deleteChunk(std::string chunkID)
 void PlainChunkStore::fetchChunk(std::string chunkID, std::ifstream& fin) const
 {
   if (this->hasChunk(chunkID)) {
-    std::unordered_map<std::string, std::string>::const_iterator const_iter =
-        m_chunkIndex.find(chunkID);
+    std::unordered_map<std::string, std::string>::const_iterator const_iter
+        = m_chunkIndex.find(chunkID);
     std::string filename = const_iter->second;
     fin.open(filename.c_str(),
              std::ios_base::ate | std::ios::in | std::ios::binary);
-  } else {
-    std::ostringstream oss;
-    oss << "Error occurs when fetching chunk " << chunkID << std::endl;
-    logger->log(oss.str());
-    //    std::cerr << "Error occurs when fetching chunk " << chunkID <<
-    //    std::endl;
-  }
+  } else
+    throw std::runtime_error("exception fetching chunk");
 }
 
-void PlainChunkStore::setLogger(DeviceLogger* loggerPtr)
-{
-  logger = loggerPtr;
-}
-
-PlainChunkStore::~PlainChunkStore()
-{
-}

@@ -13,7 +13,6 @@ set(sources
   "src/json.cpp"
 
   "src/devicewithgps.cpp"
-  "src/devicelogger.cpp"
 
   "src/datablock.cpp"
 
