@@ -1,5 +1,6 @@
 #include <sma/context.hpp>
 #include <sma/actor.hpp>
+#include <sma/nodeinfo.hpp>
 
 #include <cstdint>
 #include <mutex>
@@ -8,6 +9,8 @@
 
 namespace sma
 {
+NodeInfo* Context::this_node() { return &node_info; }
+
 void Context::enter(Actor* actor)
 {
   std::size_t const hash = typeid(*actor).hash_code();

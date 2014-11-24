@@ -36,6 +36,8 @@ protected:
   virtual void StopApplication() override;
 
 private:
+  std::uint32_t prop_id;
+
   Ns3Async async;
   std::unique_ptr<Context> ctx;
   std::unique_ptr<LinkManager> linkmgr;

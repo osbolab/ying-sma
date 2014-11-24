@@ -6,7 +6,7 @@
 #include <ns3/csma-module.h>
 #include <ns3/applications-module.h>
 #include <ns3/internet-module.h>
-
+#include <ns3/uinteger.h>
 
 TEST(simulation, wifi_simple)
 {
@@ -51,6 +51,7 @@ TEST(simulation, wifi_simple)
     auto node = nodes.Get(i);
 
     auto app = sma_factory.Create<sma::Ns3AppContainer>();
+    app->SetAttribute("id", ns3::UintegerValue(i));
     //app->add_component(dummy_gps(gps::coord{30.0, 18.45}));
 
     auto apps = ns3::ApplicationContainer(app);

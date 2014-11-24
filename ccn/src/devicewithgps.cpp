@@ -38,9 +38,9 @@ std::string DeviceWithGPS::LOG_DIR = "logs/nodes/";
 
 DeviceWithGPS::DeviceWithGPS(sma::Context* ctx)
   : sma::Actor(ctx)
-  , controlPlane("0")
+  , controlPlane(std::to_string(ctx->this_node()->id()))
 {
-  deviceID = "0";
+  deviceID = std::to_string(ctx->this_node()->id());
   for (std::size_t message_type = 0; message_type < 5; ++message_type) {
     subscribe(static_cast<sma::Message::Type>(message_type));
   }

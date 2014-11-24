@@ -16,7 +16,7 @@
 #include <sma/io/log>
 
 #include <ns3/ptr.h>
-#include <ns3/pointer.h>
+#include <ns3/uinteger.h>
 #include <ns3/application.h>
 
 #include <cstdint>
@@ -26,11 +26,19 @@
 
 namespace sma
 {
+NS_OBJECT_ENSURE_REGISTERED(Ns3AppContainer);
+
 ns3::TypeId Ns3AppContainer::TypeId()
 {
-  static ns3::TypeId tid = ns3::TypeId("sma::Ns3AppContainer")
-                               .SetParent<ns3::Application>()
-                               .AddConstructor<Ns3AppContainer>();
+  static ns3::TypeId tid
+      = ns3::TypeId("sma::Ns3AppContainer")
+            .SetParent<ns3::Application>()
+            .AddConstructor<Ns3AppContainer>()
+            .AddAttribute("id",
+                          "The logical node's unique ID",
+                          ns3::UintegerValue(0),
+                          ns3::MakeUintegerAccessor(&Ns3AppContainer::prop_id),
+                          ns3::MakeUintegerChecker<std::uint32_t>());
   return tid;
 }
 
@@ -45,7 +53,10 @@ Ns3AppContainer& Ns3AppContainer::operator=(Ns3AppContainer&& rhs)
 }
 Ns3AppContainer::~Ns3AppContainer() { LOG(TRACE); }
 // Inherited from ns3::Application; part of their lifecycle management I guess
-void Ns3AppContainer::DoDispose() { LOG(WARNING) << "Application container dying"; }
+void Ns3AppContainer::DoDispose()
+{
+  LOG(WARNING) << "Application container dying";
+}
 /* c/dtor and assignment
  *****************************************************************************/
 
@@ -70,7 +81,10 @@ void Ns3AppContainer::StartApplication()
   msgr->outbox(linkmgr.get());
   linkmgr->inbox(msgr.get());
 
-  ctx = std::make_unique<Context>(msgr.get(), static_cast<Async*>(&async));
+  NodeInfo ninfo{NodeId{prop_id}};
+  ctx = std::make_unique<Context>(
+      std::move(ninfo), msgr.get(), static_cast<Async*>(&async));
+
   app = std::make_unique<CcnApplication>(ctx.get());
 }
 

@@ -74,6 +74,7 @@ set(${PROJECT_NAME}_sources
   "src/link/linkmanager.cpp"
   "src/message.cpp"
   "src/messagedispatch.cpp"
+  "src/nodeinfo.cpp"
 )
 add_library("${PROJECT_NAME}" STATIC ${${PROJECT_NAME}_sources})
 add_test_exe("${PROJECT_NAME}_test" "test/test_main.cpp")

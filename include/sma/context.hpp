@@ -1,5 +1,6 @@
 #pragma once
 
+#include <sma/nodeinfo.hpp>
 #include <sma/component.hpp>
 
 #include <utility>
@@ -19,13 +20,15 @@ class Context final
   friend class Actor;
 
 public:
-  Context(Messenger* msgr, Async* async)
-    : msgr(msgr)
+  Context(NodeInfo node_info, Messenger* msgr, Async* async)
+    : node_info(node_info)
+    , msgr(msgr)
     , async(async)
   {
   }
   Context(Context&& r)
-    : msgr(r.msgr)
+    : node_info(std::move(r.node_info))
+    , msgr(r.msgr)
     , async(r.async)
     , actors(std::move(r.actors))
     , components(std::move(r.components))
@@ -35,12 +38,15 @@ public:
   }
   Context& operator=(Context&& r)
   {
+    std::swap(node_info, r.node_info);
     std::swap(msgr, r.msgr);
     std::swap(async, r.async);
     std::swap(actors, r.actors);
     std::swap(components, r.components);
     return *this;
   }
+
+  NodeInfo* this_node();
 
   template <typename T>
   T* try_get_component();
@@ -55,6 +61,7 @@ private:
   std::vector<std::pair<std::size_t, Actor*>> actors;
   std::mutex mx;
 
+  NodeInfo node_info;
   Messenger* msgr;
   Async* async;
   std::vector<Component*> components;
