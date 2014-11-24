@@ -53,10 +53,7 @@ Ns3AppContainer& Ns3AppContainer::operator=(Ns3AppContainer&& rhs)
 }
 Ns3AppContainer::~Ns3AppContainer() { LOG(TRACE); }
 // Inherited from ns3::Application; part of their lifecycle management I guess
-void Ns3AppContainer::DoDispose()
-{
-  LOG(WARNING) << "Application container dying";
-}
+void Ns3AppContainer::DoDispose() {}
 /* c/dtor and assignment
  *****************************************************************************/
 
@@ -74,7 +71,6 @@ void Ns3AppContainer::StartApplication()
   std::vector<std::unique_ptr<Link>> links;
   auto inet = static_cast<Link*>(new Ns3InetLink(GetNode()));
   links.emplace_back(inet);
-  LOG(DEBUG) << "created " << links.size() << " network link(s)";
   linkmgr = std::make_unique<LinkManager>(std::move(links));
 
   msgr = std::make_unique<MessageDispatch>();
@@ -90,7 +86,7 @@ void Ns3AppContainer::StartApplication()
 
 void Ns3AppContainer::StopApplication()
 {
-  LOG(DEBUG) << "Stopping";
+  LOG(TRACE);
   if (app)
     app->dispose();
 }

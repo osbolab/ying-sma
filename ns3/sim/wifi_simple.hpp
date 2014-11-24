@@ -30,7 +30,7 @@ TEST(simulation, wifi_simple)
   internet.Install(nodes);
 
   ns3::Ipv4AddressHelper ip;
-  ip.SetBase("10.1.1.0", "255.255.255.0");
+  ip.SetBase("10.1.0.0", "255.255.0.0");
   ns3::Ipv4InterfaceContainer inet_addrs = ip.Assign(devices);
 
   // ------------------------- SMA STUFF --------------------------------
@@ -52,7 +52,7 @@ TEST(simulation, wifi_simple)
 
     auto app = sma_factory.Create<sma::Ns3AppContainer>();
     app->SetAttribute("id", ns3::UintegerValue(i));
-    //app->add_component(dummy_gps(gps::coord{30.0, 18.45}));
+    app->add_component(DummyGps(GPS::Coord{30.0, 18.45}));
 
     auto apps = ns3::ApplicationContainer(app);
     apps.Start(ns3::Seconds(0));
@@ -60,15 +60,18 @@ TEST(simulation, wifi_simple)
 
     node->AddApplication(app);
   }
+  LOG(INFO) << "Created " << nnodes << " nodes";
   // ^^^^^^^^^^^^^^^^^^^^^^^^^ SMA STUFF ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+  /*
   ns3::AsciiTraceHelper ascii;
   csma.EnablePcapAll("wifi_simple", false);
   LOG(DEBUG) << "CSMA traffic will output to wifi_simp-x-x.pcap";
+  */
 
   LOG(WARNING) << "Simulating";
   ns3::Simulator::Run();
-  LOG(DEBUG) << "Destroying";
+  LOG(WARNING) << "Simulation ended";
   ns3::Simulator::Destroy();
   LOG(INFO) << "done.";
 }

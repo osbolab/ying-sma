@@ -25,6 +25,10 @@ public:
   virtual void close() override;
 
 private:
+  static constexpr auto NS3_FACTORY_TYPENAME = "ns3::UdpSocketFactory";
+  static constexpr auto BCAST_ADDR = "10.1.255.255";
+  static constexpr std::uint16_t BCAST_PORT = 9999;
+
   void bind();
   void packet_available(ns3::Ptr<ns3::Socket> s);
 

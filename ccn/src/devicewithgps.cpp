@@ -174,7 +174,6 @@ void DeviceWithGPS::sendSignal(const DataBlock& block)
 
 void DeviceWithGPS::receive(sma::Message const& msg)
 {
-  LOG(DEBUG) << "Received " << msg;
   DataBlock data(static_cast<SMA::MESSAGE_TYPE>(msg.type()));
   auto csrc = reinterpret_cast<const char*>(msg.cdata());
   data.createData(this, csrc, msg.size());
