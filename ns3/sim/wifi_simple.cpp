@@ -3,7 +3,7 @@
 #include <sma/io/log>
 _INITIALIZE_EASYLOGGINGPP    // Call only once per application
 
-#include <sma/ns3/ns3appcontainer.hpp>
+#include <sma/ns3/nodecontainerapp.hpp>
 #include <sma/gps.hpp>
 #include <sma/dummygps.hpp>
 
@@ -169,7 +169,7 @@ int main(int argc, char** argv)
   // application.
   LOG(DEBUG) << "Install SMA application instances in virtual nodes";
   ns3::ObjectFactory sma_factory;
-  sma_factory.SetTypeId(sma::Ns3AppContainer::TypeId());
+  sma_factory.SetTypeId(sma::Ns3NodeContainerApp::TypeId());
 
 
   // We can keep using that injection template to spawn applications and
@@ -179,7 +179,7 @@ int main(int argc, char** argv)
     auto mob = node->GetObject<ns3::MobilityModel>();
     auto pos = mob->GetPosition();
 
-    auto app = sma_factory.Create<sma::Ns3AppContainer>();
+    auto app = sma_factory.Create<sma::Ns3NodeContainerApp>();
     app->SetAttribute("id", ns3::UintegerValue(i));
 
     app->add_component(std::move(

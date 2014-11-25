@@ -1,5 +1,4 @@
-#include <sma/ns3/ns3async.hpp>
-#include <sma/async.hpp>
+#include <sma/ns3/async.hpp>
 #include <sma/io/log>
 
 #include <ns3/simulator.h>

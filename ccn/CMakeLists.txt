@@ -7,28 +7,8 @@ project("${SMA_CCN_LIB}")
 # SOURCES
 
 set(sources
-  "src/ccnapplication.cpp"
-
-  "src/md5.cpp"
-  "src/json.cpp"
-
-  "src/devicewithgps.cpp"
-
-  "src/datablock.cpp"
-
-  "src/plainchunkstore.cpp"
-  "src/pendingchunkmanager.cpp"
-  "src/flowtable.cpp"
-  "src/datalayer.cpp"
-
-  "src/signalhandler.cpp"
-  "src/segmenter.cpp"
-  "src/pendingfilemanager.cpp"
-  "src/neighborrecords.cpp"
-  "src/neighborrecordentry.cpp"
-  "src/controllayer.cpp"
-  "src/contentdescriptor.cpp"
-  "src/contentdirectory.cpp"
+  "src/ccnnode.cpp"
+  "src/ccnmessage.cpp"
 )
 
 
