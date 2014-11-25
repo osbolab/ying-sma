@@ -8,16 +8,16 @@
 namespace sma
 {
 template <typename SizeT>
-struct MessageBody {
-  static MessageBody wrap(std::uint8_t const* data, std::size_t size);
-  static MessageBody copy(std::uint8_t const* data, std::size_t size);
+struct ByteArray {
+  static ByteArray wrap(std::uint8_t const* data, std::size_t size);
+  static ByteArray copy(std::uint8_t const* data, std::size_t size);
 
-  MessageBody() {}
-  MessageBody(MessageBody&& r);
-  MessageBody& operator=(MessageBody&& r);
+  ByteArray() {}
+  ByteArray(ByteArray&& r);
+  ByteArray& operator=(ByteArray&& r);
 
   template <typename Reader>
-  MessageBody(Reader* r);
+  ByteArray(Reader* r);
 
   template <typename Writer>
   void write_fields(Writer* w) const;
@@ -26,7 +26,7 @@ struct MessageBody {
   std::size_t size{0};
 
 private:
-  MessageBody(std::uint8_t const* data,
+  ByteArray(std::uint8_t const* data,
               std::unique_ptr<std::uint8_t[]> owned,
               std::size_t size);
 
@@ -34,25 +34,25 @@ private:
 };
 
 template <typename SizeT>
-MessageBody<SizeT> MessageBody<SizeT>::wrap(std::uint8_t const* data,
+ByteArray<SizeT> ByteArray<SizeT>::wrap(std::uint8_t const* data,
                                             std::size_t size)
 {
   assert(size <= std::numeric_limits<SizeT>::max());
-  return MessageBody(data, nullptr, size);
+  return ByteArray(data, nullptr, size);
 }
 
 template <typename SizeT>
-MessageBody<SizeT> MessageBody<SizeT>::copy(std::uint8_t const* data,
+ByteArray<SizeT> ByteArray<SizeT>::copy(std::uint8_t const* data,
                                             std::size_t size)
 {
   assert(size <= std::numeric_limits<SizeT>::max());
   auto owned = std::make_unique<std::uint8_t[]>(size);
   std::memcpy(owned.get(), data, size);
-  return MessageBody(owned.get(), std::move(owned), size);
+  return ByteArray(owned.get(), std::move(owned), size);
 }
 
 template <typename SizeT>
-MessageBody<SizeT>::MessageBody(std::uint8_t const* data,
+ByteArray<SizeT>::ByteArray(std::uint8_t const* data,
                                 std::unique_ptr<std::uint8_t[]> owned,
                                 std::size_t size)
   : data(data)
@@ -62,14 +62,14 @@ MessageBody<SizeT>::MessageBody(std::uint8_t const* data,
 }
 
 template <typename SizeT>
-MessageBody<SizeT>::MessageBody(MessageBody&& r)
+ByteArray<SizeT>::ByteArray(ByteArray&& r)
   : data(r.data)
   , owned(std::move(r.owned))
   , size(r.size)
 {
 }
 template <typename SizeT>
-MessageBody<SizeT>& MessageBody<SizeT>::operator=(MessageBody&& r)
+ByteArray<SizeT>& ByteArray<SizeT>::operator=(ByteArray&& r)
 {
   data = r.data;
   size = r.size;
@@ -79,7 +79,7 @@ MessageBody<SizeT>& MessageBody<SizeT>::operator=(MessageBody&& r)
 
 template <typename SizeT>
 template <typename Reader>
-MessageBody<SizeT>::MessageBody(Reader* r)
+ByteArray<SizeT>::ByteArray(Reader* r)
   : size{r->template get<SizeT>()}
 {
   if (size != 0) {
@@ -91,7 +91,7 @@ MessageBody<SizeT>::MessageBody(Reader* r)
 
 template <typename SizeT>
 template <typename Writer>
-void MessageBody<SizeT>::write_fields(Writer* w) const
+void ByteArray<SizeT>::write_fields(Writer* w) const
 {
   *w << SizeT(size);
   if (size != 0)

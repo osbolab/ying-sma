@@ -2,7 +2,7 @@
 
 #include <sma/nodeid.hpp>
 #include <sma/messagetype.hpp>
-#include <sma/messagebody.hpp>
+#include <sma/serial/bytearray.hpp>
 
 #include <cstdint>
 
@@ -11,10 +11,18 @@ namespace sma
 struct Message;
 
 struct NeighborMessage {
-  using size_type = std::uint8_t;
-  using body_type = MessageBody<size_type>;
-
   static constexpr MessageType TYPE = 0;
+
+  using size_type = std::uint8_t;
+  using body_type = ByteArray<size_type>;
+
+  /****************************************************************************
+   * Serialized Fields - Order matters!
+   */
+  NodeId sender;
+  body_type body;
+  /***************************************************************************/
+
 
   static NeighborMessage read(std::uint8_t const* src, std::size_t size);
 
@@ -30,17 +38,12 @@ struct NeighborMessage {
   void write_fields(Writer* w) const;
 
   Message to_message() const;
-
-  // The order of these is important for serialization.
-
-  NodeId sender;
-  body_type body;
 };
 
 template <typename Reader>
 NeighborMessage::NeighborMessage(Reader* r)
-  : sender(r->template get<NodeId>())
-  , body(r->template get<body_type>())
+  : sender(r->template get<decltype(sender)>())
+  , body(r->template get<decltype(body)>())
 {
 }
 

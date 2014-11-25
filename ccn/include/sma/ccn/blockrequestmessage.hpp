@@ -2,28 +2,28 @@
 
 namespace sma
 {
-struct BlockMessage {
+struct BlockRequestMessage {
   NodeId sender;
 
-  BlockMessage(NodeId sender)
+  BlockRequestMessage(NodeId sender)
     : sender(sender)
   {
   }
 
   template <typename Reader>
-  BlockMessage(Reader* r);
+  BlockRequestMessage(Reader* r);
 
   template <typename Writer>
   void write_fields(Writer* w) const;
 };
 
 template <typename Reader>
-BlockMessage::BlockMessage(Reader* r)
+BlockRequestMessage::BlockRequestMessage(Reader* r)
 {
 }
 
 template <typename Writer>
-void BlockMessage::write_fields(Writer* w) const
+void BlockRequestMessage::write_fields(Writer* w) const
 {
 }
 }

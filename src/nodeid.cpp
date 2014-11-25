@@ -4,8 +4,8 @@
 
 namespace sma
 {
-std::ostream& operator<<(std::ostream& os, NodeId const& id)
+std::ostream& operator<<(std::ostream& os, NodeId const& value)
 {
-  return os << std::string(id);
+  return os << std::string(value);
 }
 }

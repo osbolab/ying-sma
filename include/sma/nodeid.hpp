@@ -9,8 +9,6 @@ namespace sma
 {
 struct NodeId {
 private:
-  friend struct std::hash<NodeId>;
-
   using value_type = std::uint16_t;
 
 public:
@@ -47,6 +45,8 @@ public:
   explicit operator std::string() const { return std::to_string(value); }
 
 private:
+  friend struct std::hash<NodeId>;
+
   value_type value;
 };
 
@@ -57,6 +57,9 @@ namespace std
 {
 template <>
 struct hash<sma::NodeId> {
-  std::size_t operator()(sma::NodeId const& id) const { return id.value; }
+  using argument_type = sma::NodeId;
+  using result_type = std::size_t;
+
+  result_type operator()(argument_type const& a) const { return a.value; }
 };
 }

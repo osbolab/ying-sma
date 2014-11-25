@@ -1,12 +1,29 @@
 #pragma once
 
-
 namespace sma
 {
-class ContentInfoMessage
-{
-public:
+struct ContentInfoMessage {
+  NodeId sender;
 
-private:
+  ContentInfoMessage(NodeId sender)
+    : sender(sender)
+  {
+  }
+
+  template <typename Reader>
+  ContentInfoMessage(Reader* r);
+
+  template <typename Writer>
+  void write_fields(Writer* w) const;
 };
+
+template <typename Reader>
+ContentInfoMessage::ContentInfoMessage(Reader* r)
+{
+}
+
+template <typename Writer>
+void ContentInfoMessage::write_fields(Writer* w) const
+{
+}
 }

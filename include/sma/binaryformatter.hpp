@@ -122,21 +122,6 @@ public:
       return *this;
     }
 
-  // TODO: Maybe I'll add wide strings. Ha    ha haha hahahahahahaahahahahhaahahaaah hahaha
-  Myt& put(std::string const& s)
-    {
-      static_assert(
-          sizeof(std::uint8_t) == sizeof(std::string::value_type),
-          "Your implementation's std::string doesn't use 8-bit characters. "
-          "I don't know how to serialize strings in this implementation.");
-
-      std::size_t const size = s.size();
-      assert(size <= std::numeric_limits<std::uint16_t>::max());
-      put(std::uint16_t(size));
-      ios->write(s.c_str(), size);
-      return *this;
-    }
-
   // This is just... so bad... I'm so sorry
 
   template <typename T>
@@ -213,6 +198,28 @@ public:
       return t;
     }
 
+
+  // TODO: Maybe I'll add wide strings. Ha    ha haha hahahahahahaahahahahhaahahaaah hahaha
+  Myt& put(std::string const& s)
+    {
+      static_assert(
+          sizeof(std::uint8_t) == sizeof(std::string::value_type),
+          "Your implementation's std::string doesn't use 8-bit characters. "
+          "I don't know how to serialize strings in this implementation.");
+
+      std::size_t size = s.size();
+      // 2^15 - 1, or two bytes with the highest bit as the extension flag
+      assert(size <= 32767);
+      // 2^7 - 1, or one byte with the highest bit as the extension flag
+      if (size >= 127)
+        put(std::uint16_t(size | (1 << 15)));
+      else
+        put(std::uint8_t(size));
+
+      ios->write(s.c_str(), size);
+      return *this;
+    }
+
   template <typename T>
     typename std::enable_if<std::is_same<T, std::string>::value,
       T>::type get()
@@ -226,7 +233,15 @@ public:
       std::string::value_type buf[1024];
       std::string::pointer cstr = buf;
 
-      auto size = std::size_t{get()};
+      // If the high bit of the first byte is set then it's a two byte size;
+      // unset the high bit and shift in the next byte as the low byte.
+      // This gives us a range of 127 bytes with extension to 32,767 bytes
+      // -- way more than enough.
+      std::size_t size = get<std::uint8_t>();
+      if (size & 0x80)
+        // Remove the flag bit and fetch the low byte
+        size = (size & ~0x80) << 8 | get<std::uint8_t>();
+
       if (size > sizeof buf)
         cstr = new std::string::value_type[size];
 
