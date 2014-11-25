@@ -66,6 +66,7 @@ include_directories("include")
 set(${PROJECT_NAME}_sources
   "src/actor.cpp"
   "src/bytearrayreader.cpp"
+  "src/bytearraywriter.cpp"
   "src/chrono.cpp"
   "src/context.cpp"
   "src/gps.cpp"
@@ -73,6 +74,7 @@ set(${PROJECT_NAME}_sources
   "src/link/linkmanager.cpp"
   "src/message.cpp"
   "src/messagedispatch.cpp"
+  "src/neighbormessage.cpp"
   "src/neighbortable.cpp"
   "src/node.cpp"
   "src/nodeid.cpp"

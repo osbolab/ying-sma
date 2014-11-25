@@ -24,12 +24,16 @@ public:
   /*! \brief  Create a message pointing to, but not copying, the given byte
    *          array as its data.
    */
-  static Message
-  wrap(MessageType type, Weight weight, std::uint8_t const* data, data_size_type size);
+  static Message wrap(MessageType type,
+                      Weight weight,
+                      std::uint8_t const* data,
+                      data_size_type size);
   /*! \brief  Create a message copying the given byte array as its data.
    */
-  static Message
-  copy(MessageType type, Weight weight, std::uint8_t const* data, data_size_type size);
+  static Message copy(MessageType type,
+                      Weight weight,
+                      std::uint8_t const* data,
+                      data_size_type size);
 
   Message(Message&& rhs);
   Message& operator=(Message&& rhs);
@@ -76,8 +80,10 @@ Message::Message(Reader* in)
 {
   *in >> header.type;
   *in >> header.data_size;
-  owned_data = std::make_unique<std::uint8_t[]>(header.data_size);
-  data = owned_data.get();
+  if (header.data_size != 0) {
+    owned_data = std::make_unique<std::uint8_t[]>(header.data_size);
+    data = owned_data.get();
+  }
   in->read(data, header.data_size);
 }
 
@@ -86,7 +92,8 @@ void Message::write_fields(Writer* out) const
 {
   *out << header.type;
   *out << header.data_size;
-  out->write(data, header.data_size);
+  if (header.data_size != 0)
+    out->write(data, header.data_size);
 }
 
 std::ostream& operator<<(std::ostream& os, Message const& m);

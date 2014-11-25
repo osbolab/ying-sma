@@ -2,13 +2,16 @@
 
 #include <sma/actor.hpp>
 #include <sma/neighbortable.hpp>
+#include <sma/neighbormessage.hpp>
 
 #include <chrono>
+#include <random>
 
 namespace sma
 {
-struct NodeId;
 class Context;
+struct NodeId;
+
 
 class Node : public Actor
 {
@@ -24,6 +27,8 @@ public:
   virtual void receive(Message const& msg) override;
 
 protected:
+  virtual NeighborMessage::body_type beacon_data();
+
   NodeId id_;
   NeighborTable neighbors;
 
@@ -34,6 +39,7 @@ private:
   void schedule_beacon(std::chrono::milliseconds delay);
   void beacon();
 
+  std::default_random_engine rand;
   bool disposed{false};
 };
 }

@@ -28,7 +28,7 @@ int main(int argc, char** argv)
   configure_logs(argc, argv);
 
   std::size_t nnodes = 2;
-  long duration = 300;
+  long duration = 30;
 
   std::string baseIp("10.1.0.0");
   std::string subnet("255.255.0.0");
@@ -45,7 +45,7 @@ int main(int argc, char** argv)
   cmd.AddValue("distance", "distance (m)", distance);
   cmd.AddValue("nodes", "number of nodes", nnodes);
   cmd.AddValue("olsr", "enable optimized link state routing", enable_olsr);
-  cmd.Parse(argc, argv);
+  //cmd.Parse(argc, argv);
 
 
   LOG(DEBUG) << "Create 802.11b device template";
@@ -197,7 +197,7 @@ int main(int argc, char** argv)
   LOG(DEBUG) << "Traffic will output to log/wifi_simple-x-x.pcap";
   LOG(DEBUG) << "Tracing routes every 10 seconds to log/wifi-simple.routes";
   ns3::AsciiTraceHelper ascii;
-  //wifiPhy.EnablePcap("log/wifi_simple", devices);
+  wifiPhy.EnablePcap("log/wifi_simple", devices);
 
   if (enable_olsr) {
     auto routeStream = ns3::Create<ns3::OutputStreamWrapper>(

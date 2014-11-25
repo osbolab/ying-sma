@@ -50,7 +50,7 @@ Message::Message(Header header,
   : header(std::move(header))
   , owned_data(std::move(owned_data))
 {
-  this->data = owned_data.get();
+  this->data = this->owned_data.get();
 }
 
 Message::Message(Message const& r)
@@ -67,7 +67,8 @@ Message::Message(Message&& r)
   , owned_data(std::move(r.owned_data))
 {
   r.data = nullptr;
-  std::memset((void*) &r.header, 0, sizeof(Header));
+  r.header.type = 0;
+  r.header.data_size = 0;
 }
 
 Message& Message::operator=(Message&& r)

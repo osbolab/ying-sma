@@ -9,6 +9,8 @@ namespace sma
 {
 struct NodeId {
 private:
+  friend struct std::hash<NodeId>;
+
   using value_type = std::uint16_t;
 
 public:
@@ -32,6 +34,13 @@ public:
     *w << value;
   }
 
+  bool operator==(NodeId const& r) const { return value == r.value; }
+  bool operator!=(NodeId const& r) const { return value != r.value; }
+  bool operator<(NodeId const& r) const { return value < r.value; }
+  bool operator>(NodeId const& r) const { return value > r.value; }
+  bool operator<=(NodeId const& r) const { return value <= r.value; }
+  bool operator>=(NodeId const& r) const { return value >= r.value; }
+
   explicit operator std::uint64_t() const { return value; }
   explicit operator std::uint32_t() const { return value; }
   explicit operator std::uint16_t() const { return value; }
@@ -42,4 +51,12 @@ private:
 };
 
 std::ostream& operator<<(std::ostream& os, NodeId const& value);
+}
+
+namespace std
+{
+template <>
+struct hash<sma::NodeId> {
+  std::size_t operator()(sma::NodeId const& id) const { return id.value; }
+};
 }

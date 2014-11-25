@@ -27,6 +27,8 @@ public:
 
   void outbox(Sink<Message const&>* outbox);
 
+  void stop();
+
   // Sink
 
   /*! \brief  Distribute the given Message to all handlers subscribed to its
@@ -51,6 +53,7 @@ public:
   virtual Messenger& forward(Message const& msg) override;
 
 protected:
+  bool stopped{false};
   using mapping = std::pair<MessageType, Actor*>;
   std::vector<mapping> subs;
   Sink<Message const&>* outbox_;

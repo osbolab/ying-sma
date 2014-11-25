@@ -40,8 +40,16 @@ Messenger& MessageDispatch::forward(Message const& msg)
 
 void MessageDispatch::outbox(Sink<Message const&>* outbox) { outbox_ = outbox; }
 
+void MessageDispatch::stop()
+{
+  LOG(TRACE);
+  stopped = true;
+}
+
 Messenger& MessageDispatch::subscribe(MessageType type, Actor* subscriber)
 {
+  if (stopped)
+    return *this;
   // We could use a binary search to find the insertion point, but
   // it still then requires an O(n) step to create the gap, so
   // we'd have an O(log) search and an O(n) insert.
@@ -57,6 +65,9 @@ Messenger& MessageDispatch::subscribe(MessageType type, Actor* subscriber)
 
 Messenger& MessageDispatch::unsubscribe(MessageType type, Actor* subscriber)
 {
+  if (stopped)
+    return *this;
+
   bool type_checked = false;
   auto it = subs.begin();
   while (it != subs.end()) {
@@ -74,6 +85,9 @@ Messenger& MessageDispatch::unsubscribe(MessageType type, Actor* subscriber)
 
 Messenger& MessageDispatch::unsubscribe(Actor* subscriber)
 {
+  if (stopped)
+    return *this;
+
   auto it = subs.begin();
   while (it != subs.end())
     if (it->second == nullptr || it->second == subscriber)
@@ -85,11 +99,14 @@ Messenger& MessageDispatch::unsubscribe(Actor* subscriber)
 
 void MessageDispatch::accept(const Message& msg)
 {
+  if (stopped)
+    return;
+
   bool handled = false;
   if (!subs.empty())
     for (std::size_t i = 0; i < subs.size(); ++i) {
       if (subs[i].first == msg.type()) {
-        while (subs[i].first == msg.type())
+        while (!stopped && i < subs.size() && subs[i].first == msg.type())
           subs[i++].second->receive(msg);
         handled = true;
       } else if (handled)

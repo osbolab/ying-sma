@@ -28,11 +28,12 @@ ns3::TypeId Ns3NodeContainerApp::TypeId()
       = ns3::TypeId("sma::Ns3NodeContainerApp")
             .SetParent<ns3::Application>()
             .AddConstructor<Ns3NodeContainerApp>()
-            .AddAttribute("id",
-                          "The logical node's unique ID",
-                          ns3::UintegerValue(0),
-                          ns3::MakeUintegerAccessor(&Ns3NodeContainerApp::prop_id),
-                          ns3::MakeUintegerChecker<std::uint32_t>());
+            .AddAttribute(
+                "id",
+                "The logical node's unique ID",
+                ns3::UintegerValue(0),
+                ns3::MakeUintegerAccessor(&Ns3NodeContainerApp::prop_id),
+                ns3::MakeUintegerChecker<std::uint32_t>());
   return tid;
 }
 
@@ -97,7 +98,15 @@ void Ns3NodeContainerApp::StartApplication()
 void Ns3NodeContainerApp::StopApplication()
 {
   LOG(TRACE);
-  if (node)
-    node->dispose();
+  // Force shutdown in the right order so callbacks don't segfault.
+  // The callback dependencies are:
+  //   LinkManager <--> MessageDispatch <--> Actor
+  // So we should stop the dispatch gracefully and destroy everything else
+  // before destroying it.
+  if (msgr)
+    msgr->stop();
+  node = nullptr;
+  linkmgr = nullptr;
+  msgr = nullptr;
 }
 }
