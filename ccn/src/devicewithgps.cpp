@@ -14,6 +14,8 @@
 #include <sma/messenger.hpp>
 #include <sma/gpscomponent.hpp>
 
+#include <cstdlib>
+
 #include <iostream>
 #include <iomanip>
 
@@ -30,9 +32,11 @@
 #include <sys/stat.h>
 
 
+using namespace std::literals::chrono_literals;
+
 
 int DeviceWithGPS::HEARTBEAT_INTERVAL = 10;
-int DeviceWithGPS::DIRECTORY_SYNC_INTERVAL = 30;
+int DeviceWithGPS::DIRECTORY_SYNC_INTERVAL = 15;
 
 DeviceWithGPS::DeviceWithGPS(sma::Context* ctx)
   : sma::Actor(ctx)
@@ -41,25 +45,33 @@ DeviceWithGPS::DeviceWithGPS(sma::Context* ctx)
   for (std::size_t message_type = 0; message_type < 5; ++message_type)
     subscribe(static_cast<sma::Message::Type>(message_type));
 
+  async(std::bind(&DeviceWithGPS::processNeighborQuery, this)).do_in(10s);
+  if (std::uint32_t(this_node()->id()) == 0) {
+    log.i("-------------------------- session --------------------------");
+    async(std::bind(&DeviceWithGPS::publishContent, this, "pic.jpg", "pic.jpg"))
+        .do_in(2s);
+    log.d("publishing pic.jpg in 2 seconds");
+  }
+
   // Start the background notification cycles
-  beaconing();
-  broadcastDirectory();
+  schedule_beacon(3);
+  schedule_dir_broadcast(3);
 }
 
 void DeviceWithGPS::dispose() { disposed = true; }
 
-DeviceWithGPS::~DeviceWithGPS()
+DeviceWithGPS::~DeviceWithGPS() { log.t(__func__); }
+
+void DeviceWithGPS::schedule_beacon(std::size_t seconds)
 {
-  log.t(__func__);
-  while (beacon_scheduled || broadcast_scheduled) {
-    log.w("beacon is scheduled; waiting for it to finish...");
-    std::this_thread::sleep_for(std::chrono::seconds(HEARTBEAT_INTERVAL));
+  if (!disposed) {
+    int interval = std::rand() % (seconds / 2)
+                   + seconds / 2;
+    async(std::bind(&DeviceWithGPS::beaconing, this))
+        .do_in(std::chrono::seconds(interval));
+    beacon_scheduled = true;
   }
 }
-
-/* Currently, the beconning message broadcast the GPS information
- * together with the user ID to the network.
- */
 void DeviceWithGPS::beaconing()
 {
   beacon_scheduled = false;
@@ -81,15 +93,19 @@ void DeviceWithGPS::beaconing()
   sendSignal(block);
   delete[] payload;
 
-  log.t("--> beacon");
-
-  if (!disposed) {
-    async(std::bind(&DeviceWithGPS::beaconing, this))
-        .do_in(std::chrono::seconds(HEARTBEAT_INTERVAL));
-    beacon_scheduled = true;
-  }
+  schedule_beacon(HEARTBEAT_INTERVAL);
 }
 
+void DeviceWithGPS::schedule_dir_broadcast(std::size_t seconds)
+{
+  if (!disposed) {
+    int interval = std::rand() % (seconds / 2)
+                   + seconds / 2;
+    async(std::bind(&DeviceWithGPS::broadcastDirectory, this))
+        .do_in(std::chrono::seconds(interval));
+    broadcast_scheduled = true;
+  }
+}
 void DeviceWithGPS::broadcastDirectory()
 {
   broadcast_scheduled = false;
@@ -102,20 +118,13 @@ void DeviceWithGPS::broadcastDirectory()
   DataBlock block(SMA::DIRBCAST);
   std::string dirBroadCastData = getJsonDirectory(numOfEntries);
   int size = dirBroadCastData.size() + 1;
-  char* payload = new char[size];
+  char payload[size];
   dirBroadCastData.copy(payload, size - 1, 0);
   payload[size - 1] = '\0';
   block.createData(this_node(), payload, size);
   sendSignal(block);
-  delete[] payload;
 
-  log.t("--> directory sync");
-
-  if (!disposed) {
-    async(std::bind(&DeviceWithGPS::broadcastDirectory, this))
-        .do_in(std::chrono::seconds(DIRECTORY_SYNC_INTERVAL));
-    broadcast_scheduled = true;
-  }
+  schedule_dir_broadcast(DIRECTORY_SYNC_INTERVAL);
 }
 
 void DeviceWithGPS::forwardRequest(std::string chunk)
@@ -131,7 +140,6 @@ void DeviceWithGPS::forwardRequest(std::string chunk)
   delete[] payload;
   payload = nullptr;
   std::ostringstream logStr;
-  log.t("--> forward request for chunk %v", chunk);
 }
 
 void DeviceWithGPS::sendSignal(const DataBlock& block)
@@ -140,11 +148,11 @@ void DeviceWithGPS::sendSignal(const DataBlock& block)
 
   // narrowing
   auto dp = reinterpret_cast<const std::uint8_t*>(block.dataArray);
-  auto m = sma::Message::wrap(static_cast<sma::Message::Type>(block.dataType),
-                              sma::Message::LIGHT,
-                              std::move(dp),
-                              block.payloadSize);
-  post(m);
+  auto msg = sma::Message::wrap(static_cast<sma::Message::Type>(block.dataType),
+                                sma::Message::LIGHT,
+                                dp,
+                                block.payloadSize);
+  post(msg);
 }
 
 void DeviceWithGPS::receive(sma::Message const& msg)
@@ -168,15 +176,12 @@ void DeviceWithGPS::processNeighborQuery() const
 {
   std::vector<std::string> ids;
   controlPlane.getNeighborIDs(ids);
-  std::vector<std::string>::iterator iter = ids.begin();
   std::stringstream buf;
-  buf << "Neighbors (" << ids.size() << " {\n";
-  while (iter != ids.end()) {
-    buf << "  " << controlPlane.getNeighborInfo(*iter) << '\n';
-    iter++;
-  }
-  buf << '}';
-  log.i(buf.str());
+  buf << "Neighbors (" << ids.size() << ") {";
+  log.i("neighbors (%v) {", ids.size());
+  for (auto it = ids.begin(); it != ids.end(); ++it)
+    log.i("  %v,", controlPlane.getNeighborInfo(*it));
+  log.i("}");
 }
 
 void DeviceWithGPS::publishContent(std::string inFileName,
@@ -191,6 +196,7 @@ void DeviceWithGPS::publishContent(std::string inFileName,
   char tmc[30];
   std::strftime(tmc, 30, "%Y/%m/%d %T", gmtm);
   oss << tmc;
+  log.i("publishing %v as %v", inFileName, outFileName);
   attri_pair.push_back(
       std::make_pair(ContentAttribute::PublishTime, oss.str()));
   controlPlane.publishContent(inFileName, outFileName, attri_pair);

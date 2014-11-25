@@ -1,11 +1,15 @@
 #include <sma/ccn/neighborrecordentry.hpp>
+
+#include <sma/chrono>
+
 #include <string>
+
 
 NeighborRecordEntry::NeighborRecordEntry(std::string id, double lat, double lon):deviceID(id),
                                                                                 latitude(lat),
                                                                                 longitude(lon)
 {
-  timestamp = std::chrono::system_clock::now();  
+  timestamp = sma::chrono::system_clock::now();
 }
 
 std::string NeighborRecordEntry::getDeviceID() const
@@ -21,7 +25,7 @@ std::chrono::system_clock::time_point NeighborRecordEntry::getTimestamp() const
 double NeighborRecordEntry::getLatitude() const
 {
   return latitude;
-} 
+}
 
 double NeighborRecordEntry::getLongitude() const
 {

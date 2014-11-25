@@ -13,8 +13,7 @@ namespace sma
 // clang-format off
 std::ostream& operator<<(std::ostream& os, Message const& m)
 {
-  os << "message { \"type\": " << std::uint64_t(m.type())
-     << ", \"data_length\": " << m.size() << " }";
+  os << "message[" << std::uint64_t(m.type()) << "]: " << m.size() << " bytes";
   return os;
 }
 // clang-format on

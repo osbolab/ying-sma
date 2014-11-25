@@ -62,6 +62,8 @@ private:
 
   ControlLayer controlPlane;
 
+  void schedule_beacon(std::size_t seconds);
+  void schedule_dir_broadcast(std::size_t seconds);
   void beaconing();
   void broadcastDirectory();
   std::string getJsonGPS() const;

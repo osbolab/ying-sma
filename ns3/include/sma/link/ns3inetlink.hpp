@@ -26,7 +26,7 @@ public:
 
 private:
   static constexpr auto NS3_FACTORY_TYPENAME = "ns3::UdpSocketFactory";
-  static constexpr auto BCAST_ADDR = "10.1.255.255";
+  static constexpr auto BCAST_ADDR = "255.255.255.255";
   static constexpr std::uint16_t BCAST_PORT = 9999;
 
   void bind();

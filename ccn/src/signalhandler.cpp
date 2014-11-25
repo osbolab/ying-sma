@@ -12,7 +12,7 @@
 
 
 SignalHandler::SignalHandler(sma::Logger log, ControlLayer* cl)
-  : log(log)
+  : log(std::move(log))
   , control(cl)
 {
 }
@@ -47,9 +47,6 @@ void SignalHandler::processBeaconing(const DataBlock& block)
     auto sender = fields["device_id"].asString();
     auto lon = fields["gps"]["longitude"].asDouble();
     auto lat = fields["gps"]["latitude"].asDouble();
-
-    log.t("<-- beacon { from: %v, gps: (%v, %v) }", sender, lon, lat);
-
     control->updateNeighborRecord(sender, lat, lon);
   }
 }
@@ -101,9 +98,6 @@ void SignalHandler::processRequestFwd(const DataBlock& block)
   bool success = reader.parse(payloadJson, fields);
   if (success) {
     std::string chunkID = fields["chunk_id"].asString();
-    log.t("<-- request-forward { from: %v, chunk: %v }",
-          block.getSrcDeviceID(),
-          chunkID);
     if (control->hasChunk(chunkID))
       control->transmitChunk(chunkID);
     else {
@@ -112,7 +106,8 @@ void SignalHandler::processRequestFwd(const DataBlock& block)
         control->forwardRequest(chunkID);
       }
     }
-  }
+  } else
+    log.w("x-- improperly formatted request-forward");
 }
 
 void SignalHandler::processDirectorySync(const DataBlock& block)
@@ -128,15 +123,14 @@ void SignalHandler::processDirectorySync(const DataBlock& block)
     for (unsigned int index = 0; index < fields.size(); index++) {
       ContentDescriptor newEntry(fields[index]["name"].asString());
       Json::Value chunkList = fields[index]["chunk_list"];
-      for (auto const& id : chunkList.getMemberNames()) {
+      for (auto const& id : chunkList.getMemberNames())
         newEntry.addNewChunk(atoi(id.c_str()), chunkList[id].asString());
-      }
       Json::Value attrList = fields[index]["attr_list"];
-      for (auto const& id : attrList.getMemberNames()) {
+      for (auto const& id : attrList.getMemberNames())
         newEntry.addAttribute(ContentAttribute::to_META_TYPE(id.c_str()),
                               attrList[id].asString());
-      }
       control->updateDirectory(newEntry);
     }
-  }
+  } else
+    log.w("x-- improperly formatted directory sync");
 }

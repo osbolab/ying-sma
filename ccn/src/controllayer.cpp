@@ -18,9 +18,13 @@
 
 std::string ControlLayer::TMP_FOLDER = "tmp/";
 
-ControlLayer::ControlLayer(sma::Context* ctx, DeviceWithGPS* dev, std::string cacheNameInDatalayer)
+ControlLayer::ControlLayer(sma::Context* ctx,
+                           DeviceWithGPS* dev,
+                           std::string cacheNameInDatalayer)
   : ctx(ctx)
   , dev(dev)
+  , neighborManager(ctx->log())
+  , directory(ctx->log())
   , signalHandler(ctx->log(), this)
   , datalayer(ctx->log(), this, cacheNameInDatalayer)
 {
@@ -35,21 +39,12 @@ void ControlLayer::publishContent(
   std::vector<std::string> chunkIDs;
   segmenter.storeFile(inFileName, chunkIDs, datalayer);
   ContentDescriptor newFile(outFileName);
-  std::vector<std::string>::iterator chunk_iter = chunkIDs.begin();
   int id = 0;
-  while (chunk_iter != chunkIDs.end()) {
-    newFile.addNewChunk(id, *chunk_iter);
-    id++;
-    chunk_iter++;
-  }
-
-  std::vector<std::pair<ContentAttribute::META_TYPE,
-                        std::string>>::const_iterator attri_iter
-      = fileMeta.begin();
-  while (attri_iter != fileMeta.end()) {
-    newFile.addAttribute(attri_iter->first, attri_iter->second);
-    attri_iter++;
-  }
+  for (auto it = chunkIDs.begin(); it != chunkIDs.end(); ++it, ++id)
+    newFile.addNewChunk(id, *it);
+  ctx->log().d("cached %v segment(s) from %v", id, inFileName);
+  for (auto it = fileMeta.begin(); it != fileMeta.end(); ++it)
+    newFile.addAttribute(it->first, it->second);
 
   updateDirectory(newFile);
 }
