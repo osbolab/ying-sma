@@ -32,10 +32,10 @@ public:
     *w << value;
   }
 
-  operator std::uint64_t() const { return value; }
-  operator std::uint32_t() const { return value; }
-  operator std::uint16_t() const { return value; }
-  operator std::string() const { return std::to_string(value); }
+  explicit operator std::uint64_t() const { return value; }
+  explicit operator std::uint32_t() const { return value; }
+  explicit operator std::uint16_t() const { return value; }
+  explicit operator std::string() const { return std::to_string(value); }
 
 private:
   value_type value;

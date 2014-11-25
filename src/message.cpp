@@ -18,7 +18,7 @@ std::ostream& operator<<(std::ostream& os, Message const& m)
 }
 // clang-format on
 
-Message Message::wrap(Type type,
+Message Message::wrap(MessageType type,
                       Weight weight,
                       std::uint8_t const* data,
                       data_size_type size)
@@ -27,7 +27,7 @@ Message Message::wrap(Type type,
 }
 
 
-Message Message::copy(Type type,
+Message Message::copy(MessageType type,
                       Weight weight,
                       std::uint8_t const* data,
                       data_size_type size)

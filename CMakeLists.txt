@@ -65,6 +65,7 @@ include_directories("include")
 
 set(${PROJECT_NAME}_sources
   "src/actor.cpp"
+  "src/bytearrayreader.cpp"
   "src/chrono.cpp"
   "src/context.cpp"
   "src/gps.cpp"
@@ -72,7 +73,9 @@ set(${PROJECT_NAME}_sources
   "src/link/linkmanager.cpp"
   "src/message.cpp"
   "src/messagedispatch.cpp"
-  "src/nodeinfo.cpp"
+  "src/neighbortable.cpp"
+  "src/node.cpp"
+  "src/nodeid.cpp"
 )
 add_library("${PROJECT_NAME}" STATIC ${${PROJECT_NAME}_sources})
 #add_test_exe("${PROJECT_NAME}_test" "test/test_main.cpp")

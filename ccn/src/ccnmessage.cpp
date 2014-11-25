@@ -1,4 +1,4 @@
-#include <sma/ccn/message.hpp>
+#include <sma/ccn/ccnmessage.hpp>
 
 namespace sma
 {

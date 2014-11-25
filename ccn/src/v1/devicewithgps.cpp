@@ -43,7 +43,7 @@ DeviceWithGPS::DeviceWithGPS(sma::Context* ctx)
   , controlPlane(ctx, this, std::to_string(ctx->this_node()->id()))
 {
   for (std::size_t message_type = 0; message_type < 5; ++message_type)
-    subscribe(static_cast<sma::Message::Type>(message_type));
+    subscribe(static_cast<sma::MessageType>(message_type));
 
   async(std::bind(&DeviceWithGPS::processNeighborQuery, this)).do_in(10s);
   if (std::uint32_t(this_node()->id()) == 0) {
@@ -148,7 +148,7 @@ void DeviceWithGPS::sendSignal(const DataBlock& block)
 
   // narrowing
   auto dp = reinterpret_cast<const std::uint8_t*>(block.dataArray);
-  auto msg = sma::Message::wrap(static_cast<sma::Message::Type>(block.dataType),
+  auto msg = sma::Message::wrap(static_cast<sma::MessageType>(block.dataType),
                                 sma::Message::LIGHT,
                                 dp,
                                 block.payloadSize);

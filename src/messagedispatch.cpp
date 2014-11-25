@@ -40,7 +40,7 @@ Messenger& MessageDispatch::forward(Message const& msg)
 
 void MessageDispatch::outbox(Sink<Message const&>* outbox) { outbox_ = outbox; }
 
-Messenger& MessageDispatch::subscribe(Message::Type type, Actor* subscriber)
+Messenger& MessageDispatch::subscribe(MessageType type, Actor* subscriber)
 {
   // We could use a binary search to find the insertion point, but
   // it still then requires an O(n) step to create the gap, so
@@ -55,7 +55,7 @@ Messenger& MessageDispatch::subscribe(Message::Type type, Actor* subscriber)
   return *this;
 }
 
-Messenger& MessageDispatch::unsubscribe(Message::Type type, Actor* subscriber)
+Messenger& MessageDispatch::unsubscribe(MessageType type, Actor* subscriber)
 {
   bool type_checked = false;
   auto it = subs.begin();
@@ -117,13 +117,13 @@ ConcurrentDispatch& ConcurrentDispatch::operator=(ConcurrentDispatch&& r)
   return *this;
 }
 
-Messenger& ConcurrentDispatch::subscribe(Message::Type type, Actor* subscriber)
+Messenger& ConcurrentDispatch::subscribe(MessageType type, Actor* subscriber)
 {
   WriterLock lock(mx);
   return MessageDispatch::subscribe(std::move(type), std::move(subscriber));
 }
 
-Messenger& ConcurrentDispatch::unsubscribe(Message::Type type,
+Messenger& ConcurrentDispatch::unsubscribe(MessageType type,
                                            Actor* subscriber)
 {
   WriterLock lock(mx);

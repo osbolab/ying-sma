@@ -3,29 +3,18 @@
 #include <sma/io/log>
 
 // Link layer
-#include <sma/link/linkmanager.hpp>
 #include <sma/link/link.hpp>
 #include <sma/link/ns3inetlink.hpp>
-
-// Messaging layer
-#include <sma/messagedispatch.hpp>
 
 // Actor layer
 #include <sma/async.hpp>
 #include <sma/chrono>
 #include <sma/context.hpp>
-#include <sma/component.hpp>
-
-// CCN application
-#include <sma/ccn/node.hpp>
 
 // NS3
 #include <ns3/ptr.h>
 #include <ns3/uinteger.h>
-#include <ns3/application.h>
 
-#include <cstdint>
-#include <memory>
 #include <string>
 
 
@@ -87,11 +76,11 @@ void Ns3NodeContainerApp::StartApplication()
   msgr->outbox(linkmgr.get());
   linkmgr->inbox(msgr.get());
 
+  NodeId node_id{prop_id};
   // Create the actor context to give the node node access to its environment.
-  NodeInfo ninfo{NodeId{prop_id}};
   // clang-format off
   ctx = std::make_unique<Context>(
-      std::move(ninfo),
+      std::string(node_id),
       msgr.get(),
       static_cast<Async*>(&async)
   );
@@ -102,7 +91,7 @@ void Ns3NodeContainerApp::StartApplication()
     ctx->add_component(component.get());
 
   // Create the node actor in the new context.
-  node = std::make_unique<CcnNode>(ctx.get());
+  node = std::make_unique<CcnNode>(node_id, ctx.get());
 }
 
 void Ns3NodeContainerApp::StopApplication()

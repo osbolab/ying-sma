@@ -43,15 +43,15 @@ public:
 
   // Messenger
 
-  virtual Messenger& subscribe(Message::Type type, Actor* subscriber) override;
+  virtual Messenger& subscribe(MessageType type, Actor* subscriber) override;
   virtual Messenger& unsubscribe(Actor* subscriber) override;
-  virtual Messenger& unsubscribe(Message::Type type,
+  virtual Messenger& unsubscribe(MessageType type,
                                  Actor* subscriber) override;
 
   virtual Messenger& forward(Message const& msg) override;
 
 protected:
-  using mapping = std::pair<Message::Type, Actor*>;
+  using mapping = std::pair<MessageType, Actor*>;
   std::vector<mapping> subs;
   Sink<Message const&>* outbox_;
 };
@@ -71,9 +71,9 @@ public:
 
   // Messenger
 
-  Messenger& subscribe(Message::Type type, Actor* subscriber) override;
+  Messenger& subscribe(MessageType type, Actor* subscriber) override;
   Messenger& unsubscribe(Actor* subscriber) override;
-  Messenger& unsubscribe(Message::Type type, Actor* subscriber) override;
+  Messenger& unsubscribe(MessageType type, Actor* subscriber) override;
 
 private:
   // Readers/writer mutex synchronizing the handlers table

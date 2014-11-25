@@ -13,8 +13,8 @@ class Messenger
 public:
   virtual ~Messenger() {};
 
-  virtual Messenger& subscribe(Message::Type type, Actor* subscriber) = 0;
-  virtual Messenger& unsubscribe(Message::Type type, Actor* subscriber) = 0;
+  virtual Messenger& subscribe(MessageType type, Actor* subscriber) = 0;
+  virtual Messenger& unsubscribe(MessageType type, Actor* subscriber) = 0;
   virtual Messenger& unsubscribe(Actor* subscriber) = 0;
 
   virtual Messenger& forward(Message const& msg) = 0;

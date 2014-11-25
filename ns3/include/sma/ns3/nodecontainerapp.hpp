@@ -8,9 +8,8 @@
 #include <sma/component.hpp>
 #include <sma/ns3/async.hpp>
 // CCN layer
-#include <sma/ccn/node.hpp>
+#include <sma/ccn/ccnnode.hpp>
 
-#include <ns3/ptr.h>
 #include <ns3/application.h>
 
 #include <cstdint>

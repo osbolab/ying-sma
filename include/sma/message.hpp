@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sma/messagetype.hpp>
+
 #include <cstdint>
 #include <vector>
 #include <memory>
@@ -10,12 +12,11 @@ namespace sma
 struct Message final {
   enum Weight { LIGHT, HEAVY };
 
-  using Type = std::uint8_t;
   using data_size_type = std::uint16_t;
 
 private:
   struct Header {
-    Message::Type type;
+    MessageType type;
     data_size_type data_size;
   };
 
@@ -24,11 +25,11 @@ public:
    *          array as its data.
    */
   static Message
-  wrap(Type type, Weight weight, std::uint8_t const* data, data_size_type size);
+  wrap(MessageType type, Weight weight, std::uint8_t const* data, data_size_type size);
   /*! \brief  Create a message copying the given byte array as its data.
    */
   static Message
-  copy(Type type, Weight weight, std::uint8_t const* data, data_size_type size);
+  copy(MessageType type, Weight weight, std::uint8_t const* data, data_size_type size);
 
   Message(Message&& rhs);
   Message& operator=(Message&& rhs);
@@ -50,7 +51,7 @@ public:
   /*! \brief  Get the message type used for forwarding and dispatching this
    *          message.
    */
-  Type type() const { return header.type; }
+  MessageType type() const { return header.type; }
 
   /*! \brief  Get the immutable message contents. */
   std::uint8_t const* cdata() const noexcept { return data; }

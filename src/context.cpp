@@ -1,18 +1,32 @@
 #include <sma/context.hpp>
-#include <sma/actor.hpp>
-#include <sma/nodeinfo.hpp>
 #include <sma/component.hpp>
-#include <sma/io/log>
-
-#include <cstdint>
-#include <mutex>
-#include <utility>
-
 
 namespace sma
 {
-NodeInfo const* Context::this_node() const { return &node_info; }
-Logger const Context::log() const { return logger; }
+Context::Context(std::string name, Messenger* msgr, Async* async)
+  : logger(name)
+  , msgr(msgr)
+  , async(async)
+{
+}
+Context::Context(Context&& r)
+  : logger(r.logger)
+  , msgr(r.msgr)
+  , async(r.async)
+  , components(std::move(r.components))
+{
+  r.msgr = nullptr;
+  r.async = nullptr;
+}
+
+Context& Context::operator=(Context&& r)
+{
+  logger = r.logger;
+  std::swap(msgr, r.msgr);
+  std::swap(async, r.async);
+  std::swap(components, r.components);
+  return *this;
+}
 
 void Context::add_component(Component* c)
 {
@@ -21,30 +35,5 @@ void Context::add_component(Component* c)
       return;
 
   components.push_back(c);
-}
-
-void Context::enter(Actor* actor)
-{
-  std::size_t const hash = typeid(*actor).hash_code();
-  std::lock_guard<std::mutex> lock(mx);
-  for (auto& pair : actors)
-    if (pair.first == hash) {
-      pair.second = std::move(actor);
-      return;
-    }
-  actors.push_back(std::make_pair(hash, actor));
-  logger.t("context { actors: %v, components: %v }",
-           actors.size(),
-           components.size());
-}
-
-void Context::leave(Actor* actor)
-{
-  std::lock_guard<std::mutex> lock(mx);
-  for (auto it = actors.begin(); it != actors.end(); ++it)
-    if (it->second == actor) {
-      actors.erase(it);
-      return;
-    }
 }
 }

@@ -1,34 +1,29 @@
 #pragma once
 
 #include <sma/context.hpp>
-#include <sma/messenger.hpp>
-#include <sma/message.hpp>
+#include <sma/messagetype.hpp>
 #include <sma/async.hpp>
 #include <sma/io/log>
 
 namespace sma
 {
+struct Message;
+
 class Actor
 {
 public:
-  virtual void dispose() = 0;
   virtual ~Actor();
+  virtual void dispose() = 0;
 
   virtual void receive(Message const& msg) = 0;
-  virtual void receive(Message const& msg, Actor* sender) = 0;
 
 protected:
-  Actor(Context* ctx);
-
-  Context* context() const;
-  NodeInfo const* this_node() const;
+  Actor(Context* context);
 
   // Messaging
 
-  void subscribe(Message::Type type);
-  void unsubscribe(Message::Type type);
-  void post(Message const& msg);
-  template <typename A>
+  void subscribe(MessageType type);
+  void unsubscribe(MessageType type);
   void post(Message const& msg);
 
   // Scheduling
@@ -37,21 +32,12 @@ protected:
   Async::Task<F, A...> async(F&& f, A&&... args);
 
   Logger const log;
-
-private:
-  Context* ctx;
+  Context* context;
 };
-
-
-template <typename A>
-void Actor::post(Message const& msg)
-{
-  ctx->get_actor_by_type<A>()->receive(msg, this);
-}
 
 template <typename F, typename... A>
 Async::Task<F, A...> Actor::async(F&& f, A&&... args)
 {
-  return ctx->async->make_task(std::forward<F>(f), std::forward<A>(args)...);
+  return context->async->make_task(std::forward<F>(f), std::forward<A>(args)...);
 }
 }
