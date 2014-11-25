@@ -3,6 +3,8 @@
 #include <sma/actor.hpp>
 #include <sma/neighbortable.hpp>
 
+#include <chrono>
+
 namespace sma
 {
 struct NodeId;
@@ -24,5 +26,14 @@ public:
 protected:
   NodeId id_;
   NeighborTable neighbors;
+
+private:
+  static constexpr auto INITIAL_BEACON_DELAY = std::chrono::milliseconds(1000);
+  static constexpr auto BEACON_DELAY = std::chrono::milliseconds(5000);
+
+  void schedule_beacon(std::chrono::milliseconds delay);
+  void beacon();
+
+  bool disposed{false};
 };
 }
