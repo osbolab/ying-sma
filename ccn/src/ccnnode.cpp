@@ -10,8 +10,6 @@ CcnNode::CcnNode(NodeId id, Context* ctx)
 {
 }
 
-void CcnNode::dispose() {}
-
 void CcnNode::receive(Message const& msg)
 {
   switch (msg.type()) {

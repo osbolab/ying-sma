@@ -76,7 +76,6 @@ std::size_t Ns3InetLink::write(void const* src, std::size_t size)
       reinterpret_cast<std::uint8_t const*>(src), size, 0, saddr);
   assert(sent == size);
 
-  LOG(TRACE) << "sent " << sent << " bytes";
   return sent;
 }
 std::size_t Ns3InetLink::read(void* dst, std::size_t size)
@@ -88,7 +87,6 @@ std::size_t Ns3InetLink::read(void* dst, std::size_t size)
   size = packet->CopyData(reinterpret_cast<std::uint8_t*>(dst), size);
   readable(false);
 
-  LOG(TRACE) << "received " << size << " bytes";
   return size;
 }
 void Ns3InetLink::close()

@@ -13,7 +13,6 @@ class Actor
 {
 public:
   virtual ~Actor();
-  virtual void dispose() = 0;
 
   virtual void receive(Message const& msg) = 0;
 
@@ -38,6 +37,6 @@ protected:
 template <typename F, typename... A>
 Async::Task<F, A...> Actor::async(F&& f, A&&... args)
 {
-  return context->async->make_task(std::forward<F>(f), std::forward<A>(args)...);
+  return context->async->make_task(this, std::forward<F>(f), std::forward<A>(args)...);
 }
 }

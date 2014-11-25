@@ -23,7 +23,6 @@ public:
 
   // Actor
 
-  virtual void dispose() override;
   virtual void receive(Message const& msg) override;
 
 protected:
@@ -34,10 +33,13 @@ protected:
 
 private:
   static constexpr auto INITIAL_BEACON_DELAY = std::chrono::milliseconds(1000);
-  static constexpr auto BEACON_DELAY = std::chrono::milliseconds(5000);
+  std::chrono::milliseconds beacon_delay{5000};
+  std::chrono::milliseconds prune_interval{1000};
 
   void schedule_beacon(std::chrono::milliseconds delay);
   void beacon();
+
+  void prune_neighbors();
 
   std::default_random_engine rand;
   bool disposed{false};

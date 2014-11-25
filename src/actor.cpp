@@ -12,6 +12,7 @@ Actor::Actor(Context* context)
 Actor::~Actor()
 {
   context->msgr->unsubscribe(this);
+  context->async->purge_events_for(this);
 }
 
 // clang-format off

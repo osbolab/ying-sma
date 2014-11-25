@@ -13,6 +13,8 @@
 
 namespace sma
 {
+class Actor;
+
 class Async
 {
   template <typename F, typename... A>
@@ -26,14 +28,16 @@ public:
     using R = typename std::result_of<F(A...)>::type;
 
   public:
-    Task(Async* async, F&& f, A&&... args)
+    Task(Async* async, Actor* caller, F&& f, A&&... args)
       : async(async)
+      , caller(caller)
       , task(std::make_shared<std::packaged_task<R()>>(
             std::bind(std::forward<F>(f), std::forward<A>(args)...)))
     {
     }
     Task(Task&& t)
       : async(t.async)
+      , caller(t.caller)
       , task(std::move(t.task))
     {
       t.async = nullptr;
@@ -41,6 +45,7 @@ public:
     Task& operator=(Task&& t)
     {
       std::swap(async, t.async);
+      caller = t.caller;
       std::swap(task, t.task);
       return *this;
     }
@@ -51,20 +56,25 @@ public:
 
   private:
     Async* async;
+    Actor* caller;
     std::shared_ptr<std::packaged_task<R()>> task;
   };
 
   template <typename F, typename... A>
-  Task<F, A...> make_task(F&& f, A&&... args)
+  Task<F, A...> make_task(Actor* caller, F&& f, A&&... args)
   {
-    return Task<F, A...>(this, std::forward<F>(f), std::forward<A>(args)...);
+    return Task<F, A...>(
+        this, caller, std::forward<F>(f), std::forward<A>(args)...);
   }
 
   virtual ~Async() {}
 
+  virtual void purge_events_for(Actor* actor) = 0;
+
 protected:
-  virtual void schedule(std::function<void()> f, std::chrono::nanoseconds delay)
-      = 0;
+  virtual void schedule(Actor* caller,
+                        std::function<void()> f,
+                        std::chrono::nanoseconds delay) = 0;
 };
 
 
@@ -76,7 +86,7 @@ Async::Task<F, A...>::do_in(Delay delay)
   auto task = std::move(this->task);
   assert(task);
   auto fut = task->get_future();
-  async->schedule([=]() { (*task)(); },
+  async->schedule(caller, [=]() { (*task)(); },
                   std::chrono::duration_cast<std::chrono::nanoseconds>(delay));
   return fut;
 }

@@ -5,51 +5,41 @@
 #include <sma/binaryformatter.hpp>
 #include <sma/bytearrayreader.hpp>
 
-#include <iostream>
+#include <vector>
+
+#include <sstream>
 #include <iomanip>
 
 namespace sma
 {
 constexpr decltype(Node::INITIAL_BEACON_DELAY) Node::INITIAL_BEACON_DELAY;
-constexpr decltype(Node::BEACON_DELAY) Node::BEACON_DELAY;
 
 using millis = std::chrono::milliseconds;
-
 
 Node::Node(NodeId id, Context* ctx)
   : Actor(ctx)
   , id_(id)
-  , rand(std::default_random_engine(std::uint64_t(id)*2305843009213693951L))
+  // prime for better randomization of lower IDs
+  , rand(std::default_random_engine(std::uint64_t(id) * 2305843009213693951L))
 {
   subscribe(NeighborMessage::TYPE);
   schedule_beacon(INITIAL_BEACON_DELAY);
+  prune_neighbors();
 }
 
-Node::~Node() { dispose(); }
-
-void Node::dispose() { disposed = true; }
+Node::~Node() { }
 
 void Node::receive(Message const& msg)
 {
   if (msg.type() == NeighborMessage::TYPE) {
     log.t("<-- beacon (%v bytes)", msg.size());
-  std::cout << "< ";
-    for (int i = 0; i < msg.size(); ++i)
-      std::cout << std::setw(2) << std::setfill('0') << std::hex << int(msg.cdata()[i]) << ' ';
-    std::cout << std::endl;
     auto nm = NeighborMessage::read(msg.cdata(), msg.size());
-    if (neighbors.update(nm.sender).is_new())
-      log.i("discovered neighbor: %v", nm.sender);
-    else
-      log.d("updated neighbor: %v", nm.sender);
+    neighbors.update(nm.sender);
   }
 }
 
 void Node::schedule_beacon(millis delay)
 {
-  if (disposed)
-    return;
-
   using unit = millis::rep;
   unit min = delay.count() / 2;
   delay = millis(min + rand() % delay.count());
@@ -58,23 +48,46 @@ void Node::schedule_beacon(millis delay)
 
 void Node::beacon()
 {
-  if (disposed)
-    return;
-
   auto msg = NeighborMessage(id(), beacon_data()).to_message();
-  std::cout << "id: " << id() << std::endl;
-  std::cout << "> ";
-    for (int i = 0; i < msg.size(); ++i)
-      std::cout << std::setw(2) << std::setfill('0') << std::hex << int(msg.cdata()[i]) << ' ';
-    std::cout << std::endl;
   log.t("--> beacon (%v bytes)", msg.size());
   post(msg);
 
-  schedule_beacon(BEACON_DELAY);
+  schedule_beacon(beacon_delay);
 }
 
 NeighborMessage::body_type Node::beacon_data()
 {
   return NeighborMessage::body_type();
+}
+
+void Node::prune_neighbors()
+{
+  if (std::uint32_t(id()) != 0)
+    return;
+
+  if (!neighbors.empty()) {
+    std::vector<NeighborTable::value_type> pruned;
+    neighbors.prune(prune_interval, &pruned);
+    if (!pruned.empty()) {
+      std::ostringstream s;
+      for (auto& n : pruned)
+        s << n.first << ", ";
+      //log.d("dropped neighbors: [%v]", s.str());
+    }
+    if (!neighbors.empty()) {
+      log.d("neighbors (%v):", neighbors.size());
+      std::ostringstream s;
+      for (auto it = neighbors.begin(); it != neighbors.end(); ++it) {
+        s << " " << std::setfill(' ') << std::setw(3) << it->first << " "
+          <<  sma::chrono::system_clock::utcstrftime(it->second.last_seen);
+        log.d(s.str());
+        s.str("");
+        s.clear();
+      }
+
+      log.d("");
+    }
+  }
+  async(std::bind(&Node::prune_neighbors, this)).do_in(prune_interval);
 }
 }

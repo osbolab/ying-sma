@@ -27,7 +27,7 @@ int main(int argc, char** argv)
 {
   configure_logs(argc, argv);
 
-  std::size_t nnodes = 2;
+  std::size_t nnodes = 20;
   long duration = 30;
 
   std::string baseIp("10.1.0.0");
@@ -35,8 +35,8 @@ int main(int argc, char** argv)
 
   bool enable_olsr = false;
   std::string phyMode("DsssRate1Mbps");
-  double rss = -80.0;       // -dBm
-  double distance = 500;    // m
+  double rss = -80.0;        // -dBm
+  double distance = 1000;    // m
   std::string fragmentThreshold = "2200";
 
   ns3::CommandLine cmd;
@@ -45,7 +45,7 @@ int main(int argc, char** argv)
   cmd.AddValue("distance", "distance (m)", distance);
   cmd.AddValue("nodes", "number of nodes", nnodes);
   cmd.AddValue("olsr", "enable optimized link state routing", enable_olsr);
-  //cmd.Parse(argc, argv);
+  // cmd.Parse(argc, argv);
 
 
   LOG(DEBUG) << "Create 802.11b device template";
@@ -187,7 +187,7 @@ int main(int argc, char** argv)
 
     auto apps = ns3::ApplicationContainer(app);
     apps.Start(ns3::Seconds(0));
-    apps.Stop(ns3::Seconds(duration));
+    apps.Stop(ns3::Seconds(duration - i));
 
     node->AddApplication(app);
   }
@@ -233,6 +233,9 @@ void configure_logs(int& argc, char** argv)
   LOG(DEBUG) << "Configuring node logging from nodelog.conf...";
   el::Configurations nodelogconf("../../conf/nodelog.conf");
   el::Loggers::setDefaultConfigurations(nodelogconf, false);
+  el::Loggers::getLogger("nodes");
+  CLOG(INFO, "nodes") << "------------------------- session "
+                         "-------------------------";
 
   el::Loggers::addFlag(el::LoggingFlag::LogDetailedCrashReason);
   LOG(DEBUG) << "Detailed crash reports are enabled (--logging-flags=4)";
