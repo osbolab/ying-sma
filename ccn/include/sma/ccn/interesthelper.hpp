@@ -19,7 +19,8 @@ class InterestHelper
 public:
   InterestHelper(CcnNode* node);
   void receive(Message&& msg, InterestMessage&& im);
-  void add(std::vector<ContentType> types);
+
+  void insert_new(std::vector<ContentType> types);
 
 private:
   void broadcast_interests(bool schedule_only = true);

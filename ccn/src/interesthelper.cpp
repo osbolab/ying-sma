@@ -46,7 +46,7 @@ void InterestHelper::receive(Message&& msg, InterestMessage&& im)
           it->second.template age<std::chrono::seconds>().count());
 }
 
-void InterestHelper::add(std::vector<ContentType> types)
+void InterestHelper::insert_new(std::vector<ContentType> types)
 {
   for (auto& t : types)
     table.emplace(t, Interest());

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <utility>
 #include <typeinfo>
+#include <type_traits>
 using std::size_t;
 using std::string;
 using std::cout;
@@ -17,7 +18,6 @@ static int depth = 0;
 
 struct MessageHeader {
   TypeCode type;
-  string sender;
 };
 
 struct UntypedMessage {
@@ -63,54 +63,65 @@ struct TypedMessage {
   operator string() { return string(body); }
 };
 
-template <typename UnmarshalAs>
-struct unmarshal_functor {
+struct MessageDispatch {
+  template <typename M>
+  static void receive(M&& msg)
+  {
+    cout << "Dispatching " << string(msg) << endl;
+  }
 };
 
-template <typename From, template <TypeCode> class As>
-struct unmarshaller {
-  template <TypeCode Tc>
-  using typed_message = TypedMessage<typename As<Tc>::type>;
-  template <TypeCode Tc>
-  using message_body = typename As<Tc>::type;
-
-  unmarshaller(From const& from)
-    : from(from)
-  {
-  }
-  unmarshaller(From&& from)
-    : from(std::move(from))
-  {
-  }
-
-  template <TypeCode Tc>
-  typed_message<Tc> apply()
-  {
-    message_body<Tc> body(from.data, from.size);
-    return typed_message<Tc>(std::forward<From>(from), std::move(body));
-  }
-
-private:
-  From from;
-};
 
 namespace detail
 {
 struct message_types_chain_end_ {
-  static bool apply(TypeCode tc)
+  template <typename From, typename Target>
+  static constexpr bool apply(From&& m, Target&& t)
   {
-    cout << " X" << endl;
     return false;
   }
 };
 }
 
+
+template <typename From>
+struct TypeExtractor;
+
+template <>
+struct TypeExtractor<UntypedMessage> {
+  static TypeCode get(UntypedMessage const& m) { return m.header.type; }
+};
+
+template <typename From>
+struct DataExtractor;
+
+template <>
+struct DataExtractor<UntypedMessage> {
+  using const_data = unsigned char const*;
+  using size_type = std::size_t;
+  static const_data data(UntypedMessage const& m) { return m.data; }
+  static size_type size(UntypedMessage const& m) { return m.size; }
+};
+
+template <typename Target>
+struct TargetDelegator;
+
+template <>
+struct TargetDelegator<MessageDispatch> {
+  template <typename M>
+  static void delegate(M&& m, MessageDispatch* target)
+  {
+    target->receive(std::forward<M>(m));
+  }
+};
+
+
 template <typename Types>
 struct Unmarshaller {
   template <typename From, typename Target>
-  static bool delegate(From&& m, Target&& t)
+  static bool delegate(From&& m, Target* t)
   {
-    return Types::apply(std::forward<From>(m), std::forward<Target>(t));
+    return Types::apply(std::forward<From>(m), t);
   }
 };
 
@@ -131,91 +142,69 @@ public:
   using unmarshal = Unmarshaller<cur>;
 
 private:
+  template <TypeCode, typename, typename>
+  friend struct MessageTypes;
+
   template <typename>
   friend struct Unmarshaller;
 
-  template <typename From, typename Target>
-  static bool apply(From&& m, Target&& t)
+  template <
+      typename From,
+      typename Target,
+      typename Tdel = TargetDelegator<typename std::remove_reference<Target>::type>,
+      typename Tex = TypeExtractor<typename std::remove_reference<From>::type>,
+      typename Dex = DataExtractor<typename std::remove_reference<From>::type>>
+  static bool apply(From&& m, Target* t)
   {
-    if (m.type == Tc) {
-      t.receive(m);
+    if (Tex::get(m) == Tc) {
+      auto data = Dex::data(m);
+      auto size = Dex::size(m);
+      // Do unformatting here!
+      Tdel::delegate(As(data), t);
+      return true;
     } else
-      return prev::apply(std::forward<From>(m), std::forward<Target>(t));
+      return prev::apply(std::forward<From>(m), t);
   }
 };
 
 struct NeighborMessage;
 struct ContentMessage;
-struct MessageDispatch;
 
-using CcnMessages = MessageTypes<0, string>::with<3, string>::with<5, int>;
+using CcnMessages = MessageTypes<0, NeighborMessage>::with<3, ContentMessage>;
 
 int main(int argc, char** argv)
 {
-  cout << sizeof(MessageTypes) << " x3 = " << sizeof(CcnMessages) << endl;
+  UntypedMessage msg{MessageHeader{3}, nullptr, 32};
 
-  using um = CcnMessages::unmarshal<string>;
-  bool b = um::delegate(true, true);
-  cout << (b ? "true" : "false") << endl;
+  MessageDispatch dispatch;
+
+  using um = CcnMessages::unmarshal<UntypedMessage>;
+  bool b = um::delegate(msg, &msg);
+  cout << endl;
+  b &= um::delegate(UntypedMessage{MessageHeader{0}, nullptr, 60}, &dispatch);
+  cout <<endl;
+  cout << "Delegate returned " << (b ? "true" : "false") << endl;
 
   return 0;
 }
 
-struct MessageDispatch {
-  template <typename M>
-  static void receive(M&& msg)
-  {
-    cout << string(std::forward<M>(msg)) << endl;
-  }
-};
-
 struct NeighborMessage {
-  NeighborMessage(unsigned char const* data, size_t size)
+  template <typename Reader>
+  NeighborMessage(Reader* r)
   {
-    cout << "NeighborMessage::phony baloney deserializer (" << size << " bytes)"
+    cout << "NeighborMessage::phony baloney deserializer (" << " bytes)"
          << endl;
   }
   operator string() { return string("Neighbor Discovery"); }
 };
 
 struct ContentMessage {
-  ContentMessage(unsigned char const* data, size_t size)
+  template <typename Reader>
+  ContentMessage(Reader* r)
   {
-    cout << "ContentMessage::weeee (" << size << " bytes)" << endl;
+    cout << "ContentMessage::weeee (" << " bytes)" << endl;
   }
   operator string() { return string("Content Metadata"); }
 };
-
-#if 0
-int main(int argc, char** argv) {
-  if (argc < 2) return 1;
-
-  typedef UntypedMessage message;
-  typedef unmarshaller<message, CcnMessage> unmarshal;
-
-  for (size_t i = 1; i < argc; ++i) {
-    TypeCode tc(std::atoi(argv[i]));
-    switch (tc) {
-      case 0: {
-        message msg{MessageHeader{string("untyped-msg")}, nullptr, 32};
-        unmarshal instance(msg);
-        MessageDispatch::receive(instance.apply<0>());
-        break;
-      }
-
-      case 1: {
-        message msg{MessageHeader{string("untyped-msg")}, nullptr, 32};
-        unmarshal instance(std::move(msg));
-        MessageDispatch::receive(instance.apply<1>());
-        break;
-      }
-
-      default:
-        cout << "bad name at position " << i << ": " << std::to_string(tc)
-             << endl;
-    }
-  }
-
-  return 0;
 }
 #endif
