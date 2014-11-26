@@ -14,7 +14,15 @@ class Actor
 public:
   virtual ~Actor();
 
-  virtual void receive(Message const& msg) = 0;
+  Context* context() const { return ctx; }
+
+  virtual void receive(Message&& msg) = 0;
+  void post(Message&& msg);
+
+  // Scheduling
+
+  template <typename F, typename... A>
+  Async::Task<F, A...> async(F&& f, A&&... args);
 
 protected:
   Actor(Context* context);
@@ -23,20 +31,17 @@ protected:
 
   void subscribe(MessageType type);
   void unsubscribe(MessageType type);
-  void post(Message const& msg);
 
-  // Scheduling
+  Logger log;
 
-  template <typename F, typename... A>
-  Async::Task<F, A...> async(F&& f, A&&... args);
-
-  Logger const log;
-  Context* context;
+private:
+  Context* ctx;
 };
 
 template <typename F, typename... A>
 Async::Task<F, A...> Actor::async(F&& f, A&&... args)
 {
-  return context->async->make_task(this, std::forward<F>(f), std::forward<A>(args)...);
+  return ctx->async->make_task(
+      this, std::forward<F>(f), std::forward<A>(args)...);
 }
 }

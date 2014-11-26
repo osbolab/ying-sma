@@ -4,11 +4,10 @@ namespace sma
 {
 Neighbor NeighborTable::update(NodeId node)
 {
-  auto it = table.find(node);
-  if (it == table.end())
-    return table.emplace(std::move(node), Neighbor()).first->second;
-  it->second.touch();
-  return it->second;
+  auto result = table.emplace(std::move(node), Neighbor());
+  if (!result.second)
+    result.first->second.touch();
+  return result.first->second;
 }
 
 void NeighborTable::prune(std::chrono::milliseconds max_age,

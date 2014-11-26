@@ -20,7 +20,7 @@ public:
 
   Neighbor update(NodeId node);
   void prune(std::chrono::milliseconds max_age,
-             std::vector<value_type>* optional_pruned_out);
+             std::vector<value_type>* optional_pruned_out = nullptr);
 
   size_type size() const { return table.size(); }
   bool empty() const { return table.empty(); }

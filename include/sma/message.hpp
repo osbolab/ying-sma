@@ -1,48 +1,49 @@
 #pragma once
 
 #include <sma/messagetype.hpp>
+#include <sma/forwardpolicy.hpp>
+#include <sma/nodeid.hpp>
+
+#include <sma/util/buffer.hpp>
+#include <sma/serial/vector.hpp>
 
 #include <cstdint>
 #include <vector>
 #include <memory>
-#include <ostream>
+#include <iosfwd>
 
 namespace sma
 {
 struct Message final {
-  enum Weight { LIGHT, HEAVY };
+  using recp_count = std::uint8_t;
+  using size_type = std::uint16_t;
+  using body_type = Buffer<size_type>;
 
-  using data_size_type = std::uint16_t;
-
-private:
-  struct Header {
-    MessageType type;
-    data_size_type data_size;
-  };
-
-public:
-  /*! \brief  Create a message pointing to, but not copying, the given byte
-   *          array as its data.
+  /****************************************************************************
+   * Serialized fields - order matters!
+   * (12.6.2 says we can do this, leave me alone)
    */
-  static Message wrap(MessageType type,
-                      Weight weight,
-                      std::uint8_t const* data,
-                      data_size_type size);
-  /*! \brief  Create a message copying the given byte array as its data.
-   */
-  static Message copy(MessageType type,
-                      Weight weight,
-                      std::uint8_t const* data,
-                      data_size_type size);
+  NodeId sender;
+  std::vector<NodeId> recipients;
+  MessageType type;
+  body_type body;
+  /***************************************************************************/
 
-  Message(Message&& rhs);
-  Message& operator=(Message&& rhs);
-  /*! \brief  Allocate a new message and copy this message's content into it.
-   *
-   * This is distinct from the message's copy constructor to avoid unintentional
-   * allocations when the message is wrapping an existing data array.
+  /****************************************************************************
+   * Transient fields
    */
-  Message duplicate() const;
+  ForwardPolicy policy;
+  /***************************************************************************/
+
+  Message(NodeId sender,
+          MessageType type,
+          body_type body,
+          ForwardPolicy policy);
+
+  Message(Message const& r);
+  Message& operator=(Message const& r);
+  Message(Message&& r);
+  Message& operator=(Message&& r);
 
   // Serialization
 
@@ -52,48 +53,38 @@ public:
   template <typename Writer>
   void write_fields(Writer* out) const;
 
-  /*! \brief  Get the message type used for forwarding and dispatching this
-   *          message.
-   */
-  MessageType type() const { return header.type; }
-
-  /*! \brief  Get the immutable message contents. */
-  std::uint8_t const* cdata() const noexcept { return data; }
-  /*! \brief  Get the size in octets of the message contents. */
-  std::size_t size() const noexcept { return std::size_t{header.data_size}; }
-
 private:
-  Message(Message const& r);
-  Message(Header header,
-          std::unique_ptr<std::uint8_t[]> owned_data,
-          Weight weight);
-  /*! \brief  Non-copying constructor. */
-  Message(Header header, std::uint8_t const* data, Weight weight);
-
-  Header header;
-  std::uint8_t* data{nullptr};
-  std::unique_ptr<std::uint8_t[]> owned_data;
+  using vec_writer = VectorWriter<NodeId, recp_count>;
+  using vec_reader = VectorReader<NodeId, recp_count>;
 };
 
 template <typename Reader>
 Message::Message(Reader* in)
+  : sender(in->template get<decltype(sender)>())
+  , recipients(vec_reader::read(in))
+  , type(in->template get<decltype(type)>())
+  , body(in->template get<decltype(body)>())
 {
-  *in >> header.type;
-  *in >> header.data_size;
-  if (header.data_size != 0) {
-    owned_data = std::make_unique<std::uint8_t[]>(header.data_size);
-    data = owned_data.get();
-  }
-  in->read(data, header.data_size);
+}
+
+Message::Message(NodeId sender,
+                 MessageType type,
+                 body_type body,
+                 ForwardPolicy policy)
+  : sender(std::move(sender))
+  , type(type)
+  , body(std::move(body))
+  , policy(std::move(policy))
+{
 }
 
 template <typename Writer>
 void Message::write_fields(Writer* out) const
 {
-  *out << header.type;
-  *out << header.data_size;
-  if (header.data_size != 0)
-    out->write(data, header.data_size);
+  *out << sender;
+  *out << vec_writer(&recipients);
+  *out << type;
+  *out << body;
 }
 
 std::ostream& operator<<(std::ostream& os, Message const& m);

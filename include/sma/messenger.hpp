@@ -17,6 +17,6 @@ public:
   virtual Messenger& unsubscribe(MessageType type, Actor* subscriber) = 0;
   virtual Messenger& unsubscribe(Actor* subscriber) = 0;
 
-  virtual Messenger& forward(Message const& msg) = 0;
+  virtual Messenger& forward(Message&& msg) = 0;
 };
 }

@@ -2,25 +2,27 @@
 
 #include <sma/ccn/contenttype.hpp>
 
-#include <sma/serial/vector.hpp>
+#include <sma/chrono>
 
 namespace sma
 {
 struct RemoteInterest {
+private:
+  using clock = sma::chrono::system_clock;
+
+public:
   using hop_count = std::uint8_t;
-  using type_count = std::uint8_t;
-  using type_vector = std::vector<ContentType>;
 
   /****************************************************************************
    * Serialized fields - Order matters!
    */
+  ContentType type;
   hop_count hops;
-  type_vector types;
   /***************************************************************************/
 
-  RemoteInterest(hop_count hops, type_vector types)
-    : hops(hops)
-    , types(std::move(types))
+  RemoteInterest(ContentType type, hop_count hops)
+    : type(type)
+    , hops(hops)
   {
   }
 
@@ -30,22 +32,20 @@ struct RemoteInterest {
   template <typename Writer>
   void write_fields(Writer* w) const;
 
-private:
-  using vec_reader = VectorReader<ContentType, type_count>;
-  using vec_writer = VectorWriter<ContentType, type_count>;
+  bool closer_than(hop_count hops) { return this->hops < hops; }
 };
 
 template <typename Reader>
 RemoteInterest::RemoteInterest(Reader* r)
-  : hops(r->template get<hop_count>())
-  , types(vec_reader::read(r))
+  : type(r->template get<decltype(type)>())
+  , hops(r->template get<hop_count>())
 {
 }
 
 template <typename Writer>
 void RemoteInterest::write_fields(Writer* w) const
 {
+  *w << type;
   *w << hops;
-  *w << vec_writer(&types);
 }
 }

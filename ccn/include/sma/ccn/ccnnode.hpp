@@ -14,9 +14,9 @@ class CcnNode final : public Node
 public:
   CcnNode(NodeId id, Context* ctx);
 
-  virtual void receive(Message const& msg) override;
+  virtual void receive(Message&& msg) override;
 
-  InterestHelper::iterator make_interest(std::vector<ContentType> types);
+  void make_interest(std::vector<ContentType> types);
 
 private:
   InterestHelper interestHelper;

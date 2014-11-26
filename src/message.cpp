@@ -13,74 +13,44 @@ namespace sma
 // clang-format off
 std::ostream& operator<<(std::ostream& os, Message const& m)
 {
-  os << "message[" << std::uint64_t(m.type()) << "]: " << m.size() << " bytes";
+  os << "message[" << std::uint64_t(m.type) << "]: " << m.body.size() << " bytes";
   return os;
 }
 // clang-format on
 
-Message Message::wrap(MessageType type,
-                      Weight weight,
-                      std::uint8_t const* data,
-                      data_size_type size)
+Message::Message(NodeId sender, MessageType type, body_type body, ForwardPolicy policy)
+  : sender(sender)
+  , type(type)
+  , body(std::move(body))
+  , policy(policy)
 {
-  return Message(Header{type, size}, data, weight);
-}
-
-
-Message Message::copy(MessageType type,
-                      Weight weight,
-                      std::uint8_t const* data,
-                      data_size_type size)
-{
-  auto owned_data = std::make_unique<std::uint8_t[]>(size);
-  std::memcpy(owned_data.get(), data, size);
-  return Message(Header{type, size}, std::move(owned_data), weight);
-}
-
-Message::Message(Header header, std::uint8_t const* data, Weight weight)
-  : header(std::move(header))
-  , data(const_cast<std::uint8_t*>(data))
-{
-}
-
-
-Message::Message(Header header,
-                 std::unique_ptr<std::uint8_t[]> owned_data,
-                 Weight weight)
-  : header(std::move(header))
-  , owned_data(std::move(owned_data))
-{
-  this->data = this->owned_data.get();
 }
 
 Message::Message(Message const& r)
-  : header(r.header)
-  , owned_data(std::make_unique<std::uint8_t[]>(r.header.data_size))
+  : sender(r.sender)
+  , recipients(r.recipients)
+  , type(r.type)
+  , body(r.body)
+  , policy(r.policy)
 {
-  std::memcpy(owned_data.get(), r.data, header.data_size);
-  data = owned_data.get();
 }
 
 Message::Message(Message&& r)
-  : header(std::move(r.header))
-  , data(r.data)
-  , owned_data(std::move(r.owned_data))
+  : sender(std::move(r.sender))
+  , recipients(std::move(r.recipients))
+  , type(std::move(r.type))
+  , body(std::move(r.body))
+  , policy(std::move(r.policy))
 {
-  r.data = nullptr;
-  r.header.type = 0;
-  r.header.data_size = 0;
 }
 
 Message& Message::operator=(Message&& r)
 {
-  std::swap(header, r.header);
-  std::swap(data, r.data);
-  std::swap(owned_data, r.owned_data);
+  sender = r.sender;
+  type = r.type;
+  std::swap(recipients, r.recipients);
+  std::swap(body, r.body);
+  std::swap(policy, r.policy);
   return *this;
-}
-
-Message Message::duplicate() const
-{
-  return Message(*this);
 }
 }

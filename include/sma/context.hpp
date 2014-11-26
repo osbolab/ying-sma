@@ -4,8 +4,7 @@
 #include <sma/io/log>
 
 #include <vector>
-#include <typeinfo>
-
+#include <random>
 
 namespace sma
 {
@@ -15,12 +14,18 @@ class Async;
 class Context final
 {
   friend class Actor;
+
+  using prng = std::default_random_engine;
+
 public:
+  using prand_value = prng::result_type;
+
   Context(std::string name, Messenger* msgr, Async* async);
   Context(Context&& r);
   Context& operator=(Context&& r);
 
   Logger const log() const { return logger; }
+  prand_value rand() { return prng_impl(); }
 
   void add_component(Component* c);
   template <typename T>
@@ -31,6 +36,7 @@ private:
   Messenger* msgr;
   Async* async;
   std::vector<Component*> components;
+  prng prng_impl;
 };
 
 template <typename T>

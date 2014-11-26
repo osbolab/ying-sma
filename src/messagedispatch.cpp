@@ -1,7 +1,8 @@
 #include <sma/messagedispatch.hpp>
 #include <sma/message.hpp>
 #include <sma/actor.hpp>
-#include <sma/sink.hpp>
+
+#include <sma/util/sink.hpp>
 #include <sma/concurrent/rwsmutex.hpp>
 
 #include <sma/io/log>
@@ -15,35 +16,24 @@ namespace sma
 {
 
 MessageDispatch::MessageDispatch() {}
-MessageDispatch::MessageDispatch(Sink<Message const&>* outbox)
+MessageDispatch::MessageDispatch(Sink<Message&&>* outbox)
   : outbox_(outbox)
 {
 }
-MessageDispatch::MessageDispatch(MessageDispatch&& rhs)
-  : subs(std::move(rhs.subs))
-  , outbox_(std::move(rhs.outbox_))
-{
-}
-MessageDispatch& MessageDispatch::operator=(MessageDispatch&& rhs)
-{
-  std::swap(subs, rhs.subs);
-  std::swap(outbox_, rhs.outbox_);
-  return *this;
-}
 
-Messenger& MessageDispatch::forward(Message const& msg)
-{
-  assert(outbox_);
-  outbox_->accept(msg);
-  return *this;
-}
-
-void MessageDispatch::outbox(Sink<Message const&>* outbox) { outbox_ = outbox; }
+void MessageDispatch::outbox(Sink<Message&&>* outbox) { outbox_ = outbox; }
 
 void MessageDispatch::stop()
 {
   LOG(TRACE);
   stopped = true;
+}
+
+Messenger& MessageDispatch::forward(Message&& msg)
+{
+  assert(outbox_);
+  outbox_->accept(std::move(msg));
+  return *this;
 }
 
 Messenger& MessageDispatch::subscribe(MessageType type, Actor* subscriber)
@@ -97,7 +87,7 @@ Messenger& MessageDispatch::unsubscribe(Actor* subscriber)
   return *this;
 }
 
-void MessageDispatch::accept(const Message& msg)
+void MessageDispatch::accept(Message&& msg)
 {
   if (stopped)
     return;
@@ -105,9 +95,14 @@ void MessageDispatch::accept(const Message& msg)
   bool handled = false;
   if (!subs.empty())
     for (std::size_t i = 0; i < subs.size(); ++i) {
-      if (subs[i].first == msg.type()) {
-        while (!stopped && i < subs.size() && subs[i].first == msg.type())
-          subs[i++].second->receive(msg);
+      if (subs[i].first == msg.type) {
+        while (!stopped && i < subs.size() && subs[i].first == msg.type) {
+          // Copy the message into the first N-1 and move it into the Nth
+          if (i + 1 == subs.size() || subs[i + 1].first != msg.type)
+            subs[i++].second->receive(std::move(msg));
+          else
+            subs[i++].second->receive(Message(msg));
+        }
         handled = true;
       } else if (handled)
         return;
@@ -118,20 +113,9 @@ void MessageDispatch::accept(const Message& msg)
 
 ConcurrentDispatch::ConcurrentDispatch() {}
 
-ConcurrentDispatch::ConcurrentDispatch(Sink<Message const&>* outbox)
+ConcurrentDispatch::ConcurrentDispatch(Sink<Message&&>* outbox)
   : MessageDispatch(outbox)
 {
-}
-
-ConcurrentDispatch::ConcurrentDispatch(ConcurrentDispatch&& r)
-  : MessageDispatch(std::move(r))
-{
-}
-
-ConcurrentDispatch& ConcurrentDispatch::operator=(ConcurrentDispatch&& r)
-{
-  MessageDispatch::operator=(std::move(r));
-  return *this;
 }
 
 Messenger& ConcurrentDispatch::subscribe(MessageType type, Actor* subscriber)
@@ -140,8 +124,7 @@ Messenger& ConcurrentDispatch::subscribe(MessageType type, Actor* subscriber)
   return MessageDispatch::subscribe(std::move(type), std::move(subscriber));
 }
 
-Messenger& ConcurrentDispatch::unsubscribe(MessageType type,
-                                           Actor* subscriber)
+Messenger& ConcurrentDispatch::unsubscribe(MessageType type, Actor* subscriber)
 {
   WriterLock lock(mx);
   return MessageDispatch::unsubscribe(std::move(type), std::move(subscriber));
@@ -153,9 +136,9 @@ Messenger& ConcurrentDispatch::unsubscribe(Actor* subscriber)
   return MessageDispatch::unsubscribe(std::move(subscriber));
 }
 
-void ConcurrentDispatch::accept(const Message& msg)
+void ConcurrentDispatch::accept(Message&& msg)
 {
   ReaderLock lock(mx);
-  MessageDispatch::accept(msg);
+  MessageDispatch::accept(std::move(msg));
 }
 }

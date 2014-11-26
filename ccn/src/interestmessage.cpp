@@ -1,4 +1,5 @@
 #include <sma/ccn/interestmessage.hpp>
+#include <sma/message.hpp>
 
 #include <sma/binaryformatter.hpp>
 #include <sma/bytearraywriter.hpp>
@@ -26,11 +27,14 @@ InterestMessage::InterestMessage(NodeId sender, interest_vector interests)
 {
   assert(interests.size() < std::numeric_limits<count_type>::max());
 }
-InterestMessage::InterestMessage(NodeId sender,
-                                 const_iterator cbegin,
-                                 const_iterator cend)
-  : sender(sender)
-  , interests(cbegin, cend)
+
+Message InterestMessage::make_message() const
 {
+  ByteArrayWriter buf;
+  buf.format<BinaryFormatter>() << *this;
+  // FIXME: this is seriously broken as it copies twice: buf.data() has to copy
+  // the dynamic array.
+  return Message::copy(
+      InterestMessage::TYPE, Message::LIGHT, buf.data(), buf.size());
 }
 }

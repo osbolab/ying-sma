@@ -1,13 +1,9 @@
 #include <sma/link/linkmanager.hpp>
 
 #include <sma/message.hpp>
-#include <sma/binaryformatter.hpp>
 
 #include <sma/io/log>
 
-#include <istream>
-#include <ostream>
-#include <sstream>
 #include <cstring>
 #include <cassert>
 
@@ -27,23 +23,12 @@ LinkManager::LinkManager(std::vector<std::unique_ptr<Link>> links)
   send_sbuf.pubsetbuf(send_buf, sizeof send_buf);
   recv_sbuf.pubsetbuf(recv_buf, sizeof recv_buf);
 }
-/*
-LinkManager::LinkManager(LinkManager&& r)
-  : links(std::move(r.links))
-  , ibx(r.ibx)
-{
-  r.ibx = nullptr;
-}
-LinkManager& LinkManager::operator=(LinkManager&& r)
-{
-  std::swap(links, r.links);
-  std::swap(ibx, r.ibx);
-  return *this;
-}
-*/
 
-void LinkManager::accept(Message const& msg)
+void LinkManager::accept(Message&& msg)
 {
+  if (links.empty())
+    return;
+  // lock buffer
   send_sbuf.pubseekpos(0);
   serializer << msg;
   std::size_t const msg_size = send_os.tellp();
@@ -51,6 +36,7 @@ void LinkManager::accept(Message const& msg)
   std::size_t wrote = 0;
   for (auto& link : links)
     assert((wrote = link->write(send_buf, msg_size)));
+  // unlock buffer
 }
 
 void LinkManager::on_link_readable(Link* link)
@@ -60,8 +46,11 @@ void LinkManager::on_link_readable(Link* link)
 
   std::size_t read = 0;
   while ((read = link->read(recv_buf, sizeof recv_buf))) {
-    ibx->accept(Message(&deserializer));
+    // lock buffer
+    Message msg(&deserializer);
     recv_sbuf.pubseekpos(0);
+    // unlock buffer
+    ibx->accept(std::move(msg));
   }
 }
 }

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <sma/ccn/contenttype.hpp>
+#include <sma/ccn/interest.hpp>
+#include <sma/ccn/detail/remoteinterestentry.hpp>
 
 #include <sma/io/log>
 
@@ -8,20 +10,23 @@
 
 namespace sma
 {
-struct Interest;
+class CcnNode;
 struct InterestMessage;
 
 class InterestHelper
 {
 public:
-  using hop_count = std::uint32_t;
-  using interest_table = std::map<ContentType, Interest>;
-  using iterator = interest_table::iterator;
-
-  InterestHelper(Logger log);
-  void receive(InterestMessage const& msg);
+  InterestHelper(CcnNode* node);
+  void receive(InterestMessage msg);
+  void add(std::vector<ContentType> types);
 
 private:
+  void broadcast_interests(bool schedule_only = true);
+
+  CcnNode* node;
   Logger log;
+
+  std::map<ContentType, Interest> table;
+  std::map<ContentType, detail::RemoteInterestEntry> r_table;
 };
 }

@@ -8,6 +8,8 @@
 namespace sma
 {
 struct InterestRank {
+  InterestRank() : value(0) {}
+
   template <
       typename T,
       typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>

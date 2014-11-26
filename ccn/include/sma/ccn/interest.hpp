@@ -3,11 +3,12 @@
 #include <sma/ccn/contenttype.hpp>
 #include <sma/ccn/interestrank.hpp>
 
+#include <utility>
+
 namespace sma
 {
 struct Interest
 {
-  ContentType type;
   InterestRank rank;
 };
 }

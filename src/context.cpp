@@ -7,6 +7,9 @@ Context::Context(std::string name, Messenger* msgr, Async* async)
   : logger(name)
   , msgr(msgr)
   , async(async)
+  // prime for better randomization of lower IDs
+  , prng_impl(std::default_random_engine(std::hash<std::string>()(name)
+                                         * 2305843009213693951L))
 {
 }
 Context::Context(Context&& r)

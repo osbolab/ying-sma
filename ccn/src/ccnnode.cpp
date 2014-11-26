@@ -7,19 +7,23 @@ namespace sma
 {
 CcnNode::CcnNode(NodeId id, Context* ctx)
   : Node(id, ctx)
-  , interestHelper(log)
+  , interestHelper(this)
 {
   subscribe(InterestMessage::TYPE);
 }
 
-void CcnNode::receive(Message const& msg)
+void CcnNode::receive(Message&& msg)
 {
   switch (msg.type()) {
     case InterestMessage::TYPE:
       interestHelper.receive(InterestMessage::read(msg.cdata(), msg.size()));
       break;
     default:
-      Node::receive(msg);
+      Node::receive(std::move(msg));
   }
+}
+
+void CcnNode::make_interest(std::vector<ContentType> types)
+{
 }
 }

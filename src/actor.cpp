@@ -5,19 +5,19 @@
 namespace sma
 {
 Actor::Actor(Context* context)
-  : context(context)
+  : ctx(context)
   , log(context->log())
 {
 }
 Actor::~Actor()
 {
-  context->msgr->unsubscribe(this);
-  context->async->purge_events_for(this);
+  ctx->msgr->unsubscribe(this);
+  ctx->async->purge_events_for(this);
 }
 
 // clang-format off
-void Actor::subscribe(MessageType type) { context->msgr->subscribe(type, this); }
-void Actor::unsubscribe(MessageType type) { context->msgr->unsubscribe(type, this); }
-void Actor::post(Message const& msg) { context->msgr->forward(msg); }
+void Actor::subscribe(MessageType type) { ctx->msgr->subscribe(type, this); }
+void Actor::unsubscribe(MessageType type) { ctx->msgr->unsubscribe(type, this); }
+void Actor::post(Message&& msg) { ctx->msgr->forward(std::move(msg)); }
 // clang-format on
 }

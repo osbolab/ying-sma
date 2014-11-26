@@ -11,13 +11,16 @@
 
 namespace sma
 {
+  struct Message;
+
 struct InterestMessage final {
   static constexpr MessageType TYPE = 1;
 
   using value_type = RemoteInterest;
   using interest_vector = std::vector<value_type>;
+  // This is the type of the vector size as serialized, and so its size
+  // defines the maximum number of elements allowed.
   using count_type = std::uint8_t;
-  using const_iterator = interest_vector::const_iterator;
 
   static InterestMessage read(std::uint8_t const* src, std::size_t size);
 
@@ -28,15 +31,19 @@ struct InterestMessage final {
   interest_vector interests;
   /***************************************************************************/
 
+  InterestMessage(NodeId sender)
+    : sender(sender)
+  {}
   InterestMessage(NodeId sender, value_type interest);
   InterestMessage(NodeId sender, interest_vector interests);
-  InterestMessage(NodeId sender, const_iterator cbegin, const_iterator cend);
 
   template <typename Reader>
   InterestMessage(Reader* r);
 
   template <typename Writer>
   void write_fields(Writer* w) const;
+
+  Message make_message() const;
 
 private:
   using vec_reader = VectorReader<value_type, count_type>;

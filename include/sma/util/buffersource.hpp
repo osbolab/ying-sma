@@ -6,10 +6,10 @@
 
 namespace sma
 {
-class ByteArrayReader
+class BufferSource
 {
 public:
-  ByteArrayReader(std::uint8_t const* src, std::size_t size);
+  BufferSource(std::uint8_t const* src, std::size_t size);
 
   template <template <typename> class Formatter>
   Formatter<std::istream> format()
