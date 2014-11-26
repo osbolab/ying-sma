@@ -18,6 +18,6 @@ Actor::~Actor()
 // clang-format off
 void Actor::subscribe(MessageType type) { ctx->msgr->subscribe(type, this); }
 void Actor::unsubscribe(MessageType type) { ctx->msgr->unsubscribe(type, this); }
-void Actor::post(Message&& msg) { ctx->msgr->forward(std::move(msg)); }
+void Actor::post(Message msg) { ctx->msgr->forward(std::move(msg)); }
 // clang-format on
 }

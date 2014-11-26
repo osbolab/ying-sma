@@ -1,14 +1,12 @@
 #pragma once
 
+#include <sma/nodeid.hpp>
+#include <sma/messagetype.hpp>
+
 namespace sma
 {
 struct ContentInfoMessage {
-  NodeId sender;
-
-  ContentInfoMessage(NodeId sender)
-    : sender(sender)
-  {
-  }
+  static constexpr MessageType TYPE = 65;
 
   template <typename Reader>
   ContentInfoMessage(Reader* r);

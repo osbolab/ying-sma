@@ -12,18 +12,21 @@ CcnNode::CcnNode(NodeId id, Context* ctx)
   subscribe(InterestMessage::TYPE);
 }
 
-void CcnNode::receive(Message&& msg)
+void CcnNode::receive(Message msg)
 {
-  switch (msg.type()) {
-    case InterestMessage::TYPE:
-      interestHelper.receive(InterestMessage::read(msg.cdata(), msg.size()));
+  switch (msg.type) {
+    case InterestMessage::TYPE: {
+      receive_into<InterestMessage>(std::move(msg), interestHelper);
       break;
+    }
+
     default:
       Node::receive(std::move(msg));
   }
 }
 
-void CcnNode::make_interest(std::vector<ContentType> types)
+void CcnNode::add_interests(std::vector<ContentType> types)
 {
+  interestHelper.insert_new(std::move(types));
 }
 }

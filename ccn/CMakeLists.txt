@@ -8,9 +8,9 @@ project("${SMA_CCN_LIB}")
 
 set(sources
   "src/ccnnode.cpp"
+  "src/ccnmessagetypes.cpp"
   "src/contenttype.cpp"
   "src/interesthelper.cpp"
-  "src/interestmessage.cpp"
   "src/interestrank.cpp"
 )
 

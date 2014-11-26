@@ -14,10 +14,10 @@ InterestHelper::InterestHelper(CcnNode* node)
 {
 }
 
-void InterestHelper::receive(InterestMessage msg)
+void InterestHelper::receive(Message&& msg, InterestMessage&& im)
 {
   // Just cull those not to be forwarded from the given vector
-  auto will_forward = std::move(msg.interests);
+  auto will_forward = std::move(im.interests);
 
   auto it = will_forward.begin();
   while (it != will_forward.end()) {
@@ -35,7 +35,7 @@ void InterestHelper::receive(InterestMessage msg)
   if (!will_forward.empty()) {
     log.d("forwarding %v interests", will_forward.size());
     node->post(
-        InterestMessage(node->id(), std::move(will_forward)).make_message());
+        make_message<InterestMessage>(node->id(), std::move(will_forward)));
   }
 
   log.i("remote interests (%v):", r_table.size());
@@ -67,7 +67,7 @@ void InterestHelper::broadcast_interests(bool schedule_only)
     return;
   }
 
-  InterestMessage msg(node->id());
+  InterestMessage msg;
 
   // Our interests are 0 hops from us... the receive will account for our
   // link to them.
@@ -87,6 +87,6 @@ void InterestHelper::broadcast_interests(bool schedule_only)
   }
 
   if (!msg.interests.empty())
-    node->post(msg.make_message());
+    node->post(InterestMessage(std::move(msg.interests)));
 }
 }

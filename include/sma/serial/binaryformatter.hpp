@@ -48,24 +48,24 @@ public:
     { ios->read(reinterpret_cast<char*>(dst), size); return *this; }
 
   template <typename T>
-    Myt& operator<<(T const& t)
-    { put(t);               return *this; }
+    Myt& operator<<(T t)
+    { put(std::forward<T>(t));               return *this; }
 
   template <typename T>
     Myt& operator>>(T& t)
     { t = get<T>();         return *this; }
 
   template <typename T>
-    Myt& put(T const& t)
+    Myt& put(T t)
     { t.write_fields(this); return *this; }
 
-  Myt& put(char const& t)
+  Myt& put(char t)
     { ios->write(&t, 1);    return *this; }
 
-  Myt& put(std::uint8_t const& t)
+  Myt& put(std::uint8_t t)
     { ios->write(reinterpret_cast<char const*>(&t), 1); return *this; }
 
-  Myt& put(std::uint16_t const& t)
+  Myt& put(std::uint16_t t)
     {
       char buf[] {
         char(t >> 8 & 0xff)
@@ -75,7 +75,7 @@ public:
       return *this;
     }
 
-  Myt& put(std::uint32_t const& t)
+  Myt& put(std::uint32_t t)
     {
       char buf[] {
         char(t >> 24 & 0xff)
@@ -87,7 +87,7 @@ public:
       return *this;
     }
 
-  Myt& put(std::uint64_t const& t)
+  Myt& put(std::uint64_t t)
     {
       char buf[] {
         char(t >> 56 & 0xff)
@@ -106,7 +106,7 @@ public:
   /******************************************************************************
    * This is only portable to architectures with IEEE floats.
    */
-  Myt& put(float const& t)
+  Myt& put(float  t)
     {
       typename detail::uint_with_size<sizeof(float)>::type i = 0;
       std::memcpy(&i, &t, sizeof i);
@@ -114,7 +114,7 @@ public:
       return *this;
     }
 
-  Myt& put(double const& t)
+  Myt& put(double t)
     {
       typename detail::uint_with_size<sizeof(double)>::type i = 0;
       std::memcpy(&i, &t, sizeof i);

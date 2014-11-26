@@ -12,6 +12,6 @@ private:
 };
 
 struct ForwardPolicy {
-  MessageFlow::Weight weight;
+  MessageFlow::Weight weight{MessageFlow::LIGHT};
 };
 }

@@ -16,8 +16,11 @@ public:
 
   Context* context() const { return ctx; }
 
-  virtual void receive(Message&& msg) = 0;
-  void post(Message&& msg);
+  // Messaging
+
+  virtual void receive(Message msg) = 0;
+
+  void post(Message msg);
 
   // Scheduling
 
@@ -26,8 +29,6 @@ public:
 
 protected:
   Actor(Context* context);
-
-  // Messaging
 
   void subscribe(MessageType type);
   void unsubscribe(MessageType type);

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <sma/nodeid.hpp>
 #include <sma/messagetype.hpp>
 
 #include <sma/util/buffer.hpp>
@@ -9,6 +8,7 @@
 
 namespace sma
 {
+struct NodeId;
 struct Message;
 
 struct NeighborMessage final {
@@ -23,20 +23,21 @@ struct NeighborMessage final {
   body_type body;
   /***************************************************************************/
 
+  NeighborMessage(body_type body)
+    : body(std::move(body))
+  {}
 
-  static NeighborMessage read(std::uint8_t const* src, std::size_t size);
+  NeighborMessage(NeighborMessage&&) = default;
+  NeighborMessage(NeighborMessage const&) = default;
 
-  NeighborMessage(body_type body);
-  NeighborMessage(NeighborMessage&& r);
-  NeighborMessage& operator=(NeighborMessage&& r);
+  NeighborMessage& operator=(NeighborMessage&&) = default;
+  NeighborMessage& operator=(NeighborMessage const&) = default;
 
   template <typename Reader>
   NeighborMessage(Reader* r);
 
   template <typename Writer>
   void write_fields(Writer* w) const;
-
-  Message make_message() const;
 };
 
 template <typename Reader>

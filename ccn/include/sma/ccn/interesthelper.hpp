@@ -11,13 +11,14 @@
 namespace sma
 {
 class CcnNode;
+struct Message;
 struct InterestMessage;
 
 class InterestHelper
 {
 public:
   InterestHelper(CcnNode* node);
-  void receive(InterestMessage msg);
+  void receive(Message&& msg, InterestMessage&& im);
   void add(std::vector<ContentType> types);
 
 private:

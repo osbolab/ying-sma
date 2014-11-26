@@ -18,7 +18,7 @@ class NeighborHelper
 public:
   NeighborHelper(Node* node);
 
-  void receive(NeighborMessage&& msg);
+  void receive(Message&& msg, NeighborMessage&& nm);
   void beacon_data(NeighborMessage::body_type data);
 
 private:

@@ -8,15 +8,19 @@
 namespace sma
 {
 struct InterestRank {
-  InterestRank() : value(0) {}
+  friend struct std::hash<InterestRank>;
 
-  template <
-      typename T,
-      typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
-  InterestRank(T t)
-    : value(t)
+private:
+  using value_type = std::uint32_t;
+
+public:
+  value_type value;
+
+  InterestRank()
+    : value(0)
   {
   }
+
   bool operator==(InterestRank const& r) const { return value == r.value; }
   bool operator!=(InterestRank const& r) const { return value != r.value; }
   bool operator<=(InterestRank const& r) const { return value <= r.value; }
@@ -24,13 +28,8 @@ struct InterestRank {
   bool operator<(InterestRank const& r) const { return value < r.value; }
   bool operator>(InterestRank const& r) const { return value > r.value; }
 
-  explicit operator std::uint32_t() const { return value; }
+  explicit operator value_type() const { return value; }
   explicit operator std::string() const { return std::to_string(value); }
-
-private:
-  friend struct std::hash<InterestRank>;
-
-  std::uint32_t value;
 };
 
 std::ostream& operator<<(std::ostream& os, InterestRank const& value);

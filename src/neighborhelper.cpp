@@ -36,7 +36,8 @@ void NeighborHelper::beacon()
 {
   auto body = have_beacon_data ? std::move(next_beacon_data)
                                : NeighborMessage::body_type();
-  auto msg = NeighborMessage(std::move(body)).make_message(node->id());
+
+  auto msg = make_message<NeighborMessage>(node->id(), std::move(body));
 
   log.t("--> beacon (%v bytes)", msg.body.size());
   node->post(std::move(msg));
