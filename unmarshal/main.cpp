@@ -11,13 +11,13 @@ using std::cout;
 using std::endl;
 using std::declval;
 
-typedef uint32_t TypeCode;
+typedef uint32_t MessageType;
 
 static int depth = 0;
 
 
 struct MessageHeader {
-  TypeCode type;
+  MessageType type;
 };
 
 struct UntypedMessage {
@@ -89,7 +89,7 @@ struct TypeExtractor;
 
 template <>
 struct TypeExtractor<UntypedMessage> {
-  static TypeCode get(UntypedMessage const& m) { return m.header.type; }
+  static MessageType get_type(UntypedMessage const& m) { return m.header.type; }
 };
 
 template <typename From>
@@ -103,74 +103,62 @@ struct DataExtractor<UntypedMessage> {
   static size_type size(UntypedMessage const& m) { return m.size; }
 };
 
-template <typename Target>
-struct TargetDelegator;
 
-template <>
-struct TargetDelegator<MessageDispatch> {
-  template <typename M>
-  static void delegate(M&& m, MessageDispatch* target)
-  {
-    target->receive(std::forward<M>(m));
-  }
-};
-
-
-template <typename Types>
+template <typename From,
+          typename ReceiverT,
+          typename DexT
+          = DataExtractor<typename std::remove_reference<From>::type>>
 struct Unmarshaller {
-  template <typename From, typename Target>
-  static bool delegate(From&& m, Target* t)
+  Unmarshaller(ReceiverT* receiver)
+    : receiver(receiver)
   {
-    return Types::apply(std::forward<From>(m), t);
   }
+  template <typename MessageT, typename FromT>
+  void apply(FromT&& m)
+  {
+    auto data = DexT::data(m);
+    auto size = DexT::size(m);
+    // Do unformatting here!
+    receiver->receive(MessageT(data));
+  }
+
+private:
+  ReceiverT* receiver;
 };
 
-template <TypeCode Tc,
-          typename As,
-          typename prev = detail::message_types_chain_end_>
-struct MessageTypes {
+
+template <MessageType Type,
+          typename MessageT,
+          typename next = detail::message_types_chain_end_>
+struct MessageTypeSieve {
 private:
-  using cur = MessageTypes<Tc, As, prev>;
+  using cur = MessageTypeSieve<Type, MessageT, next>;
 
 public:
-  template <TypeCode nTc, typename nAs>
-  using with = MessageTypes<nTc, nAs, cur>;
+  template <MessageType next_Type, typename next_MessageT>
+  using with = MessageTypeSieve<next_Type, next_MessageT, cur>;
 
-  using type = As;
+  using type = MessageT;
 
-  template <typename From>
-  using unmarshal = Unmarshaller<cur>;
-
-private:
-  template <TypeCode, typename, typename>
-  friend struct MessageTypes;
-
-  template <typename>
-  friend struct Unmarshaller;
-
-  template <
-      typename From,
-      typename Target,
-      typename Tdel = TargetDelegator<typename std::remove_reference<Target>::type>,
-      typename Tex = TypeExtractor<typename std::remove_reference<From>::type>,
-      typename Dex = DataExtractor<typename std::remove_reference<From>::type>>
-  static bool apply(From&& m, Target* t)
+  template <typename FromT,
+            typename ReceiverT,
+            typename TexT
+            = TypeExtractor<typename std::remove_reference<FromT>::type>>
+  static bool apply(FromT&& m, ReceiverT* receiver)
   {
-    if (Tex::get(m) == Tc) {
-      auto data = Dex::data(m);
-      auto size = Dex::size(m);
-      // Do unformatting here!
-      Tdel::delegate(As(data), t);
+    if (TexT::get_type(m) == Type) {
+      receiver->template apply<MessageT>(std::forward<FromT>(m));
       return true;
     } else
-      return prev::apply(std::forward<From>(m), t);
+      return next::apply(std::forward<FromT>(m), receiver);
   }
 };
 
 struct NeighborMessage;
 struct ContentMessage;
 
-using CcnMessages = MessageTypes<0, NeighborMessage>::with<3, ContentMessage>;
+using CcnMessages
+    = MessageTypeSieve<0, NeighborMessage>::with<3, ContentMessage>;
 
 int main(int argc, char** argv)
 {
@@ -178,12 +166,8 @@ int main(int argc, char** argv)
 
   MessageDispatch dispatch;
 
-  using um = CcnMessages::unmarshal<UntypedMessage>;
-  bool b = um::delegate(msg, &msg);
-  cout << endl;
-  b &= um::delegate(UntypedMessage{MessageHeader{0}, nullptr, 60}, &dispatch);
-  cout <<endl;
-  cout << "Delegate returned " << (b ? "true" : "false") << endl;
+  Unmarshaller<UntypedMessage, MessageDispatch> um(&dispatch);
+  CcnMessages::apply(msg, &um);
 
   return 0;
 }
@@ -192,8 +176,8 @@ struct NeighborMessage {
   template <typename Reader>
   NeighborMessage(Reader* r)
   {
-    cout << "NeighborMessage::phony baloney deserializer (" << " bytes)"
-         << endl;
+    cout << "NeighborMessage::phony baloney deserializer ("
+         << " bytes)" << endl;
   }
   operator string() { return string("Neighbor Discovery"); }
 };
@@ -202,9 +186,8 @@ struct ContentMessage {
   template <typename Reader>
   ContentMessage(Reader* r)
   {
-    cout << "ContentMessage::weeee (" << " bytes)" << endl;
+    cout << "ContentMessage::weeee ("
+         << " bytes)" << endl;
   }
   operator string() { return string("Content Metadata"); }
 };
-}
-#endif

@@ -18,9 +18,9 @@ struct Buffer {
   Buffer(std::uint8_t const* data, std::size_t size);
   Buffer(BufferDest& buf);
 
+  Buffer(Buffer&& r);
   Buffer(Buffer const& r);
   Buffer& operator=(Buffer const& r);
-  Buffer(Buffer&& r);
   Buffer& operator=(Buffer&& r);
 
   template <typename Reader>
@@ -30,56 +30,52 @@ struct Buffer {
   void write_fields(Writer* w) const;
 
   std::size_t size() const { return sz; }
-  std::uint8_t const* cdata() const { return data; }
+  std::uint8_t const* cdata() const { return data.get(); }
 
 private:
-  std::uint8_t const* data{nullptr};
   std::size_t sz{0};
-  std::unique_ptr<std::uint8_t[]> owned;
+  std::unique_ptr<std::uint8_t[]> data;
 };
 
 
 template <typename SizeT>
 Buffer<SizeT>::Buffer(std::size_t size)
-  : owned(std::make_unique<std::uint8_t[]>(size))
+  : data(std::make_unique<std::uint8_t[]>(size))
   , sz(size)
 {
   assert(sz <= std::numeric_limits<SizeT>::max());
-  data = owned.get();
 }
 
 template <typename SizeT>
-Buffer<SizeT>::Buffer(std::uint8_t const* data, std::size_t size)
+Buffer<SizeT>::Buffer(std::uint8_t const* src, std::size_t size)
   : Buffer(size)
 {
-  this->data = data;
+  std::memcpy(data.get(), src, size);
 }
 template <typename SizeT>
 Buffer<SizeT>::Buffer(BufferDest& buf)
   : Buffer(buf.size())
 {
-  buf.read(owned.get(), sz);
+  buf.read(data.get(), sz);
 }
 
 template <typename SizeT>
 Buffer<SizeT>::Buffer(Buffer const& r)
   : Buffer(r.sz)
 {
-  std::memcpy(owned.get(), data, sz);
+  std::memcpy(data.get(), r.data.get(), sz);
 }
 template <typename SizeT>
 Buffer<SizeT>& Buffer<SizeT>::operator=(Buffer const& r)
 {
   sz = r.sz;
-  owned = std::make_unique<std::uint8_t[]>(r.sz);
-  std::memcpy(owned.get(), data, sz);
-  data = owned.get();
+  data = std::make_unique<std::uint8_t[]>(r.sz);
+  std::memcpy(data.get(), r.data.get(), sz);
 }
 
 template <typename SizeT>
 Buffer<SizeT>::Buffer(Buffer&& r)
-  : data(r.data)
-  , owned(std::move(r.owned))
+  : data(std::move(r.data))
   , sz(r.sz)
 {
   r.data = nullptr;
@@ -88,9 +84,8 @@ Buffer<SizeT>::Buffer(Buffer&& r)
 template <typename SizeT>
 Buffer<SizeT>& Buffer<SizeT>::operator=(Buffer&& r)
 {
-  data = r.data;
   sz = r.sz;
-  std::swap(owned, r.owned);
+  std::swap(data, r.data);
 
   r.data = nullptr;
   r.sz = 0;
@@ -103,10 +98,9 @@ template <typename Reader>
 Buffer<SizeT>::Buffer(Reader* r)
   : sz{r->template get<SizeT>()}
 {
-  owned = std::make_unique<std::uint8_t[]>(sz);
-  data = owned.get();
+  data = std::make_unique<std::uint8_t[]>(sz);
   if (sz != 0)
-    r->read(owned.get(), sz);
+    r->read(data.get(), sz);
 }
 
 template <typename SizeT>
