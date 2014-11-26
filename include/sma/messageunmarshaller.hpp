@@ -20,8 +20,10 @@ struct MessageUnmarshaller {
   template <typename MessageT>
   void apply(Message&& m)
   {
-    // Do unformatting here!
-    receiver->receive(MessageT(data));
+    std::stringbuf buf;
+    buf.pubsetbuf(m.data());
+    std::istream is(&buf);
+    receiver->receive(MessageT(Formatter<std::istream>(&is)));
   }
 
 private:
