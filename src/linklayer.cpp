@@ -25,9 +25,9 @@ LinkLayer::LinkLayer(std::vector<std::unique_ptr<Link>> links)
     link->manager = this;
 }
 
-struct ReadAndDispatch {
+struct Unmarshal {
   template <typename M, typename Reader>
-  static void receive(Reader&& reader, MessageHeader header, Node* node)
+  void operator()(Reader&& reader, MessageHeader header, Node* node)
   {
     if (!node)
       return;
@@ -47,7 +47,11 @@ void LinkLayer::on_link_readable(Link* link)
     // lock buffer
 
     MessageHeader header(reader);
-    if (!MessageTypes::apply<ReadAndDispatch>(reader, std::move(header), node))
+    auto typecode = reader.template get<MessageTypes::typecode_type>();
+    // Deduce the type of the message from its typecode and call the unmarshal
+    // operator to deserialize that type and pass it to the node.
+    if (!MessageTypes::apply(
+            typecode, Unmarshal(), reader, std::move(header), node))
       LOG(WARNING) << "Unhandled message";
 
     recv_sbuf.pubseekpos(0);
