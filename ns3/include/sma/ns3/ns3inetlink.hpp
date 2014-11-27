@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sma/link/link.hpp>
+#include <sma/link.hpp>
 
 #include <ns3/ptr.h>
 #include <ns3/node.h>

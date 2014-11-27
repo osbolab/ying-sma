@@ -46,51 +46,45 @@ endforeach()
 
 ###############################################################################
 ###############################################################################
-#
-# PROJECTS
-#
 
 set(SMA_LIB     "sma")
-set(SMA_CCN_LIB "smaccn")
 set(SMA_NS3_LIB "smans3")
 
 ###############################################################################
-# Main SMA platform library project
+# Main SMA library project
 
 depend(SMA_LIB)
 project(${SMA_LIB})
 
-# Everyone depends on the platform headers
 include_directories("include")
 
 set(${PROJECT_NAME}_sources
-  "src/actor.cpp"
-  "src/util/bufferdest.cpp"
-  "src/util/buffersource.cpp"
+  "src/ccn/contenttype.cpp"
+  "src/ccn/interesthelper.cpp"
+  "src/ccn/interestrank.cpp"
+
   "src/chrono.cpp"
   "src/context.cpp"
   "src/gps.cpp"
-  "src/link/link.cpp"
-  "src/link/linkmanager.cpp"
-  "src/message.cpp"
-  "src/messagedispatch.cpp"
-  "src/messagetypes.cpp"
+
+  "src/link.cpp"
+  "src/linklayer.cpp"
+
   "src/neighborhelper.cpp"
-  "src/report/neighborhelper.cpp"
   "src/neighbortable.cpp"
   "src/node.cpp"
   "src/nodeid.cpp"
+
+  "src/util/bufferdest.cpp"
+  "src/util/buffersource.cpp"
 )
+
 add_library("${PROJECT_NAME}" STATIC ${${PROJECT_NAME}_sources})
 #add_test_exe("${PROJECT_NAME}_test" "test/test_main.cpp")
 #target_link_libraries("${PROJECT_NAME}_test" "${PROJECT_NAME}")
 
 ###############################################################################
 # Subprojects
-
-# NS3 simulations depend on the application headers 
-include_directories("ccn/include")
-add_subdirectory("ccn")
 
 include_directories("ns3/include")
 add_subdirectory("ns3")

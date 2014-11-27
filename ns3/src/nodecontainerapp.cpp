@@ -2,16 +2,13 @@
 
 #include <sma/io/log>
 
-// Link layer
-#include <sma/link/link.hpp>
-#include <sma/link/ns3inetlink.hpp>
+#include <sma/link.hpp>
+#include <sma/ns3/ns3inetlink.hpp>
 
-// Actor layer
 #include <sma/async.hpp>
-#include <sma/chrono>
 #include <sma/context.hpp>
+#include <sma/chrono>
 
-// NS3
 #include <ns3/ptr.h>
 #include <ns3/uinteger.h>
 
@@ -70,43 +67,26 @@ void Ns3NodeContainerApp::StartApplication()
   std::vector<std::unique_ptr<Link>> links;
   auto inet = static_cast<Link*>(new Ns3InetLink(GetNode()));
   links.emplace_back(inet);
-  linkmgr = std::make_unique<LinkManager>(std::move(links));
-
-  // Create the messaging layer and connect it to the link manager
-  msgr = std::make_unique<MessageDispatch>();
-  msgr->outbox(linkmgr.get());
-  linkmgr->inbox(msgr.get());
+  linklayer = std::make_unique<LinkLayer>(std::move(links));
 
   NodeId node_id{prop_id};
   // Create the actor context to give the node node access to its environment.
-  // clang-format off
-  ctx = std::make_unique<Context>(
-      std::string(node_id),
-      msgr.get(),
-      static_cast<Async*>(&async)
-  );
-  // clang-format on
+  ctx = std::make_unique<Context>(std::string(node_id));
 
   // Add available device components to the context so the node can use them.
   for (auto& component : components)
     ctx->add_component(component.get());
 
-  // Create the node actor in the new context.
-  node = std::make_unique<CcnNode>(node_id, ctx.get());
+  node = std::make_unique<Node>(node_id, ctx.get());
+  // Send received messages to the node
+  linklayer->receive_to(node.get());
 }
 
 void Ns3NodeContainerApp::StopApplication()
 {
   LOG(TRACE);
-  // Force shutdown in the right order so callbacks don't segfault.
-  // The callback dependencies are:
-  //   LinkManager <--> MessageDispatch <--> Actor
-  // So we should stop the dispatch gracefully and destroy everything else
-  // before destroying it.
-  if (msgr)
-    msgr->stop();
+  linklayer->receive_to(nullptr);
   node = nullptr;
   linkmgr = nullptr;
-  msgr = nullptr;
 }
 }

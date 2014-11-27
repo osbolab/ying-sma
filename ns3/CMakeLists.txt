@@ -1,5 +1,4 @@
 depend(SMA_LIB)
-depend(SMA_CCN_LIB)
 depend(SMA_NS3_LIB)
 
 project(${SMA_NS3_LIB})
@@ -35,7 +34,7 @@ add_library("${PROJECT_NAME}" STATIC ${lib_sources})
 target_link_libraries("${PROJECT_NAME}" "${SMA_LIB}")
 
 add_executable("wifi-simple" "sim/wifi_simple.cpp" ${simulation_sources})
-target_link_libraries("wifi-simple" "${SMA_CCN_LIB}" "${SMA_NS3_LIB}" "gtest")
+target_link_libraries("wifi-simple" "${SMA_NS3_LIB}" "gtest")
 # Unfortunately, the nice thing waf does for us is build up their
 # configuration-encoded dependency hierarchy.
 # We have to figure it out by adding stuff until we stop getting link errors.

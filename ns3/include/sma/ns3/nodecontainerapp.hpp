@@ -1,14 +1,9 @@
 #pragma once
 
-// Link layer
-#include <sma/link/linkmanager.hpp>
-// Messaging layer
-#include <sma/messagedispatch.hpp>
-// Actor layer
+#include <sma/linklayer.hpp>
 #include <sma/component.hpp>
 #include <sma/ns3/async.hpp>
-// CCN layer
-#include <sma/ccn/ccnnode.hpp>
+#include <sma/node.hpp>
 
 #include <ns3/application.h>
 
@@ -45,8 +40,7 @@ private:
   Ns3Async async;
   std::unique_ptr<Context> ctx;
   std::unique_ptr<LinkManager> linkmgr;
-  std::unique_ptr<MessageDispatch> msgr;
   std::vector<std::unique_ptr<Component>> components;
-  std::unique_ptr<CcnNode> node;
+  std::unique_ptr<Node> node;
 };
 }

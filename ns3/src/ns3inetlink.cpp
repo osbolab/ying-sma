@@ -1,5 +1,5 @@
-#include <sma/link/ns3inetlink.hpp>
-#include <sma/link/linkmanager.hpp>
+#include <sma/ns3/ns3inetlink.hpp>
+#include <sma/linklayer.hpp>
 #include <sma/chrono>
 #include <sma/io/log>
 

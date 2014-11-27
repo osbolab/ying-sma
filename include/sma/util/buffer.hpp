@@ -24,7 +24,7 @@ struct Buffer {
   Buffer& operator=(Buffer&& r);
 
   template <typename Reader>
-  Buffer(Reader* r);
+  Buffer(Reader&& r);
 
   template <typename Writer>
   void write_fields(Writer* w) const;
@@ -95,7 +95,7 @@ Buffer<SizeT>& Buffer<SizeT>::operator=(Buffer&& r)
 
 template <typename SizeT>
 template <typename Reader>
-Buffer<SizeT>::Buffer(Reader* r)
+Buffer<SizeT>::Buffer(Reader&& r)
   : sz{r->template get<SizeT>()}
 {
   data = std::make_unique<std::uint8_t[]>(sz);
@@ -105,9 +105,9 @@ Buffer<SizeT>::Buffer(Reader* r)
 
 template <typename SizeT>
 template <typename Writer>
-void Buffer<SizeT>::write_fields(Writer* w) const
+void Buffer<SizeT>::write_fields(Writer&& w) const
 {
-  *w << SizeT(sz);
+  w << SizeT(sz);
   if (sz != 0)
     w->write(data, sz);
 }

@@ -10,20 +10,21 @@ Node::Node(NodeId id, Context* ctx)
   : Actor(ctx)
   , id_(id)
   , neighborHelper(this)
+  , interestHelper(this)
 {
-  subscribe(NeighborMessage::TYPE);
 }
 
-void Node::receive(Message msg)
+void Node::receive(MessageHeader header, NeighborMessage msg)
 {
-  switch (msg.type) {
-    case NeighborMessage::TYPE: {
-      receive_into<NeighborMessage>(std::move(msg), neighborHelper);
-      break;
-    }
+}
 
-    default:
-      log.w("unhandled message: %v", msg.type);
-  }
+void Node::receive(MessageHeader header, InterestMessage msg)
+{
+  interest_helper.receive(std::move(header), std::move(msg));
+}
+
+void Node::add_interests(std::vector<ContentType> types)
+{
+  interestHelper.insert_new(std::move(types));
 }
 }

@@ -8,19 +8,17 @@
 
 namespace sma
 {
-class Messenger;
+class LinkLayer;
 class Async;
 
-class Context final
+struct Context final
 {
-  friend class Actor;
-
   using prng = std::default_random_engine;
 
 public:
   using prand_value = prng::result_type;
 
-  Context(std::string name, Messenger* msgr, Async* async);
+  Context(std::string name, LinkLayer* links, Async* async);
   Context(Context&& r);
   Context& operator=(Context&& r);
 
@@ -33,7 +31,7 @@ public:
 
 private:
   Logger logger;
-  Messenger* msgr;
+  LinkLayer* links;
   Async* async;
   std::vector<Component*> components;
   prng prng_impl;

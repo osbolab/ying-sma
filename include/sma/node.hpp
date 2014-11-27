@@ -1,52 +1,33 @@
 #pragma once
 
-#include <sma/actor.hpp>
-#include <sma/message.hpp>
 #include <sma/neighborhelper.hpp>
-
-#include <chrono>
+#include <sma/ccn/interesthelper.hpp>
 
 namespace sma
 {
-class Context;
+struct Context;
 struct NodeId;
-struct Message;
 
-class Node : public Actor
+struct MessageHeader;
+struct NeighborMessage;
+struct InterestMessage;
+
+class Node
 {
 public:
   Node(NodeId id, Context* ctx);
-  virtual ~Node() {}
 
   NodeId id() const { return id_; }
 
-  // Actor
+  void receive(MessageHeader header, NeighborMessage msg);
+  void receive(MessageHeader header, InterestMessage msg);
 
-  virtual void receive(Message msg) override;
-
-  inline void post(Message m);
-  template <typename M>
-  inline void post(M&& m);
-  template <typename M, typename... Args>
-  inline void post(M&& m, Args&&... args);
+  void add_interests(std::vector<ContentType> types);
 
 private:
   NodeId id_;
 
   NeighborHelper neighborHelper;
+  InterestHelper interestHelper;
 };
-
-void Node::post(Message m) { Actor::post(std::move(m)); }
-
-template <typename M>
-void Node::post(M&& m)
-{
-  post(to_message(id(), std::forward<M>(m)));
-}
-
-template <typename M, typename... Args>
-void Node::post(M&& m, Args&&... args)
-{
-  post(make_message<M>(id(), std::forward<Args>(args)...));
-}
 }

@@ -1,20 +1,20 @@
 #include <sma/ccn/interesthelper.hpp>
 
-#include <sma/ccn/ccnnode.hpp>
-#include <sma/message.hpp>
+#include <sma/node.hpp>
 #include <sma/ccn/interestmessage.hpp>
+#include <sma/async.hpp>
 
 #include <limits>
 
 namespace sma
 {
-InterestHelper::InterestHelper(CcnNode* node)
+InterestHelper::InterestHelper(Node* node)
   : node(node)
   , log(node->context()->log())
 {
 }
 
-void InterestHelper::receive(Message&& msg, InterestMessage&& im)
+void InterestHelper::receive(MessageHeader header, InterestMessage im)
 {
   // Just cull those not to be forwarded from the given vector
   auto will_forward = std::move(im.interests);
@@ -62,7 +62,7 @@ void InterestHelper::broadcast_interests(bool schedule_only)
     using unit = std::chrono::milliseconds::rep;
     unit min = delay.count() / 2;
     delay = std::chrono::milliseconds(min + rand() % delay.count());
-    node->async(std::bind(&InterestHelper::broadcast_interests, this, false))
+    async(std::bind(&InterestHelper::broadcast_interests, this, false))
         .do_in(delay);
     return;
   }

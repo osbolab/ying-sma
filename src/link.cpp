@@ -1,5 +1,5 @@
-#include <sma/link/link.hpp>
-#include <sma/link/linkmanager.hpp>
+#include <sma/link.hpp>
+#include <sma/linklayer.hpp>
 
 
 namespace sma
