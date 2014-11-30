@@ -2,7 +2,8 @@
 
 #include <sma/ccn/contenttype.hpp>
 
-#include <sma/chrono>
+#include <sma/util/reader.hpp>
+#include <sma/chrono.hpp>
 
 namespace sma
 {
@@ -26,26 +27,26 @@ public:
   {
   }
 
-  template <typename Reader>
-  RemoteInterest(Reader* r);
+  template <typename...T>
+  RemoteInterest(Reader<T...>& r);
 
   template <typename Writer>
-  void write_fields(Writer* w) const;
+  void write_fields(Writer& w) const;
 
   bool closer_than(hop_count hops) { return this->hops < hops; }
 };
 
-template <typename Reader>
-RemoteInterest::RemoteInterest(Reader* r)
-  : type(r->template get<decltype(type)>())
-  , hops(r->template get<hop_count>())
+template <typename... T>
+RemoteInterest::RemoteInterest(Reader<T...>& r)
+  : type(r.template get<decltype(type)>())
+  , hops(r.template get<hop_count>())
 {
 }
 
 template <typename Writer>
-void RemoteInterest::write_fields(Writer* w) const
+void RemoteInterest::write_fields(Writer& w) const
 {
-  *w << type;
-  *w << hops;
+  w << type;
+  w << hops;
 }
 }

@@ -1,41 +1,43 @@
 #pragma once
 
+#include <sma/linklayer.hpp>
+
 #include <sma/component.hpp>
 #include <sma/io/log>
 
+#include <string>
 #include <vector>
 #include <random>
 
 namespace sma
 {
-class LinkLayer;
 class Async;
 
-struct Context final
-{
-  using prng = std::default_random_engine;
+struct Context final {
+  using prng_type = std::default_random_engine;
 
 public:
-  using prand_value = prng::result_type;
+  using prand_value = prng_type::result_type;
 
-  Context(std::string name, LinkLayer* links, Async* async);
+  Context(std::string name, LinkLayer& linklayer);
   Context(Context&& r);
   Context& operator=(Context&& r);
 
-  Logger const log() const { return logger; }
-  prand_value rand() { return prng_impl(); }
-
-  void add_component(Component* c);
+  void add_component(Component& c);
   template <typename T>
   T* try_get_component() const;
 
+  prand_value rand() { return prng(); }
+
+  prng_type prng;
+
+  Logger log;
+  LinkLayer* linklayer;
+
 private:
-  Logger logger;
-  LinkLayer* links;
-  Async* async;
   std::vector<Component*> components;
-  prng prng_impl;
 };
+
 
 template <typename T>
 T* Context::try_get_component() const

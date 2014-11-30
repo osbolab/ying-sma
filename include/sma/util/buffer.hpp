@@ -2,6 +2,7 @@
 
 #include <sma/util/bufferdest.hpp>
 #include <sma/util/buffersource.hpp>
+#include <sma/util/reader.hpp>
 
 #include <cstdint>
 #include <memory>
@@ -23,11 +24,11 @@ struct Buffer {
   Buffer& operator=(Buffer const& r);
   Buffer& operator=(Buffer&& r);
 
-  template <typename Reader>
-  Buffer(Reader&& r);
+  template <typename... T>
+  Buffer(Reader<T...>& r);
 
   template <typename Writer>
-  void write_fields(Writer* w) const;
+  void write_fields(Writer& w) const;
 
   std::size_t size() const { return sz; }
   std::uint8_t const* cdata() const { return data.get(); }
@@ -94,21 +95,21 @@ Buffer<SizeT>& Buffer<SizeT>::operator=(Buffer&& r)
 }
 
 template <typename SizeT>
-template <typename Reader>
-Buffer<SizeT>::Buffer(Reader&& r)
-  : sz{r->template get<SizeT>()}
+template <typename... T>
+Buffer<SizeT>::Buffer(Reader<T...>& r)
+  : sz{r.template get<SizeT>()}
 {
   data = std::make_unique<std::uint8_t[]>(sz);
   if (sz != 0)
-    r->read(data.get(), sz);
+    r.read(data.get(), sz);
 }
 
 template <typename SizeT>
 template <typename Writer>
-void Buffer<SizeT>::write_fields(Writer&& w) const
+void Buffer<SizeT>::write_fields(Writer& w) const
 {
   w << SizeT(sz);
   if (sz != 0)
-    w->write(data, sz);
+    w.write(data.get(), sz);
 }
 }

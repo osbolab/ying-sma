@@ -19,7 +19,7 @@ set(lib_sources
 )
 
 set(simulation_sources
-  "src/nodecontainerapp.cpp"
+  "src/ns3nodecontainer.cpp"
 )
 
 ###############################################################################
@@ -31,10 +31,9 @@ set(simulation_sources
 # Whatever simulation links to the library will have to make up the missing
 # symbols by linking NS3 modules.
 add_library("${PROJECT_NAME}" STATIC ${lib_sources})
-target_link_libraries("${PROJECT_NAME}" "${SMA_LIB}")
 
 add_executable("wifi-simple" "sim/wifi_simple.cpp" ${simulation_sources})
-target_link_libraries("wifi-simple" "${SMA_NS3_LIB}" "gtest")
+target_link_libraries("wifi-simple" "${SMA_LIB}" "${PROJECT_NAME}" "${SMA_LIB}" "gtest")
 # Unfortunately, the nice thing waf does for us is build up their
 # configuration-encoded dependency hierarchy.
 # We have to figure it out by adding stuff until we stop getting link errors.

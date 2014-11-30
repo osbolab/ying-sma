@@ -11,19 +11,21 @@
 namespace sma
 {
 class CcnNode;
-struct Message;
+
+struct MessageHeader;
 struct InterestMessage;
 
 class InterestHelper
 {
 public:
   InterestHelper(CcnNode* node);
-  void receive(Message&& msg, InterestMessage&& im);
+  void receive(MessageHeader header, InterestMessage msg);
 
   void insert_new(std::vector<ContentType> types);
 
 private:
-  void broadcast_interests(bool schedule_only = true);
+  void schedule_broadcast();
+  void broadcast_interests();
 
   CcnNode* node;
   Logger log;

@@ -1,25 +1,32 @@
 #include <sma/neighborhelper.hpp>
 
-#include <sma/node.hpp>
+#include <sma/ccn/ccnnode.hpp>
+
+#include <sma/messageheader.hpp>
+#include <sma/neighbormessage.hpp>
+
 #include <sma/async.hpp>
 #include <sma/context.hpp>
-#include <sma/message.hpp>
 
 #include <sstream>
 #include <iomanip>
 
+#include <chrono>
+
+using namespace std::literals::chrono_literals;
+
 namespace sma
 {
-NeighborHelper::NeighborHelper(Node* node)
+NeighborHelper::NeighborHelper(CcnNode* node)
   : node(node)
-  , log(node->context()->log())
+  , log(node->context->log)
 {
+  schedule_beacon(100ms);
 }
 
-void NeighborHelper::receive(Message&& msg, NeighborMessage&& nm)
+void NeighborHelper::receive(MessageHeader&& header, NeighborMessage&& msg)
 {
-  log.t("<-- beacon (%v bytes)", nm.body.size());
-  neighbors.update(msg.sender);
+  neighbors.update(header.sender);
 }
 
 using millis = std::chrono::milliseconds;
@@ -28,26 +35,20 @@ void NeighborHelper::schedule_beacon(millis delay)
   using unit = millis::rep;
   unit min = delay.count() / 2;
   delay = millis(min + rand() % delay.count());
-  node->async(std::bind(&NeighborHelper::beacon, this)).do_in(delay);
+  asynctask(std::bind(&NeighborHelper::beacon, this)).do_in(delay);
 }
 
 
 void NeighborHelper::beacon()
 {
-  auto body = have_beacon_data ? std::move(next_beacon_data)
-                               : NeighborMessage::body_type();
-
-  auto msg = make_message<NeighborMessage>(node->id(), std::move(body));
-
-  log.t("--> beacon (%v bytes)", msg.body.size());
-  node->post(std::move(msg));
+  node->post(NeighborMessage());
 
   schedule_beacon(std::chrono::milliseconds(3000));
 }
 
 void NeighborHelper::prune_neighbors()
 {
-  if (std::uint32_t(node->id()) != 0)
+  if (std::uint32_t(node->id) != 0)
     return;
 
   if (!neighbors.empty()) {
@@ -66,7 +67,7 @@ void NeighborHelper::prune_neighbors()
       log.d("");
     }
   }
-  node->async(std::bind(&NeighborHelper::prune_neighbors, this))
+  asynctask(std::bind(&NeighborHelper::prune_neighbors, this))
       .do_in(prune_interval);
 }
 }

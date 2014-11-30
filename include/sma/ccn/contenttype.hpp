@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sma/util/reader.hpp>
+
 #include <iosfwd>
 #include <cstdint>
 #include <string>
@@ -12,16 +14,16 @@ struct ContentType {
   {
   }
 
-  template <typename Reader>
-  ContentType(Reader* r)
-    : name{r->template get<std::string>()}
+  template <typename... T>
+  ContentType(Reader<T...>& r)
+    : name{r.template get<std::string>()}
   {
   }
 
   template <typename Writer>
-  void write_fields(Writer* w) const
+  void write_fields(Writer& w) const
   {
-    *w << name;
+    w << name;
   }
 
   bool operator==(ContentType const& r) const { return name == r.name; }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sma/chrono>
+#include <sma/chrono.hpp>
 
 namespace sma
 {

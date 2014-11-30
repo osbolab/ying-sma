@@ -7,10 +7,10 @@
 
 namespace sma
 {
-  typedef MessageTypecode Typecode;
+  using MessageTypecode = Typecode;
 
-  using MessageTypes =
-    TypeSieve<MessageTypecode>
+  using MessageTypes = TypeSieve<MessageTypecode>
     ::map<0, NeighborMessage>
-    ::map<1, ContentInfoMessage>;
+    ::map<1, InterestMessage>
+    ::map<2, ContentInfoMessage>;
 }

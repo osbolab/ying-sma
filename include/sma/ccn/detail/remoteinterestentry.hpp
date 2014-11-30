@@ -1,6 +1,7 @@
 #include <sma/ccn/remoteinterest.hpp>
+#include <sma/nodeid.hpp>
 
-#include <sma/chrono>
+#include <sma/chrono.hpp>
 
 namespace sma
 {

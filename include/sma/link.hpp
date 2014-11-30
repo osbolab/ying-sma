@@ -1,33 +1,19 @@
 #pragma once
 
-#include <sma/link/linkmanager.hpp>
-
 #include <cstdint>
 #include <utility>
 
 
 namespace sma
 {
-class LinkManager;
+class LinkLayer;
 
 class Link
 {
-  friend class LinkManager;
-
 public:
-  /*
-  Link(Link&& r)
-    : manager(r.manager)
-  {
-    r.manager = nullptr;
-  }
-  Link& operator=(Link&& r)
-  {
-    std::swap(manager, r.manager);
-    return *this;
-  }
-  */
   virtual ~Link() {}
+
+  void receive_to(LinkLayer& ll) { linklayer = &ll; }
 
   bool readable();
 
@@ -40,7 +26,7 @@ protected:
   void readable(bool r);
 
 private:
-  LinkManager* manager{nullptr};
+  LinkLayer* linklayer{nullptr};
   bool is_readable{false};
 };
 }

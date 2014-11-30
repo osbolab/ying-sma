@@ -1,25 +1,25 @@
 #pragma once
 
 #include <sma/neighbortable.hpp>
-#include <sma/neighbormessage.hpp>
 
 #include <sma/io/log>
 
-#include <sma/chrono>
+#include <sma/chrono.hpp>
 #include <chrono>
 
 namespace sma
 {
-class Node;
+class CcnNode;
+
+struct MessageHeader;
 struct NeighborMessage;
 
 class NeighborHelper
 {
 public:
-  NeighborHelper(Node* node);
+  NeighborHelper(CcnNode* node);
 
-  void receive(Message&& msg, NeighborMessage&& nm);
-  void beacon_data(NeighborMessage::body_type data);
+  void receive(MessageHeader&& header, NeighborMessage&& msg);
 
 private:
   using clock = sma::chrono::system_clock;
@@ -32,10 +32,8 @@ private:
   void prune_neighbors();
 
   time_point next_beacon_time;
-  bool have_beacon_data;
-  NeighborMessage::body_type next_beacon_data;
 
-  Node* node;
+  CcnNode* node;
   Logger log;
 
   NeighborTable neighbors;

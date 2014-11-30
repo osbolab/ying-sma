@@ -1,6 +1,6 @@
 #include <sma/ns3/ns3inetlink.hpp>
 #include <sma/linklayer.hpp>
-#include <sma/chrono>
+#include <sma/chrono.hpp>
 #include <sma/io/log>
 
 #include <ns3/ptr.h>

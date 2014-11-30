@@ -6,8 +6,8 @@ namespace sma
 {
 void Link::readable(bool r)
 {
-  if ((is_readable = r) && manager)
-    manager->on_link_readable(this);
+  if ((is_readable = r) && linklayer)
+    linklayer->on_link_readable(*this);
 }
 
 bool Link::readable() { return is_readable; }

@@ -31,37 +31,43 @@ namespace detail
 template <typename... Args>
 Logger const& Logger::t(Args&&... args) const
 {
-  impl->trace(std::forward<Args>(args)...);
+  if (impl)
+    impl->trace(std::forward<Args>(args)...);
   return *this;
 }
 template <typename... Args>
 Logger const& Logger::d(Args&&... args) const
 {
-  impl->debug(std::forward<Args>(args)...);
+  if (impl)
+    impl->debug(std::forward<Args>(args)...);
   return *this;
 }
 template <typename... Args>
 Logger const& Logger::i(Args&&... args) const
 {
-  impl->info(std::forward<Args>(args)...);
+  if (impl)
+    impl->info(std::forward<Args>(args)...);
   return *this;
 }
 template <typename... Args>
 Logger const& Logger::w(Args&&... args) const
 {
-  impl->warn(std::forward<Args>(args)...);
+  if (impl)
+    impl->warn(std::forward<Args>(args)...);
   return *this;
 }
 template <typename... Args>
 Logger const& Logger::e(Args&&... args) const
 {
-  impl->error(std::forward<Args>(args)...);
+  if (impl)
+    impl->error(std::forward<Args>(args)...);
   return *this;
 }
 template <typename... Args>
 Logger const& Logger::f(Args&&... args) const
 {
-  impl->fatal(std::forward<Args>(args)...);
+  if (impl)
+    impl->fatal(std::forward<Args>(args)...);
   return *this;
 }
 }

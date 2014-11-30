@@ -59,6 +59,7 @@ project(${SMA_LIB})
 include_directories("include")
 
 set(${PROJECT_NAME}_sources
+  "src/ccn/ccnnode.cpp"
   "src/ccn/contenttype.cpp"
   "src/ccn/interesthelper.cpp"
   "src/ccn/interestrank.cpp"
@@ -69,12 +70,15 @@ set(${PROJECT_NAME}_sources
 
   "src/link.cpp"
   "src/linklayer.cpp"
+  "src/prsendstrategy.cpp"
+  "src/sendstrategy.cpp"
 
   "src/neighborhelper.cpp"
   "src/neighbortable.cpp"
-  "src/node.cpp"
   "src/nodeid.cpp"
 
+  "src/util/binaryinput.cpp"
+  "src/util/binaryoutput.cpp"
   "src/util/bufferdest.cpp"
   "src/util/buffersource.cpp"
 )

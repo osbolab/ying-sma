@@ -3,9 +3,11 @@
 #include <sma/io/log>
 _INITIALIZE_EASYLOGGINGPP    // Call only once per application
 
-#include <sma/ns3/nodecontainerapp.hpp>
 #include <sma/gps.hpp>
 #include <sma/dummygps.hpp>
+#include <sma/ns3/ns3nodecontainer.hpp>
+#include <sma/ns3/action.hpp>
+#include <sma/ns3/createinterestaction.hpp>
 
 #include <ns3/core-module.h>
 #include <ns3/wifi-module.h>
@@ -19,15 +21,18 @@ _INITIALIZE_EASYLOGGINGPP    // Call only once per application
 
 #include <random>
 #include <iostream>
+#include <chrono>
 
-    void
-    configure_logs(int& argc, char** argv);
+    using namespace std::literals::chrono_literals;
+
+
+void configure_logs(int& argc, char** argv);
 
 int main(int argc, char** argv)
 {
   configure_logs(argc, argv);
 
-  std::size_t nnodes = 20;
+  std::size_t nnodes = 10;
   long duration = 30;
 
   std::string baseIp("10.1.0.0");
@@ -36,7 +41,7 @@ int main(int argc, char** argv)
   bool enable_olsr = false;
   std::string phyMode("DsssRate1Mbps");
   double rss = -80.0;        // -dBm
-  double distance = 1000;    // m
+  double distance = 2000;    // m
   std::string fragmentThreshold = "2200";
 
   ns3::CommandLine cmd;
@@ -118,7 +123,7 @@ int main(int argc, char** argv)
                                 "DeltaY",
                                 ns3::DoubleValue(distance),
                                 "GridWidth",
-                                ns3::UintegerValue(5),
+                                ns3::UintegerValue(1),
                                 "LayoutType",
                                 ns3::StringValue("RowFirst"));
   /*
@@ -169,7 +174,7 @@ int main(int argc, char** argv)
   // application.
   LOG(DEBUG) << "Install SMA application instances in virtual nodes";
   ns3::ObjectFactory sma_factory;
-  sma_factory.SetTypeId(sma::Ns3NodeContainerApp::TypeId());
+  sma_factory.SetTypeId(sma::Ns3NodeContainer::TypeId());
 
 
   // We can keep using that injection template to spawn applications and
@@ -179,11 +184,24 @@ int main(int argc, char** argv)
     auto mob = node->GetObject<ns3::MobilityModel>();
     auto pos = mob->GetPosition();
 
-    auto app = sma_factory.Create<sma::Ns3NodeContainerApp>();
+    auto app = sma_factory.Create<sma::Ns3NodeContainer>();
     app->SetAttribute("id", ns3::UintegerValue(i));
 
     app->add_component(std::move(
         std::make_unique<sma::DummyGps>(sma::GPS::Coord{pos.x, pos.y})));
+
+    if (i == 1) {
+      std::vector<sma::ContentType> interests;
+      interests.emplace_back("cats");
+      app->act_emplace_front<sma::CreateInterestAction>(1s,
+                                                        std::move(interests));
+    }
+    if (i == 7) {
+      std::vector<sma::ContentType> interests;
+      interests.emplace_back("dogs");
+      app->act_emplace_front<sma::CreateInterestAction>(3s,
+                                                        std::move(interests));
+    }
 
     auto apps = ns3::ApplicationContainer(app);
     apps.Start(ns3::Seconds(0));

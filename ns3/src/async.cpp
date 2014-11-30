@@ -5,11 +5,24 @@
 
 #include <unordered_set>
 #include <functional>
+#include <atomic>
 
+
+namespace std
+{
+  template<>
+  struct hash<ns3::EventId> {
+  using argument_type = ns3::EventId;
+  using result_type = std::size_t;
+
+  result_type operator()(argument_type const& a) const { return a.GetUid(); }
+  };
+}
 
 namespace sma
 {
-std::unordered_set<ns3::EventId> events;
+std::unordered_set<ns3::EventId> ns3_events;
+std::atomic_bool purged{false};
 
 struct Ns3AsyncProxy {
   void operator()()
@@ -20,7 +33,7 @@ struct Ns3AsyncProxy {
     delete this;
   }
 
-  ~Ns3AsyncProxy() { events.erase(id); }
+  ~Ns3AsyncProxy() { ns3_events.erase(id); }
 
   ns3::EventId id;
   std::function<void()> target;
@@ -28,6 +41,8 @@ struct Ns3AsyncProxy {
 
 void Async::schedule(std::function<void()> f, std::chrono::nanoseconds delay)
 {
+  if (purged)
+    return;
   // Unfortunately we can't just use the function pointer directly
   // because ns3 doesn't support std::function, so we have to wrap it in
   // yet another layer of indirection.
@@ -39,13 +54,14 @@ void Async::schedule(std::function<void()> f, std::chrono::nanoseconds delay)
   proxy->target = f;
   proxy->id = ns3::Simulator::Schedule(
       ns3::NanoSeconds(delay.count()), &Ns3AsyncProxy::operator(), proxy);
-  events->insert(proxy->id);
+  ns3_events.insert(proxy->id);
 }
 
 void Async::purge()
 {
-  for (auto& event : events)
+  purged = true;
+  for (auto& event : ns3_events)
     ns3::Simulator::Cancel(event);
-  ns3::events.clear();
+  ns3_events.clear();
 }
 }

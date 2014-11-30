@@ -1,8 +1,7 @@
 #pragma once
 
-#include <sma/messagetype.hpp>
-
 #include <sma/util/buffer.hpp>
+#include <sma/util/reader.hpp>
 
 #include <cstdint>
 
@@ -12,8 +11,6 @@ struct NodeId;
 struct Message;
 
 struct NeighborMessage final {
-  static constexpr MessageType TYPE = 0;
-
   using size_type = std::uint8_t;
   using body_type = Buffer<size_type>;
 
@@ -22,6 +19,9 @@ struct NeighborMessage final {
    */
   body_type body;
   /***************************************************************************/
+
+  NeighborMessage()
+  {}
 
   NeighborMessage(body_type body)
     : body(std::move(body))
@@ -33,22 +33,16 @@ struct NeighborMessage final {
   NeighborMessage& operator=(NeighborMessage&&) = default;
   NeighborMessage& operator=(NeighborMessage const&) = default;
 
-  template <typename Reader>
-  NeighborMessage(Reader* r);
+  template <typename...T>
+  NeighborMessage(Reader<T...>& r)
+  : body(r.template get<decltype(body)>())
+  {
+  }
 
   template <typename Writer>
-  void write_fields(Writer* w) const;
+  void write_fields(Writer&& w) const
+  {
+    w << body;
+  }
 };
-
-template <typename Reader>
-NeighborMessage::NeighborMessage(Reader* r)
-  : body(r->template get<decltype(body)>())
-{
-}
-
-template <typename Writer>
-void NeighborMessage::write_fields(Writer* w) const
-{
-  *w << body;
-}
 }

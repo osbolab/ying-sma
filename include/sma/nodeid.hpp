@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sma/util/reader.hpp>
+
 #include <iosfwd>
 #include <cstdint>
 #include <string>
@@ -20,16 +22,15 @@ public:
   {
   }
 
-  template <typename Reader>
-  NodeId(Reader* r)
-    : value{r->template get<value_type>()}
+  template <typename... T>
+  NodeId(Reader<T...>& r)
+    : value{r.template get<value_type>()}
   {
   }
-
   template <typename Writer>
-  void write_fields(Writer* w) const
+  void write_fields(Writer& w) const
   {
-    *w << value;
+    w << value;
   }
 
   bool operator==(NodeId const& r) const { return value == r.value; }
@@ -50,7 +51,7 @@ private:
   value_type value;
 };
 
-std::ostream& operator<<(std::ostream& os, NodeId const& value);
+std::ostream& operator<<(std::ostream& os, NodeId const& v);
 }
 
 namespace std

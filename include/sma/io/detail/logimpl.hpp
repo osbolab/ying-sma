@@ -340,7 +340,7 @@
 #if _ELPP_OS_UNIX
 #include <sys/stat.h>
 #include <chrono>
-#include <sma/chrono>
+#include <sma/chrono.hpp>
 #elif _ELPP_OS_WINDOWS
 #include <direct.h>
 #include <Windows.h>

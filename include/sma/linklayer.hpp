@@ -1,12 +1,20 @@
 #pragma once
 
 #include <sma/link.hpp>
-#include <sma/messageheader.hpp>
-#include <sma/util/binarystreamreader.hpp>
-#include <sma/util/binarystreamwriter.hpp>
+#include <sma/sendstrategy.hpp>
+#include <sma/broadcastrejectpolicy.hpp>
 
+#include <sma/messagetypes.hpp>
+#include <sma/messageheader.hpp>
+
+#include <sma/util/ringbuffer.hpp>
+#include <sma/util/reader.hpp>
+#include <sma/util/binaryformat.hpp>
+
+#include <mutex>
 #include <vector>
 #include <memory>
+#include <cassert>
 
 #include <istream>
 #include <ostream>
@@ -14,11 +22,22 @@
 
 namespace sma
 {
-class Link;
+class CcnNode;
 
 class LinkLayer final
 {
   friend class Link;
+
+  struct MessageData {
+    MessageData() = default;
+    MessageData(MessageData&&) = delete;
+    MessageData(MessageData const&) = delete;
+    MessageData& operator=(MessageData&&) = delete;
+    MessageData& operator=(MessageData const&) = delete;
+
+    std::size_t size;
+    std::stringbuf::char_type data[1024];
+  };
 
 public:
   LinkLayer(std::vector<std::unique_ptr<Link>> links);
@@ -26,44 +45,57 @@ public:
   LinkLayer(LinkLayer const& r) = delete;
   LinkLayer& operator=(LinkLayer const& r) = delete;
 
-  void receive_to(Node* node) { this->node = node; }
+  LinkLayer& send_strategy(SendStrategy& strat);
+  LinkLayer& receive_to(CcnNode& node);
+  void stop();
 
   template <typename M>
-  void forward(MessageHeader header, M&& msg);
+  void enqueue(MessageHeader const& header, M const& msg);
+
+  std::size_t forward_one();
 
 private:
-  void on_link_readable(Link* link);
+  void on_link_readable(Link& link);
+
+  std::mutex readmx;
+  using Lock = std::lock_guard<std::mutex>;
 
   std::vector<std::unique_ptr<Link>> links;
-  Node* node{nullptr};
+  CcnNode* node{nullptr};
 
+  SendStrategy* send_strat;
   // Sending and receiving are mutually thread-safe
-  std::stringbuf::char_type send_buf[1024];
+  RingBuffer<MessageData, 16> send_buf;
   std::stringbuf::char_type recv_buf[1024];
-  std::stringbuf send_sbuf;
   std::stringbuf recv_sbuf;
   // Don't reorder the below without changing the initializer.
-  std::ostream send_os;
   std::istream recv_is;
-  BinaryStreamWriter writer;
-  BinaryStreamReader reader;
+  Reader<BinaryInput> reader;
+
+  BroadcastRejectPolicy rejects;
 };
 
 
 template <typename M>
-void LinkLayer::forward(MessageHeader header, M&& msg)
+void LinkLayer::enqueue(MessageHeader const& header, M const& msg)
 {
-  // lock buffer
-  send_sbuf.pubseekpos(0);
+  {
+    auto slot = send_buf.claim();
+    MessageData& buf = *slot;
 
-  writer << header;
-  writer << msg;
+    std::stringbuf sbuf;
+    sbuf.pubsetbuf(buf.data, sizeof buf.data);
+    std::ostream os(&sbuf);
+    BinaryOutput writer(&os);
 
-  std::size_t const size = send_os.tellp();
+    writer << header << MessageTypes::typecode<M>() << msg;
 
-  std::size_t wrote = 0;
-  for (auto& link : links)
-    assert((wrote = link->write(send_buf, size)));
-  // unlock buffer
+    buf.size = os.tellp();
+  }
+
+  if (send_strat)
+    send_strat->notify();
+  else
+    forward_one();
 }
 }
