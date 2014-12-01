@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sma/nodeid.hpp>
+#include <sma/network_hops.hpp>
 
 #include <sma/chrono.hpp>
 
@@ -9,8 +10,6 @@ namespace sma
 struct Interest;
 
 struct RemoteInterest {
-  using hops_type = std::uint16_t;
-
   using clock = sma::chrono::system_clock;
   using time_point = clock::time_point;
 
@@ -31,7 +30,7 @@ struct RemoteInterest {
     return this->age<Duration>() >= age;
   }
 
-  hops_type hops;
+  network_hops distance;
   time_point last_seen;
 };
 }

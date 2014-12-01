@@ -20,7 +20,7 @@ class NeighborHelper : public Neighbors
 public:
   NeighborHelper(CcnNode& node);
 
-  void receive(MessageHeader&& header, NeighborMessage&& msg);
+  void receive(MessageHeader header, NeighborMessage msg);
 
 private:
   using clock = sma::chrono::system_clock;

@@ -4,7 +4,7 @@
 namespace sma
 {
 RemoteInterest::RemoteInterest(Interest const& interest)
-  : hops(interest.hops)
+  : distance(interest.distance)
 {
   touch();
 }
@@ -14,8 +14,8 @@ void RemoteInterest::touch() { last_seen = clock::now(); }
 bool RemoteInterest::update(Interest const& interest)
 {
   touch();
-  if (interest.hops < hops) {
-    hops = interest.hops;
+  if (interest.distance < distance) {
+    distance = interest.distance;
     return true;
   }
   return false;

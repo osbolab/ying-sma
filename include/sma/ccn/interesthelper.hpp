@@ -23,7 +23,7 @@ class InterestHelper : public Interests
 {
 public:
   InterestHelper(CcnNode& node);
-  void receive(MessageHeader&& header, InterestMessage&& msg);
+  void receive(MessageHeader header, InterestMessage msg);
 
   virtual void insert_new(std::vector<ContentType> types) override;
 

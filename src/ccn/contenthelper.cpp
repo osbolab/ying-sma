@@ -29,41 +29,42 @@ void ContentHelper::receive(MessageHeader header, ContentInfoMessage msg)
 {
   using clock = sma::chrono::system_clock;
 
-  ++msg.hops;
+  bool forward = false;
 
   auto& info = msg.info;
-  if (kct.
-  log.d("Content info from %v", header.sender);
-  log.d("| distance: %v hops", msg.hops);
-  log.d("| type: %v", info.type);
-  log.d("| name: %v", info.name);
-  log.d("| creator: %v", info.originating_node);
-  log.d("| publisher: %v", info.publishing_node);
-  log.d("| created at: %v",
-        clock::utcstrftime(clock::from_time_t(info.creation_time)));
+  // Break loops
+  if (info.publisher == node->id)
+    return;
+
+  ++info.distance;
 
   auto& interests = node->interests();
   if (interests.interested_in(info))
-    log.d("I got content I wanted!");
+    log.d("** I got content I wanted! **");
+
+  if (!update_kct(msg.hash, info))
+    return;
+
+  log.d("Content info from n(%v)", header.sender);
+  log.d("| distance: %v hops", std::uint32_t(info.distance));
+  log.d("| type: %v", info.type);
+  log.d("| name: %v", info.name);
+  log.d("| publisher: %v", info.publisher);
 
   if (interests.know_remote(info.type)) {
-    bool forward = true;
-    auto expiration = clock::now() + 10s;
-    auto maybe_record = forward_record.emplace(info, expiration);
-
-    if (!maybe_record.second) {
-      auto& existing = maybe_record.first;
-      if (existing->second - clock::now() <= 0s)
-        existing->second = expiration;
-      else
-        forward = false;
-    }
-
-    if (forward) {
-      log.d("--> I know someone who wants this");
-      node->post(msg);
-    }
+    log.d("--> I know someone who wants this");
+    node->post(msg);
   }
+  log.d("");
+}
+
+bool ContentHelper::update_kct(Hash const& hash, ContentInfo const& info)
+{
+  auto try_add = kct.emplace(hash, info);
+  if (try_add.second)
+    return true;
+  auto& existing = try_add.first->second;
+  return existing.update(info);
 }
 
 void ContentHelper::publish(ContentType type,
@@ -73,7 +74,10 @@ void ContentHelper::publish(ContentType type,
   log.d("Publish content:");
   log.d("| type: %v", type);
   log.d("| name: %v", name);
+  log.d("");
 
-  node->post(ContentInfoMessage(ContentInfo(type, name, node->id)));
+  auto hash = Hasher(std::string(type))(std::string(name)).digest();
+  node->post(
+      ContentInfoMessage(std::move(hash), ContentInfo(type, name, node->id)));
 }
 }

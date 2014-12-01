@@ -24,7 +24,7 @@ NeighborHelper::NeighborHelper(CcnNode& node)
   schedule_beacon(100ms);
 }
 
-void NeighborHelper::receive(MessageHeader&& header, NeighborMessage&& msg)
+void NeighborHelper::receive(MessageHeader header, NeighborMessage msg)
 {
   neighbors.update(header.sender);
 }

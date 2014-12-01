@@ -9,22 +9,24 @@ namespace sma
 
 Hasher::Hasher(void const* src, std::size_t size)
 {
-  add(src, size);
+  operator()(src, size);
 }
 
 Hasher::Hasher(std::string const& s)
 {
-  add(s);
+  operator()(s);
 }
 
-void Hasher::add(void const* src, std::size_t size)
+Hasher& Hasher::operator()(void const* src, std::size_t size)
 {
   sha.add(src, size);
+  return *this;
 }
 
-void Hasher::add(std::string const& s)
+Hasher& Hasher::operator()(std::string const& s)
 {
   sha.add(s.c_str(), s.size());
+  return *this;
 }
 
 Hash Hasher::digest()

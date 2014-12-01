@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sma/ccn/contentinfo.hpp>
+#include <sma/network_hops.hpp>
 
 #include <sma/util/serial.hpp>
 
@@ -9,15 +10,14 @@
 namespace sma
 {
 struct ContentInfoMessage {
-  TRIVIALLY_SERIALIZABLE(ContentInfoMessage, info, hops)
+  TRIVIALLY_SERIALIZABLE(ContentInfoMessage, hash, info)
 
-  using hop_count = std::uint16_t;
-
+  Hash hash;
   ContentInfo info;
-  hop_count hops = 0;
 
-  ContentInfoMessage(ContentInfo info)
-    : info(std::move(info))
+  ContentInfoMessage(Hash hash, ContentInfo info)
+    : hash(hash)
+    , info(std::move(info))
   {
   }
 

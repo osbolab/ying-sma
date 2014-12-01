@@ -20,19 +20,9 @@ struct Hash {
   Hash(Hash const&);
   Hash& operator=(Hash const&);
 
-  DESERIALIZING_CTOR(Hash)
-  {
-    std::uint8_t length;
-    GET_FIELD(length);
-    assert(length == LENGTH);
-    GET_BYTES(data, LENGTH);
-  }
+  DESERIALIZING_CTOR(Hash) { GET_BYTES(data, LENGTH); }
 
-  SERIALIZER()
-  {
-    PUT_FIELD(std::uint8_t(LENGTH));
-    PUT_BYTES(data, LENGTH);
-  }
+  SERIALIZER() { PUT_BYTES(data, LENGTH); }
 
   int compare(Hash const&) const;
 
@@ -56,8 +46,8 @@ struct Hasher {
   Hasher(void const* src, std::size_t size);
   Hasher(std::string const& s);
 
-  void add(void const* src, std::size_t size);
-  void add(std::string const& s);
+  Hasher& operator()(void const* src, std::size_t size);
+  Hasher& operator()(std::string const& s);
 
   Hash digest();
 
@@ -76,8 +66,9 @@ struct hash<sma::Hash> {
   result_type operator()(argument_type const& a) const
   {
     size_t hash = 1;
-    for (size_t i = 0; i < sma::Hash::LENGTH; ++i)
-      hash *= 31 + a.data[i];
+    for (size_t i = 0; i < sma::Hash::LENGTH; i += 4)
+      hash = 31 * hash + (size_t(a.data[i]) << 24 | size_t(a.data[i + 1]) << 16
+                          | size_t(a.data[i + 2]) << 8 | a.data[i + 3]);
     return hash;
   }
 };

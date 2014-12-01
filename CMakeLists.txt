@@ -73,7 +73,6 @@ set(${PROJECT_NAME}_sources
   "src/ccn/remoteinterest.cpp"
 
   "src/ccn/contenthelper.cpp"
-  "src/ccn/contentinfo.cpp"
 
   "src/neighborhelper.cpp"
   "src/neighbortable.cpp"

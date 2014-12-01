@@ -10,6 +10,8 @@
 
 #include <chrono>
 #include <limits>
+#include <sstream>
+#include <iomanip>
 
 using namespace std::literals::chrono_literals;
 
@@ -21,9 +23,9 @@ InterestHelper::InterestHelper(CcnNode& node)
 {
 }
 
-void InterestHelper::receive(MessageHeader&& header, InterestMessage&& msg)
+void InterestHelper::receive(MessageHeader header, InterestMessage msg)
 {
-  // Don't forward interests we originally sent
+  // Break loops
   if (msg.interested_node == node->id)
     return;
 
@@ -32,11 +34,12 @@ void InterestHelper::receive(MessageHeader&& header, InterestMessage&& msg)
         msg.interested_node,
         header.sender);
 
-  // Just cull those not to be forwarded from the given vector
+  // Cull any that we aren't already broadcasting with a closer distance.
+  // The result is that our neighbors always see the shortest path we know of.
   for (auto it = msg.interests.begin(); it != msg.interests.end();) {
     auto& interest = *it;
     // Account for the link that the message came over
-    ++interest.hops;
+    ++interest.distance;
     if (!learn_remote_interest(interest))
       // Only forward interests we learned something new about
       it = msg.interests.erase(it);
@@ -55,10 +58,10 @@ void InterestHelper::receive(MessageHeader&& header, InterestMessage&& msg)
 
 bool InterestHelper::learn_remote_interest(Interest const& interest)
 {
-  auto maybe_added = r_table.emplace(interest.type, RemoteInterest(interest));
-  if (maybe_added.second)
+  auto try_add = r_table.emplace(interest.type, RemoteInterest(interest));
+  if (try_add.second)
     return true;
-  auto& existing = maybe_added.first->second;
+  auto& existing = try_add.first->second;
   return existing.update(interest);
 }
 
@@ -108,7 +111,7 @@ void InterestHelper::announce()
   if (table.size() < nmax) {
     auto nfwds = nmax - table.size();
     for (auto it = r_table.begin(); nfwds-- > 0 && it != r_table.end(); ++it)
-      msg.interests.emplace_back(it->first, it->second.hops);
+      msg.interests.emplace_back(it->first, it->second.distance);
   }
 
   if (!msg.interests.empty()) {
@@ -121,11 +124,25 @@ void InterestHelper::announce()
 
 void InterestHelper::log_interest_table()
 {
-  log.d("remote interest table (%v):", r_table.size());
-  for (auto it = r_table.begin(); it != r_table.end(); ++it)
-    log.d("|  %v (%v hops) - last seen: %v ms ago",
-          std::string(it->first),
-          std::uint32_t(it->second.hops),
-          it->second.template age<std::chrono::milliseconds>().count());
+  std::stringstream ss;
+  log.d(" remote interest table");
+  ss << "| " << std::left << std::setw(7) << "content" << " | " << std::left
+     << std::setw(4) << "hops | age (ms) |";
+
+  log.d(ss.str());
+  log.d("| ------- | ---- | -------- |");
+  for (auto it = r_table.begin(); it != r_table.end(); ++it) {
+    ss.str("");
+    auto age_ms = it->second.template age<std::chrono::milliseconds>().count();
+    ss << "| " << std::left << std::setw(7) << std::string(it->first) << " | "
+       << std::left << std::setw(4)
+       << std::to_string(std::uint32_t(it->second.distance)) << " | ";
+    if (age_ms != 0)
+      ss << std::left << std::setw(8) << std::to_string(age_ms) << " |";
+    else
+      ss << std::left << std::setw(8) << "   *" << " |";
+    log.d(ss.str());
+  }
+  log.d("");
 }
 }

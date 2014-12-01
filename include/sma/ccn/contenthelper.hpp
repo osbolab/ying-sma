@@ -30,13 +30,12 @@ public:
   publish(ContentType type, ContentName name, std::istream& is) override;
 
 private:
+  bool update_kct(Hash const& hash, ContentInfo const& info);
+
   CcnNode* node;
   Logger log;
 
   // Known Content Table
-  std::unordered_map<ContentHash, std::> kct;
-  // Forwaded Info --> Expiration time
-  // Recently Forwarded Table
-  std::unordered_map<ContentInfo, sma::chrono::system_clock::time_point> rft;
+  std::unordered_map<Hash, ContentInfo> kct;
 };
 }

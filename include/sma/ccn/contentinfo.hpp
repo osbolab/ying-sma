@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sma/nodeid.hpp>
+#include <sma/network_hops.hpp>
 #include <sma/ccn/contenttype.hpp>
 #include <sma/ccn/contentname.hpp>
 
@@ -16,30 +17,52 @@
 namespace sma
 {
 struct ContentInfo {
-  TRIVIALLY_SERIALIZABLE(ContentInfo,
-                         type,
-                         name,
-                         hash,
-                         originating_node,
-                         publishing_node,
-                         creation_time,
-                         publish_time)
+  TRIVIALLY_SERIALIZABLE(ContentInfo, type, name, publisher, distance, blocks)
 
+  using clock = sma::chrono::system_clock;
+  using time_point = clock::time_point;
+
+  /****************************
+   * Serialized              */
   ContentType type;
   ContentName name;
-  Hash hash;
 
-  NodeId originating_node;
-  NodeId publishing_node;
+  NodeId publisher;
+  network_hops distance;
 
-  std::time_t creation_time;
-  std::time_t publish_time;
+  std::vector<Hash> blocks;
+  /**************************/
 
+  /***************************
+   * Transient              */
+  time_point last_seen;
+  /**************************/
 
-  ContentInfo(ContentType type, ContentName name, Hash hash, NodeId originating_node);
+  ContentInfo(ContentType type,
+              ContentName name,
+              NodeId publisher,
+              std::vector<Hash> blocks = std::vector<Hash>(),
+              network_hops distance = 0)
+    : type(type)
+    , name(name)
+    , publisher(publisher)
+    , distance(distance)
+    , blocks(std::move(blocks))
+  {
+    touch();
+  }
 
-  bool operator==(ContentInfo const& r) const;
-  bool operator!=(ContentInfo const& r) const;
+  void touch() { last_seen = clock::now(); }
+
+  bool update(ContentInfo const& info)
+  {
+    touch();
+    if (info.distance >= distance)
+      return false;
+    distance = info.distance;
+    publisher = info.publisher;
+    return true;
+  }
 };
 }
 
