@@ -17,9 +17,9 @@ using namespace std::literals::chrono_literals;
 
 namespace sma
 {
-NeighborHelper::NeighborHelper(CcnNode* node)
-  : node(node)
-  , log(node->context->log)
+NeighborHelper::NeighborHelper(CcnNode& node)
+  : node(&node)
+  , log(node.context->log)
 {
   schedule_beacon(100ms);
 }

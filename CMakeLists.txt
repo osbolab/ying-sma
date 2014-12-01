@@ -67,9 +67,9 @@ set(${PROJECT_NAME}_sources
   "src/nodeid.cpp"
 
   "src/ccn/ccnnode.cpp"
-  "src/ccn/contenttype.cpp"
   "src/ccn/interesthelper.cpp"
   "src/ccn/interestrank.cpp"
+  "src/ccn/contenthelper.cpp"
 
   "src/neighborhelper.cpp"
   "src/neighbortable.cpp"

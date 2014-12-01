@@ -2,9 +2,9 @@
 
 #include <sma/ns3/action.hpp>
 
+#include <sma/ccn/contenttype.hpp>
 #include <sma/ccn/ccnnode.hpp>
 
-#include <sma/ccn/contenttype.hpp>
 
 namespace sma
 {
@@ -23,9 +23,8 @@ struct CreateInterestAction : Action {
   {
     CcnNode& node = *(context->node);
     node.log.d("Action: add %v interests", interests.size());
-    node.add_interests(interests);
+    node.interests().insert_new(interests);
   }
-
 
   interests_type interests;
 };

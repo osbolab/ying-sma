@@ -1,7 +1,8 @@
 #pragma once
 
-#include <sma/ccn/contenttype.hpp>
 #include <sma/ccn/interest.hpp>
+#include <sma/ccn/interests.hpp>
+#include <sma/ccn/contenttype.hpp>
 #include <sma/ccn/detail/remoteinterestentry.hpp>
 
 #include <sma/io/log>
@@ -15,13 +16,14 @@ class CcnNode;
 struct MessageHeader;
 struct InterestMessage;
 
-class InterestHelper
+
+class InterestHelper : public Interests
 {
 public:
-  InterestHelper(CcnNode* node);
-  void receive(MessageHeader header, InterestMessage msg);
+  InterestHelper(CcnNode& node);
+  void receive(MessageHeader&& header, InterestMessage&& msg);
 
-  void insert_new(std::vector<ContentType> types);
+  virtual void insert_new(std::vector<ContentType> types) override;
 
 private:
   void schedule_broadcast();

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <sma/neighbors.hpp>
 #include <sma/neighbortable.hpp>
 
 #include <sma/io/log>
@@ -14,10 +15,10 @@ class CcnNode;
 struct MessageHeader;
 struct NeighborMessage;
 
-class NeighborHelper
+class NeighborHelper : public Neighbors
 {
 public:
-  NeighborHelper(CcnNode* node);
+  NeighborHelper(CcnNode& node);
 
   void receive(MessageHeader&& header, NeighborMessage&& msg);
 

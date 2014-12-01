@@ -20,7 +20,7 @@ struct Unmarshal {
   template <typename M, typename Reader>
   void operator()(MessageHeader&& header, Reader& reader, CcnNode& node)
   {
-    node.receive(header, M(reader));
+    node.receive(std::move(header), M(reader));
   }
 };
 // Avoid constructing it for every message

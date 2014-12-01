@@ -1,13 +1,17 @@
 #pragma once
 
-#include <sma/context.hpp>
 #include <sma/nodeid.hpp>
-#include <sma/messageheader.hpp>
+#include <sma/context.hpp>
 #include <sma/linklayer.hpp>
+
+#include <sma/messageheader.hpp>
 
 #include <sma/neighborhelper.hpp>
 
+#include <sma/ccn/interests.hpp>
 #include <sma/ccn/interesthelper.hpp>
+
+#include <sma/ccn/contenthelper.hpp>
 
 #include <sma/io/log>
 
@@ -34,11 +38,12 @@ public:
   template <typename M>
   void post(std::vector<NodeId> recipients, M const& msg);
 
-  void receive(MessageHeader header, NeighborMessage msg);
-  void receive(MessageHeader header, InterestMessage msg);
-  void receive(MessageHeader header, ContentInfoMessage msg);
+  void receive(MessageHeader&& header, NeighborMessage&& msg);
+  void receive(MessageHeader&& header, InterestMessage&& msg);
+  void receive(MessageHeader&& header, ContentInfoMessage&& msg);
 
-  void add_interests(std::vector<ContentType> types);
+  Neighbors& neighbors() { return neighbor_helper; }
+  Interests& interests() { return interest_helper; }
 
   NodeId const id;
   Context* const context;
@@ -50,6 +55,7 @@ private:
 
   NeighborHelper neighbor_helper;
   InterestHelper interest_helper;
+  ContentHelper content_helper;
 };
 
 template <typename M>

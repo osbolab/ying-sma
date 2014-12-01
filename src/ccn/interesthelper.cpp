@@ -11,13 +11,13 @@
 
 namespace sma
 {
-InterestHelper::InterestHelper(CcnNode* node)
-  : node(node)
-  , log(node->context->log)
+InterestHelper::InterestHelper(CcnNode& node)
+  : node(&node)
+  , log(node.context->log)
 {
 }
 
-void InterestHelper::receive(MessageHeader header, InterestMessage msg)
+void InterestHelper::receive(MessageHeader&& header, InterestMessage&& msg)
 {
   // Don't forward interests we originally sent
   if (msg.interested == node->id)

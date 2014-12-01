@@ -16,7 +16,7 @@ namespace detail
     time_point last_seen;
 
 
-    RemoteInterestEntry(RemoteInterest ri)
+    RemoteInterestEntry(RemoteInterest const& ri)
       : hops(ri.hops)
     {
       touch();
@@ -34,16 +34,16 @@ namespace detail
       return false;
     }
 
-    template <typename D = std::chrono::milliseconds>
-    D age()
+    template <typename Duration = std::chrono::milliseconds>
+    Duration age()
     {
-      return std::chrono::duration_cast<D>(clock::now() - last_seen);
+      return std::chrono::duration_cast<Duration>(clock::now() - last_seen);
     }
 
-    template <typename D>
-    bool older_than(D age)
+    template <typename Duration>
+    bool older_than(Duration age)
     {
-      return this->age<D>() >= age;
+      return this->age<Duration>() >= age;
     }
   };
 }

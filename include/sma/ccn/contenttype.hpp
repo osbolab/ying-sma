@@ -45,7 +45,10 @@ private:
   /***************************************************************************/
 };
 
-std::ostream& operator<<(std::ostream& os, ContentType const& value);
+inline std::ostream& operator<<(std::ostream& os, ContentType const& value)
+{
+  return os << std::string(value);
+}
 }
 
 namespace std
