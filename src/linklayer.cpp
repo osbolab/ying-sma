@@ -31,7 +31,7 @@ LinkLayer::LinkLayer(std::vector<std::unique_ptr<Link>> links,
   : links(std::move(links))
   , rejectif(rejectif)
   , recv_bufsrc(recv_buf, sizeof recv_buf)
-  , recv_reader(recv_bufsrc.reader<BinaryInput>())
+  , recv_reader(recv_bufsrc.format<BinaryInput>())
 {
   assert(!this->links.empty());
   for (auto& link : this->links)

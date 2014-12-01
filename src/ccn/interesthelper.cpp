@@ -3,11 +3,15 @@
 
 #include <sma/ccn/ccnnode.hpp>
 
-#include <sma/context.hpp>
+#include <sma/ccn/contentinfo.hpp>
 
+#include <sma/context.hpp>
 #include <sma/async.hpp>
 
+#include <chrono>
 #include <limits>
+
+using namespace std::literals::chrono_literals;
 
 namespace sma
 {
@@ -20,62 +24,74 @@ InterestHelper::InterestHelper(CcnNode& node)
 void InterestHelper::receive(MessageHeader&& header, InterestMessage&& msg)
 {
   // Don't forward interests we originally sent
-  if (msg.interested == node->id)
+  if (msg.interested_node == node->id)
     return;
 
   log.t("<-- %v interests from n(%v) via n(%v)",
         msg.interests.size(),
-        msg.interested,
+        msg.interested_node,
         header.sender);
 
   // Just cull those not to be forwarded from the given vector
-  auto it = msg.interests.begin();
-  while (it != msg.interests.end()) {
-    auto& ri = *it;
-    // Account for the link that the message came over;
-    // we could increment at the sender, but I prefer counting after the hop.
-    ++ri.hops;
-    auto result = r_table.emplace(ri.type, detail::RemoteInterestEntry(ri));
-    // If we insert a new interest or find a closer node than what we have
-    // then we should forward this
-    bool updated = result.second ? true : result.first->second.update(ri);
-    it = updated ? it + 1 : msg.interests.erase(it);
+  for (auto it = msg.interests.begin(); it != msg.interests.end();) {
+    auto& interest = *it;
+    // Account for the link that the message came over
+    ++interest.hops;
+    if (!learn_remote_interest(interest))
+      // Only forward interests we learned something new about
+      it = msg.interests.erase(it);
+    else
+      ++it;
   }
 
   if (!msg.interests.empty()) {
     log.t("--> forward %v interests", msg.interests.size());
     node->post(msg);
 
-    log.d("remote interest table (%v):", r_table.size());
-    for (auto it = r_table.begin(); it != r_table.end(); ++it)
-      log.d("|  %v (%v hops) - last seen: %v ms ago",
-            std::string(it->first),
-            std::uint32_t(it->second.hops),
-            it->second.template age<std::chrono::milliseconds>().count());
+    log_interest_table();
+    schedule_announcement();
   }
+}
+
+bool InterestHelper::learn_remote_interest(Interest const& interest)
+{
+  auto maybe_added = r_table.emplace(interest.type, RemoteInterest(interest));
+  if (maybe_added.second)
+    return true;
+  auto& existing = maybe_added.first->second;
+  return existing.update(interest);
+}
+
+bool InterestHelper::interested_in(ContentInfo const& info) const
+{
+  return table.find(info.type) != table.end();
+}
+
+bool InterestHelper::know_remote(ContentType const& type) const
+{
+  return r_table.find(info.type) != r_table.end();
 }
 
 void InterestHelper::insert_new(std::vector<ContentType> types)
 {
   for (auto& t : types)
-    table.emplace(t, Interest());
+    table.emplace(t, InterestRank());
 
   if (!table.empty())
-    schedule_broadcast();
+    schedule_announcement(200ms);
 }
 
-void InterestHelper::schedule_broadcast()
+void InterestHelper::schedule_announcement(std::chrono::milliseconds delay)
 {
-  auto delay = std::chrono::milliseconds(5000);
   using unit = std::chrono::milliseconds::rep;
   unit min = delay.count() / 2;
   delay = std::chrono::milliseconds(min + rand() % delay.count());
-  log.d("broadcast interests in %v ms", delay.count());
-  asynctask(std::bind(&InterestHelper::broadcast_interests, this)).do_in(delay);
+  log.t("announce interests in %v ms", delay.count());
+  asynctask(std::bind(&InterestHelper::announce, this)).do_in(delay);
   return;
 }
 
-void InterestHelper::broadcast_interests()
+void InterestHelper::announce()
 {
   InterestMessage msg(node->id);
 
@@ -96,10 +112,20 @@ void InterestHelper::broadcast_interests()
   }
 
   if (!msg.interests.empty()) {
-    log.d("--> %v interests", msg.interests.size());
+    log.t("--> announce %v interests", msg.interests.size());
     node->post(msg);
 
-    schedule_broadcast();
+    schedule_announcement();
   }
+}
+
+void InterestHelper::log_interest_table()
+{
+  log.d("remote interest table (%v):", r_table.size());
+  for (auto it = r_table.begin(); it != r_table.end(); ++it)
+    log.d("|  %v (%v hops) - last seen: %v ms ago",
+          std::string(it->first),
+          std::uint32_t(it->second.hops),
+          it->second.template age<std::chrono::milliseconds>().count());
 }
 }

@@ -1,52 +1,37 @@
 #pragma once
 
-#include <sma/ccn/contenttype.hpp>
+#include <sma/nodeid.hpp>
 
-#include <sma/util/reader.hpp>
 #include <sma/chrono.hpp>
 
 namespace sma
 {
+struct Interest;
+
 struct RemoteInterest {
-private:
+  using hops_type = std::uint16_t;
+
   using clock = sma::chrono::system_clock;
+  using time_point = clock::time_point;
 
-public:
-  using hop_count = std::uint8_t;
+  RemoteInterest(hops_type hops);
 
-  /****************************************************************************
-   * Serialized fields - Order matters!
-   */
-  ContentType type;
-  hop_count hops;
-  /***************************************************************************/
+  inline void touch();
+  bool update(hops_type hops);
 
-  RemoteInterest(ContentType type, hop_count hops)
-    : type(type)
-    , hops(hops)
+  template <typename Duration = std::chrono::milliseconds>
+  Duration age()
   {
+    return std::chrono::duration_cast<Duration>(clock::now() - last_seen);
   }
 
-  template <typename...T>
-  RemoteInterest(Reader<T...>& r);
+  template <typename Duration>
+  bool older_than(Duration age)
+  {
+    return this->age<Duration>() >= age;
+  }
 
-  template <typename Writer>
-  void write_fields(Writer& w) const;
-
-  bool closer_than(hop_count hops) { return this->hops < hops; }
+  hops_type hops;
+  time_point last_seen;
 };
-
-template <typename... T>
-RemoteInterest::RemoteInterest(Reader<T...>& r)
-  : type(r.template get<decltype(type)>())
-  , hops(r.template get<hop_count>())
-{
-}
-
-template <typename Writer>
-void RemoteInterest::write_fields(Writer& w) const
-{
-  w << type;
-  w << hops;
-}
 }

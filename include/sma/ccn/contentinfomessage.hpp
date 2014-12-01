@@ -1,25 +1,30 @@
 #pragma once
 
-#include <sma/nodeid.hpp>
-#include <sma/util/reader.hpp>
+#include <sma/ccn/contentinfo.hpp>
+
+#include <sma/util/serial.hpp>
+
+#include <ctime>
 
 namespace sma
 {
 struct ContentInfoMessage {
-  template <typename... T>
-  ContentInfoMessage(Reader<T...>& r);
+  TRIVIALLY_SERIALIZABLE(ContentInfoMessage, info, hops)
 
-  template <typename Writer>
-  void write_fields(Writer& w) const;
+  using hop_count = std::uint16_t;
+
+  ContentInfo info;
+  hop_count hops = 0;
+
+  ContentInfoMessage(ContentInfo info)
+    : info(std::move(info))
+  {
+  }
+
+  ContentInfoMessage(ContentInfoMessage&&) = default;
+  ContentInfoMessage(ContentInfoMessage const&) = default;
+
+  ContentInfoMessage& operator=(ContentInfoMessage&&) = default;
+  ContentInfoMessage& operator=(ContentInfoMessage const&) = default;
 };
-
-template <typename... T>
-ContentInfoMessage::ContentInfoMessage(Reader<T...>& r)
-{
-}
-
-template <typename Writer>
-void ContentInfoMessage::write_fields(Writer& w) const
-{
-}
 }

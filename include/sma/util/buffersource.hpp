@@ -17,7 +17,7 @@ public:
   void rewind();
 
   template <typename Formatter>
-  Reader<Formatter> reader()
+  Reader<Formatter> format()
   {
     return Reader<Formatter>(is);
   }

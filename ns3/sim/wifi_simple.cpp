@@ -8,6 +8,7 @@ _INITIALIZE_EASYLOGGINGPP    // Call only once per application
 #include <sma/ns3/ns3nodecontainer.hpp>
 #include <sma/ns3/action.hpp>
 #include <sma/ns3/createinterestaction.hpp>
+#include <sma/ns3/publishcontentaction.hpp>
 
 #include <ns3/core-module.h>
 #include <ns3/wifi-module.h>
@@ -32,7 +33,7 @@ int main(int argc, char** argv)
 {
   configure_logs(argc, argv);
 
-  std::size_t nnodes = 10;
+  std::size_t nnodes = 4;
   long duration = 30;
 
   std::string baseIp("10.1.0.0");
@@ -195,6 +196,7 @@ int main(int argc, char** argv)
       interests.emplace_back("cats");
       app->act_emplace_front<sma::CreateInterestAction>(1s,
                                                         std::move(interests));
+      app->act_emplace_front<sma::PublishContentAction>(2s, "cats", "my cat");
     }
     if (i == 7) {
       std::vector<sma::ContentType> interests;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sma/util/reader.hpp>
+#include <sma/util/serial.hpp>
 
 #include <cstdint>
 #include <memory>
@@ -21,11 +21,21 @@ struct Buffer {
   Buffer& operator=(Buffer&& r);
   Buffer& operator=(Buffer const& r);
 
-  template <typename... T>
-  Buffer(Reader<T...>& r);
+  DESERIALIZING_CTOR(Buffer)
+    : INIT_FIELD_AS(sz, SizeT)
+  {
+    data = std::make_unique<std::uint8_t[]>(sz);
+    if (sz != 0)
+      GET_BYTES(data.get(), sz);
+  }
 
-  template <typename Writer>
-  void write_fields(Writer& w) const;
+  SERIALIZER()
+  {
+    PUT_FIELD(SizeT(sz));
+    if (sz != 0)
+      PUT_BYTES(data.get(), sz);
+  }
+
 
   std::size_t size() const { return sz; }
   std::uint8_t const* cdata() const { return data.get(); }
@@ -79,24 +89,5 @@ Buffer<SizeT>& Buffer<SizeT>::operator=(Buffer&& r)
   std::swap(data, r.data);
 
   return *this;
-}
-
-template <typename SizeT>
-template <typename... T>
-Buffer<SizeT>::Buffer(Reader<T...>& r)
-  : sz{r.template get<SizeT>()}
-{
-  data = std::make_unique<std::uint8_t[]>(sz);
-  if (sz != 0)
-    r.read(data.get(), sz);
-}
-
-template <typename SizeT>
-template <typename Writer>
-void Buffer<SizeT>::write_fields(Writer& w) const
-{
-  w << SizeT(sz);
-  if (sz != 0)
-    w.write(data.get(), sz);
 }
 }

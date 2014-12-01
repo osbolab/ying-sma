@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sma/util/reader.hpp>
+#include <sma/util/serial.hpp>
 
 #include <iosfwd>
 #include <cstdint>
@@ -9,31 +9,21 @@
 namespace sma
 {
 struct ContentType {
-  ContentType(std::string name)
-    : name(name)
+  TRIVIALLY_SERIALIZABLE(ContentType, value)
+
+  ContentType(std::string value)
+    : value(value)
   {
   }
 
-  template <typename... T>
-  ContentType(Reader<T...>& r)
-    : name{r.template get<std::string>()}
-  {
-  }
+  bool operator==(ContentType const& r) const { return value == r.value; }
+  bool operator!=(ContentType const& r) const { return value != r.value; }
+  bool operator<(ContentType const& r) const { return value < r.value; }
+  bool operator>(ContentType const& r) const { return value > r.value; }
+  bool operator<=(ContentType const& r) const { return value <= r.value; }
+  bool operator>=(ContentType const& r) const { return value >= r.value; }
 
-  template <typename Writer>
-  void write_fields(Writer& w) const
-  {
-    w << name;
-  }
-
-  bool operator==(ContentType const& r) const { return name == r.name; }
-  bool operator!=(ContentType const& r) const { return name != r.name; }
-  bool operator<(ContentType const& r) const { return name < r.name; }
-  bool operator>(ContentType const& r) const { return name > r.name; }
-  bool operator<=(ContentType const& r) const { return name <= r.name; }
-  bool operator>=(ContentType const& r) const { return name >= r.name; }
-
-  explicit operator std::string() const { return name; }
+  explicit operator std::string() const { return value; }
 
 private:
   friend struct std::hash<ContentType>;
@@ -41,7 +31,7 @@ private:
   /****************************************************************************
    * Serialized Fields - Order matters!
    */
-  std::string name;
+  std::string value;
   /***************************************************************************/
 };
 
@@ -60,7 +50,7 @@ struct hash<sma::ContentType> {
 
   result_type operator()(argument_type const& a) const
   {
-    return hash<std::string>()(a.name);
+    return hash<std::string>()(a.value);
   }
 };
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <sma/util/buffer.hpp>
-#include <sma/util/reader.hpp>
+#include <sma/util/serial.hpp>
 
 #include <cstdint>
 
@@ -20,12 +20,12 @@ struct NeighborMessage final {
   body_type body;
   /***************************************************************************/
 
-  NeighborMessage()
-  {}
+  NeighborMessage() {}
 
   NeighborMessage(body_type body)
     : body(std::move(body))
-  {}
+  {
+  }
 
   NeighborMessage(NeighborMessage&&) = default;
   NeighborMessage(NeighborMessage const&) = default;
@@ -33,16 +33,14 @@ struct NeighborMessage final {
   NeighborMessage& operator=(NeighborMessage&&) = default;
   NeighborMessage& operator=(NeighborMessage const&) = default;
 
-  template <typename...T>
-  NeighborMessage(Reader<T...>& r)
-  : body(r.template get<decltype(body)>())
+  DESERIALIZING_CTOR(NeighborMessage)
+    : INIT_FIELD(body)
   {
   }
 
-  template <typename Writer>
-  void write_fields(Writer&& w) const
+  SERIALIZER()
   {
-    w << body;
+    PUT_FIELD(body);
   }
 };
 }

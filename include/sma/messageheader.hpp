@@ -2,7 +2,7 @@
 
 #include <sma/nodeid.hpp>
 
-#include <sma/util/reader.hpp>
+#include <sma/util/serial.hpp>
 
 #include <vector>
 
@@ -23,18 +23,6 @@ struct MessageHeader {
   {
   }
 
-  template <typename... T>
-  MessageHeader(Reader<T...>& r)
-    : sender(r.template get<decltype(sender)>())
-  {
-    r.fill(recipients);
-  }
-
-  template <typename Writer>
-  void write_fields(Writer& w) const
-  {
-    w << sender;
-    w << recipients;
-  }
+  TRIVIALLY_SERIALIZABLE(MessageHeader, sender, recipients)
 };
 }

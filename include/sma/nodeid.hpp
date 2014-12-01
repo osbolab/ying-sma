@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sma/util/reader.hpp>
+#include <sma/util/serial.hpp>
 
 #include <iosfwd>
 #include <cstdint>
@@ -10,10 +10,8 @@
 namespace sma
 {
 struct NodeId {
-private:
-  using value_type = std::uint16_t;
+  TRIVIALLY_SERIALIZABLE(NodeId, value)
 
-public:
   template <
       typename T,
       typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
@@ -22,16 +20,8 @@ public:
   {
   }
 
-  template <typename... T>
-  NodeId(Reader<T...>& r)
-    : value{r.template get<value_type>()}
-  {
-  }
-  template <typename Writer>
-  void write_fields(Writer& w) const
-  {
-    w << value;
-  }
+  NodeId(NodeId const&) = default;
+  NodeId& operator=(NodeId const&) = default;
 
   bool operator==(NodeId const& r) const { return value == r.value; }
   bool operator!=(NodeId const& r) const { return value != r.value; }
@@ -48,10 +38,13 @@ public:
 private:
   friend struct std::hash<NodeId>;
 
-  value_type value;
+  std::uint16_t value;
 };
 
-std::ostream& operator<<(std::ostream& os, NodeId const& v);
+inline std::ostream& operator<<(std::ostream& os, NodeId const& value)
+{
+  return os << std::string(value);
+}
 }
 
 namespace std

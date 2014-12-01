@@ -1,26 +1,18 @@
 #pragma once
 
+#include <sma/util/serial.hpp>
+
 #include <string>
 #include <iosfwd>
 
 namespace sma
 {
 struct ContentName {
+  TRIVIALLY_SERIALIZABLE(ContentName, value)
+
   ContentName(std::string value)
     : value(value)
   {
-  }
-
-  template <typename... T>
-  ContentName(Reader<T...>& r)
-    : value{r.template get<std::string>()}
-  {
-  }
-
-  template <typename Writer>
-  void write_fields(Writer& w) const
-  {
-    w << value;
   }
 
   bool operator==(ContentName const& r) const { return value == r.value; }
@@ -60,5 +52,4 @@ struct hash<sma::ContentName> {
     return hash<std::string>()(a.value);
   }
 };
-}
 }

@@ -6,6 +6,25 @@
 
 namespace sma
 {
+namespace detail
+{
+  template <typename T, typename = void>
+  struct is_vector {
+    static constexpr bool value = false;
+  };
+
+  template <typename T>
+  struct is_vector<T,
+                   typename std::
+                       enable_if<std::is_same<T,
+                                              std::vector<
+                                                  typename T::value_type,
+                                                  typename T::allocator_type>>::
+                                     value>::type> {
+    static constexpr bool value = true;
+  };
+}
+
 template <typename Formatter>
 class Reader
 {
@@ -20,17 +39,6 @@ public:
   {
   }
 
-  Reader(Myt&& r)
-    : fmat(std::move(r.fmat))
-  {
-  }
-
-  Myt& operator=(Myt&& r)
-  {
-    fmat = std::move(r.fmat);
-    return *this;
-  }
-
   void read(void* dst, std::size_t size) { fmat.read(dst, size); }
 
   template <typename T>
@@ -43,16 +51,26 @@ public:
   }
 
   template <typename T>
-  typename std::enable_if<not std::is_constructible<T, Myt&>::value, T>::type
+  typename std::enable_if<not std::is_constructible<T, Myt&>::value
+                          && not detail::is_vector<T>::value,
+                          T>::type
   get()
   {
     return fmat.template get<T>();
   }
 
   template <typename T>
+  typename std::enable_if<detail::is_vector<T>::value, T>::type get()
+  {
+    T v;
+    fill(v);
+    return v;
+  }
+
+  template <typename T>
   Myt& operator>>(T& t)
   {
-    t = fmat.template get<T>();
+    t = get<T>();
     return *this;
   }
 

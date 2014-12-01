@@ -1,9 +1,9 @@
 #pragma once
 
-#include <sma/ccn/interest.hpp>
 #include <sma/ccn/interests.hpp>
 #include <sma/ccn/contenttype.hpp>
-#include <sma/ccn/detail/remoteinterestentry.hpp>
+#include <sma/ccn/interestrank.hpp>
+#include <sma/ccn/remoteinterest.hpp>
 
 #include <sma/io/log>
 
@@ -13,9 +13,11 @@ namespace sma
 {
 class CcnNode;
 
+struct ContentInfo;
+struct ContentType;
+
 struct MessageHeader;
 struct InterestMessage;
-
 
 class InterestHelper : public Interests
 {
@@ -25,14 +27,23 @@ public:
 
   virtual void insert_new(std::vector<ContentType> types) override;
 
+  virtual bool interested_in(ContentInfo const& info) const override;
+  virtual bool know_remote(ContentType const& type) const override;
+
 private:
-  void schedule_broadcast();
-  void broadcast_interests();
+  void schedule_announcement(std::chrono::milliseconds delay
+                             = std::chrono::milliseconds(5000));
+  void announce();
+
+  /*! \return true if something new was learned about the interest. */
+  bool learn_remote_interest(Interest const& interest);
+
+  void log_interest_table();
 
   CcnNode* node;
   Logger log;
 
-  std::map<ContentType, Interest> table;
-  std::map<ContentType, detail::RemoteInterestEntry> r_table;
+  std::map<ContentType, InterestRank> table;
+  std::map<ContentType, RemoteInterest> r_table;
 };
 }

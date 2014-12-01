@@ -58,6 +58,11 @@ public:
   BinaryOutput& operator<< (std::uint16_t const& t);
   BinaryOutput& operator<< (std::uint32_t const& t);
   BinaryOutput& operator<< (std::uint64_t const& t);
+
+  BinaryOutput& operator<< (std::int8_t const& t);
+  BinaryOutput& operator<< (std::int16_t const& t);
+  BinaryOutput& operator<< (std::int32_t const& t);
+  BinaryOutput& operator<< (std::int64_t const& t);
   // clang-format on
 };
 }

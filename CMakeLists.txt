@@ -59,17 +59,21 @@ project(${SMA_LIB})
 include_directories("include")
 
 set(${PROJECT_NAME}_sources
+  "src/util/hash.cpp"
+  "src/util/detail/sha256.cpp"
+
   "src/link.cpp"
   "src/linklayer.cpp"
   "src/forwardstrategy.cpp"
   "src/prforwardstrategy.cpp"
 
-  "src/nodeid.cpp"
-
   "src/ccn/ccnnode.cpp"
+
   "src/ccn/interesthelper.cpp"
-  "src/ccn/interestrank.cpp"
+  "src/ccn/remoteinterest.cpp"
+
   "src/ccn/contenthelper.cpp"
+  "src/ccn/contentinfo.cpp"
 
   "src/neighborhelper.cpp"
   "src/neighbortable.cpp"

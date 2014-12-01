@@ -1,13 +1,13 @@
 #pragma once
 
-#include <cstdint>
 #include <string>
 #include <vector>
 #include <iosfwd>
+#include <cstdint>
+#include <type_traits>
 
 namespace sma
 {
-
 class BinaryInput
 {
   std::istream* is;
@@ -33,6 +33,13 @@ public:
 
   template <typename T>
   T get();
+
+  template <typename T>
+  BinaryInput operator>>(T& t)
+  {
+    t = get<T>();
+    return *this;
+  }
 };
 
 // clang-format off
@@ -43,5 +50,10 @@ template <> std::uint8_t  BinaryInput::get<std::uint8_t>();
 template <> std::uint16_t BinaryInput::get<std::uint16_t>();
 template <> std::uint32_t BinaryInput::get<std::uint32_t>();
 template <> std::uint64_t BinaryInput::get<std::uint64_t>();
+
+template <> std::int8_t  BinaryInput::get<std::int8_t>();
+template <> std::int16_t BinaryInput::get<std::int16_t>();
+template <> std::int32_t BinaryInput::get<std::int32_t>();
+template <> std::int64_t BinaryInput::get<std::int64_t>();
 // clang-format on
 }

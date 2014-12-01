@@ -6,12 +6,9 @@
 
 #include <sma/messageheader.hpp>
 
-#include <sma/neighborhelper.hpp>
-
+#include <sma/neighbors.hpp>
 #include <sma/ccn/interests.hpp>
-#include <sma/ccn/interesthelper.hpp>
-
-#include <sma/ccn/contenthelper.hpp>
+#include <sma/ccn/content.hpp>
 
 #include <sma/io/log>
 
@@ -19,6 +16,10 @@
 
 namespace sma
 {
+class NeighborHelper;
+class InterestHelper;
+class ContentHelper;
+
 struct NeighborMessage;
 struct InterestMessage;
 struct ContentInfoMessage;
@@ -27,6 +28,7 @@ class CcnNode
 {
 public:
   CcnNode(NodeId id, Context& context);
+  ~CcnNode();
 
   CcnNode(CcnNode const&) = delete;
   CcnNode& operator=(CcnNode const&) = delete;
@@ -42,8 +44,9 @@ public:
   void receive(MessageHeader&& header, InterestMessage&& msg);
   void receive(MessageHeader&& header, ContentInfoMessage&& msg);
 
-  Neighbors& neighbors() { return neighbor_helper; }
-  Interests& interests() { return interest_helper; }
+  Neighbors& neighbors();
+  Interests& interests();
+  Content& content();
 
   NodeId const id;
   Context* const context;
@@ -53,9 +56,9 @@ private:
   bool stopped = false;
   LinkLayer* linklayer;
 
-  NeighborHelper neighbor_helper;
-  InterestHelper interest_helper;
-  ContentHelper content_helper;
+  NeighborHelper* neighbor_helper;
+  InterestHelper* interest_helper;
+  ContentHelper* content_helper;
 };
 
 template <typename M>

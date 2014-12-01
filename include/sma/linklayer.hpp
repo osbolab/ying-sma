@@ -84,7 +84,7 @@ void LinkLayer::enqueue(MessageHeader const& header, M const& msg)
     BufferDest dbuf(buf.data, sizeof buf.data);
 
     // clang-format off
-    dbuf.writer<BinaryOutput>()
+    dbuf.format<BinaryOutput>()
       << header
       << MessageTypes::typecode<M>()
       << msg;

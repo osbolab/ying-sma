@@ -78,4 +78,24 @@ BinaryOutput& BinaryOutput::operator<<(std::uint64_t const& t)
   os->write(buf, sizeof(buf));
   return *this;
 }
+
+BinaryOutput& BinaryOutput::operator<<(std::int8_t const& t)
+{
+  return operator<<(std::uint8_t(t));
+}
+
+BinaryOutput& BinaryOutput::operator<<(std::int16_t const& t)
+{
+  return operator<<(std::uint16_t(t));
+}
+
+BinaryOutput& BinaryOutput::operator<<(std::int32_t const& t)
+{
+  return operator<<(std::uint32_t(t));
+}
+
+BinaryOutput& BinaryOutput::operator<<(std::int64_t const& t)
+{
+  return operator<<(std::uint64_t(t));
+}
 }

@@ -15,10 +15,10 @@ public:
   BufferDest(char* dst, std::size_t size);
   BufferDest(std::uint8_t* dst, std::size_t size);
 
-  template <typename Writer>
-  Writer writer()
+  template <typename Formatter>
+  Formatter format()
   {
-    return Writer(os);
+    return Formatter(os);
   }
 
   std::size_t size();

@@ -1,9 +1,8 @@
 #pragma once
 
-#include <iosfwd>
-#include <cstdint>
 #include <string>
-#include <type_traits>
+#include <cstdint>
+#include <ostream>
 
 namespace sma
 {
@@ -32,7 +31,10 @@ public:
   explicit operator std::string() const { return std::to_string(value); }
 };
 
-std::ostream& operator<<(std::ostream& os, InterestRank const& value);
+inline std::ostream& operator<<(std::ostream& os, InterestRank const& value)
+{
+  return os << std::string(value);
+}
 }
 
 namespace std

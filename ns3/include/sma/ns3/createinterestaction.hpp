@@ -5,6 +5,7 @@
 #include <sma/ccn/contenttype.hpp>
 #include <sma/ccn/ccnnode.hpp>
 
+#include <vector>
 
 namespace sma
 {

@@ -102,4 +102,28 @@ std::uint64_t BinaryInput::get<std::uint64_t>()
          | std::uint64_t{buf[4]} << 24 | std::uint64_t{buf[5]} << 16
          | std::uint64_t{buf[6]} << 8 | std::uint64_t{buf[7]};
 }
+
+template <>
+std::int8_t BinaryInput::get<std::int8_t>()
+{
+  return std::int8_t(get<std::uint8_t>());
+}
+
+template <>
+std::int16_t BinaryInput::get<std::int16_t>()
+{
+  return std::int16_t(get<std::uint16_t>());
+}
+
+template <>
+std::int32_t BinaryInput::get<std::int32_t>()
+{
+  return std::int32_t(get<std::uint32_t>());
+}
+
+template <>
+std::int64_t BinaryInput::get<std::int64_t>()
+{
+  return std::int64_t(get<std::uint64_t>());
+}
 }
