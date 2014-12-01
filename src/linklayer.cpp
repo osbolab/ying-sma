@@ -41,9 +41,9 @@ LinkLayer& LinkLayer::receive_to(CcnNode& node)
   return *this;
 }
 
-LinkLayer& LinkLayer::send_strategy(SendStrategy& strategy)
+LinkLayer& LinkLayer::forward_strategy(ForwardStrategy& strategy)
 {
-  send_strat = &strategy;
+  fwd_strat = &strategy;
   return *this;
 }
 

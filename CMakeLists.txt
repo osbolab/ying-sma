@@ -70,8 +70,8 @@ set(${PROJECT_NAME}_sources
 
   "src/link.cpp"
   "src/linklayer.cpp"
-  "src/prsendstrategy.cpp"
-  "src/sendstrategy.cpp"
+  "src/prforwardstrategy.cpp"
+  "src/forwardstrategy.cpp"
 
   "src/neighborhelper.cpp"
   "src/neighbortable.cpp"

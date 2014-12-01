@@ -4,12 +4,12 @@ namespace sma
 {
 class LinkLayer;
 
-class SendStrategy
+class ForwardStrategy
 {
 public:
-  SendStrategy(LinkLayer& llayer);
+  ForwardStrategy(LinkLayer& llayer);
 
-  virtual ~SendStrategy() {}
+  virtual ~ForwardStrategy() {}
 
   virtual void notify() = 0;
 

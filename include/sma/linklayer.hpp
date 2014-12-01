@@ -1,7 +1,7 @@
 #pragma once
 
 #include <sma/link.hpp>
-#include <sma/sendstrategy.hpp>
+#include <sma/forwardstrategy.hpp>
 #include <sma/broadcastrejectpolicy.hpp>
 
 #include <sma/messagetypes.hpp>
@@ -45,7 +45,7 @@ public:
   LinkLayer(LinkLayer const& r) = delete;
   LinkLayer& operator=(LinkLayer const& r) = delete;
 
-  LinkLayer& send_strategy(SendStrategy& strat);
+  LinkLayer& forward_strategy(ForwardStrategy& strategy);
   LinkLayer& receive_to(CcnNode& node);
   void stop();
 
@@ -63,7 +63,7 @@ private:
   std::vector<std::unique_ptr<Link>> links;
   CcnNode* node{nullptr};
 
-  SendStrategy* send_strat;
+  ForwardStrategy* fwd_strat;
   // Sending and receiving are mutually thread-safe
   RingBuffer<MessageData, 16> send_buf;
   std::stringbuf::char_type recv_buf[1024];
@@ -80,8 +80,7 @@ template <typename M>
 void LinkLayer::enqueue(MessageHeader const& header, M const& msg)
 {
   {
-    auto slot = send_buf.claim();
-    MessageData& buf = *slot;
+    auto& buf = *(send_buf.claim());
 
     std::stringbuf sbuf;
     sbuf.pubsetbuf(buf.data, sizeof buf.data);
@@ -93,8 +92,8 @@ void LinkLayer::enqueue(MessageHeader const& header, M const& msg)
     buf.size = os.tellp();
   }
 
-  if (send_strat)
-    send_strat->notify();
+  if (fwd_strat)
+    fwd_strat->notify();
   else
     forward_one();
 }

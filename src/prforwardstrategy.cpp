@@ -1,4 +1,4 @@
-#include <sma/prsendstrategy.hpp>
+#include <sma/prforwardstrategy.hpp>
 #include <sma/linklayer.hpp>
 #include <sma/context.hpp>
 
@@ -6,26 +6,26 @@
 
 namespace sma
 {
-PrSendStrategy::PrSendStrategy(Context& context)
-  : SendStrategy(*context.linklayer)
+PrForwardStrategy::PrForwardStrategy(Context& context)
+  : ForwardStrategy(*context.linklayer)
   , context(&context)
   , distribute(0, 1)
 {
 }
 
-void PrSendStrategy::notify() { schedule_timeslot(); }
+void PrForwardStrategy::notify() { schedule_timeslot(); }
 
-void PrSendStrategy::schedule_timeslot()
+void PrForwardStrategy::schedule_timeslot()
 {
   Lock lock(mx);
   if (is_scheduled)
     return;
 
-  asynctask(&PrSendStrategy::do_timeslot, this).do_in(timestep);
+  asynctask(&PrForwardStrategy::do_timeslot, this).do_in(timestep);
   is_scheduled = true;
 }
 
-void PrSendStrategy::do_timeslot()
+void PrForwardStrategy::do_timeslot()
 {
   Lock lock(mx);
   is_scheduled = false;

@@ -81,7 +81,7 @@ void Ns3NodeContainer::StartApplication()
   // Create the actor context to give the node node access to its environment.
   ctx = std::make_unique<Context>(std::string(node_id), *linklayer);
 
-  send_strat = std::make_unique<PrSendStrategy>(*ctx);
+  fwd_strat = std::make_unique<PrForwardStrategy>(*ctx);
 
   // Add available device components to the context so the node can use them.
   for (auto& component : components)

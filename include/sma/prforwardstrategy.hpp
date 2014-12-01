@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sma/sendstrategy.hpp>
+#include <sma/forwardstrategy.hpp>
 
 #include <mutex>
 #include <chrono>
@@ -11,12 +11,12 @@ namespace sma
 class LinkLayer;
 struct Context;
 
-class PrSendStrategy : public SendStrategy
+class PrForwardStrategy : public ForwardStrategy
 {
 public:
-  PrSendStrategy(Context& context);
+  PrForwardStrategy(Context& context);
 
-  virtual ~PrSendStrategy() {}
+  virtual ~PrForwardStrategy() {}
 
   virtual void notify() override;
 

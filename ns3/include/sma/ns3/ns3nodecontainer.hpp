@@ -1,7 +1,7 @@
 #pragma once
 
 #include <sma/linklayer.hpp>
-#include <sma/prsendstrategy.hpp>
+#include <sma/prforwardstrategy.hpp>
 #include <sma/component.hpp>
 #include <sma/ccn/ccnnode.hpp>
 
@@ -71,7 +71,7 @@ private:
 
   std::unique_ptr<Context> ctx;
   std::unique_ptr<LinkLayer> linklayer;
-  std::unique_ptr<PrSendStrategy> send_strat;
+  std::unique_ptr<PrForwardStrategy> fwd_strat;
   std::vector<std::unique_ptr<Component>> components;
 
   std::deque<std::unique_ptr<Action>> actions;
