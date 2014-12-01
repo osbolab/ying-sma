@@ -14,10 +14,10 @@ public:
   BufferDest(std::size_t size);
   BufferDest(std::uint8_t* dst, std::size_t size);
 
-  template <template <typename> class Formatter>
-  Formatter<std::ostream> format()
+  template <typename Formatter>
+  Formatter format()
   {
-    return Formatter<std::ostream>(&os);
+    return Formatter(&os);
   }
 
   std::size_t read(std::uint8_t* dst, std::size_t size);

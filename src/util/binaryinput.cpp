@@ -1,5 +1,7 @@
 #include <sma/util/binaryinput.hpp>
 
+#include <sma/util/detail/uint_with_size.hpp>
+
 #include <cstring>
 #include <istream>
 

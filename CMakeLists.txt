@@ -59,23 +59,24 @@ project(${SMA_LIB})
 include_directories("include")
 
 set(${PROJECT_NAME}_sources
+  "src/link.cpp"
+  "src/linklayer.cpp"
+  "src/forwardstrategy.cpp"
+  "src/prforwardstrategy.cpp"
+
+  "src/nodeid.cpp"
+
   "src/ccn/ccnnode.cpp"
   "src/ccn/contenttype.cpp"
   "src/ccn/interesthelper.cpp"
   "src/ccn/interestrank.cpp"
 
+  "src/neighborhelper.cpp"
+  "src/neighbortable.cpp"
+
   "src/chrono.cpp"
   "src/context.cpp"
   "src/gps.cpp"
-
-  "src/link.cpp"
-  "src/linklayer.cpp"
-  "src/prforwardstrategy.cpp"
-  "src/forwardstrategy.cpp"
-
-  "src/neighborhelper.cpp"
-  "src/neighbortable.cpp"
-  "src/nodeid.cpp"
 
   "src/util/binaryinput.cpp"
   "src/util/binaryoutput.cpp"

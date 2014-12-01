@@ -22,13 +22,13 @@ struct Unmarshal {
   }
 };
 
-LinkLayer::LinkLayer(std::vector<std::unique_ptr<Link>> links)
+LinkLayer::LinkLayer(std::vector<std::unique_ptr<Link>> links,
+                     BroadcastRejectPolicy rejectif)
   : links(std::move(links))
-  , recv_is(&recv_sbuf)
-  , reader(&recv_is)
+  , rejectif(rejectif)
+  , recv_sbuf(recv_buf, sizeof recv_buf)
+  , reader(recv_sbuf.reader<BinaryInput>())
 {
-  recv_sbuf.pubsetbuf(recv_buf, sizeof recv_buf);
-
   assert(!this->links.empty());
   for (auto& link : this->links)
     link->receive_to(*this);
@@ -80,20 +80,21 @@ void LinkLayer::on_link_readable(Link& link)
 
   std::size_t read = 0;
   while (node && (read = link.read(recv_buf, sizeof recv_buf))) {
-    recv_sbuf.pubseekpos(0);
+    recv_sbuf.rewind();
 
     MessageHeader header(reader);
-    if (rejects.loopback && header.sender == node->id)
+    // Reject broadcast loopbacks
+    if (header.sender == node->id)
       continue;
 
-    if (rejects.not_addressed_to_me && !header.recipients.empty()) {
-      bool discard = true;
-      for (auto& id : header.recipients)
-        if (id == node->id) {
-          discard = false;
+    if (rejectif.not_addressed_to_me && !header.recipients.empty()) {
+      auto const& this_node = node->id;
+      auto const nrecp = header.recipients.size();
+      decltype(header.recipients)::size_type i = 0;
+      while (i++ < nrecp)
+        if (header.recipients[i] == this_node)
           break;
-        }
-      if (discard)
+      if (i == nrecp)
         continue;
     }
 

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <sma/util/detail/uint_with_size.hpp>
-
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -14,8 +12,8 @@ class BinaryOutput
   std::ostream* os;
 
 public:
-  BinaryOutput(std::ostream* os)
-    : os(os)
+  BinaryOutput(std::ostream& os)
+    : os(&os)
   {
   }
 
@@ -35,9 +33,9 @@ public:
   template <typename T>
   BinaryOutput& operator<<(std::vector<T> const& v)
   {
-    *this << std::uint8_t(v.size());
-    for (auto& t : v)
-      *this << t;
+    operator<<(std::uint8_t(v.size()));
+    for (auto const& t : v)
+      operator<<(t);
     return *this;
   }
 

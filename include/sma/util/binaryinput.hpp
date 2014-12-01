@@ -1,7 +1,5 @@
 #pragma once
 
-#include <sma/util/detail/uint_with_size.hpp>
-
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -15,9 +13,22 @@ class BinaryInput
   std::istream* is;
 
 public:
-  BinaryInput(std::istream* is)
-    : is(is)
+  BinaryInput(std::istream& is)
+    : is(&is)
   {
+  }
+
+  BinaryInput(BinaryInput&& r)
+    : is(r.is)
+  {
+    r.is = nullptr;
+  }
+
+  BinaryInput& operator=(BinaryInput&& r)
+  {
+    is = r.is;
+    r.is = nullptr;
+    return *this;
   }
 
   void* read(void* dst, std::size_t size);

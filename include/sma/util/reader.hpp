@@ -20,6 +20,17 @@ public:
   {
   }
 
+  Reader(Myt&& r)
+    : fmat(std::move(r.fmat))
+  {
+  }
+
+  Myt& operator=(Myt&& r)
+  {
+    fmat = std::move(r.fmat);
+    return *this;
+  }
+
   void read(void* dst, std::size_t size) { fmat.read(dst, size); }
 
   template <typename T>

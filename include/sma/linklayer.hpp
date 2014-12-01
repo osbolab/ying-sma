@@ -40,7 +40,8 @@ class LinkLayer final
   };
 
 public:
-  LinkLayer(std::vector<std::unique_ptr<Link>> links);
+  LinkLayer(std::vector<std::unique_ptr<Link>> links,
+            BroadcastRejectPolicy rejectif = BroadcastRejectPolicy());
 
   LinkLayer(LinkLayer const& r) = delete;
   LinkLayer& operator=(LinkLayer const& r) = delete;
@@ -66,13 +67,15 @@ private:
   ForwardStrategy* fwd_strat;
   // Sending and receiving are mutually thread-safe
   RingBuffer<MessageData, 16> send_buf;
+
+  // Outgoing messages are not yet buffered. This is just so we can reuse the
+  // stringbuf and istream, but messages are sent upstream as soon as they
+  // arrive.
   std::stringbuf::char_type recv_buf[1024];
-  std::stringbuf recv_sbuf;
-  // Don't reorder the below without changing the initializer.
-  std::istream recv_is;
+  BufferSource recv_sbuf;
   Reader<BinaryInput> reader;
 
-  BroadcastRejectPolicy rejects;
+  BroadcastRejectPolicy const rejectif;
 };
 
 
@@ -85,7 +88,7 @@ void LinkLayer::enqueue(MessageHeader const& header, M const& msg)
     std::stringbuf sbuf;
     sbuf.pubsetbuf(buf.data, sizeof buf.data);
     std::ostream os(&sbuf);
-    BinaryOutput writer(&os);
+    BinaryOutput writer(os);
 
     writer << header << MessageTypes::typecode<M>() << msg;
 
