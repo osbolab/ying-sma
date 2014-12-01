@@ -14,10 +14,10 @@ struct RemoteInterest {
   using clock = sma::chrono::system_clock;
   using time_point = clock::time_point;
 
-  RemoteInterest(hops_type hops);
+  RemoteInterest(Interest const& interest);
 
   inline void touch();
-  bool update(hops_type hops);
+  bool update(Interest const& interest);
 
   template <typename Duration = std::chrono::milliseconds>
   Duration age()

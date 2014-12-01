@@ -35,7 +35,7 @@ ns3::TypeId Ns3NodeContainer::TypeId()
 
 Ns3NodeContainer::Ns3NodeContainer() {}
 
-Ns3NodeContainer::~Ns3NodeContainer() { LOG(TRACE); }
+Ns3NodeContainer::~Ns3NodeContainer() { }
 // Inherited from ns3::Application
 void Ns3NodeContainer::DoDispose() {}
 
@@ -97,7 +97,6 @@ void Ns3NodeContainer::StartApplication()
 
 void Ns3NodeContainer::StopApplication()
 {
-  LOG(TRACE);
   node->stop();
   Async::purge();
   linklayer->stop();

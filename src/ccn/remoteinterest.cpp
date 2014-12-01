@@ -3,19 +3,19 @@
 
 namespace sma
 {
-RemoteInterest::RemoteInterest(std::uint32_t hops)
-  : hops(hops)
+RemoteInterest::RemoteInterest(Interest const& interest)
+  : hops(interest.hops)
 {
   touch();
 }
 
 void RemoteInterest::touch() { last_seen = clock::now(); }
 
-bool RemoteInterest::update(std::uint32_t hops)
+bool RemoteInterest::update(Interest const& interest)
 {
   touch();
-  if (hops < this->hops) {
-    this->hops = hops;
+  if (interest.hops < hops) {
+    hops = interest.hops;
     return true;
   }
   return false;

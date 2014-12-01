@@ -4,8 +4,4 @@
 
 namespace sma
 {
-struct ContentHash
-{
-
-};
 }

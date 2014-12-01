@@ -1,9 +1,12 @@
 #pragma once
 
+#include <sma/util/serial.hpp>
+
 #include <sma/util/detail/sha256.hpp>
 
 #include <string>
 #include <cstdint>
+#include <cassert>
 #include <functional>
 
 namespace sma
@@ -16,6 +19,20 @@ struct Hash {
 
   Hash(Hash const&);
   Hash& operator=(Hash const&);
+
+  DESERIALIZING_CTOR(Hash)
+  {
+    std::uint8_t length;
+    GET_FIELD(length);
+    assert(length == LENGTH);
+    GET_BYTES(data, LENGTH);
+  }
+
+  SERIALIZER()
+  {
+    PUT_FIELD(std::uint8_t(LENGTH));
+    PUT_BYTES(data, LENGTH);
+  }
 
   int compare(Hash const&) const;
 

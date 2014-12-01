@@ -33,7 +33,7 @@ int main(int argc, char** argv)
 {
   configure_logs(argc, argv);
 
-  std::size_t nnodes = 4;
+  std::size_t nnodes = 40;
   long duration = 30;
 
   std::string baseIp("10.1.0.0");
@@ -207,7 +207,7 @@ int main(int argc, char** argv)
 
     auto apps = ns3::ApplicationContainer(app);
     apps.Start(ns3::Seconds(0));
-    apps.Stop(ns3::Seconds(duration - i));
+    apps.Stop(ns3::Seconds(duration));
 
     node->AddApplication(app);
   }

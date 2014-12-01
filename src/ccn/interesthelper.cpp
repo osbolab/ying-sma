@@ -69,7 +69,7 @@ bool InterestHelper::interested_in(ContentInfo const& info) const
 
 bool InterestHelper::know_remote(ContentType const& type) const
 {
-  return r_table.find(info.type) != r_table.end();
+  return r_table.find(type) != r_table.end();
 }
 
 void InterestHelper::insert_new(std::vector<ContentType> types)
@@ -100,7 +100,7 @@ void InterestHelper::announce()
   if (!table.empty()) {
     msg.interests.reserve(table.size());
     for (auto& entry : table)
-      msg.interests.emplace_back(entry.first, 0);
+      msg.interests.emplace_back(entry.first);
   }
   // Add as many remote interests to our message as we can.
   // FIXME: We need some real logic here.

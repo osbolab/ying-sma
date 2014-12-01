@@ -32,6 +32,7 @@ void ContentHelper::receive(MessageHeader header, ContentInfoMessage msg)
   ++msg.hops;
 
   auto& info = msg.info;
+  if (kct.
   log.d("Content info from %v", header.sender);
   log.d("| distance: %v hops", msg.hops);
   log.d("| type: %v", info.type);

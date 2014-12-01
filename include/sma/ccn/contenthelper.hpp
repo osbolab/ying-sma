@@ -33,8 +33,10 @@ private:
   CcnNode* node;
   Logger log;
 
+  // Known Content Table
+  std::unordered_map<ContentHash, std::> kct;
   // Forwaded Info --> Expiration time
-  std::unordered_map<ContentInfo, sma::chrono::system_clock::time_point>
-      forward_record;
+  // Recently Forwarded Table
+  std::unordered_map<ContentInfo, sma::chrono::system_clock::time_point> rft;
 };
 }

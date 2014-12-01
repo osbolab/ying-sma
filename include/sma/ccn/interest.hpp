@@ -17,9 +17,15 @@ struct Interest {
   {
   }
 
+  Interest(ContentType type, hops_type hops)
+    : type(type)
+    , hops(hops)
+  {
+  }
+
   Interest(Interest&&) = default;
   Interest(Interest const&) = default;
-Interest& operator=(Interest&&) = default;
-Interest& operator=(Interest const&) = default;
+  Interest& operator=(Interest&&) = default;
+  Interest& operator=(Interest const&) = default;
 };
 }
