@@ -1,7 +1,5 @@
 #pragma once
 
-#include <sma/util/bufferdest.hpp>
-#include <sma/util/buffersource.hpp>
 #include <sma/util/reader.hpp>
 
 #include <cstdint>
@@ -17,12 +15,11 @@ struct Buffer {
   Buffer() {}
   Buffer(std::size_t size);
   Buffer(std::uint8_t const* data, std::size_t size);
-  Buffer(BufferDest& buf);
 
   Buffer(Buffer&& r);
   Buffer(Buffer const& r);
-  Buffer& operator=(Buffer const& r);
   Buffer& operator=(Buffer&& r);
+  Buffer& operator=(Buffer const& r);
 
   template <typename... T>
   Buffer(Reader<T...>& r);
@@ -53,12 +50,6 @@ Buffer<SizeT>::Buffer(std::uint8_t const* src, std::size_t size)
 {
   std::memcpy(data.get(), src, size);
 }
-template <typename SizeT>
-Buffer<SizeT>::Buffer(BufferDest& buf)
-  : Buffer(buf.size())
-{
-  buf.read(data.get(), sz);
-}
 
 template <typename SizeT>
 Buffer<SizeT>::Buffer(Buffer const& r)
@@ -79,17 +70,13 @@ Buffer<SizeT>::Buffer(Buffer&& r)
   : data(std::move(r.data))
   , sz(r.sz)
 {
-  r.data = nullptr;
-  r.sz = 0;
 }
+
 template <typename SizeT>
 Buffer<SizeT>& Buffer<SizeT>::operator=(Buffer&& r)
 {
   sz = r.sz;
   std::swap(data, r.data);
-
-  r.data = nullptr;
-  r.sz = 0;
 
   return *this;
 }

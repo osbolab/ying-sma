@@ -17,6 +17,17 @@ public:
   {
   }
 
+  BinaryOutput(BinaryOutput const& r)
+    : os(r.os)
+  {
+  }
+
+  BinaryOutput& operator=(BinaryOutput const& r)
+  {
+    os = r.os;
+    return *this;
+  }
+
   BinaryOutput& write(void const* src, std::size_t size)
   {
     os->write(reinterpret_cast<char const*>(src), size);

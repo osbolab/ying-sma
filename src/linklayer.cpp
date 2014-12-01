@@ -15,19 +15,23 @@
 namespace sma
 {
 struct Unmarshal {
+  static Unmarshal instance;
+
   template <typename M, typename Reader>
   void operator()(MessageHeader&& header, Reader& reader, CcnNode& node)
   {
-    node.receive(std::move(header), M(reader));
+    node.receive(header, M(reader));
   }
 };
+// Avoid constructing it for every message
+Unmarshal Unmarshal::instance;
 
 LinkLayer::LinkLayer(std::vector<std::unique_ptr<Link>> links,
                      BroadcastRejectPolicy rejectif)
   : links(std::move(links))
   , rejectif(rejectif)
-  , recv_sbuf(recv_buf, sizeof recv_buf)
-  , reader(recv_sbuf.reader<BinaryInput>())
+  , recv_bufsrc(recv_buf, sizeof recv_buf)
+  , recv_reader(recv_bufsrc.reader<BinaryInput>())
 {
   assert(!this->links.empty());
   for (auto& link : this->links)
@@ -36,7 +40,6 @@ LinkLayer::LinkLayer(std::vector<std::unique_ptr<Link>> links,
 
 LinkLayer& LinkLayer::receive_to(CcnNode& node)
 {
-  Lock lock(readmx);
   this->node = &node;
   return *this;
 }
@@ -47,12 +50,7 @@ LinkLayer& LinkLayer::forward_strategy(ForwardStrategy& strategy)
   return *this;
 }
 
-void LinkLayer::stop()
-{
-  // Don't take the node away while reading
-  Lock lock(readmx);
-  node = nullptr;
-}
+void LinkLayer::stop() { node = nullptr; }
 
 std::size_t LinkLayer::forward_one()
 {
@@ -72,17 +70,10 @@ std::size_t LinkLayer::forward_one()
 
 void LinkLayer::on_link_readable(Link& link)
 {
-  // Only take the lock once in the event that the read buffer keeps giving us
-  // data. Theoretically if the network interface's read buffer is full forever
-  // we'll deadlock, but a lot more than this needs to change when we're really
-  // threading it.
-  Lock readlock(readmx);
+  while (node && link.read(recv_buf, sizeof recv_buf)) {
+    recv_bufsrc.rewind();
 
-  std::size_t read = 0;
-  while (node && (read = link.read(recv_buf, sizeof recv_buf))) {
-    recv_sbuf.rewind();
-
-    MessageHeader header(reader);
+    MessageHeader header(recv_reader);
     // Reject broadcast loopbacks
     if (header.sender == node->id)
       continue;
@@ -98,11 +89,15 @@ void LinkLayer::on_link_readable(Link& link)
         continue;
     }
 
-    auto typecode = reader.template get<MessageTypes::typecode_type>();
+    auto msg_typecode = recv_reader.template get<MessageTypes::typecode_type>();
     // Deduce the type of the message from its typecode and call the unmarshal
     // operator to deserialize an instance of that type and pass it to the node.
-    if (!MessageTypes::apply(
-            typecode, Unmarshal(), std::move(header), reader, *node))
+    assert(node);
+    if (!MessageTypes::apply(msg_typecode,
+                             Unmarshal::instance,
+                             std::move(header),
+                             recv_reader,
+                             *node))
       node->log.w("Unhandled message");
   }
 }

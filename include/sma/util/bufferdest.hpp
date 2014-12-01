@@ -12,17 +12,17 @@ class BufferDest
 public:
   BufferDest();
   BufferDest(std::size_t size);
+  BufferDest(char* dst, std::size_t size);
   BufferDest(std::uint8_t* dst, std::size_t size);
 
-  template <typename Formatter>
-  Formatter format()
+  template <typename Writer>
+  Writer writer()
   {
-    return Formatter(&os);
+    return Writer(os);
   }
 
-  std::size_t read(std::uint8_t* dst, std::size_t size);
-  std::uint8_t* data();
   std::size_t size();
+  void rewind();
 
 private:
   char* buf;

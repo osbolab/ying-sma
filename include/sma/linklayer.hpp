@@ -8,17 +8,16 @@
 #include <sma/messageheader.hpp>
 
 #include <sma/util/ringbuffer.hpp>
+
 #include <sma/util/reader.hpp>
 #include <sma/util/binaryformat.hpp>
+#include <sma/util/buffersource.hpp>
+#include <sma/util/bufferdest.hpp>
 
 #include <mutex>
 #include <vector>
 #include <memory>
 #include <cassert>
-
-#include <istream>
-#include <ostream>
-#include <sstream>
 
 namespace sma
 {
@@ -35,8 +34,8 @@ class LinkLayer final
     MessageData& operator=(MessageData&&) = delete;
     MessageData& operator=(MessageData const&) = delete;
 
+    char data[1024];
     std::size_t size;
-    std::stringbuf::char_type data[1024];
   };
 
 public:
@@ -58,9 +57,6 @@ public:
 private:
   void on_link_readable(Link& link);
 
-  std::mutex readmx;
-  using Lock = std::lock_guard<std::mutex>;
-
   std::vector<std::unique_ptr<Link>> links;
   CcnNode* node{nullptr};
 
@@ -71,9 +67,10 @@ private:
   // Outgoing messages are not yet buffered. This is just so we can reuse the
   // stringbuf and istream, but messages are sent upstream as soon as they
   // arrive.
-  std::stringbuf::char_type recv_buf[1024];
-  BufferSource recv_sbuf;
-  Reader<BinaryInput> reader;
+  char recv_buf[1024];
+  // For reading out of the receive buffer
+  BufferSource recv_bufsrc;
+  Reader<BinaryInput> recv_reader;
 
   BroadcastRejectPolicy const rejectif;
 };
@@ -84,15 +81,16 @@ void LinkLayer::enqueue(MessageHeader const& header, M const& msg)
 {
   {
     auto& buf = *(send_buf.claim());
+    BufferDest dbuf(buf.data, sizeof buf.data);
 
-    std::stringbuf sbuf;
-    sbuf.pubsetbuf(buf.data, sizeof buf.data);
-    std::ostream os(&sbuf);
-    BinaryOutput writer(os);
+    // clang-format off
+    dbuf.writer<BinaryOutput>()
+      << header
+      << MessageTypes::typecode<M>()
+      << msg;
+    // clang-format on
 
-    writer << header << MessageTypes::typecode<M>() << msg;
-
-    buf.size = os.tellp();
+    buf.size = dbuf.size();
   }
 
   if (fwd_strat)

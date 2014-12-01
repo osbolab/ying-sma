@@ -18,16 +18,14 @@ public:
   {
   }
 
-  BinaryInput(BinaryInput&& r)
+  BinaryInput(BinaryInput const& r)
     : is(r.is)
   {
-    r.is = nullptr;
   }
 
-  BinaryInput& operator=(BinaryInput&& r)
+  BinaryInput& operator=(BinaryInput const& r)
   {
     is = r.is;
-    r.is = nullptr;
     return *this;
   }
 
