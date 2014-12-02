@@ -1,8 +1,10 @@
 #pragma once
 
 #include <sma/nodeid.hpp>
-#include <sma/linklayer.hpp>
+
+#include <sma/message.hpp>
 #include <sma/messageheader.hpp>
+
 #include <sma/ccn/ccnfwd.hpp>
 
 #include <sma/io/log>
@@ -11,6 +13,8 @@
 
 namespace sma
 {
+class LinkLayer;
+
 class CcnNode
 {
 public:
@@ -22,12 +26,12 @@ public:
   //! Gracefully terminate further network delegation or asynchronous tasks.
   void stop() { stopped = true; }
 
-  //! Enqueue the given message to be broadcast to the network neighbors.
+  //! Enqueue the given message data to be broadcast to the network.
+  void post(void const* src, std::size_t size);
+  //! Serialize the given message and enqueue it to be broadcast.
   template <typename M>
-  void post(M const& msg);
-  //! Enqueue the given message to be broadcast to only the named neighbors.
-  template <typename M>
-  void post(std::vector<NodeId> recipients, M const& msg);
+  void post(M const& msg,
+            std::vector<NodeId> recipients = std::vector<NodeId>());
 
   /* Messages delegated to their respective handlers. */
 
@@ -54,14 +58,9 @@ private:
 };
 
 template <typename M>
-void CcnNode::post(M const& msg)
+void CcnNode::post(M const& msg, std::vector<NodeId> recipients)
 {
-  linklayer->enqueue(MessageHeader(id), msg);
-}
-
-template <typename M>
-void CcnNode::post(std::vector<NodeId> recipients, M const& msg)
-{
-  linklayer->enqueue(MessageHeader(id, std::move(recipients)), msg);
+  Message m(MessageHeader(id, std::move(recipients)), msg);
+  post(m.cdata(), m.size());
 }
 }

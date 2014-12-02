@@ -32,17 +32,6 @@ Ns3InetLink::Ns3InetLink(ns3::Ptr<ns3::Node> this_node)
 
   bind();
 }
-Ns3InetLink::Ns3InetLink(Ns3InetLink&& r)
-  : Link(std::move(r))
-  , sock(r.sock)
-{
-}
-Ns3InetLink& Ns3InetLink::operator=(Ns3InetLink&& r)
-{
-  Link::operator=(std::move(r));
-  sock = r.sock;
-  return *this;
-}
 Ns3InetLink::~Ns3InetLink() { close(); }
 
 void Ns3InetLink::bind()

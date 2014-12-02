@@ -1,19 +1,16 @@
 #pragma once
 
 #include <sma/ccn/contenttype.hpp>
-#include <sma/network_hops.hpp>
 
 namespace sma
 {
 struct Interest {
-  TRIVIALLY_SERIALIZABLE(Interest, type, distance)
+  TRIVIALLY_SERIALIZABLE(Interest, type)
 
   ContentType type;
-  network_hops distance;
 
-  Interest(ContentType type, network_hops distance = 0)
+  Interest(ContentType type)
     : type(type)
-    , distance(distance)
   {
   }
 

@@ -63,7 +63,6 @@ set(${PROJECT_NAME}_sources
   "src/util/detail/sha256.cpp"
 
   "src/link.cpp"
-  "src/linklayer.cpp"
   "src/linklayerimpl.cpp"
   "src/forwardstrategy.cpp"
   "src/prforwardstrategy.cpp"

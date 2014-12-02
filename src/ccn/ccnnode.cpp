@@ -1,6 +1,8 @@
 #include <sma/ccn/ccnnode.hpp>
 
 #include <sma/context.hpp>
+#include <sma/linklayer.hpp>
+
 #include <sma/messageheader.hpp>
 
 #include <sma/neighborhelper.hpp>
@@ -17,6 +19,11 @@ CcnNode::CcnNode(NodeId id, Context& context)
   , linklayer(context.linklayer)
   , log(context.log)
 {
+}
+
+void CcnNode::post(void const* src, std::size_t size)
+{
+  linklayer->enqueue(src, size);
 }
 
 void CcnNode::receive(MessageHeader&& header, Beacon&& msg)

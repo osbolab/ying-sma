@@ -1,8 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <utility>
-
 
 namespace sma
 {
@@ -11,6 +9,10 @@ class LinkLayer;
 class Link
 {
 public:
+  Link() {}
+  Link(Link const&) = delete;
+  Link& operator=(Link const&) = delete;
+
   virtual ~Link() {}
 
   void receive_to(LinkLayer& ll) { linklayer = &ll; }
@@ -26,7 +28,7 @@ protected:
   void readable(bool r);
 
 private:
-  LinkLayer* linklayer{nullptr};
-  bool is_readable{false};
+  LinkLayer* linklayer = nullptr;
+  bool is_readable = false;
 };
 }

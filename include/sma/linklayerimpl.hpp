@@ -3,7 +3,7 @@
 #include <sma/link.hpp>
 #include <sma/linklayer.hpp>
 
-#include <sma/messagebuffer.hpp>
+#include <sma/util/ringbuffer.hpp>
 
 #include <sma/util/reader.hpp>
 #include <sma/util/binaryformat.hpp>
@@ -16,6 +16,24 @@
 
 namespace sma
 {
+namespace detail
+{
+  //! Represents one buffered serialized message.
+  /*! These are meant to be modified in-place by claiming one from the buffer
+   * and populating it.
+   */
+  struct MessageData {
+    MessageData() = default;
+    MessageData(MessageData&&) = delete;
+    MessageData(MessageData const&) = delete;
+    MessageData& operator=(MessageData&&) = delete;
+    MessageData& operator=(MessageData const&) = delete;
+
+    char data[8192];
+    std::size_t size;
+  };
+}
+
 class CcnNode;
 
 class LinkLayerImpl : public LinkLayer
@@ -34,22 +52,20 @@ public:
 
   ~LinkLayerImpl() {}
 
-  std::size_t forward_one() override;
-
   void stop() override;
 
+  std::size_t forward_one() override;
+
+  void enqueue(void const* src, std::size_t size) override;
+
 private:
-  MessageBuffer::write_lock lock_message_buffer() override;
-
   void on_link_readable(Link& link) override;
-
-  void on_message_enqueued() override;
 
   //! The broadcast links comprising the local node's network interface.
   std::vector<std::unique_ptr<Link>> links;
 
   //! Buffer outgoing messages to be sent by the forwarding strategy.
-  MessageBuffer::type send_buf;
+  RingBuffer<detail::MessageData> send_buf;
 
   // Incoming messages are still synchronous; this is just so we can reuse the
   // stringbuf and istream;

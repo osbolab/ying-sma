@@ -57,9 +57,21 @@ LinkLayerImpl::LinkLayerImpl(std::vector<std::unique_ptr<Link>> links)
 
 void LinkLayerImpl::stop() { node = nullptr; }
 
-MessageBuffer::write_lock LinkLayerImpl::lock_message_buffer()
+void LinkLayerImpl::enqueue(void const* src, std::size_t size)
 {
-  return send_buf.claim();
+  {
+    // The returned object is actually a scoped write lock on a shared buffer...
+    // BUT YOU'D NEVER GUESS IT FROM THIS AWFUL CODE
+    auto lock = send_buf.claim();
+    auto& buf = *lock;
+    std::memcpy(buf.data, src, size);
+    buf.size = size;
+  }
+
+  if (fwd_strat)
+    fwd_strat->notify();
+  else
+    forward_one();
 }
 
 std::size_t LinkLayerImpl::forward_one()
@@ -83,14 +95,6 @@ std::size_t LinkLayerImpl::forward_one()
   }
 
   return send_buf.size();
-}
-
-void LinkLayerImpl::on_message_enqueued()
-{
-  if (fwd_strat)
-    fwd_strat->notify();
-  else
-    forward_one();
 }
 
 void LinkLayerImpl::on_link_readable(Link& link)
