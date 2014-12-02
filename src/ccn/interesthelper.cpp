@@ -25,7 +25,7 @@ InterestHelper::InterestHelper(CcnNode& node)
 
 void InterestHelper::receive(MessageHeader header, InterestMessage msg)
 {
-  // Break loops
+  // Ignore loopback
   if (msg.interested_node == node->id)
     return;
 
@@ -38,8 +38,6 @@ void InterestHelper::receive(MessageHeader header, InterestMessage msg)
   // The result is that our neighbors always see the shortest path we know of.
   for (auto it = msg.interests.begin(); it != msg.interests.end();) {
     auto& interest = *it;
-    // Account for the link that the message came over
-    ++interest.distance;
     if (!learn_remote_interest(interest))
       // Only forward interests we learned something new about
       it = msg.interests.erase(it);
@@ -111,7 +109,7 @@ void InterestHelper::announce()
   if (table.size() < nmax) {
     auto nfwds = nmax - table.size();
     for (auto it = r_table.begin(); nfwds-- > 0 && it != r_table.end(); ++it)
-      msg.interests.emplace_back(it->first, it->second.distance);
+      msg.interests.emplace_back(it->first);
   }
 
   if (!msg.interests.empty()) {
@@ -124,19 +122,14 @@ void InterestHelper::announce()
 
 void InterestHelper::log_interest_table()
 {
-  std::stringstream ss;
   log.d(" remote interest table");
-  ss << "| " << std::left << std::setw(7) << "content" << " | " << std::left
-     << std::setw(4) << "hops | age (ms) |";
-
-  log.d(ss.str());
-  log.d("| ------- | ---- | -------- |");
+  log.d("| content | age (ms) |");
+  log.d("| ------- | -------- |");
+  std::stringstream ss;
   for (auto it = r_table.begin(); it != r_table.end(); ++it) {
     ss.str("");
     auto age_ms = it->second.template age<std::chrono::milliseconds>().count();
-    ss << "| " << std::left << std::setw(7) << std::string(it->first) << " | "
-       << std::left << std::setw(4)
-       << std::to_string(std::uint32_t(it->second.distance)) << " | ";
+    ss << "| " << std::left << std::setw(7) << std::string(it->first) << " | ";
     if (age_ms != 0)
       ss << std::left << std::setw(8) << std::to_string(age_ms) << " |";
     else

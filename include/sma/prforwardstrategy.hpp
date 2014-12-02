@@ -26,9 +26,8 @@ private:
   void schedule_timeslot();
   void do_timeslot();
 
-  std::chrono::nanoseconds timestep = std::chrono::nanoseconds(100000);
-  double threshold_min = 0.0;
-  double threshold_max = 0.8;
+  std::chrono::nanoseconds timestep = std::chrono::nanoseconds(10000);
+  double threshold = 0.5;
 
   std::recursive_mutex mx;
   bool is_scheduled = false;

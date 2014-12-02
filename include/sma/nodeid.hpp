@@ -2,19 +2,17 @@
 
 #include <sma/util/serial.hpp>
 
-#include <iosfwd>
 #include <cstdint>
-#include <string>
-#include <type_traits>
 
 namespace sma
 {
 struct NodeId {
   TRIVIALLY_SERIALIZABLE(NodeId, value)
 
-  template <
-      typename T,
-      typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
+  template <typename T,
+            typename std::enable_if<std::is_integral<T>::value
+                                    && sizeof(T)
+                                       >= sizeof(value_type)>::type* = nullptr>
   NodeId(T value)
     : value{value}
   {
@@ -25,10 +23,6 @@ struct NodeId {
 
   bool operator==(NodeId const& r) const { return value == r.value; }
   bool operator!=(NodeId const& r) const { return value != r.value; }
-  bool operator<(NodeId const& r) const { return value < r.value; }
-  bool operator>(NodeId const& r) const { return value > r.value; }
-  bool operator<=(NodeId const& r) const { return value <= r.value; }
-  bool operator>=(NodeId const& r) const { return value >= r.value; }
 
   explicit operator std::uint64_t() const { return value; }
   explicit operator std::uint32_t() const { return value; }
@@ -38,7 +32,9 @@ struct NodeId {
 private:
   friend struct std::hash<NodeId>;
 
-  std::uint16_t value;
+  using value_type = std::uint16_t;
+
+  value_type value;
 };
 
 inline std::ostream& operator<<(std::ostream& os, NodeId const& value)

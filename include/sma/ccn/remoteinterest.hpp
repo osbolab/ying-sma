@@ -1,7 +1,6 @@
 #pragma once
 
 #include <sma/nodeid.hpp>
-#include <sma/network_hops.hpp>
 
 #include <sma/chrono.hpp>
 
@@ -30,7 +29,6 @@ struct RemoteInterest {
     return this->age<Duration>() >= age;
   }
 
-  network_hops distance;
   time_point last_seen;
 };
 }

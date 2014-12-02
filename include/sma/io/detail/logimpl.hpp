@@ -13,6 +13,18 @@
 //
 #ifndef EASYLOGGINGPP_H    // NOLINT
 #define EASYLOGGINGPP_H
+
+namespace sma {
+namespace detail
+{
+  /*! This defines the type of the logger used in the Logger interface.
+   * The implementation will probably need to change when moving to android,
+   * so some amount of decoupling will be useful.
+   */
+  using log_impl_type = el::Logger;
+}
+}
+
 // Compilers and C++0x/C++11 Evaluation
 #if defined(__GNUC__)
 #define _ELPP_COMPILER_GCC 1

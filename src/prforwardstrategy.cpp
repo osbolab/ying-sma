@@ -30,9 +30,7 @@ void PrForwardStrategy::do_timeslot()
   Lock lock(mx);
   is_scheduled = false;
 
-  auto prob = distribute(context->prng);
-
-  if (prob >= threshold_min && prob <= threshold_max)
+  if (distribute(context->prng) <= threshold)
     if (!llayer->forward_one())
       return;
 

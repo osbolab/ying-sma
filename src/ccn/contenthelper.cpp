@@ -15,10 +15,15 @@
 #include <chrono>
 #include <istream>
 
+#include <unordered_map>
+
 using namespace std::literals::chrono_literals;
 
 namespace sma
 {
+static std::unordered_map<ContentType, sma::chrono::system_clock::time_point>
+    g_pending_content;
+
 ContentHelper::ContentHelper(CcnNode& node)
   : node(&node)
   , log(node.context->log)
@@ -27,8 +32,6 @@ ContentHelper::ContentHelper(CcnNode& node)
 
 void ContentHelper::receive(MessageHeader header, ContentInfoMessage msg)
 {
-  using clock = sma::chrono::system_clock;
-
   bool forward = false;
 
   auto& info = msg.info;
@@ -39,8 +42,17 @@ void ContentHelper::receive(MessageHeader header, ContentInfoMessage msg)
   ++info.distance;
 
   auto& interests = node->interests();
-  if (interests.interested_in(info))
+  if (interests.interested_in(info)) {
     log.d("** I got content I wanted! **");
+
+    auto it = g_pending_content.find(info.type);
+    if (it != g_pending_content.end()) {
+      auto delay = std::chrono::duration_cast<std::chrono::milliseconds>(
+          clock::now() - it->second);
+      log.i("** delay: %v ms", delay.count());
+      g_pending_content.erase(it);
+    }
+  }
 
   if (!update_kct(msg.hash, info))
     return;
@@ -52,7 +64,7 @@ void ContentHelper::receive(MessageHeader header, ContentInfoMessage msg)
   log.d("| publisher: %v", info.publisher);
 
   if (interests.know_remote(info.type)) {
-    log.d("--> I know someone who wants this");
+    //log.d("--> (forward)");
     node->post(msg);
   }
   log.d("");
@@ -76,6 +88,7 @@ void ContentHelper::publish(ContentType type,
   log.d("| name: %v", name);
   log.d("");
 
+  g_pending_content.emplace(type, clock::now());
   auto hash = Hasher(std::string(type))(std::string(name)).digest();
   node->post(
       ContentInfoMessage(std::move(hash), ContentInfo(type, name, node->id)));

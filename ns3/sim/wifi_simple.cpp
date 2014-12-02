@@ -33,8 +33,8 @@ int main(int argc, char** argv)
 {
   configure_logs(argc, argv);
 
-  std::size_t nnodes = 4;
-  long duration = 30;
+  std::size_t nnodes = 40;
+  long duration = 10;
 
   std::string baseIp("10.1.0.0");
   std::string subnet("255.255.0.0");
@@ -51,7 +51,7 @@ int main(int argc, char** argv)
   cmd.AddValue("distance", "distance (m)", distance);
   cmd.AddValue("nodes", "number of nodes", nnodes);
   cmd.AddValue("olsr", "enable optimized link state routing", enable_olsr);
-  // cmd.Parse(argc, argv);
+  cmd.Parse(argc, argv);
 
 
   LOG(DEBUG) << "Create 802.11b device template";
@@ -191,18 +191,18 @@ int main(int argc, char** argv)
     app->add_component(std::move(
         std::make_unique<sma::DummyGps>(sma::GPS::Coord{pos.x, pos.y})));
 
-    if (i == 1) {
+    if (i == (nnodes-1)) {
       std::vector<sma::ContentType> interests;
       interests.emplace_back("cats");
       app->act_emplace_front<sma::CreateInterestAction>(1s,
                                                         std::move(interests));
-      app->act_emplace_front<sma::PublishContentAction>(2s, "cats", "my cat");
     }
-    if (i == 7) {
+    if (i == 1) {
       std::vector<sma::ContentType> interests;
       interests.emplace_back("dogs");
-      app->act_emplace_front<sma::CreateInterestAction>(3s,
-                                                        std::move(interests));
+      //app->act_emplace_front<sma::CreateInterestAction>(3s,
+      //                                                  std::move(interests));
+      app->act_emplace_front<sma::PublishContentAction>(3s, "cats", "my cat");
     }
 
     auto apps = ns3::ApplicationContainer(app);

@@ -4,14 +4,9 @@
 
 namespace sma
 {
-namespace detail
-{
-  using log_impl_type = el::Logger;
-}
-
 // clang-format off
   // Eventually I'll replace this with something less, you know, completely
-  // horrible.
+  // horrible. Probably not though.
   struct Logger {
     Logger(std::string id) : impl(el::Loggers::getLogger(id)) {}
     template <typename... Args> Logger const& t(Args&&... args) const;
