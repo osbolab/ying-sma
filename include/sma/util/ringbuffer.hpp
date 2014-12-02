@@ -9,8 +9,6 @@
 #include <stdexcept>
 #include <type_traits>
 
-#include <sma/io/log>
-
 
 namespace sma
 {
@@ -93,12 +91,7 @@ public:
      * ordered read until this commit takes place.
      */
     ~WriteLock()
-    {
-      if (entry) {
-        entry->writing.clear();
-        LOG(DEBUG) << "write lock released";
-      }
-    }
+    { if (entry) entry->writing.clear(); }
 
     //! Get a reference to the claimed buffer entry.
     /*! Dereferencing this reference outside the lifetime of the current object
@@ -114,9 +107,7 @@ public:
   private:
     WriteLock(Entry& entry)
       : entry(&entry)
-    {
-      LOG(DEBUG) << "write lock taken";
-    }
+    { }
 
     //! Claimed entry at which readers are blocked while this object is live.
     Entry* entry;
@@ -160,8 +151,7 @@ public:
     //! Release a read lock on the entry.
     /*! The entry is not unlocked until all readers have been destroyed. */
     ~ReadLock()
-    { if (entry) --entry->readers;
-      LOG(DEBUG) << "read lock released"; }
+    { if (entry) --entry->readers; }
 
     //! Get an immutable reference to the buffer entry.
     /*! Dereferencing this reference outside the lifetime of the current object
@@ -182,9 +172,7 @@ public:
     ReadLock() = default;
     ReadLock(Entry& entry)
       : entry(&entry)
-    {
-      LOG(DEBUG) << "read lock taken";
-    }
+    { }
 
     Entry* entry{nullptr};
   };
@@ -196,7 +184,7 @@ public:
     : entries(new Entry[size]())
     , idx_mask(size - 1)
   {
-    assert(size != 0 && ((size & (size-1)) == 0));
+    assert(size != 0 && ((size & (size - 1)) == 0));
   }
 
   //! Delete the buffered elements without regard for open readers or writers.
@@ -233,8 +221,6 @@ public:
       throw std::runtime_error(
           "Ring buffer overrun (the next slot to write is being read).");
 
-    LOG(DEBUG) << "claiming " << seq;
-
     return WriteLock(*entry);
   }
 
@@ -260,7 +246,6 @@ public:
       // We failed the CAS; remove ourselves from the entry we chose and retry.
       --entry->readers;
     }
-    LOG(DEBUG) << "popping " << seq << "(" << (*entry).t.size << " bytes)";
 
     return std::make_pair(ReadLock(*entry), true);
   }
