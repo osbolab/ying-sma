@@ -1,0 +1,52 @@
+\hypertarget{classsma_1_1InterestHelperImpl}{\section{sma\-:\-:Interest\-Helper\-Impl Class Reference}
+\label{classsma_1_1InterestHelperImpl}\index{sma\-::\-Interest\-Helper\-Impl@{sma\-::\-Interest\-Helper\-Impl}}
+}
+
+
+Manages the storage, announcement, and replication of content interests.  
+
+
+
+
+{\ttfamily \#include $<$interesthelperimpl.\-hpp$>$}
+
+Inheritance diagram for sma\-:\-:Interest\-Helper\-Impl\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{classsma_1_1InterestHelperImpl}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classsma_1_1InterestHelperImpl_a23ad77fcd0a36abd6f2c663570080a82}{\hyperlink{classsma_1_1InterestHelperImpl_a23ad77fcd0a36abd6f2c663570080a82}{Interest\-Helper\-Impl} (\hyperlink{classsma_1_1CcnNode}{Ccn\-Node} \&node)}\label{classsma_1_1InterestHelperImpl_a23ad77fcd0a36abd6f2c663570080a82}
+
+\begin{DoxyCompactList}\small\item\em Construct a helper to manage interests for the given node. \end{DoxyCompactList}\item 
+\hypertarget{classsma_1_1InterestHelperImpl_ac85793ecbb9c57e35e5cf73bd9d982ba}{void {\bfseries receive} (\hyperlink{structsma_1_1MessageHeader}{Message\-Header} header, \hyperlink{structsma_1_1InterestAnnouncement}{Interest\-Announcement} msg) override}\label{classsma_1_1InterestHelperImpl_ac85793ecbb9c57e35e5cf73bd9d982ba}
+
+\item 
+\hypertarget{classsma_1_1InterestHelperImpl_acb5ea058a96877430a967c3e42208006}{void {\bfseries insert\-\_\-new} (std\-::vector$<$ \hyperlink{structsma_1_1ContentType}{Content\-Type} $>$ types) override}\label{classsma_1_1InterestHelperImpl_acb5ea058a96877430a967c3e42208006}
+
+\item 
+\hypertarget{classsma_1_1InterestHelperImpl_a397988adc785d1f8607c0be26c86c5b5}{bool {\bfseries interested\-\_\-in} (\hyperlink{structsma_1_1ContentDescriptor}{Content\-Descriptor} const \&info) const override}\label{classsma_1_1InterestHelperImpl_a397988adc785d1f8607c0be26c86c5b5}
+
+\item 
+\hypertarget{classsma_1_1InterestHelperImpl_aedbe0383cd4ba8308b23fb089bb9c399}{bool {\bfseries know\-\_\-remote} (\hyperlink{structsma_1_1ContentType}{Content\-Type} const \&type) const override}\label{classsma_1_1InterestHelperImpl_aedbe0383cd4ba8308b23fb089bb9c399}
+
+\end{DoxyCompactItemize}
+\subsection*{Additional Inherited Members}
+
+
+\subsection{Detailed Description}
+Manages the storage, announcement, and replication of content interests. 
+
+Consumers express interest in content in order to become targets of dissemination from remote, unknown, providers.
+
+For provisioned content to reliably reach consumers a majority of nodes should know generally what content are in demand; they can then make intelligent forwarding and caching decisions to facilitate content where it's wanted without completely flooding the network.
+
+While it does appear to be a different sort of flooding, the interest data are intended to be extremely light weight relative to the content metadata and should require a minimum of effort to handle. 
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/sma/ccn/interesthelperimpl.\-hpp\item 
+src/ccn/interesthelperimpl.\-cpp\end{DoxyCompactItemize}

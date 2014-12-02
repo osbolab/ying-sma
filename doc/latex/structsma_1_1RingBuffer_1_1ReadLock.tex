@@ -1,0 +1,80 @@
+\hypertarget{structsma_1_1RingBuffer_1_1ReadLock}{\section{sma\-:\-:Ring\-Buffer$<$ T $>$\-:\-:Read\-Lock Struct Reference}
+\label{structsma_1_1RingBuffer_1_1ReadLock}\index{sma\-::\-Ring\-Buffer$<$ T $>$\-::\-Read\-Lock@{sma\-::\-Ring\-Buffer$<$ T $>$\-::\-Read\-Lock}}
+}
+
+
+Lock the referenced entry against writing for the lifetime of this object.  
+
+
+
+
+{\ttfamily \#include $<$ringbuffer.\-hpp$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{structsma_1_1RingBuffer_1_1ReadLock_aeddec71338ff09958ce83b9189cbb1ee}{\hyperlink{structsma_1_1RingBuffer_1_1ReadLock_aeddec71338ff09958ce83b9189cbb1ee}{Read\-Lock} (\hyperlink{structsma_1_1RingBuffer_1_1ReadLock}{Read\-Lock} \&\&r)}\label{structsma_1_1RingBuffer_1_1ReadLock_aeddec71338ff09958ce83b9189cbb1ee}
+
+\begin{DoxyCompactList}\small\item\em Transfer the read lock on the entry without incrementing it. \end{DoxyCompactList}\item 
+\hypertarget{structsma_1_1RingBuffer_1_1ReadLock_acdc3607be0c92caed05ecd56cd577fcc}{\hyperlink{structsma_1_1RingBuffer_1_1ReadLock_acdc3607be0c92caed05ecd56cd577fcc}{Read\-Lock} (\hyperlink{structsma_1_1RingBuffer_1_1ReadLock}{Read\-Lock} const \&r)}\label{structsma_1_1RingBuffer_1_1ReadLock_acdc3607be0c92caed05ecd56cd577fcc}
+
+\begin{DoxyCompactList}\small\item\em Take an additional read lock on the entry. \end{DoxyCompactList}\item 
+\hypertarget{structsma_1_1RingBuffer_1_1ReadLock_a9df5684dc725b620f523d51a6b2eb459}{\hyperlink{structsma_1_1RingBuffer_1_1ReadLock}{Read\-Lock} \& \hyperlink{structsma_1_1RingBuffer_1_1ReadLock_a9df5684dc725b620f523d51a6b2eb459}{operator=} (\hyperlink{structsma_1_1RingBuffer_1_1ReadLock}{Read\-Lock} \&\&r)}\label{structsma_1_1RingBuffer_1_1ReadLock_a9df5684dc725b620f523d51a6b2eb459}
+
+\begin{DoxyCompactList}\small\item\em Transfer the read lock on the entry without incrementing it. \end{DoxyCompactList}\item 
+\hypertarget{structsma_1_1RingBuffer_1_1ReadLock_a43b656d99ddad457ef4437fe41957761}{\hyperlink{structsma_1_1RingBuffer_1_1ReadLock}{Read\-Lock} \& \hyperlink{structsma_1_1RingBuffer_1_1ReadLock_a43b656d99ddad457ef4437fe41957761}{operator=} (\hyperlink{structsma_1_1RingBuffer_1_1ReadLock}{Read\-Lock} const \&r)}\label{structsma_1_1RingBuffer_1_1ReadLock_a43b656d99ddad457ef4437fe41957761}
+
+\begin{DoxyCompactList}\small\item\em Take an additional read lock on the entry. \end{DoxyCompactList}\item 
+\hyperlink{structsma_1_1RingBuffer_1_1ReadLock_a771beb471ed0f23e3daf4e0f28c0608c}{$\sim$\-Read\-Lock} ()
+\begin{DoxyCompactList}\small\item\em Release a read lock on the entry. \end{DoxyCompactList}\item 
+T const \& \hyperlink{structsma_1_1RingBuffer_1_1ReadLock_ae2b4e51206f8ad0bb2dad51906ee65df}{operator$\ast$} () const 
+\begin{DoxyCompactList}\small\item\em Get an immutable reference to the buffer entry. \end{DoxyCompactList}\item 
+\hypertarget{structsma_1_1RingBuffer_1_1ReadLock_a8f995ebf7df5e82f075711821ec5011b}{T const \& \hyperlink{structsma_1_1RingBuffer_1_1ReadLock_a8f995ebf7df5e82f075711821ec5011b}{operator-\/$>$} () const }\label{structsma_1_1RingBuffer_1_1ReadLock_a8f995ebf7df5e82f075711821ec5011b}
+
+\begin{DoxyCompactList}\small\item\em Dereference the buffer entry. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{structsma_1_1RingBuffer_1_1ReadLock_a5223a2ecf29b6a10addcb4673bc3806b}{class {\bfseries Ring\-Buffer$<$ T $>$}}\label{structsma_1_1RingBuffer_1_1ReadLock_a5223a2ecf29b6a10addcb4673bc3806b}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$typename T$>$struct sma\-::\-Ring\-Buffer$<$ T $>$\-::\-Read\-Lock}
+
+Lock the referenced entry against writing for the lifetime of this object. 
+
+Unlimited readers may immutably reference an entry and it will not be modified until they are all destructed. This blocks writing, and since the ring buffer is neither destructive nor dynamic may cause an overrun exception. 
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{structsma_1_1RingBuffer_1_1ReadLock_a771beb471ed0f23e3daf4e0f28c0608c}{\index{sma\-::\-Ring\-Buffer\-::\-Read\-Lock@{sma\-::\-Ring\-Buffer\-::\-Read\-Lock}!$\sim$\-Read\-Lock@{$\sim$\-Read\-Lock}}
+\index{$\sim$\-Read\-Lock@{$\sim$\-Read\-Lock}!sma::RingBuffer::ReadLock@{sma\-::\-Ring\-Buffer\-::\-Read\-Lock}}
+\subsubsection[{$\sim$\-Read\-Lock}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename T$>$ {\bf sma\-::\-Ring\-Buffer}$<$ T $>$\-::Read\-Lock\-::$\sim$\-Read\-Lock (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{structsma_1_1RingBuffer_1_1ReadLock_a771beb471ed0f23e3daf4e0f28c0608c}
+
+
+Release a read lock on the entry. 
+
+The entry is not unlocked until all readers have been destroyed. 
+
+\subsection{Member Function Documentation}
+\hypertarget{structsma_1_1RingBuffer_1_1ReadLock_ae2b4e51206f8ad0bb2dad51906ee65df}{\index{sma\-::\-Ring\-Buffer\-::\-Read\-Lock@{sma\-::\-Ring\-Buffer\-::\-Read\-Lock}!operator$\ast$@{operator$\ast$}}
+\index{operator$\ast$@{operator$\ast$}!sma::RingBuffer::ReadLock@{sma\-::\-Ring\-Buffer\-::\-Read\-Lock}}
+\subsubsection[{operator$\ast$}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename T$>$ T const\& {\bf sma\-::\-Ring\-Buffer}$<$ T $>$\-::Read\-Lock\-::operator$\ast$ (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily [inline]}}}\label{structsma_1_1RingBuffer_1_1ReadLock_ae2b4e51206f8ad0bb2dad51906ee65df}
+
+
+Get an immutable reference to the buffer entry. 
+
+Dereferencing this reference outside the lifetime of the current object is undefined behavior. 
+
+The documentation for this struct was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/sma/util/ringbuffer.\-hpp\end{DoxyCompactItemize}

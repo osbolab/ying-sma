@@ -65,7 +65,7 @@ private:
   std::vector<std::unique_ptr<Link>> links;
 
   //! Buffer outgoing messages to be sent by the forwarding strategy.
-  RingBuffer<detail::MessageData> send_buf;
+  RingBuffer send_buf;
 
   // Incoming messages are still synchronous; this is just so we can reuse the
   // stringbuf and istream;

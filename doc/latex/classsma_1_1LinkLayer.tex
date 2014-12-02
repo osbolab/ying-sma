@@ -1,0 +1,92 @@
+\hypertarget{classsma_1_1LinkLayer}{\section{sma\-:\-:Link\-Layer Class Reference}
+\label{classsma_1_1LinkLayer}\index{sma\-::\-Link\-Layer@{sma\-::\-Link\-Layer}}
+}
+Inheritance diagram for sma\-:\-:Link\-Layer\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classsma_1_1LinkLayer}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classsma_1_1LinkLayer_a1b66460173365ef6133b983421fe7bb9}{{\bfseries Link\-Layer} (\hyperlink{classsma_1_1LinkLayer}{Link\-Layer} const \&r)=delete}\label{classsma_1_1LinkLayer_a1b66460173365ef6133b983421fe7bb9}
+
+\item 
+\hypertarget{classsma_1_1LinkLayer_a2058e2c88d9f67b49561f2196631a91d}{\hyperlink{classsma_1_1LinkLayer}{Link\-Layer} \& {\bfseries operator=} (\hyperlink{classsma_1_1LinkLayer}{Link\-Layer} const \&r)=delete}\label{classsma_1_1LinkLayer_a2058e2c88d9f67b49561f2196631a91d}
+
+\item 
+\hypertarget{classsma_1_1LinkLayer_a151cdb38db1e95fe67e215a9cefa7168}{void \hyperlink{classsma_1_1LinkLayer_a151cdb38db1e95fe67e215a9cefa7168}{receive\-\_\-to} (\hyperlink{classsma_1_1CcnNode}{Ccn\-Node} \&\hyperlink{classsma_1_1LinkLayer_af1c41f5c6906c2be5757d4a615f3324a}{node})}\label{classsma_1_1LinkLayer_a151cdb38db1e95fe67e215a9cefa7168}
+
+\begin{DoxyCompactList}\small\item\em Set the node that will receive messages received by the link layer. \end{DoxyCompactList}\item 
+\hyperlink{classsma_1_1LinkLayer}{Link\-Layer} \& \hyperlink{classsma_1_1LinkLayer_af3c4ce4bed281e14bbc676988b5acc31}{forward\-\_\-strategy} (\hyperlink{classsma_1_1ForwardStrategy}{Forward\-Strategy} \&strategy)
+\begin{DoxyCompactList}\small\item\em Set the strategy used to manage the outgoing message queue. \end{DoxyCompactList}\item 
+\hypertarget{classsma_1_1LinkLayer_aff0a6b5cf4c38b7658682b7d6fcc8a34}{virtual void \hyperlink{classsma_1_1LinkLayer_aff0a6b5cf4c38b7658682b7d6fcc8a34}{stop} ()=0}\label{classsma_1_1LinkLayer_aff0a6b5cf4c38b7658682b7d6fcc8a34}
+
+\begin{DoxyCompactList}\small\item\em Gracefully stop communication between the node and the links. \end{DoxyCompactList}\item 
+virtual std\-::size\-\_\-t \hyperlink{classsma_1_1LinkLayer_a5e779ec9a213244990374df07906985c}{forward\-\_\-one} ()=0
+\begin{DoxyCompactList}\small\item\em Forward the next queued outgoing message to the network. \end{DoxyCompactList}\item 
+\hypertarget{classsma_1_1LinkLayer_a4b183144bf01d5e4ed2f7c8f4a6f7231}{virtual void \hyperlink{classsma_1_1LinkLayer_a4b183144bf01d5e4ed2f7c8f4a6f7231}{enqueue} (void const $\ast$src, std\-::size\-\_\-t size)=0}\label{classsma_1_1LinkLayer_a4b183144bf01d5e4ed2f7c8f4a6f7231}
+
+\begin{DoxyCompactList}\small\item\em Place the message in the outgoing message queue. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classsma_1_1LinkLayer_af1c41f5c6906c2be5757d4a615f3324a}{\hyperlink{classsma_1_1CcnNode}{Ccn\-Node} $\ast$ \hyperlink{classsma_1_1LinkLayer_af1c41f5c6906c2be5757d4a615f3324a}{node} \{nullptr\}}\label{classsma_1_1LinkLayer_af1c41f5c6906c2be5757d4a615f3324a}
+
+\begin{DoxyCompactList}\small\item\em The target of incoming messages. \end{DoxyCompactList}\item 
+\hyperlink{classsma_1_1ForwardStrategy}{Forward\-Strategy} $\ast$ \hyperlink{classsma_1_1LinkLayer_abc5610d847fa48661a6ee79d6872181b}{fwd\-\_\-strat} = nullptr
+\begin{DoxyCompactList}\small\item\em The strategy for forwarding outgoing messages to the network. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classsma_1_1LinkLayer_a1e9ca4d39ca75620494c1f03ae5b00e8}{class {\bfseries Link}}\label{classsma_1_1LinkLayer_a1e9ca4d39ca75620494c1f03ae5b00e8}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classsma_1_1LinkLayer_a5e779ec9a213244990374df07906985c}{\index{sma\-::\-Link\-Layer@{sma\-::\-Link\-Layer}!forward\-\_\-one@{forward\-\_\-one}}
+\index{forward\-\_\-one@{forward\-\_\-one}!sma::LinkLayer@{sma\-::\-Link\-Layer}}
+\subsubsection[{forward\-\_\-one}]{\setlength{\rightskip}{0pt plus 5cm}virtual std\-::size\-\_\-t sma\-::\-Link\-Layer\-::forward\-\_\-one (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [pure virtual]}}}\label{classsma_1_1LinkLayer_a5e779ec9a213244990374df07906985c}
+
+
+Forward the next queued outgoing message to the network. 
+
+\begin{DoxyReturn}{Returns}
+the number of queued messages remaining. 
+\end{DoxyReturn}
+
+
+Implemented in \hyperlink{classsma_1_1LinkLayerImpl_a361fbd3e20dd514157a9c088449adf2d}{sma\-::\-Link\-Layer\-Impl}.
+
+\hypertarget{classsma_1_1LinkLayer_af3c4ce4bed281e14bbc676988b5acc31}{\index{sma\-::\-Link\-Layer@{sma\-::\-Link\-Layer}!forward\-\_\-strategy@{forward\-\_\-strategy}}
+\index{forward\-\_\-strategy@{forward\-\_\-strategy}!sma::LinkLayer@{sma\-::\-Link\-Layer}}
+\subsubsection[{forward\-\_\-strategy}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Link\-Layer}\& sma\-::\-Link\-Layer\-::forward\-\_\-strategy (
+\begin{DoxyParamCaption}
+\item[{{\bf Forward\-Strategy} \&}]{strategy}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{classsma_1_1LinkLayer_af3c4ce4bed281e14bbc676988b5acc31}
+
+
+Set the strategy used to manage the outgoing message queue. 
+
+If a forwarding strategy is set, it will be invoked after an outgoing message is buffered and must call the link layer's {\itshape forward\-\_\-one} method to send the message. 
+
+\subsection{Member Data Documentation}
+\hypertarget{classsma_1_1LinkLayer_abc5610d847fa48661a6ee79d6872181b}{\index{sma\-::\-Link\-Layer@{sma\-::\-Link\-Layer}!fwd\-\_\-strat@{fwd\-\_\-strat}}
+\index{fwd\-\_\-strat@{fwd\-\_\-strat}!sma::LinkLayer@{sma\-::\-Link\-Layer}}
+\subsubsection[{fwd\-\_\-strat}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Forward\-Strategy}$\ast$ sma\-::\-Link\-Layer\-::fwd\-\_\-strat = nullptr\hspace{0.3cm}{\ttfamily [protected]}}}\label{classsma_1_1LinkLayer_abc5610d847fa48661a6ee79d6872181b}
+
+
+The strategy for forwarding outgoing messages to the network. 
+
+Naive blasting to contended networks will cause avoidable loss. The strategy should make intelligent decisions to share the network capacity with other peers. 
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/sma/linklayer.\-hpp\end{DoxyCompactItemize}

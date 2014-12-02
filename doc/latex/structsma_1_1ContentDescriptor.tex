@@ -1,0 +1,61 @@
+\hypertarget{structsma_1_1ContentDescriptor}{\section{sma\-:\-:Content\-Descriptor Struct Reference}
+\label{structsma_1_1ContentDescriptor}\index{sma\-::\-Content\-Descriptor@{sma\-::\-Content\-Descriptor}}
+}
+
+
+Content metadata descriptor for a single content item.  
+
+
+
+
+{\ttfamily \#include $<$contentdescriptor.\-hpp$>$}
+
+\subsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{structsma_1_1ContentDescriptor_a68b7045d54a2826abbd6fb6d393b77f3}{using {\bfseries time\-\_\-point} = clock\-::time\-\_\-point}\label{structsma_1_1ContentDescriptor_a68b7045d54a2826abbd6fb6d393b77f3}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{structsma_1_1ContentDescriptor_a65b2a03a56aa38d2eff2915a12c5fcdd}{{\bfseries T\-R\-I\-V\-I\-A\-L\-L\-Y\-\_\-\-S\-E\-R\-I\-A\-L\-I\-Z\-A\-B\-L\-E} (\hyperlink{structsma_1_1ContentDescriptor}{Content\-Descriptor}, hash, type, name, publisher, distance, \hyperlink{structsma_1_1ContentDescriptor_a5df5403d4d7e7a93ae3bf616f14eb598}{blocks}) using \hyperlink{structsma_1_1chrono_1_1system__clock}{clock}}\label{structsma_1_1ContentDescriptor_a65b2a03a56aa38d2eff2915a12c5fcdd}
+
+\item 
+\hypertarget{structsma_1_1ContentDescriptor_a7fab147dff32e4389e9293e19e8080ba}{{\bfseries Content\-Descriptor} (\hyperlink{structsma_1_1Hash}{Hash} hash, \hyperlink{structsma_1_1ContentType}{Content\-Type} type, \hyperlink{structsma_1_1ContentName}{Content\-Name} name, \hyperlink{structsma_1_1NodeId}{Node\-Id} publisher, std\-::vector$<$ \hyperlink{structsma_1_1Hash}{Hash} $>$ \hyperlink{structsma_1_1ContentDescriptor_a5df5403d4d7e7a93ae3bf616f14eb598}{blocks}=std\-::vector$<$ \hyperlink{structsma_1_1Hash}{Hash} $>$(), Network\-Distance distance=0)}\label{structsma_1_1ContentDescriptor_a7fab147dff32e4389e9293e19e8080ba}
+
+\item 
+\hypertarget{structsma_1_1ContentDescriptor_af9e1493085aa1666af655673abe97206}{bool {\bfseries update} (\hyperlink{structsma_1_1ContentDescriptor}{Content\-Descriptor} const \&info)}\label{structsma_1_1ContentDescriptor_af9e1493085aa1666af655673abe97206}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{structsma_1_1ContentDescriptor_a79dbf0a252931a1da5f7bfcc241c5fb6}{\hyperlink{structsma_1_1Hash}{Hash} {\bfseries hash}}\label{structsma_1_1ContentDescriptor_a79dbf0a252931a1da5f7bfcc241c5fb6}
+
+\item 
+\hypertarget{structsma_1_1ContentDescriptor_a82ac4e52fb7d66e2a7fa0039ed10e20e}{\hyperlink{structsma_1_1ContentType}{Content\-Type} {\bfseries type}}\label{structsma_1_1ContentDescriptor_a82ac4e52fb7d66e2a7fa0039ed10e20e}
+
+\item 
+\hypertarget{structsma_1_1ContentDescriptor_ae2f7c491cafcc19dc497fb54c7ae0b18}{\hyperlink{structsma_1_1ContentName}{Content\-Name} {\bfseries name}}\label{structsma_1_1ContentDescriptor_ae2f7c491cafcc19dc497fb54c7ae0b18}
+
+\item 
+\hypertarget{structsma_1_1ContentDescriptor_a7f407c7636ff87a08ef17067b183d6f2}{\hyperlink{structsma_1_1NodeId}{Node\-Id} {\bfseries publisher}}\label{structsma_1_1ContentDescriptor_a7f407c7636ff87a08ef17067b183d6f2}
+
+\item 
+\hypertarget{structsma_1_1ContentDescriptor_ab874589ae9839fd5b9d26ecf89840f5b}{Network\-Distance {\bfseries distance}}\label{structsma_1_1ContentDescriptor_ab874589ae9839fd5b9d26ecf89840f5b}
+
+\item 
+\hypertarget{structsma_1_1ContentDescriptor_a5df5403d4d7e7a93ae3bf616f14eb598}{std\-::vector$<$ \hyperlink{structsma_1_1Hash}{Hash} $>$ \hyperlink{structsma_1_1ContentDescriptor_a5df5403d4d7e7a93ae3bf616f14eb598}{blocks}}\label{structsma_1_1ContentDescriptor_a5df5403d4d7e7a93ae3bf616f14eb598}
+
+\begin{DoxyCompactList}\small\item\em The block set naming each block. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Content metadata descriptor for a single content item. 
+
+The descriptor must be sufficient to represent the content item's identity across network boundaries and to facilitate retrieval across node boundaries within the same application domain. 
+
+The documentation for this struct was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/sma/ccn/contentdescriptor.\-hpp\end{DoxyCompactItemize}

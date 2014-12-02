@@ -60,10 +60,8 @@ void LinkLayerImpl::stop() { node = nullptr; }
 void LinkLayerImpl::enqueue(void const* src, std::size_t size)
 {
   {
-    // The returned object is actually a scoped write lock on a shared buffer...
-    // BUT YOU'D NEVER GUESS IT FROM THIS AWFUL CODE
-    auto lock = send_buf.claim();
-    auto& buf = *lock;
+    WriteLock<RingBuffer> buf(send_buf);
+    assert(size <= buf.capacity());
     std::memcpy(buf.data, src, size);
     buf.size = size;
   }
@@ -77,21 +75,19 @@ void LinkLayerImpl::enqueue(void const* src, std::size_t size)
 std::size_t LinkLayerImpl::forward_one()
 {
   {
-    auto maybe_data = send_buf.try_pop();
-    if (!maybe_data.second)
+    ReadLock<RingBuffer> lock(send_buf);
+    if (!lock.acquired())
       return 0;
-
-    auto const& cbuf = *(maybe_data.first);
 
     char buf[8092];
     std::memcpy(buf, &g_next_send, sizeof(std::uint64_t));
-    std::memcpy(buf + sizeof(std::uint64_t), cbuf.data, cbuf.size);
-    g_bytes_out += cbuf.size;
-    packets.emplace(g_next_send++, cbuf.size);
+    std::memcpy(buf + sizeof(std::uint64_t), lock.cdata(), lock.size());
+    g_bytes_out += lock.size();
+    packets.emplace(g_next_send++, lock.size());
     ++g_next_send;
 
     for (auto& link : links)
-      assert(link->write(buf, sizeof(std::uint64_t) + cbuf.size));
+      assert(link->write(buf, sizeof(std::uint64_t) + lock.size()));
   }
 
   return send_buf.size();

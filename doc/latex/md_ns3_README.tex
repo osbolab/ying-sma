@@ -1,0 +1,9 @@
+{\ttfamily include/ns3/} and {\ttfamily lib/} should be symlinked to the N\-S3 build directory where N\-S3 builds the shared libraries and outputs the headers for the modules its built with.
+
+{\ttfamily include/} will be added to the system include path and {\ttfamily lib/} to the library search path for targets in this project. Source depending on N\-S3 can therefore include its headers as if they were in the system path\-: \begin{DoxyVerb}#include <ns3/xxxx.h>
+\end{DoxyVerb}
+
+
+This means that N\-S3 needs to be built before any source depending on it or those headers won't be found.
+
+If N\-S3 is moved or the version changed then the symlinks need to be updated. 

@@ -1,0 +1,53 @@
+\hypertarget{classSHA256}{\section{S\-H\-A256 Class Reference}
+\label{classSHA256}\index{S\-H\-A256@{S\-H\-A256}}
+}
+
+
+compute \hyperlink{classSHA256}{S\-H\-A256} hash  
+
+
+
+
+{\ttfamily \#include $<$sha256.\-hpp$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classSHA256_ab672831c542df07ff03ded25760feec2}{\hyperlink{classSHA256_ab672831c542df07ff03ded25760feec2}{S\-H\-A256} ()}\label{classSHA256_ab672831c542df07ff03ded25760feec2}
+
+\begin{DoxyCompactList}\small\item\em same as \hyperlink{classSHA256_ad9d80d8fdccffb15497bd36285afce65}{reset()} \end{DoxyCompactList}\item 
+\hypertarget{classSHA256_a8e89aa2cb5506eb54c43f4397ca3a5d2}{std\-::string \hyperlink{classSHA256_a8e89aa2cb5506eb54c43f4397ca3a5d2}{operator()} (const void $\ast$data, size\-\_\-t num\-Bytes)}\label{classSHA256_a8e89aa2cb5506eb54c43f4397ca3a5d2}
+
+\begin{DoxyCompactList}\small\item\em compute \hyperlink{classSHA256}{S\-H\-A256} of a memory block \end{DoxyCompactList}\item 
+\hypertarget{classSHA256_adb084fa7b3133b9a6da752d4c83c878c}{std\-::string \hyperlink{classSHA256_adb084fa7b3133b9a6da752d4c83c878c}{operator()} (const std\-::string \&text)}\label{classSHA256_adb084fa7b3133b9a6da752d4c83c878c}
+
+\begin{DoxyCompactList}\small\item\em compute \hyperlink{classSHA256}{S\-H\-A256} of a string, excluding final zero \end{DoxyCompactList}\item 
+\hypertarget{classSHA256_a23602bf69c7e52161d7ef5d5fdc7d1da}{void \hyperlink{classSHA256_a23602bf69c7e52161d7ef5d5fdc7d1da}{add} (const void $\ast$data, size\-\_\-t num\-Bytes)}\label{classSHA256_a23602bf69c7e52161d7ef5d5fdc7d1da}
+
+\begin{DoxyCompactList}\small\item\em add arbitrary number of bytes \end{DoxyCompactList}\item 
+\hypertarget{classSHA256_a45b8ddcd471a717156fa5013c321975f}{void \hyperlink{classSHA256_a45b8ddcd471a717156fa5013c321975f}{get\-Hash} (std\-::uint8\-\_\-t $\ast$dst)}\label{classSHA256_a45b8ddcd471a717156fa5013c321975f}
+
+\begin{DoxyCompactList}\small\item\em return hash digest in dst \end{DoxyCompactList}\item 
+\hypertarget{classSHA256_ae7aa752e5d89cc53dcce13818e365f70}{std\-::string \hyperlink{classSHA256_ae7aa752e5d89cc53dcce13818e365f70}{get\-Hash} ()}\label{classSHA256_ae7aa752e5d89cc53dcce13818e365f70}
+
+\begin{DoxyCompactList}\small\item\em return latest hash as 16 hex characters \end{DoxyCompactList}\item 
+\hypertarget{classSHA256_ad9d80d8fdccffb15497bd36285afce65}{void \hyperlink{classSHA256_ad9d80d8fdccffb15497bd36285afce65}{reset} ()}\label{classSHA256_ad9d80d8fdccffb15497bd36285afce65}
+
+\begin{DoxyCompactList}\small\item\em restart \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+compute \hyperlink{classSHA256}{S\-H\-A256} hash 
+
+Usage\-: \hyperlink{classSHA256}{S\-H\-A256} sha256; std\-::string my\-Hash = sha256(\char`\"{}\-Hello World\char`\"{}); // std\-::string std\-::string my\-Hash2 = sha256(\char`\"{}\-How are you\char`\"{}, 11); // arbitrary data, 11 bytes
+
+or in a streaming fashion\-: \begin{DoxyVerb}SHA256 sha256;
+while (more data available)
+  sha256.add(pointer to fresh data, number of new bytes);
+std::string myHash3 = sha256.getHash();\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/sma/util/detail/sha256.\-hpp\item 
+src/util/detail/sha256.\-cpp\end{DoxyCompactItemize}

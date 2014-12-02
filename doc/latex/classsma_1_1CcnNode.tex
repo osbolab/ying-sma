@@ -1,0 +1,60 @@
+\hypertarget{classsma_1_1CcnNode}{\section{sma\-:\-:Ccn\-Node Class Reference}
+\label{classsma_1_1CcnNode}\index{sma\-::\-Ccn\-Node@{sma\-::\-Ccn\-Node}}
+}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classsma_1_1CcnNode_a0866edfdb39362136fc88f298dc7ec10}{{\bfseries Ccn\-Node} (\hyperlink{structsma_1_1NodeId}{Node\-Id} \hyperlink{classsma_1_1CcnNode_a5a7ffc5e2e82045309209b1f12738a28}{id}, \hyperlink{structsma_1_1Context}{Context} \&\hyperlink{classsma_1_1CcnNode_abbaf22b4425aed73167cd4388bf75c79}{context})}\label{classsma_1_1CcnNode_a0866edfdb39362136fc88f298dc7ec10}
+
+\item 
+\hypertarget{classsma_1_1CcnNode_a7c3cccc963620f001f5bfdba986e72fd}{{\bfseries Ccn\-Node} (\hyperlink{classsma_1_1CcnNode}{Ccn\-Node} const \&)=delete}\label{classsma_1_1CcnNode_a7c3cccc963620f001f5bfdba986e72fd}
+
+\item 
+\hypertarget{classsma_1_1CcnNode_a2b7138f7febad84c44a1ed9a42a8ac2e}{\hyperlink{classsma_1_1CcnNode}{Ccn\-Node} \& {\bfseries operator=} (\hyperlink{classsma_1_1CcnNode}{Ccn\-Node} const \&)=delete}\label{classsma_1_1CcnNode_a2b7138f7febad84c44a1ed9a42a8ac2e}
+
+\item 
+\hypertarget{classsma_1_1CcnNode_afed60305b098bc12c469ecfbdfca509e}{void \hyperlink{classsma_1_1CcnNode_afed60305b098bc12c469ecfbdfca509e}{stop} ()}\label{classsma_1_1CcnNode_afed60305b098bc12c469ecfbdfca509e}
+
+\begin{DoxyCompactList}\small\item\em Gracefully terminate further network delegation or asynchronous tasks. \end{DoxyCompactList}\item 
+\hypertarget{classsma_1_1CcnNode_a970d99585483d0b0fa1c180a773add98}{void \hyperlink{classsma_1_1CcnNode_a970d99585483d0b0fa1c180a773add98}{post} (void const $\ast$src, std\-::size\-\_\-t size)}\label{classsma_1_1CcnNode_a970d99585483d0b0fa1c180a773add98}
+
+\begin{DoxyCompactList}\small\item\em Enqueue the given message data to be broadcast to the network. \end{DoxyCompactList}\item 
+\hypertarget{classsma_1_1CcnNode_aa50d8d546a439aa1dbd7ad1c70e5555f}{{\footnotesize template$<$typename M $>$ }\\void \hyperlink{classsma_1_1CcnNode_aa50d8d546a439aa1dbd7ad1c70e5555f}{post} (M const \&msg, std\-::vector$<$ \hyperlink{structsma_1_1NodeId}{Node\-Id} $>$ recipients=std\-::vector$<$ \hyperlink{structsma_1_1NodeId}{Node\-Id} $>$())}\label{classsma_1_1CcnNode_aa50d8d546a439aa1dbd7ad1c70e5555f}
+
+\begin{DoxyCompactList}\small\item\em Serialize the given message and enqueue it to be broadcast. \end{DoxyCompactList}\item 
+\hypertarget{classsma_1_1CcnNode_a78dda9e33a7cd64bd8e3304c2249767c}{void {\bfseries receive} (\hyperlink{structsma_1_1MessageHeader}{Message\-Header} \&\&header, \hyperlink{structsma_1_1Beacon}{Beacon} \&\&msg)}\label{classsma_1_1CcnNode_a78dda9e33a7cd64bd8e3304c2249767c}
+
+\item 
+\hypertarget{classsma_1_1CcnNode_af49617977e2a7124493584c28bc48ff9}{void {\bfseries receive} (\hyperlink{structsma_1_1MessageHeader}{Message\-Header} \&\&header, \hyperlink{structsma_1_1InterestAnnouncement}{Interest\-Announcement} \&\&msg)}\label{classsma_1_1CcnNode_af49617977e2a7124493584c28bc48ff9}
+
+\item 
+\hypertarget{classsma_1_1CcnNode_accc58574aaf81740459399ca4aceec6c}{void {\bfseries receive} (\hyperlink{structsma_1_1MessageHeader}{Message\-Header} \&\&header, \hyperlink{structsma_1_1ContentAnnouncement}{Content\-Announcement} \&\&msg)}\label{classsma_1_1CcnNode_accc58574aaf81740459399ca4aceec6c}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classsma_1_1CcnNode_a5a7ffc5e2e82045309209b1f12738a28}{\hyperlink{structsma_1_1NodeId}{Node\-Id} const \hyperlink{classsma_1_1CcnNode_a5a7ffc5e2e82045309209b1f12738a28}{id}}\label{classsma_1_1CcnNode_a5a7ffc5e2e82045309209b1f12738a28}
+
+\begin{DoxyCompactList}\small\item\em This node's universally unique identifier. \end{DoxyCompactList}\item 
+\hypertarget{classsma_1_1CcnNode_abbaf22b4425aed73167cd4388bf75c79}{\hyperlink{structsma_1_1Context}{Context} $\ast$const \hyperlink{classsma_1_1CcnNode_abbaf22b4425aed73167cd4388bf75c79}{context}}\label{classsma_1_1CcnNode_abbaf22b4425aed73167cd4388bf75c79}
+
+\begin{DoxyCompactList}\small\item\em The application context in which this node is running. \end{DoxyCompactList}\item 
+\hypertarget{classsma_1_1CcnNode_a5867477dffdb0dddcc511214af331ccc}{\hyperlink{structsma_1_1Logger}{Logger} \hyperlink{classsma_1_1CcnNode_a5867477dffdb0dddcc511214af331ccc}{log}}\label{classsma_1_1CcnNode_a5867477dffdb0dddcc511214af331ccc}
+
+\begin{DoxyCompactList}\small\item\em A logger tailored to provide context-\/sensitive output for this node. \end{DoxyCompactList}\item 
+\hypertarget{classsma_1_1CcnNode_aa0e5f4ad986b897c5edfdd4e42623974}{\hyperlink{classsma_1_1NeighborHelper}{Neighbor\-Helper} $\ast$ {\bfseries neighbors} = nullptr}\label{classsma_1_1CcnNode_aa0e5f4ad986b897c5edfdd4e42623974}
+
+\item 
+\hypertarget{classsma_1_1CcnNode_ac1af2b3ea71ceac332ddcdb87ba0a6d2}{\hyperlink{classsma_1_1InterestHelper}{Interest\-Helper} $\ast$ {\bfseries interests} = nullptr}\label{classsma_1_1CcnNode_ac1af2b3ea71ceac332ddcdb87ba0a6d2}
+
+\item 
+\hypertarget{classsma_1_1CcnNode_a6b74f9416d455197d2a755a4ff2f5b56}{\hyperlink{classsma_1_1ContentHelper}{Content\-Helper} $\ast$ {\bfseries content} = nullptr}\label{classsma_1_1CcnNode_a6b74f9416d455197d2a755a4ff2f5b56}
+
+\end{DoxyCompactItemize}
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/sma/ccn/ccnnode.\-hpp\item 
+src/ccn/ccnnode.\-cpp\end{DoxyCompactItemize}

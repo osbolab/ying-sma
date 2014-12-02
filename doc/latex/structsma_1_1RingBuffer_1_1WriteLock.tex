@@ -1,0 +1,74 @@
+\hypertarget{structsma_1_1RingBuffer_1_1WriteLock}{\section{sma\-:\-:Ring\-Buffer$<$ T $>$\-:\-:Write\-Lock Struct Reference}
+\label{structsma_1_1RingBuffer_1_1WriteLock}\index{sma\-::\-Ring\-Buffer$<$ T $>$\-::\-Write\-Lock@{sma\-::\-Ring\-Buffer$<$ T $>$\-::\-Write\-Lock}}
+}
+
+
+Claim a buffer entry for writing and release it on destruction.  
+
+
+
+
+{\ttfamily \#include $<$ringbuffer.\-hpp$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{structsma_1_1RingBuffer_1_1WriteLock_a36c097ec664a70f0c021cfa14ceeccd5}{{\bfseries Write\-Lock} (\hyperlink{structsma_1_1RingBuffer_1_1WriteLock}{Write\-Lock} \&\&r)}\label{structsma_1_1RingBuffer_1_1WriteLock_a36c097ec664a70f0c021cfa14ceeccd5}
+
+\item 
+\hypertarget{structsma_1_1RingBuffer_1_1WriteLock_a4b2e99fdbc9bda1df33f9b8db0754004}{\hyperlink{structsma_1_1RingBuffer_1_1WriteLock}{Write\-Lock} \& {\bfseries operator=} (\hyperlink{structsma_1_1RingBuffer_1_1WriteLock}{Write\-Lock} \&\&r)}\label{structsma_1_1RingBuffer_1_1WriteLock_a4b2e99fdbc9bda1df33f9b8db0754004}
+
+\item 
+\hyperlink{structsma_1_1RingBuffer_1_1WriteLock_aeefbe6bb3ec9a93441aa3b4169d82c9d}{$\sim$\-Write\-Lock} ()
+\begin{DoxyCompactList}\small\item\em Release the buffer entry by setting its sequence number. \end{DoxyCompactList}\item 
+reference \hyperlink{structsma_1_1RingBuffer_1_1WriteLock_ac397fb68fa66eff6ef7f22c8bc513876}{operator$\ast$} ()
+\begin{DoxyCompactList}\small\item\em Get a reference to the claimed buffer entry. \end{DoxyCompactList}\item 
+\hypertarget{structsma_1_1RingBuffer_1_1WriteLock_a7b58c358bb92dec4dfaa8c6c3fb169e9}{reference \hyperlink{structsma_1_1RingBuffer_1_1WriteLock_a7b58c358bb92dec4dfaa8c6c3fb169e9}{operator-\/$>$} ()}\label{structsma_1_1RingBuffer_1_1WriteLock_a7b58c358bb92dec4dfaa8c6c3fb169e9}
+
+\begin{DoxyCompactList}\small\item\em Dereference the claimed buffer entry. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{structsma_1_1RingBuffer_1_1WriteLock_a5223a2ecf29b6a10addcb4673bc3806b}{class {\bfseries Ring\-Buffer$<$ T $>$}}\label{structsma_1_1RingBuffer_1_1WriteLock_a5223a2ecf29b6a10addcb4673bc3806b}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$typename T$>$struct sma\-::\-Ring\-Buffer$<$ T $>$\-::\-Write\-Lock}
+
+Claim a buffer entry for writing and release it on destruction. 
+
+The next writable sequence number is claimed, but not assigned to the entry until the writer is released. Readers will be blocked on that entry because its sequence is lower than theirs, and writers will be given a subsequent sequence number because it's atomically incremented when assigned. 
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{structsma_1_1RingBuffer_1_1WriteLock_aeefbe6bb3ec9a93441aa3b4169d82c9d}{\index{sma\-::\-Ring\-Buffer\-::\-Write\-Lock@{sma\-::\-Ring\-Buffer\-::\-Write\-Lock}!$\sim$\-Write\-Lock@{$\sim$\-Write\-Lock}}
+\index{$\sim$\-Write\-Lock@{$\sim$\-Write\-Lock}!sma::RingBuffer::WriteLock@{sma\-::\-Ring\-Buffer\-::\-Write\-Lock}}
+\subsubsection[{$\sim$\-Write\-Lock}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename T$>$ {\bf sma\-::\-Ring\-Buffer}$<$ T $>$\-::Write\-Lock\-::$\sim$\-Write\-Lock (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{structsma_1_1RingBuffer_1_1WriteLock_aeefbe6bb3ec9a93441aa3b4169d82c9d}
+
+
+Release the buffer entry by setting its sequence number. 
+
+This is guaranteed safe without locking because the sequence number was atomically incremented when taken and readers are blocked on a cheap ordered read until this commit takes place. 
+
+\subsection{Member Function Documentation}
+\hypertarget{structsma_1_1RingBuffer_1_1WriteLock_ac397fb68fa66eff6ef7f22c8bc513876}{\index{sma\-::\-Ring\-Buffer\-::\-Write\-Lock@{sma\-::\-Ring\-Buffer\-::\-Write\-Lock}!operator$\ast$@{operator$\ast$}}
+\index{operator$\ast$@{operator$\ast$}!sma::RingBuffer::WriteLock@{sma\-::\-Ring\-Buffer\-::\-Write\-Lock}}
+\subsubsection[{operator$\ast$}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename T$>$ reference {\bf sma\-::\-Ring\-Buffer}$<$ T $>$\-::Write\-Lock\-::operator$\ast$ (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{structsma_1_1RingBuffer_1_1WriteLock_ac397fb68fa66eff6ef7f22c8bc513876}
+
+
+Get a reference to the claimed buffer entry. 
+
+Dereferencing this reference outside the lifetime of the current object is undefined behavior; mutating that value is strictly illegal. 
+
+The documentation for this struct was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/sma/util/ringbuffer.\-hpp\end{DoxyCompactItemize}

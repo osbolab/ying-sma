@@ -1,0 +1,70 @@
+\hypertarget{classsma_1_1LinkLayerImpl}{\section{sma\-:\-:Link\-Layer\-Impl Class Reference}
+\label{classsma_1_1LinkLayerImpl}\index{sma\-::\-Link\-Layer\-Impl@{sma\-::\-Link\-Layer\-Impl}}
+}
+Inheritance diagram for sma\-:\-:Link\-Layer\-Impl\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classsma_1_1LinkLayerImpl}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classsma_1_1LinkLayerImpl_afb0d29b2c0897b87ee9508ce087a64e3}{Link\-Layer\-Impl} (std\-::vector$<$ std\-::unique\-\_\-ptr$<$ \hyperlink{classsma_1_1Link}{Link} $>$$>$ links)
+\begin{DoxyCompactList}\small\item\em Construct a link layer composed of the given links. \end{DoxyCompactList}\item 
+\hypertarget{classsma_1_1LinkLayerImpl_a106dd9f342d57a5b8de01f6f5be6259b}{\hyperlink{classsma_1_1LinkLayerImpl_a106dd9f342d57a5b8de01f6f5be6259b}{Link\-Layer\-Impl} (\hyperlink{classsma_1_1LinkLayerImpl}{Link\-Layer\-Impl} const \&r)=delete}\label{classsma_1_1LinkLayerImpl_a106dd9f342d57a5b8de01f6f5be6259b}
+
+\begin{DoxyCompactList}\small\item\em Copying is disabled because the underlying links are non-\/copyable. \end{DoxyCompactList}\item 
+\hypertarget{classsma_1_1LinkLayerImpl_af78279815467ea6f524d5668f661fe16}{\hyperlink{classsma_1_1LinkLayerImpl}{Link\-Layer\-Impl} \& \hyperlink{classsma_1_1LinkLayerImpl_af78279815467ea6f524d5668f661fe16}{operator=} (\hyperlink{classsma_1_1LinkLayerImpl}{Link\-Layer\-Impl} const \&r)=delete}\label{classsma_1_1LinkLayerImpl_af78279815467ea6f524d5668f661fe16}
+
+\begin{DoxyCompactList}\small\item\em Copying is disabled because the underlying links are non-\/copyable. \end{DoxyCompactList}\item 
+\hypertarget{classsma_1_1LinkLayerImpl_a22ee25f96b81111f5e780f617651e3bb}{void \hyperlink{classsma_1_1LinkLayerImpl_a22ee25f96b81111f5e780f617651e3bb}{stop} () override}\label{classsma_1_1LinkLayerImpl_a22ee25f96b81111f5e780f617651e3bb}
+
+\begin{DoxyCompactList}\small\item\em Gracefully stop communication between the node and the links. \end{DoxyCompactList}\item 
+std\-::size\-\_\-t \hyperlink{classsma_1_1LinkLayerImpl_a361fbd3e20dd514157a9c088449adf2d}{forward\-\_\-one} () override
+\begin{DoxyCompactList}\small\item\em Forward the next queued outgoing message to the network. \end{DoxyCompactList}\item 
+\hypertarget{classsma_1_1LinkLayerImpl_ab9fa90a70647957b44c514f7278d6d27}{void \hyperlink{classsma_1_1LinkLayerImpl_ab9fa90a70647957b44c514f7278d6d27}{enqueue} (void const $\ast$src, std\-::size\-\_\-t size) override}\label{classsma_1_1LinkLayerImpl_ab9fa90a70647957b44c514f7278d6d27}
+
+\begin{DoxyCompactList}\small\item\em Place the message in the outgoing message queue. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Additional Inherited Members}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classsma_1_1LinkLayerImpl_afb0d29b2c0897b87ee9508ce087a64e3}{\index{sma\-::\-Link\-Layer\-Impl@{sma\-::\-Link\-Layer\-Impl}!Link\-Layer\-Impl@{Link\-Layer\-Impl}}
+\index{Link\-Layer\-Impl@{Link\-Layer\-Impl}!sma::LinkLayerImpl@{sma\-::\-Link\-Layer\-Impl}}
+\subsubsection[{Link\-Layer\-Impl}]{\setlength{\rightskip}{0pt plus 5cm}sma\-::\-Link\-Layer\-Impl\-::\-Link\-Layer\-Impl (
+\begin{DoxyParamCaption}
+\item[{std\-::vector$<$ std\-::unique\-\_\-ptr$<$ {\bf Link} $>$$>$}]{links}
+\end{DoxyParamCaption}
+)}}\label{classsma_1_1LinkLayerImpl_afb0d29b2c0897b87ee9508ce087a64e3}
+
+
+Construct a link layer composed of the given links. 
+
+The link layer owns its links and they should not be mutated by any other object during its lifetime. 
+
+\subsection{Member Function Documentation}
+\hypertarget{classsma_1_1LinkLayerImpl_a361fbd3e20dd514157a9c088449adf2d}{\index{sma\-::\-Link\-Layer\-Impl@{sma\-::\-Link\-Layer\-Impl}!forward\-\_\-one@{forward\-\_\-one}}
+\index{forward\-\_\-one@{forward\-\_\-one}!sma::LinkLayerImpl@{sma\-::\-Link\-Layer\-Impl}}
+\subsubsection[{forward\-\_\-one}]{\setlength{\rightskip}{0pt plus 5cm}std\-::size\-\_\-t sma\-::\-Link\-Layer\-Impl\-::forward\-\_\-one (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}}\label{classsma_1_1LinkLayerImpl_a361fbd3e20dd514157a9c088449adf2d}
+
+
+Forward the next queued outgoing message to the network. 
+
+\begin{DoxyReturn}{Returns}
+the number of queued messages remaining. 
+\end{DoxyReturn}
+
+
+Implements \hyperlink{classsma_1_1LinkLayer_a5e779ec9a213244990374df07906985c}{sma\-::\-Link\-Layer}.
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/sma/linklayerimpl.\-hpp\item 
+src/linklayerimpl.\-cpp\end{DoxyCompactItemize}

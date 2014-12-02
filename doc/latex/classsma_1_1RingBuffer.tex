@@ -1,0 +1,44 @@
+\hypertarget{classsma_1_1RingBuffer}{\section{sma\-:\-:Ring\-Buffer$<$ T $>$ Class Template Reference}
+\label{classsma_1_1RingBuffer}\index{sma\-::\-Ring\-Buffer$<$ T $>$@{sma\-::\-Ring\-Buffer$<$ T $>$}}
+}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structsma_1_1RingBuffer_1_1ReadLock}{Read\-Lock}
+\begin{DoxyCompactList}\small\item\em Lock the referenced entry against writing for the lifetime of this object. \end{DoxyCompactList}\item 
+struct \hyperlink{structsma_1_1RingBuffer_1_1WriteLock}{Write\-Lock}
+\begin{DoxyCompactList}\small\item\em Claim a buffer entry for writing and release it on destruction. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classsma_1_1RingBuffer_a2a7fcb8fc464ffe0753d8c7911c0176a}{\hyperlink{classsma_1_1RingBuffer_a2a7fcb8fc464ffe0753d8c7911c0176a}{Ring\-Buffer} (size\-\_\-type \hyperlink{classsma_1_1RingBuffer_a48da46c41f1c0af479a4f10baba08675}{size})}\label{classsma_1_1RingBuffer_a2a7fcb8fc464ffe0753d8c7911c0176a}
+
+\begin{DoxyCompactList}\small\item\em Construct a new buffer, default-\/value-\/initializing all of its elements. \end{DoxyCompactList}\item 
+\hypertarget{classsma_1_1RingBuffer_a502396596d2283ce2a4ea70b29dcb261}{\hyperlink{classsma_1_1RingBuffer_a502396596d2283ce2a4ea70b29dcb261}{$\sim$\-Ring\-Buffer} ()}\label{classsma_1_1RingBuffer_a502396596d2283ce2a4ea70b29dcb261}
+
+\begin{DoxyCompactList}\small\item\em Delete the buffered elements without regard for open readers or writers. \end{DoxyCompactList}\item 
+\hypertarget{classsma_1_1RingBuffer_a48da46c41f1c0af479a4f10baba08675}{size\-\_\-type \hyperlink{classsma_1_1RingBuffer_a48da46c41f1c0af479a4f10baba08675}{size} ()}\label{classsma_1_1RingBuffer_a48da46c41f1c0af479a4f10baba08675}
+
+\begin{DoxyCompactList}\small\item\em Get the number of unread elements in the buffer. \end{DoxyCompactList}\item 
+\hyperlink{structsma_1_1RingBuffer_1_1WriteLock}{Write\-Lock} \hyperlink{classsma_1_1RingBuffer_a8b76dd129e7c56227debc2ce42cbc5a7}{claim} ()
+\item 
+\hypertarget{classsma_1_1RingBuffer_ad9fea9ba42fb18a0804b7ac0fa881189}{std\-::pair$<$ \hyperlink{structsma_1_1RingBuffer_1_1ReadLock}{Read\-Lock}, bool $>$ {\bfseries try\-\_\-pop} ()}\label{classsma_1_1RingBuffer_ad9fea9ba42fb18a0804b7ac0fa881189}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classsma_1_1RingBuffer_a8b76dd129e7c56227debc2ce42cbc5a7}{\index{sma\-::\-Ring\-Buffer@{sma\-::\-Ring\-Buffer}!claim@{claim}}
+\index{claim@{claim}!sma::RingBuffer@{sma\-::\-Ring\-Buffer}}
+\subsubsection[{claim}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename T$>$ {\bf Write\-Lock} {\bf sma\-::\-Ring\-Buffer}$<$ T $>$\-::claim (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{classsma_1_1RingBuffer_a8b76dd129e7c56227debc2ce42cbc5a7}
+Claim the next available buffer element for writing for the lifetime of the returned object.
+
+This is equivalent to lazily emplacing an element in a queue such that it is guaranteed to be read before subsequently emplaced elements. Consequently, while further writes may take place concurrently, all reads will be blocked at this entry until it has committed. 
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/sma/util/ringbuffer.\-hpp\end{DoxyCompactItemize}

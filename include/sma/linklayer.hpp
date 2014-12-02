@@ -44,7 +44,7 @@ public:
 
 protected:
   //! The target of incoming messages.
-  CcnNode* node{nullptr};
+  CcnNode* node = nullptr;
 
   //! The strategy for forwarding outgoing messages to the network.
   /*! Naive blasting to contended networks will cause avoidable loss. The
