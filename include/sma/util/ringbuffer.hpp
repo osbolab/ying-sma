@@ -9,19 +9,18 @@
 #include <stdexcept>
 #include <type_traits>
 
+#include <sma/io/log>
+
+
 namespace sma
 {
-template <typename T, std::size_t Size>
+template <typename T>
 class RingBuffer
 {
   static_assert(std::is_default_constructible<T>::value,
                 "Ring buffer element type must be default constructible for"
                 " preallocation.");
-  static_assert(Size != 0, "Ring buffer size must be nonzero.");
-  static_assert((Size & (Size - 1)) == 0,
-                "Ring buffer size must be a power of two.");
 
-  using BufT = RingBuffer<T, Size>;
   //! The buffered type.
   using value_type = T;
   //! A pointer to the buffered type.
@@ -31,13 +30,13 @@ class RingBuffer
   //! An immutable reference to the buffered type.
   using const_reference = T const&;
   //! An unsigned type that can index all elements in the buffer.
-  using size_type = decltype(Size);
+  using size_type = std::size_t;
   //! Monotonically increasing sequence counter.
   using mono_type = std::uint64_t;
   //! Read/write ordered monotonic sequence number.
   using sequence = std::atomic<mono_type>;
   //! Produces the real array index when ANDed with a monotonic sequence.
-  static constexpr size_type idx_mask = Size - 1;
+  mono_type idx_mask;
 
 
   //! A read/write synchronized entry in the buffer containing the value type.
@@ -45,7 +44,7 @@ class RingBuffer
     Entry() = default;
 
     Entry(Entry const&) = delete;
-    entry_reference operator=(Entry const&) = delete;
+    Entry& operator=(Entry const&) = delete;
 
     //! The value type is value-initialized at allocation and modified in place.
     value_type t;
@@ -74,14 +73,14 @@ public:
    * theirs, and writers will be given a subsequent sequence number because
    * it's atomically incremented when assigned.
    */
-  struct EntryWriter {
-    friend class RingBuffer<T, Size>;
+  struct WriteLock {
+    friend class RingBuffer<T>;
 
-    EntryWriter(EntryWriter&& r)
+    WriteLock(WriteLock&& r)
       : entry(r.entry)
     { r.entry = nullptr; }
 
-    EntryWriter& operator=(EntryWriter&& r)
+    WriteLock& operator=(WriteLock&& r)
     {
       entry = r.entry;
       r.entry = nullptr;
@@ -93,10 +92,12 @@ public:
      * was atomically incremented when taken and readers are blocked on a cheap
      * ordered read until this commit takes place.
      */
-    ~EntryWriter()
+    ~WriteLock()
     {
-      if (entry)
+      if (entry) {
         entry->writing.clear();
+        LOG(DEBUG) << "write lock released";
+      }
     }
 
     //! Get a reference to the claimed buffer entry.
@@ -111,8 +112,11 @@ public:
     { assert(entry); return entry->t; }
 
   private:
-    EntryWriter(Entry& entry)
-      : entry(&entry) {}
+    WriteLock(Entry& entry)
+      : entry(&entry)
+    {
+      LOG(DEBUG) << "write lock taken";
+    }
 
     //! Claimed entry at which readers are blocked while this object is live.
     Entry* entry;
@@ -124,21 +128,21 @@ public:
    * This blocks writing, and since the ring buffer is neither destructive nor
    * dynamic may cause an overrun exception.
    */
-  struct EntryReader {
-    friend class RingBuffer<T, Size>;
+  struct ReadLock {
+    friend class RingBuffer<T>;
 
     //! Transfer the read lock on the entry without incrementing it.
-    EntryReader(EntryReader&& r)
+    ReadLock(ReadLock&& r)
       : entry(r.entry)
       { r.entry = nullptr; }
 
     //! Take an additional read lock on the entry.
-    EntryReader(EntryReader const& r)
+    ReadLock(ReadLock const& r)
       : entry(r.entry)
     { ++entry->readers; }
 
     //! Transfer the read lock on the entry without incrementing it.
-    EntryReader& operator=(EntryReader&& r)
+    ReadLock& operator=(ReadLock&& r)
     {
       entry = r.entry;
       r.entry = nullptr;
@@ -146,7 +150,7 @@ public:
     }
 
     //! Take an additional read lock on the entry.
-    EntryReader& operator=(EntryReader const& r)
+    ReadLock& operator=(ReadLock const& r)
     {
       entry = r.entry;
       ++entry->readers;
@@ -155,8 +159,9 @@ public:
 
     //! Release a read lock on the entry.
     /*! The entry is not unlocked until all readers have been destroyed. */
-    ~EntryReader()
-    { if (entry) --entry->readers; }
+    ~ReadLock()
+    { if (entry) --entry->readers;
+      LOG(DEBUG) << "read lock released"; }
 
     //! Get an immutable reference to the buffer entry.
     /*! Dereferencing this reference outside the lifetime of the current object
@@ -174,11 +179,11 @@ public:
     /*! This may be returned by a nonblocking read when the buffer is empty.
      * Dereferencing the default reader is undefined.
      */
-    EntryReader() = default;
-    EntryReader(Entry& entry)
+    ReadLock() = default;
+    ReadLock(Entry& entry)
       : entry(&entry)
     {
-      ++entry->readers;
+      LOG(DEBUG) << "read lock taken";
     }
 
     Entry* entry{nullptr};
@@ -187,9 +192,11 @@ public:
 
 
   //! Construct a new buffer, default-value-initializing all of its elements.
-  RingBuffer()
-    : entries(new Entry[Size]())
+  RingBuffer(size_type size)
+    : entries(new Entry[size]())
+    , idx_mask(size - 1)
   {
+    assert(size != 0 && ((size & (size-1)) == 0));
   }
 
   //! Delete the buffered elements without regard for open readers or writers.
@@ -205,7 +212,7 @@ public:
    * Consequently, while further writes may take place concurrently, all reads
    * will be blocked at this entry until it has committed.
    */
-  EntryWriter claim()
+  WriteLock claim()
   {
     // Try until we find a slot not being written to.
     // This may occur if every slot is being written to, in which case we busy
@@ -226,10 +233,12 @@ public:
       throw std::runtime_error(
           "Ring buffer overrun (the next slot to write is being read).");
 
-    return EntryWriter(*entry);
+    LOG(DEBUG) << "claiming " << seq;
+
+    return WriteLock(*entry);
   }
 
-  std::pair<EntryReader, bool> try_pop()
+  std::pair<ReadLock, bool> try_pop()
   {
     // Pretend to claim the next read position and, if we're successful,
     // CAS until we actually commit it.
@@ -240,17 +249,20 @@ public:
       ++entry->readers;
       // Writers are now blocked from claiming it, but one may have it already.
       if (entry->writing.test_and_set())
-        return std::make_pair(EntryReader(), false);
+        return std::make_pair(ReadLock(), false);
+
+      entry->writing.clear();
 
       // Since we just pretended to increment the read position (in case we
       // failed), someone else might have succeeded while we tried.
-      if (r.compare_exchange_weak(seq, seq + 1))
+      if (next_read.compare_exchange_weak(seq, seq + 1))
         break;
       // We failed the CAS; remove ourselves from the entry we chose and retry.
       --entry->readers;
     }
+    LOG(DEBUG) << "popping " << seq << "(" << (*entry).t.size << " bytes)";
 
-    return std::make_pair(EntryReader(*entry), true);
+    return std::make_pair(ReadLock(*entry), true);
   }
 
 private:

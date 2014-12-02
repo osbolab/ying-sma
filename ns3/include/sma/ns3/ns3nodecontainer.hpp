@@ -1,9 +1,14 @@
 #pragma once
 
-#include <sma/linklayer.hpp>
+#include <sma/linklayerimpl.hpp>
 #include <sma/prforwardstrategy.hpp>
+
 #include <sma/component.hpp>
+
 #include <sma/ccn/ccnnode.hpp>
+#include <sma/neighborhelperimpl.hpp>
+#include <sma/ccn/interesthelperimpl.hpp>
+#include <sma/ccn/contenthelperimpl.hpp>
 
 #include <sma/ns3/action.hpp>
 
@@ -70,8 +75,13 @@ private:
   std::uint16_t prop_id;
 
   std::unique_ptr<Context> ctx;
-  std::unique_ptr<LinkLayer> linklayer;
+  std::unique_ptr<LinkLayerImpl> linklayer;
   std::unique_ptr<PrForwardStrategy> fwd_strat;
+
+  std::unique_ptr<NeighborHelperImpl> neighbor_helper;
+  std::unique_ptr<InterestHelperImpl> interest_helper;
+  std::unique_ptr<ContentHelperImpl> content_helper;
+
   std::vector<std::unique_ptr<Component>> components;
 
   std::deque<std::unique_ptr<Action>> actions;

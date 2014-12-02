@@ -2,12 +2,17 @@
 
 #include <sma/util/serial.hpp>
 
+#include <string>
+#include <iosfwd>
 #include <cstdint>
+#include <type_traits>
 
 namespace sma
 {
 struct NodeId {
   TRIVIALLY_SERIALIZABLE(NodeId, value)
+
+  using value_type = std::uint16_t;
 
   template <typename T,
             typename std::enable_if<std::is_integral<T>::value
@@ -31,8 +36,6 @@ struct NodeId {
 
 private:
   friend struct std::hash<NodeId>;
-
-  using value_type = std::uint16_t;
 
   value_type value;
 };

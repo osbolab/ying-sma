@@ -23,13 +23,15 @@ namespace sma
  */
 struct ContentDescriptor {
   TRIVIALLY_SERIALIZABLE(
-      ContentDescriptor, type, name, publisher, distance, blocks)
+      ContentDescriptor, hash, type, name, publisher, distance, blocks)
 
   using clock = sma::chrono::system_clock;
   using time_point = clock::time_point;
 
   /****************************
    * Serialized              */
+  Hash hash;
+
   ContentType type;
   ContentName name;
 
@@ -40,12 +42,14 @@ struct ContentDescriptor {
   std::vector<Hash> blocks;
   /**************************/
 
-  ContentDescriptor(ContentType type,
+  ContentDescriptor(Hash hash,
+                    ContentType type,
                     ContentName name,
                     NodeId publisher,
                     std::vector<Hash> blocks = std::vector<Hash>(),
                     NetworkDistance distance = 0)
-    : type(type)
+    : hash(hash)
+    , type(type)
     , name(name)
     , publisher(publisher)
     , distance(distance)

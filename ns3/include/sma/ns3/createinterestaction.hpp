@@ -3,7 +3,9 @@
 #include <sma/ns3/action.hpp>
 
 #include <sma/ccn/contenttype.hpp>
+
 #include <sma/ccn/ccnnode.hpp>
+#include <sma/ccn/interesthelper.hpp>
 
 #include <vector>
 
@@ -24,7 +26,7 @@ struct CreateInterestAction : Action {
   {
     CcnNode& node = *(context->node);
     node.log.d("Action: add %v interests", interests.size());
-    node.interests().insert_new(interests);
+    node.interests->insert_new(interests);
   }
 
   interests_type interests;

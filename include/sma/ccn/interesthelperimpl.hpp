@@ -2,6 +2,8 @@
 
 #include <sma/ccn/interesthelper.hpp>
 
+#include <sma/ccn/ccnfwd.hpp>
+
 #include <sma/ccn/contenttype.hpp>
 #include <sma/ccn/interestrank.hpp>
 #include <sma/ccn/remoteinterest.hpp>
@@ -9,17 +11,10 @@
 #include <sma/io/log>
 
 #include <map>
+#include <unordered_map>
 
 namespace sma
 {
-class CcnNode;
-
-struct ContentInfo;
-struct ContentType;
-
-struct MessageHeader;
-struct InterestMessage;
-
 //! Manages the storage, announcement, and replication of content interests.
 /*! Consumers express interest in content in order to become targets of
  * dissemination from remote, unknown, providers.
@@ -37,13 +32,16 @@ class InterestHelperImpl : public InterestHelper
 {
 public:
   //! Construct a helper to manage interests for the given node.
-  InterestHelperImpl(CcnNode& node);
+  InterestHelperImpl(CcnNode& node)
+    : InterestHelper(node)
+  {
+  }
 
   /* Implement InterestHelper */
 
-  void receive(MessageHeader header, InterestMessage msg) override;
+  void receive(MessageHeader header, InterestAnnouncement msg) override;
   void insert_new(std::vector<ContentType> types) override;
-  bool interested_in(ContentInfo const& info) const override;
+  bool interested_in(ContentDescriptor const& info) const override;
   bool know_remote(ContentType const& type) const override;
 
 private:
@@ -57,9 +55,6 @@ private:
   void announce();
 
   bool learn_remote_interest(Interest const& interest);
-
-  CcnNode* node;
-  Logger log;
 
   //! The Local Interest Table records content this node is interested in.
   /*! These records always have precedence in dissemination as they are the
@@ -75,6 +70,6 @@ private:
    * announcements only for those content in which we have previously seen
    * interest.
    */
-  std::map<ContentType, RemoteInterest> rit;
+  std::unordered_map<ContentType, RemoteInterest> rit;
 };
 }

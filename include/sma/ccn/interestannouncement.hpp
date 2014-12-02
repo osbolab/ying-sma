@@ -14,6 +14,10 @@ struct Announcement;
 struct InterestAnnouncement {
   TRIVIALLY_SERIALIZABLE(InterestAnnouncement, interested_node, interests)
 
+private:
+  using interest_vector = std::vector<Interest>;
+
+public:
   /****************************************************************************
    * Serialized Fields
    */
@@ -33,8 +37,5 @@ struct InterestAnnouncement {
 
   InterestAnnouncement& operator=(InterestAnnouncement&&) = default;
   InterestAnnouncement& operator=(InterestAnnouncement const&) = default;
-
-private:
-  using interest_vector = std::vector<Interest>;
 };
 }

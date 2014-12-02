@@ -64,18 +64,23 @@ set(${PROJECT_NAME}_sources
 
   "src/link.cpp"
   "src/linklayer.cpp"
+  "src/linklayerimpl.cpp"
   "src/forwardstrategy.cpp"
   "src/prforwardstrategy.cpp"
 
   "src/ccn/ccnnode.cpp"
+  "src/helper.cpp"
+
+  "src/neighborhelper.cpp"
+  "src/neighborhelperimpl.cpp"
+  "src/neighbortable.cpp"
 
   "src/ccn/interesthelper.cpp"
+  "src/ccn/interesthelperimpl.cpp"
   "src/ccn/remoteinterest.cpp"
 
   "src/ccn/contenthelper.cpp"
-
-  "src/neighborhelper.cpp"
-  "src/neighbortable.cpp"
+  "src/ccn/contenthelperimpl.cpp"
 
   "src/chrono.cpp"
   "src/context.cpp"

@@ -4,6 +4,15 @@
 
 namespace sma
 {
+namespace detail
+{
+  /*! This defines the type of the logger used in the Logger interface.
+   * The implementation will probably need to change when moving to android,
+   * so some amount of decoupling will be useful.
+   */
+  using log_impl_type = el::Logger;
+}
+
 // clang-format off
   // Eventually I'll replace this with something less, you know, completely
   // horrible. Probably not though.

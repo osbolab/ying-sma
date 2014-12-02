@@ -1,18 +1,18 @@
 #pragma once
 
-#include <sma/ccn/contentinfo.hpp>
+#include <sma/ccn/contentdescriptor.hpp>
 
 #include <sma/util/serial.hpp>
 
 namespace sma
 {
 struct ContentAnnouncement {
-  TRIVIALLY_SERIALIZABLE(ContentAnnouncement, info)
+  TRIVIALLY_SERIALIZABLE(ContentAnnouncement, descriptor)
 
-  ContentInfo info;
+  ContentDescriptor descriptor;
 
-  ContentAnnouncement(ContentInfo info)
-    : info(std::move(info))
+  ContentAnnouncement(ContentDescriptor descriptor)
+    : descriptor(std::move(descriptor))
   {
   }
 

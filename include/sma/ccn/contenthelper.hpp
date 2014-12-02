@@ -1,19 +1,18 @@
 #pragma once
 
+#include <sma/helper.hpp>
+#include <sma/ccn/ccnfwd.hpp>
+
 #include <iosfwd>
 
 namespace sma
 {
-struct ContentType;
-struct ContentName;
-
-struct MessageHeader;
-struct ContentInfoMessage;
-
-class AbstractContentHelper
+class ContentHelper : public Helper
 {
 public:
-  virtual ~AbstractContentHelper() {}
+  ContentHelper(CcnNode& node);
+
+  virtual ~ContentHelper() {}
 
   //! Receive a content metadata announcement.
   /*! A metadata announcement indicates that a piece of content is available

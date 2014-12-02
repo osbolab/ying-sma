@@ -10,7 +10,9 @@ namespace sma
 struct NodeId;
 struct Message;
 
-struct NeighborMessage final {
+struct Beacon {
+  TRIVIALLY_SERIALIZABLE(Beacon, body)
+
   using size_type = std::uint8_t;
   using body_type = Buffer<size_type>;
 
@@ -20,27 +22,17 @@ struct NeighborMessage final {
   body_type body;
   /***************************************************************************/
 
-  NeighborMessage() {}
+  Beacon() {}
 
-  NeighborMessage(body_type body)
+  Beacon(body_type body)
     : body(std::move(body))
   {
   }
 
-  NeighborMessage(NeighborMessage&&) = default;
-  NeighborMessage(NeighborMessage const&) = default;
+  Beacon(Beacon&&) = default;
+  Beacon(Beacon const&) = default;
 
-  NeighborMessage& operator=(NeighborMessage&&) = default;
-  NeighborMessage& operator=(NeighborMessage const&) = default;
-
-  DESERIALIZING_CTOR(NeighborMessage)
-    : INIT_FIELD(body)
-  {
-  }
-
-  SERIALIZER()
-  {
-    PUT_FIELD(body);
-  }
+  Beacon& operator=(Beacon&&) = default;
+  Beacon& operator=(Beacon const&) = default;
 };
 }

@@ -6,6 +6,7 @@
 #include <sma/ccn/contentname.hpp>
 
 #include <sma/ccn/ccnnode.hpp>
+#include <sma/ccn/contenthelper.hpp>
 
 #include <string>
 #include <vector>
@@ -38,7 +39,7 @@ struct PublishContentAction : Action {
 
     CcnNode& node = *(context->node);
     node.log.d("Action: publish new content");
-    node.content().publish(type, name, is);
+    node.content->publish(type, name, is);
   }
 
   ContentType type;

@@ -35,7 +35,7 @@ ns3::TypeId Ns3NodeContainer::TypeId()
 
 Ns3NodeContainer::Ns3NodeContainer() {}
 
-Ns3NodeContainer::~Ns3NodeContainer() { }
+Ns3NodeContainer::~Ns3NodeContainer() {}
 // Inherited from ns3::Application
 void Ns3NodeContainer::DoDispose() {}
 
@@ -75,11 +75,12 @@ void Ns3NodeContainer::StartApplication()
   std::vector<std::unique_ptr<Link>> links;
   auto inet = static_cast<Link*>(new Ns3InetLink(GetNode()));
   links.emplace_back(inet);
-  linklayer = std::make_unique<LinkLayer>(std::move(links));
+  linklayer = std::make_unique<LinkLayerImpl>(std::move(links));
 
   NodeId node_id{prop_id};
   // Create the actor context to give the node node access to its environment.
-  ctx = std::make_unique<Context>(std::string(node_id), *linklayer);
+  ctx = std::make_unique<Context>(std::string(node_id),
+                                  static_cast<LinkLayer&>(*linklayer));
 
   fwd_strat = std::make_unique<PrForwardStrategy>(*ctx);
 
@@ -88,6 +89,11 @@ void Ns3NodeContainer::StartApplication()
     ctx->add_component(*component);
 
   node = std::make_unique<CcnNode>(node_id, *ctx);
+
+  neighbor_helper = std::make_unique<NeighborHelperImpl>(*node);
+  interest_helper = std::make_unique<InterestHelperImpl>(*node);
+  content_helper = std::make_unique<ContentHelperImpl>(*node);
+
   // Send received messages to the node
   linklayer->receive_to(*node);
 
