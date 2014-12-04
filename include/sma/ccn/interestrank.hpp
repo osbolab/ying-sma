@@ -2,7 +2,7 @@
 
 #include <string>
 #include <cstdint>
-#include <ostream>
+#include <iosfwd>
 
 namespace sma
 {
@@ -31,10 +31,7 @@ public:
   explicit operator std::string() const { return std::to_string(value); }
 };
 
-inline std::ostream& operator<<(std::ostream& os, InterestRank const& value)
-{
-  return os << std::string(value);
-}
+std::ostream& operator<<(std::ostream& os, InterestRank const& value);
 }
 
 namespace std

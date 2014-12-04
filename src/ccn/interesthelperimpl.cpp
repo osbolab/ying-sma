@@ -1,5 +1,5 @@
 #include <sma/ccn/interesthelperimpl.hpp>
-#include <sma/ccn/interestannouncement.hpp>
+#include <sma/ccn/interestann.hpp>
 
 #include <sma/ccn/ccnnode.hpp>
 
@@ -38,7 +38,7 @@ void log_interest_table(Logger& log,
   log.d("");
 }
 
-void InterestHelperImpl::receive(MessageHeader header, InterestAnnouncement msg)
+void InterestHelperImpl::receive(MessageHeader header, InterestAnn msg)
 {
   // Ignore loopback
   if (msg.interested_node == node->id)
@@ -53,7 +53,7 @@ void InterestHelperImpl::receive(MessageHeader header, InterestAnnouncement msg)
   // The result is that our neighbors always see the shortest path we know of.
   for (auto it = msg.interests.begin(); it != msg.interests.end();) {
     auto& interest = *it;
-    if (!learn_remote_interest(interest))
+    if (!learn_remote_interest(interest.type))
       // Only forward interests we learned something new about
       it = msg.interests.erase(it);
     else
@@ -69,13 +69,13 @@ void InterestHelperImpl::receive(MessageHeader header, InterestAnnouncement msg)
   }
 }
 
-bool InterestHelperImpl::learn_remote_interest(Interest const& interest)
+bool InterestHelperImpl::learn_remote_interest(ContentType const& interest)
 {
-  auto try_add = rit.emplace(interest.type, RemoteInterest(interest));
+  auto try_add = rit.emplace(interest, RemoteInterest());
   if (try_add.second)
     return true;
   auto& existing = try_add.first->second;
-  return existing.update(interest);
+  return existing.update();
 }
 
 bool InterestHelperImpl::interested_in(ContentDescriptor const& info) const
@@ -109,14 +109,14 @@ void InterestHelperImpl::schedule_announcement(std::chrono::milliseconds delay)
 
 void InterestHelperImpl::announce()
 {
-  InterestAnnouncement msg(node->id);
+  InterestAnn msg(node->id);
 
   // Our interests are 0 hops from us... the receiver will account for our
   // link to them.
   if (!lit.empty()) {
     msg.interests.reserve(lit.size());
     for (auto& entry : lit)
-      msg.interests.emplace_back(entry.first);
+      msg.interests.emplace_back(entry.first, true);
   }
   // Add as many remote interests to our message as we can.
   // FIXME: We need some real logic here.
@@ -124,7 +124,7 @@ void InterestHelperImpl::announce()
   if (lit.size() < nmax) {
     auto nfwds = nmax - lit.size();
     for (auto it = rit.begin(); nfwds-- > 0 && it != rit.end(); ++it)
-      msg.interests.emplace_back(it->first);
+      msg.interests.emplace_back(it->first, false);
   }
 
   if (!msg.interests.empty()) {

@@ -7,7 +7,7 @@
 #include <sma/ccn/contentname.hpp>
 
 #include <sma/messageheader.hpp>
-#include <sma/ccn/contentannouncement.hpp>
+#include <sma/ccn/contentann.hpp>
 
 #include <sma/ccn/interesthelper.hpp>
 
@@ -23,7 +23,7 @@ namespace sma
 {
 static sma::chrono::system_clock::time_point g_published;
 
-void ContentHelperImpl::receive(MessageHeader header, ContentAnnouncement msg)
+void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
 {
   bool forward = false;
 
@@ -85,7 +85,7 @@ void ContentHelperImpl::publish(ContentType type,
   log.d("");
 
   auto hash = Hasher(std::string(type))(std::string(name)).digest();
-  node->post(ContentAnnouncement(
+  node->post(ContentAnn(
       ContentDescriptor(std::move(hash), type, name, node->id)));
 }
 }

@@ -32,13 +32,13 @@ void CcnNode::receive(MessageHeader&& header, Beacon&& msg)
   neighbors->receive(std::move(header), std::move(msg));
 }
 
-void CcnNode::receive(MessageHeader&& header, InterestAnnouncement&& msg)
+void CcnNode::receive(MessageHeader&& header, InterestAnn&& msg)
 {
   assert(interests);
   interests->receive(std::move(header), std::move(msg));
 }
 
-void CcnNode::receive(MessageHeader&& header, ContentAnnouncement&& msg)
+void CcnNode::receive(MessageHeader&& header, ContentAnn&& msg)
 {
   assert(content);
   content->receive(std::move(header), std::move(msg));

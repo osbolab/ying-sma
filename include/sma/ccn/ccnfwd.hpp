@@ -8,8 +8,8 @@ struct ContentType;
 struct ContentName;
 struct ContentDescriptor;
 
-struct InterestAnnouncement;
-struct ContentAnnouncement;
+struct InterestAnn;
+struct ContentAnn;
 
 class InterestHelper;
 class ContentHelper;

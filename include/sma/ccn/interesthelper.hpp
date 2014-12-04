@@ -14,7 +14,7 @@ public:
 
   virtual ~InterestHelper() {}
 
-  virtual void receive(MessageHeader header, InterestAnnouncement msg) = 0;
+  virtual void receive(MessageHeader header, InterestAnn msg) = 0;
 
   virtual void insert_new(std::vector<ContentType> types) = 0;
 

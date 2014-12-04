@@ -36,8 +36,8 @@ public:
   /* Messages delegated to their respective handlers. */
 
   void receive(MessageHeader&& header, Beacon&& msg);
-  void receive(MessageHeader&& header, InterestAnnouncement&& msg);
-  void receive(MessageHeader&& header, ContentAnnouncement&& msg);
+  void receive(MessageHeader&& header, InterestAnn&& msg);
+  void receive(MessageHeader&& header, ContentAnn&& msg);
 
   //! This node's universally unique identifier.
   NodeId const id;

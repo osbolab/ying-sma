@@ -6,16 +6,14 @@
 
 namespace sma
 {
-struct Interest;
-
 struct RemoteInterest {
   using clock = sma::chrono::system_clock;
   using time_point = clock::time_point;
 
-  RemoteInterest(Interest const& interest);
+  RemoteInterest();
 
   inline void touch();
-  bool update(Interest const& interest);
+  bool update();
 
   template <typename Duration = std::chrono::milliseconds>
   Duration age()

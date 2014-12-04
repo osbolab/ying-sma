@@ -33,7 +33,7 @@ public:
 
   /* Implement ContentHelper */
 
-  void receive(MessageHeader header, ContentAnnouncement msg) override;
+  void receive(MessageHeader header, ContentAnn msg) override;
   void publish(ContentType type, ContentName name, std::istream& is) override;
 
 private:
@@ -48,8 +48,8 @@ private:
   //! The Known Content Table (KCT) of announced content metadata.
   /*! The KCT reflects all the content in the network for which we will forward
    * requests from consumers. Entries are created when we receive content
-   * metadata announcements and expire after some time without recurring
-   * announcements.
+   * metadata anns and expire after some time without recurring
+   * anns.
    */
   std::unordered_map<Hash, ContentDescriptor> kct;
 };

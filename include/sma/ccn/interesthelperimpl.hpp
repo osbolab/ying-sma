@@ -39,7 +39,7 @@ public:
 
   /* Implement InterestHelper */
 
-  void receive(MessageHeader header, InterestAnnouncement msg) override;
+  void receive(MessageHeader header, InterestAnn msg) override;
   void insert_new(std::vector<ContentType> types) override;
   bool interested_in(ContentDescriptor const& info) const override;
   bool know_remote(ContentType const& type) const override;
@@ -55,16 +55,16 @@ private:
   void announce();
 
   //! Insert a new, or update an existing, interest received from a remote node.
-  bool learn_remote_interest(Interest const& interest);
+  bool learn_remote_interest(ContentType const& interest);
 
   //! The Local Interest Table records content this node is interested in.
   /*! These records always have precedence in dissemination as they are the
    * ultimate source of interests in the network.
    */
-  std::map<ContentType, Interest> lit;
+  std::map<ContentType, InterestRank> lit;
 
   //! The Remote Interest Table records content other nodes are interested in.
-  /*! This table is populated by InterestAnnouncements from other nodes and its
+  /*! This table is populated by InterestAnns from other nodes and its
    * entries expire without recurring announcements.
    *
    * An example application of this information is to decide to forward content
