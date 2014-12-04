@@ -102,19 +102,30 @@ Compile and run by changing into the `ns-3.xx/build` directory and running
 
 ##### Announcement
 
-Some consumer *G* generates an interest *I_T* in content type *T*.
-She broadcasts this interest to her nearest neighbors, and they in turn
-broadcast the interest if they have not already.
+Some consumer is interested in a Content Type T. She places this in her Local
+Interest Table (LIT), a mapping from Content Type to Rank.
+She disseminates her interest by periodically selecting entries from her LIT
+and broadcasting those to her neighbors bearing the label "original interest,"
+so as to distinguish this broadcast from later replication broadcasts.
+An original interest is rebroadcast regardless of the state of the network to
+bring it to the next good known state.
 
-Each node that sees this interest inspects her *active interest table* (AIT) for
-a match on *T*. The AIT maps *T* to some future time point.
+Each neighbor who receives that broadcast will add all of her interests to his
+Remote Interset Table (RIT), a mapping from Content Type to a time point some
+distance in the future. If the received interest is not in his RIT it is added;
+otherwise he updates the mapped time point to further in the future relative to
+the current time. He will periodically cull from the table any interests that
+map to a time point in the past, thus enforcing that only relevant interests
+persist in the network.
 
-If she finds an entry in her AIT she increments the mapped time by the interest
-expiry duration *t*; if she finds no entry then she adds it with an initial
-value of *t*.
-
-Once every node in the network has seen *I_T* and has an entry in her AIT for
-*T*`->`*t* the interest is *saturated* and the announcement phase is complete.
+When any neighbor has a nonempty LIT or RIT he should periodically select from
+each some interests to disseminate and broadcast them to his neighbors.  To
+minimize redundant broadcasts, each node should also maintain the set of its
+neighbors from which it has not seen a particular interest. It must continue
+rebroadcasting any interest with a nonempty set until the set is cleared by
+observing neighbors broadcast the interest. This way interests will flood
+outward from their origin nodes and, once the network reaches equilibrium,
+updates will only occur around newly arriving nodes.
 
 ##### Replication
 

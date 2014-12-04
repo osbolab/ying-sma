@@ -22,7 +22,7 @@ class RingBuffer
 
   using value_type = std::uint8_t;
 
-  static constexpr size_type ENTRY_SIZE = 8192;
+  static constexpr size_type ENTRY_SIZE = 20000;
   //! Monotonically increasing sequence counter.
   using mono_type = std::uint64_t;
   //! Read/write ordered monotonic sequence number.

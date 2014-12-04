@@ -22,6 +22,7 @@ using clock = sma::chrono::system_clock;
 
 // FIXME: Replace with real statistics tracking
 std::unordered_map<std::uint64_t, std::uint64_t> packets;
+static std::uint64_t g_largest = 0;
 static std::uint64_t g_lost = 0;
 static std::uint64_t g_bytes_out = 0;
 static std::uint64_t g_bytes_in = 0;
@@ -62,6 +63,8 @@ void LinkLayerImpl::enqueue(void const* src, std::size_t size)
   {
     WriteLock<RingBuffer> buf(send_buf);
     assert(size <= buf.capacity());
+    if (size > g_largest)
+      g_largest = size;
     std::memcpy(buf.data, src, size);
     buf.size = size;
   }
@@ -79,7 +82,23 @@ std::size_t LinkLayerImpl::forward_one()
     if (!lock.acquired())
       return 0;
 
-    char buf[8092];
+    auto frame_time = clock::now() - g_frame_start;
+    if (frame_time >= std::chrono::seconds(1)) {
+      g_bps = 0.5
+              * (g_bps + (g_bytes_frame
+                          / std::chrono::duration_cast<std::chrono::seconds>(
+                                frame_time).count()));
+      g_bytes_frame = 0;
+      g_frame_start = clock::now();
+      std::uint64_t lost = 0;
+      for (auto it : packets)
+        lost += it.second;
+      LOG(DEBUG) << g_bps << " Bps (" << g_bytes_out << " out, " << g_bytes_in
+                 << " in, " << g_largest << " max, " << lost << " lost ("
+                 << (100.0 * (double(lost) / g_bytes_out)) << "%))";
+    }
+
+    char buf[20000];
     std::memcpy(buf, &g_next_send, sizeof(std::uint64_t));
     std::memcpy(buf + sizeof(std::uint64_t), lock.cdata(), lock.size());
     g_bytes_out += lock.size();
@@ -88,6 +107,7 @@ std::size_t LinkLayerImpl::forward_one()
 
     for (auto& link : links)
       assert(link->write(buf, sizeof(std::uint64_t) + lock.size()));
+
   }
 
   return send_buf.size();
@@ -105,21 +125,6 @@ void LinkLayerImpl::on_link_readable(Link& link)
     if (packets.erase(packetseq) != 0) {
       g_bytes_frame += read - 8;
       g_bytes_in += read - 8;
-    }
-    auto frame_time = clock::now() - g_frame_start;
-    if (frame_time >= std::chrono::seconds(1)) {
-      g_bps = 0.5
-              * (g_bps + (g_bytes_frame
-                          / std::chrono::duration_cast<std::chrono::seconds>(
-                                frame_time).count()));
-      g_bytes_frame = 0;
-      g_frame_start = clock::now();
-      std::uint64_t lost = 0;
-      for (auto it : packets)
-        lost += it.second;
-      LOG(DEBUG) << g_bps << " Bps (" << g_bytes_out << " out, " << g_bytes_in
-                 << " in, " << lost << " lost ("
-                 << (100.0 * (double(lost) / g_bytes_out)) << "%))";
     }
 
     MessageHeader header(recv_reader);

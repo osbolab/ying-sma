@@ -64,7 +64,7 @@ void InterestHelperImpl::receive(MessageHeader header, InterestAnnouncement msg)
     log.t("--> forward %v interests", msg.interests.size());
     node->post(msg);
 
-    log_interest_table(log, rit);
+    //log_interest_table(log, rit);
     schedule_announcement();
   }
 }

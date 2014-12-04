@@ -54,13 +54,14 @@ private:
    */
   void announce();
 
+  //! Insert a new, or update an existing, interest received from a remote node.
   bool learn_remote_interest(Interest const& interest);
 
   //! The Local Interest Table records content this node is interested in.
   /*! These records always have precedence in dissemination as they are the
    * ultimate source of interests in the network.
    */
-  std::map<ContentType, InterestRank> lit;
+  std::map<ContentType, Interest> lit;
 
   //! The Remote Interest Table records content other nodes are interested in.
   /*! This table is populated by InterestAnnouncements from other nodes and its

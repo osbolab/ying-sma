@@ -51,6 +51,7 @@ public:
   }
 
   // clang-format off
+  BinaryOutput& operator<< (bool const& t);
   BinaryOutput& operator<< (std::string const& t);
   BinaryOutput& operator<< (float const& t);
   BinaryOutput& operator<< (double const& t);

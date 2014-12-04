@@ -17,14 +17,11 @@
 #include <chrono>
 #include <istream>
 
-#include <unordered_map>
-
 using namespace std::literals::chrono_literals;
 
 namespace sma
 {
-static std::unordered_map<ContentType, sma::chrono::system_clock::time_point>
-    g_pending_content;
+static sma::chrono::system_clock::time_point g_published;
 
 void ContentHelperImpl::receive(MessageHeader header, ContentAnnouncement msg)
 {
@@ -39,29 +36,31 @@ void ContentHelperImpl::receive(MessageHeader header, ContentAnnouncement msg)
 
   if (node->interests->interested_in(descriptor)) {
     log.d("** I got content I wanted! **");
-
-    auto it = g_pending_content.find(descriptor.type);
-    if (it != g_pending_content.end()) {
-      auto delay = std::chrono::duration_cast<std::chrono::milliseconds>(
-          clock::now() - it->second);
-      log.i("** delay: %v ms", delay.count());
-      g_pending_content.erase(it);
-    }
   }
 
   if (!update_kct(descriptor))
     return;
 
+  /*
   log.d("Content descriptor from n(%v)", header.sender);
   log.d("| distance: %v hops", std::uint32_t(descriptor.distance));
   log.d("| type: %v", descriptor.type);
   log.d("| name: %v", descriptor.name);
   log.d("| publisher: %v", descriptor.publisher);
+  */
+  log.d("got it");
+
+    log.d(descriptor.name.size());
+  auto time = std::chrono::duration_cast<std::chrono::milliseconds>(
+      clock::now() - g_published);
+  log.i("delay: %v ms", time.count());
 
   if (node->interests->know_remote(descriptor.type)) {
-    // log.d("--> (forward)");
+    log.d("--> (forward)");
     node->post(msg);
   }
+  else
+    log.d("not forwarding");
   log.d("");
 }
 
@@ -78,13 +77,15 @@ void ContentHelperImpl::publish(ContentType type,
                                 ContentName name,
                                 std::istream& is)
 {
+  g_published = clock::now();
+
   log.d("Publish content:");
-  log.d("| type: %v", type);
-  log.d("| name: %v", name);
+  // log.d("| type: %v", type);
+  // log.d("| name: %v", name);
   log.d("");
 
-  g_pending_content.emplace(type, clock::now());
   auto hash = Hasher(std::string(type))(std::string(name)).digest();
-  node->post(ContentAnnouncement(ContentDescriptor(std::move(hash), type, name, node->id)));
+  node->post(ContentAnnouncement(
+      ContentDescriptor(std::move(hash), type, name, node->id)));
 }
 }

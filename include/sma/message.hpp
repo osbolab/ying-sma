@@ -26,7 +26,7 @@ struct Message {
   std::size_t size() { return sz; }
 
 private:
-  std::uint8_t data[8192];
+  std::uint8_t data[20000];
   std::size_t sz;
 };
 }

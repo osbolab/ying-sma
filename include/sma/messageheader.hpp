@@ -9,6 +9,8 @@
 namespace sma
 {
 struct MessageHeader {
+  TRIVIALLY_SERIALIZABLE(MessageHeader, sender, recipients)
+
   NodeId sender;
   std::vector<NodeId> recipients;
 
@@ -22,7 +24,5 @@ struct MessageHeader {
     , recipients(std::move(recipients))
   {
   }
-
-  TRIVIALLY_SERIALIZABLE(MessageHeader, sender, recipients)
 };
 }

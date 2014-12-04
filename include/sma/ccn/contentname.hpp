@@ -15,6 +15,8 @@ struct ContentName {
   {
   }
 
+  std::size_t size() { return value.size(); }
+
   bool operator==(ContentName const& r) const { return value == r.value; }
   bool operator!=(ContentName const& r) const { return value != r.value; }
   bool operator<(ContentName const& r) const { return value < r.value; }

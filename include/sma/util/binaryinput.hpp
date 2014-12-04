@@ -43,6 +43,7 @@ public:
 };
 
 // clang-format off
+template <> bool   BinaryInput::get<bool>();
 template <> std::string   BinaryInput::get<std::string>();
 template <> float         BinaryInput::get<float>();
 template <> double        BinaryInput::get<double>();

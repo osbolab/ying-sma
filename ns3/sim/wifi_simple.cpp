@@ -21,6 +21,8 @@ _INITIALIZE_EASYLOGGINGPP    // Call only once per application
 #include <ns3/uinteger.h>
 
 #include <random>
+#include <string>
+#include <cstring>
 #include <iostream>
 #include <chrono>
 
@@ -44,12 +46,14 @@ int main(int argc, char** argv)
   double rss = -80.0;        // -dBm
   double distance = 2000;    // m
   std::string fragmentThreshold = "2200";
+  std::uint16_t packet_size = 64;
 
   ns3::CommandLine cmd;
   cmd.AddValue("phyMode", "Wifi physical mode", phyMode);
   cmd.AddValue("rss", "Received Signal Strength", rss);
   cmd.AddValue("distance", "distance (m)", distance);
   cmd.AddValue("nodes", "number of nodes", nnodes);
+  cmd.AddValue("packet", "packet size", packet_size);
   cmd.AddValue("olsr", "enable optimized link state routing", enable_olsr);
   cmd.Parse(argc, argv);
 
@@ -191,18 +195,21 @@ int main(int argc, char** argv)
     app->add_component(std::move(
         std::make_unique<sma::DummyGps>(sma::GPS::Coord{pos.x, pos.y})));
 
-    if (i == (nnodes-1)) {
+    if (i == (nnodes - 1)) {
       std::vector<sma::ContentType> interests;
       interests.emplace_back("cats");
       app->act_emplace_front<sma::CreateInterestAction>(1s,
                                                         std::move(interests));
     }
-    if (i == 1) {
+    if (i == 0) {
       std::vector<sma::ContentType> interests;
       interests.emplace_back("dogs");
-      //app->act_emplace_front<sma::CreateInterestAction>(3s,
+      // app->act_emplace_front<sma::CreateInterestAction>(3s,
       //                                                  std::move(interests));
-      app->act_emplace_front<sma::PublishContentAction>(3s, "cats", "my cat");
+      char namebuf[packet_size];
+      std::memset(namebuf, 'a', packet_size);
+      //app->act_emplace_front<sma::PublishContentAction>(
+      //  3s, "cats", std::string(namebuf, packet_size));
     }
 
     auto apps = ns3::ApplicationContainer(app);

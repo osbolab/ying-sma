@@ -2,11 +2,17 @@
 
 #include <sma/util/detail/uint_with_size.hpp>
 
-#include <cstring>
 #include <cassert>
+#include <cstring>
 
 namespace sma
 {
+BinaryOutput& BinaryOutput::operator<<(bool const& t)
+{
+  os->put(t ? 1 : 0);
+  return *this;
+}
+
 BinaryOutput& BinaryOutput::operator<<(std::string const& t)
 {
   static_assert(
@@ -14,12 +20,12 @@ BinaryOutput& BinaryOutput::operator<<(std::string const& t)
       "std::string isn't std::basic_stream<char> or char isn't 8 bits.");
 
   auto size = t.size();
-  // 2^15 - 1, or two bytes with the highest bit as the extension flag
   assert(size <= 32767);
-  // 2^7 - 1, or one byte with the highest bit as the extension flag
   if (size >= 127)
+    // 2^15 - 1, or two bytes with the highest bit as the extension flag
     *this << std::uint16_t(size | (1 << 15));
   else
+    // 2^7 - 1, or one byte with the highest bit as the extension flag
     *this << std::uint8_t(size);
 
   os->write(t.c_str(), size);
@@ -44,14 +50,14 @@ BinaryOutput& BinaryOutput::operator<<(double const& t)
 
 BinaryOutput& BinaryOutput::operator<<(std::uint8_t const& t)
 {
-  os->write(reinterpret_cast<char const*>(&t), 1);
+  os->put(char(t));
   return *this;
 }
 
 BinaryOutput& BinaryOutput::operator<<(std::uint16_t const& t)
 {
   char buf[]{char(t >> 8 & 0xff), char(t & 0xff)};
-  os->write(buf, sizeof(buf));
+  os->write(buf, sizeof buf);
   return *this;
 }
 
@@ -61,7 +67,7 @@ BinaryOutput& BinaryOutput::operator<<(std::uint32_t const& t)
              char(t >> 16 & 0xff),
              char(t >> 8 & 0xff),
              char(t & 0xff)};
-  os->write(buf, sizeof(buf));
+  os->write(buf, sizeof buf);
   return *this;
 }
 
@@ -75,7 +81,7 @@ BinaryOutput& BinaryOutput::operator<<(std::uint64_t const& t)
              char(t >> 16 & 0xff),
              char(t >> 8 & 0xff),
              char(t & 0xff)};
-  os->write(buf, sizeof(buf));
+  os->write(buf, sizeof buf);
   return *this;
 }
 
