@@ -1,15 +1,67 @@
 ## Building
 
+### Environment
+
+    uname -rps
+    # Linux 3.13.0-39-generic x86_64 
+
+    cmake --version
+    # cmake version 2.8.12.2
+
+    c++ --version
+    # Ubuntu clang version 3.6.0-svn220863-1~exp1 (trunk) (based on LLVM 3.6.0)
+    # Target: x86_64-pc-linux-gnu
+    # Thread model: posix
+
+    python --version
+    # Python 2.7.6
+
+### NS3
+
+The sma-ns3 project depends on the NS3 module libraries and headers, so you'll
+need to build them first. NS3 packages its own build tool, so just use that.
+
+You need at least python2.7 to build NS3.
+
+From the project root:
+
+    cd ns3/ext/ns3/
+    ./build.py
+
+From there, check that the module libraries and headers were output to the right
+directory:
+
+    cd ns-3.21/build
+    ls *.so | wc -l
+    # output: 39
+    ls ns3/*.h | wc -l
+    # output: 795
+
+### SMA
+
 Configure the makefile by invoking `cmake` in the build directory.
-Do not invoke `cmake` in any component's root directory or any other path.
+Build files are output to the *current directory* when running cmake, so make
+sure you're always in a subdirectory first.
 
-     # -DCMAKE_BUILD_TYPE=Debug - attach symbols to the output (on by default)
-     # -Dbuild_tests=OFF        - don't build test executables
+Cmake finds all of the source files and generates makefiles. You only need to
+run it once (or whenever you delete the build dir) and can run `make` after
+that. The makefile automatically updates itself when source files are added.
 
-     cd core/build/
-     cmake ../
-     make
-     ./libsma_test
+Cmake generates subdirectories in the build path for the subprojects, like
+the sma-ns3 library. Targets for that project are output to its build
+subdirectory so you'll need to change into that path before you can run the
+executables.
+
+    # -DCMAKE_BUILD_TYPE=Debug - attach symbols to the output (on by default)
+    # -Dbuild_tests=OFF        - don't build test executables
+
+    mkdir build
+    cd build/
+    cmake ../
+    make
+    cd ns3/
+    # Running with no options creates 2 nodes at a distance of 2000m.
+    ./wifi-test --nodes=2 --distance=100
 
 Project sources are declared in `CMakeLists.txt`.
 
@@ -60,23 +112,12 @@ Using gtest:
       return RUN_ALL_TESTS();
     }
 
-## Project Setup
-### Using C++11
-#### NS-3 via `wscript`
+## C++11
 
-    def build(bld):
-      obj = bld.create_ns3_program('ex', ['csma', 'internet', 'applications'])
-      obj.cxxflags = ['-std=c++11']
-      obj.source = ['ex.cc']
-        
-Compile and run by changing into the `ns-3.xx/build` directory and running
-`./waf --run example`
-
-#### Android
-> If you're using command line NDK support this is what I had to put in my
-> `jni/Application.mk` to get C++11 support with API 19
-
+### Android
 ([stackoverflow](http://stackoverflow.com/a/21386866))
+
+`jni/Application.mk` 
 
     NDK_TOOLCHAIN_VERSION := 4.8
     # APP_STL := stlport_shared  --> does not seem to contain C++11 features
