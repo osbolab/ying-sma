@@ -13,16 +13,20 @@ namespace detail
     static constexpr bool value = false;
   };
 
+  // clang-format off
   template <typename T>
-  struct is_vector<T,
-                   typename std::
-                       enable_if<std::is_same<T,
-                                              std::vector<
-                                                  typename T::value_type,
-                                                  typename T::allocator_type>>::
-                                     value>::type> {
+  struct is_vector<
+    T,
+    typename std::enable_if<
+      std::is_same<
+        T,
+        std::vector<typename T::value_type, typename T::allocator_type>
+      >::value>
+    ::type>
+  {
     static constexpr bool value = true;
   };
+  // clang-format on
 }
 
 template <typename Formatter>

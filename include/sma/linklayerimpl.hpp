@@ -5,10 +5,6 @@
 
 #include <sma/util/ringbuffer.hpp>
 
-#include <sma/util/reader.hpp>
-#include <sma/util/binaryformat.hpp>
-#include <sma/util/buffersource.hpp>
-
 #include <mutex>
 #include <vector>
 #include <memory>
@@ -21,6 +17,7 @@ class CcnNode;
 class LinkLayerImpl : public LinkLayer
 {
 public:
+  static constexpr std::size_t BUFFER_SIZE = 20000;
   //! Construct a link layer composed of the given links.
   /*! The link layer owns its links and they should not be mutated by any other
    * object during its lifetime.
@@ -47,14 +44,10 @@ private:
   std::vector<std::unique_ptr<Link>> links;
 
   //! Buffer outgoing messages to be sent by the forwarding strategy.
-  RingBuffer send_buf;
+  RingBuffer<BUFFER_SIZE> send_buf;
 
   // Incoming messages are still synchronous; this is just so we can reuse the
   // stringbuf and istream;
-  char recv_buf[20000];
-  //! Wraps the receive buffer in an input stream.
-  BufferSource recv_bufsrc;
-  //! Deserializes data from the receive buffer input stream.
-  Reader<BinaryInput> recv_reader;
+  char recv_buf[BUFFER_SIZE];
 };
 }

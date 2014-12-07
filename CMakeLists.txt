@@ -87,8 +87,6 @@ set(${PROJECT_NAME}_sources
 
   "src/util/binaryinput.cpp"
   "src/util/binaryoutput.cpp"
-  "src/util/bufferdest.cpp"
-  "src/util/buffersource.cpp"
 )
 
 add_library("${PROJECT_NAME}" STATIC ${${PROJECT_NAME}_sources})

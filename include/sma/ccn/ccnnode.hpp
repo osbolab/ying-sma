@@ -2,7 +2,7 @@
 
 #include <sma/nodeid.hpp>
 
-#include <sma/message.hpp>
+#include <sma/messagebuffer.hpp>
 #include <sma/messageheader.hpp>
 
 #include <sma/ccn/ccnfwd.hpp>
@@ -35,9 +35,9 @@ public:
 
   /* Messages delegated to their respective handlers. */
 
-  void receive(MessageHeader&& header, Beacon&& msg);
-  void receive(MessageHeader&& header, InterestAnn&& msg);
-  void receive(MessageHeader&& header, ContentAnn&& msg);
+  void receive(MessageHeader header, Beacon msg);
+  void receive(MessageHeader header, InterestAnn msg);
+  void receive(MessageHeader header, ContentAnn msg);
 
   //! This node's universally unique identifier.
   NodeId const id;
@@ -60,7 +60,7 @@ private:
 template <typename M>
 void CcnNode::post(M const& msg, std::vector<NodeId> recipients)
 {
-  Message m(MessageHeader(id, std::move(recipients)), msg);
-  post(m.cdata(), m.size());
+  MessageBuffer<20000> buf(MessageHeader(id, std::move(recipients)), msg);
+  post(buf.cdata(), buf.size());
 }
 }

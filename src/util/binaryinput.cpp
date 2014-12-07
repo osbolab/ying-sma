@@ -4,20 +4,36 @@
 
 #include <cassert>
 #include <cstring>
-#include <istream>
 
 namespace sma
 {
-template <>
-bool BinaryInput::get<bool>()
+BinaryInput::BinaryInput(const_pointer src, size_type size)
+  : src(src)
+  , end(src + size)
 {
-  return is->get() == 1;
 }
+
+BinaryInput::BinaryInput(void const* src, size_type size)
+  : BinaryInput(reinterpret_cast<const_pointer>(src), size)
+{
+}
+
+BinaryInput::size_type BinaryInput::remaining() { return end - src; }
+void BinaryInput::require(size_type size) { assert(remaining() >= size); }
 
 void* BinaryInput::read(void* dst, std::size_t size)
 {
-  is->read(reinterpret_cast<char*>(dst), size);
+  require(size);
+  std::memcpy(dst, src, size);
+  src += size;
   return dst;
+}
+
+template <>
+bool BinaryInput::get<bool>()
+{
+  require(1);
+  return *src++ != 1;
 }
 
 template <>
@@ -45,8 +61,7 @@ std::string BinaryInput::get<std::string>()
   if (size > sizeof buf)
     cstr = new std::string::value_type[size];
 
-  is->read(cstr, size);
-  assert(*is && (is->gcount() == size));
+  read(cstr, size);
   auto s = std::string(cstr, size);
 
   if (cstr != buf)
@@ -78,15 +93,15 @@ double BinaryInput::get<double>()
 template <>
 std::uint8_t BinaryInput::get<std::uint8_t>()
 {
-  return std::uint8_t(is->get());
+  assert(src != end);
+  return *src++;
 }
 
 template <>
 std::uint16_t BinaryInput::get<std::uint16_t>()
 {
   std::uint8_t buf[sizeof(uint16_t)];
-  is->read(reinterpret_cast<char*>(buf), sizeof buf);
-  assert(*is && (is->gcount() == 2));
+  read(buf, sizeof buf);
   return std::uint16_t{buf[0]} << 8 | std::uint16_t{buf[1]};
 }
 
@@ -94,8 +109,7 @@ template <>
 std::uint32_t BinaryInput::get<std::uint32_t>()
 {
   std::uint8_t buf[sizeof(uint32_t)];
-  is->read(reinterpret_cast<char*>(buf), sizeof buf);
-  assert(*is && (is->gcount() == 4));
+  read(buf, sizeof buf);
   return std::uint32_t{buf[0]} << 24 | std::uint32_t{buf[1]} << 16
          | std::uint32_t{buf[2]} << 8 | std::uint32_t{buf[3]};
 }
@@ -104,8 +118,7 @@ template <>
 std::uint64_t BinaryInput::get<std::uint64_t>()
 {
   std::uint8_t buf[sizeof(uint64_t)];
-  is->read(reinterpret_cast<char*>(buf), sizeof buf);
-  assert(*is && (is->gcount() == 8));
+  read(buf, sizeof buf);
   return std::uint64_t{buf[0]} << 56 | std::uint64_t{buf[1]} << 48
          | std::uint64_t{buf[2]} << 40 | std::uint64_t{buf[3]} << 32
          | std::uint64_t{buf[4]} << 24 | std::uint64_t{buf[5]} << 16

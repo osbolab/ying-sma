@@ -7,6 +7,9 @@
 
 #include <sma/forwardstrategy.hpp>
 
+#include <sma/util/reader.hpp>
+#include <sma/util/binaryinput.hpp>
+
 #include <sma/io/log>
 #include <sma/chrono.hpp>
 
@@ -48,8 +51,6 @@ Unmarshal Unmarshal::instance;
 LinkLayerImpl::LinkLayerImpl(std::vector<std::unique_ptr<Link>> links)
   : links(std::move(links))
   , send_buf(16)
-  , recv_bufsrc(recv_buf, sizeof recv_buf)
-  , recv_reader(recv_bufsrc.format<BinaryInput>())
 {
   assert(!this->links.empty());
   for (auto& link : this->links)
@@ -61,12 +62,12 @@ void LinkLayerImpl::stop() { node = nullptr; }
 void LinkLayerImpl::enqueue(void const* src, std::size_t size)
 {
   {
-    WriteLock<RingBuffer> buf(send_buf);
+    auto buf = send_buf.acquire();
     assert(size <= buf.capacity());
     if (size > g_largest)
       g_largest = size;
     std::memcpy(buf.data, src, size);
-    buf.size = size;
+    *buf.size = size;
   }
 
   if (fwd_strat)
@@ -78,7 +79,7 @@ void LinkLayerImpl::enqueue(void const* src, std::size_t size)
 std::size_t LinkLayerImpl::forward_one()
 {
   {
-    ReadLock<RingBuffer> lock(send_buf);
+    auto lock = send_buf.try_pop();
     if (!lock.acquired())
       return 0;
 
@@ -98,7 +99,7 @@ std::size_t LinkLayerImpl::forward_one()
                  << (100.0 * (double(lost) / g_bytes_out)) << "%))";
     }
 
-    char buf[20000];
+    char buf[BUFFER_SIZE];
     std::memcpy(buf, &g_next_send, sizeof(std::uint64_t));
     std::memcpy(buf + sizeof(std::uint64_t), lock.cdata(), lock.size());
     g_bytes_out += lock.size();
@@ -107,7 +108,6 @@ std::size_t LinkLayerImpl::forward_one()
 
     for (auto& link : links)
       assert(link->write(buf, sizeof(std::uint64_t) + lock.size()));
-
   }
 
   return send_buf.size();
@@ -117,17 +117,21 @@ void LinkLayerImpl::on_link_readable(Link& link)
 {
   std::size_t read;
   while (node && (read = link.read(recv_buf, sizeof recv_buf))) {
-    recv_bufsrc.rewind();
-    recv_reader.template get<std::uint64_t>();
+    Reader<BinaryInput> reader(recv_buf, read);
+    // Consume the hacked in packet sequence
+    reader.template get<std::uint64_t>();
+    // Read the packet seq
     std::uint64_t packetseq;
     std::memcpy(&packetseq, recv_buf, sizeof(std::uint64_t));
 
+    // Count the packet as received
     if (packets.erase(packetseq) != 0) {
       g_bytes_frame += read - 8;
       g_bytes_in += read - 8;
     }
 
-    MessageHeader header(recv_reader);
+    // Read the actual message from the packet
+    MessageHeader header(reader);
     // Reject broadcast loopbacks
     if (header.sender == node->id)
       continue;
@@ -144,14 +148,14 @@ void LinkLayerImpl::on_link_readable(Link& link)
         continue;
     }
 
-    auto msg_typecode = recv_reader.template get<MessageTypes::typecode_type>();
+    auto msg_typecode = reader.template get<MessageTypes::typecode_type>();
     // Deduce the type of the message from its typecode and call the unmarshal
     // operator to deserialize an instance of that type and pass it to the node.
     assert(node);
     if (!MessageTypes::apply(msg_typecode,
                              Unmarshal::instance,
                              std::move(header),
-                             recv_reader,
+                             reader,
                              *node))
       node->log.w("Unhandled message");
   }

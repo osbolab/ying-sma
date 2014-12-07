@@ -1,7 +1,5 @@
 #pragma once
 
-#include <sma/util/rwlock.hpp>
-
 #include <atomic>
 
 #include <cstdint>
@@ -14,15 +12,16 @@
 namespace sma
 {
 
+template <std::size_t Size>
 class RingBuffer
 {
+  using Buft = RingBuffer<Size>;
   //! An unsigned type that can index all entries in the buffer and all
   //! elements in an entry.
   using size_type = std::size_t;
 
   using value_type = std::uint8_t;
 
-  static constexpr size_type ENTRY_SIZE = 20000;
   //! Monotonically increasing sequence counter.
   using mono_type = std::uint64_t;
   //! Read/write ordered monotonic sequence number.
@@ -32,9 +31,9 @@ class RingBuffer
 
   //! A read/write synchronized entry in the buffer.
   struct Entry {
-    using value_type = RingBuffer::value_type;
-    using size_type = RingBuffer::size_type;
-    static constexpr size_type capacity = RingBuffer::ENTRY_SIZE;
+    using value_type = Buft::value_type;
+    using size_type = Buft::size_type;
+    static constexpr size_type capacity = Size;
 
     Entry() = default;
 
@@ -59,12 +58,10 @@ class RingBuffer
     std::atomic_flag writing = ATOMIC_FLAG_INIT;
   };
 
-  friend struct WriteLock<RingBuffer, Entry>;
-  friend struct ReadLock<RingBuffer, Entry>;
+  friend class WritableEntry;
+  friend class ReadableEntry;
 
 public:
-  using entry_type = Entry;
-
   //! Construct a new buffer with \a size entries of \a ENTRY_SIZE bytes.
   RingBuffer(size_type size)
     : entries(new Entry[size]())
@@ -79,7 +76,122 @@ public:
   //! Get the number of unread entries in the buffer.
   size_type size() { return next_write - next_read - 1; }
 
-private:
+  //! A scoped lock on a mutable buffer entry.
+  /*! The next writable sequence number is claimed, but not assigned to the
+   * entry until the writer is released.
+   * Readers will be blocked on that entry because its sequence is lower than
+   * theirs, and writers will be given a subsequent sequence number because
+   * it's atomically incremented when assigned.
+   */
+  class WritableEntry
+  {
+    friend class RingBuffer<Size>;
+
+    Entry* entry;
+
+    WritableEntry(Entry& entry)
+      : entry(&entry)
+      , data(&(entry.data[0]))
+      , size(&entry.size)
+    {
+    }
+
+  public:
+    constexpr typename Entry::size_type capacity() { return Entry::capacity; }
+
+    typename Entry::value_type* data;
+    typename Entry::size_type* size;
+
+    WritableEntry(WritableEntry&& r)
+    {
+      std::swap(entry, r.entry);
+      data = r.data;
+      size = r.size;
+    }
+
+    WritableEntry& operator=(WritableEntry&& r)
+    {
+      std::swap(entry, r.entry);
+      data = r.data;
+      size = r.size;
+      return *this;
+    }
+
+    //! Release the buffer entry for reading.
+    /*! This is guaranteed safe without locking because the sequence number
+     * was atomically incremented when taken and readers are blocked on a cheap
+     * ordered read until this commit takes place.
+     */
+    ~WritableEntry()
+    {
+      if (entry)
+        entry->writing.clear();
+    }
+  };
+
+  //! A scoped lock of an immutable buffer entry.
+  /*! Unlimited readers may immutably reference an entry and it will not be
+   * modified until they are all destructed.
+   * This blocks writing, and since the ring buffer is neither destructive nor
+   * dynamic may cause an overrun exception.
+   */
+  class ReadableEntry
+  {
+    friend class RingBuffer<Size>;
+
+    Entry* entry;
+
+    ReadableEntry(Entry* entry)
+      : entry(entry)
+    {
+    }
+
+  public:
+    constexpr typename Entry::size_type capacity() { return Entry::capacity; }
+
+    ReadableEntry(ReadableEntry&& r) { std::swap(entry, r.entry); }
+    ReadableEntry(ReadableEntry const& r)
+    {
+      if (r.entry)
+        ++r.entry->readers;
+      entry = r.entry;
+    }
+
+    ReadableEntry& operator=(ReadableEntry&& r)
+    {
+      std::swap(entry, r.entry);
+      return *this;
+    }
+    ReadableEntry& operator=(ReadableEntry const& r)
+    {
+      if (r.entry)
+        ++r.entry->reader;
+      entry = r.entry;
+      return *this;
+    }
+
+    //! Release a read lock on the entry.
+    ~ReadableEntry()
+    {
+      if (entry)
+        --entry->readers;
+    }
+
+    bool acquired() const { return entry != nullptr; }
+
+    typename Entry::value_type const* cdata() const
+    {
+      assert(entry);
+      return entry->data;
+    }
+
+    typename Entry::size_type size() const
+    {
+      assert(entry);
+      return entry->size;
+    }
+  };
+
   //! Lock the next buffer entry for writing for the lifetime of the returned
   // object.
   /*! This is equivalent to lazily emplacing an entry in a queue such that it
@@ -87,7 +199,7 @@ private:
    * Consequently, while further writes may take place concurrently, all reads
    * will be blocked at this entry until it has committed.
    */
-  Entry& acquire()
+  WritableEntry acquire()
   {
     // Try until we find a slot not being written to.
     // This may occur if every slot is being written to, in which case we busy
@@ -108,10 +220,10 @@ private:
       throw std::runtime_error(
           "Ring buffer overrun (the next slot to write is being read).");
 
-    return *entry;
+    return WritableEntry(*entry);
   }
 
-  Entry* try_pop()
+  ReadableEntry try_pop()
   {
     // Pretend to claim the next read position and, if we're successful,
     // CAS until we actually commit it.
@@ -133,9 +245,10 @@ private:
       // We failed the CAS; remove ourselves from the entry we chose and retry.
       --entry->readers;
     }
-    return entry;
+    return ReadableEntry(entry);
   }
 
+private:
   Entry* entries;
   //! The next sequence number to be written.
   sequence next_write{1};

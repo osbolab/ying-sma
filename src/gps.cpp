@@ -39,12 +39,7 @@ double GPS::Coord::operator-(Coord const& b)
 
 bool double_eq(double a, double b)
 {
-  static constexpr long long EPSILON = 1L;
-
-  assert(sizeof(double) == sizeof(long long));
-  if (a == b) return true;
-  long long d = std::abs(*(long long*)&a - *(long long*)&b);
-  return (d <= EPSILON);
+  return true;
 }
 
 bool GPS::Coord::operator==(Coord const& rhs)

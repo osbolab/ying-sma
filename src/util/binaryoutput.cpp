@@ -7,9 +7,36 @@
 
 namespace sma
 {
+BinaryOutput::BinaryOutput(pointer dst, size_type size)
+  : dst(dst)
+  , cur(dst)
+  , end(dst + size)
+{
+}
+
+BinaryOutput::BinaryOutput(void* dst, size_type size)
+  : BinaryOutput(reinterpret_cast<pointer>(dst), size)
+{
+}
+
+BinaryOutput::size_type BinaryOutput::remaining() { return end - cur; }
+
+BinaryOutput::size_type BinaryOutput::size() { return cur - dst; }
+
+void BinaryOutput::require(size_type size) { assert(remaining() >= size); }
+
+BinaryOutput& BinaryOutput::write(void const* src, std::size_t size)
+{
+  require(size);
+  std::memcpy(cur, src, size);
+  cur += size;
+  return *this;
+}
+
 BinaryOutput& BinaryOutput::operator<<(bool const& t)
 {
-  os->put(t ? 1 : 0);
+  assert(cur != end);
+  *cur++ = (t ? 1 : 0);
   return *this;
 }
 
@@ -21,6 +48,7 @@ BinaryOutput& BinaryOutput::operator<<(std::string const& t)
 
   auto size = t.size();
   assert(size <= 32767);
+
   if (size >= 127)
     // 2^15 - 1, or two bytes with the highest bit as the extension flag
     *this << std::uint16_t(size | (1 << 15));
@@ -28,7 +56,7 @@ BinaryOutput& BinaryOutput::operator<<(std::string const& t)
     // 2^7 - 1, or one byte with the highest bit as the extension flag
     *this << std::uint8_t(size);
 
-  os->write(t.c_str(), size);
+  write(t.c_str(), size);
   return *this;
 }
 
@@ -50,15 +78,15 @@ BinaryOutput& BinaryOutput::operator<<(double const& t)
 
 BinaryOutput& BinaryOutput::operator<<(std::uint8_t const& t)
 {
-  os->put(char(t));
+  assert(cur != end);
+  *cur++ = t;
   return *this;
 }
 
 BinaryOutput& BinaryOutput::operator<<(std::uint16_t const& t)
 {
   char buf[]{char(t >> 8 & 0xff), char(t & 0xff)};
-  os->write(buf, sizeof buf);
-  return *this;
+  return write(buf, sizeof buf);
 }
 
 BinaryOutput& BinaryOutput::operator<<(std::uint32_t const& t)
@@ -67,8 +95,7 @@ BinaryOutput& BinaryOutput::operator<<(std::uint32_t const& t)
              char(t >> 16 & 0xff),
              char(t >> 8 & 0xff),
              char(t & 0xff)};
-  os->write(buf, sizeof buf);
-  return *this;
+  return write(buf, sizeof buf);
 }
 
 BinaryOutput& BinaryOutput::operator<<(std::uint64_t const& t)
@@ -81,8 +108,7 @@ BinaryOutput& BinaryOutput::operator<<(std::uint64_t const& t)
              char(t >> 16 & 0xff),
              char(t >> 8 & 0xff),
              char(t & 0xff)};
-  os->write(buf, sizeof buf);
-  return *this;
+  return write(buf, sizeof buf);
 }
 
 BinaryOutput& BinaryOutput::operator<<(std::int8_t const& t)

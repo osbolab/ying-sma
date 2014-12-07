@@ -23,22 +23,23 @@ CcnNode::CcnNode(NodeId id, Context& context)
 
 void CcnNode::post(void const* src, std::size_t size)
 {
+  assert(linklayer);
   linklayer->enqueue(src, size);
 }
 
-void CcnNode::receive(MessageHeader&& header, Beacon&& msg)
+void CcnNode::receive(MessageHeader header, Beacon msg)
 {
   assert(neighbors);
   neighbors->receive(std::move(header), std::move(msg));
 }
 
-void CcnNode::receive(MessageHeader&& header, InterestAnn&& msg)
+void CcnNode::receive(MessageHeader header, InterestAnn msg)
 {
   assert(interests);
   interests->receive(std::move(header), std::move(msg));
 }
 
-void CcnNode::receive(MessageHeader&& header, ContentAnn&& msg)
+void CcnNode::receive(MessageHeader header, ContentAnn msg)
 {
   assert(content);
   content->receive(std::move(header), std::move(msg));
