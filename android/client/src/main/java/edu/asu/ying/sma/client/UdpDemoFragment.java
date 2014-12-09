@@ -137,6 +137,7 @@ public class UdpDemoFragment extends Fragment {
         received_adapter.notifyDataSetChanged();
       }
     });
+
   }
 
   private void indicate_send(final boolean enable) {
@@ -204,7 +205,7 @@ public class UdpDemoFragment extends Fragment {
 
         if (packet.getLength() != 0) {
           byte[] data = packet.getData();
-          if (is_loopback(data, packet.getLength()))
+          if (is_loopback(data))
             continue;
 
           int strlen = data[0];
@@ -220,16 +221,14 @@ public class UdpDemoFragment extends Fragment {
       set_state("idle");
     }
 
-    private boolean is_loopback(byte[] data, int size) {
+    private boolean is_loopback(byte[] data) {
       byte[] send_data = send_packet.getData();
-      if (size != send_data.length)
-        return false;
-      int i = 0;
-      for (; i < size; ++i) {
+      int i = 1;
+      for (; i < send_data.length; ++i) {
         if (data[i] != send_data[i])
           break;
       }
-      return i == size;
+      return i == send_data.length;
     }
   }
 

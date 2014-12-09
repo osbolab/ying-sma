@@ -208,8 +208,8 @@ int main(int argc, char** argv)
       //                                                  std::move(interests));
       char namebuf[packet_size];
       std::memset(namebuf, 'a', packet_size);
-      //app->act_emplace_front<sma::PublishContentAction>(
-      //  3s, "cats", std::string(namebuf, packet_size));
+      app->act_emplace_front<sma::PublishContentAction>(
+          3s, "cats", std::string(namebuf, packet_size));
     }
 
     auto apps = ns3::ApplicationContainer(app);
