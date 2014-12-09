@@ -48,8 +48,9 @@ public class UdpDemoFragment extends Fragment {
 
     WifiManager wifi = (WifiManager) activity.getSystemService(Context.WIFI_SERVICE);
     try {
-      byte[] send_data = getMacAddress(wifi).getBytes("UTF-8");
-      byte[] packet_data = new byte[send_data.length + 1];
+      my_mac_addr = getMacAddress(wifi);
+      byte[] send_data = my_mac_addr.getBytes("UTF-8");
+      byte[] packet_data = new byte[1 + send_data.length];
       packet_data[0] = (byte) send_data.length;
       System.arraycopy(send_data, 0, packet_data, 1, send_data.length);
       send_packet = new DatagramPacket(packet_data,
@@ -127,7 +128,10 @@ public class UdpDemoFragment extends Fragment {
     }
   }
 
-  private void receive(final String item) {
+  private void receive(final String item) throws UnsupportedEncodingException {
+    if (item.startsWith(my_mac_addr))
+      return;
+
     getActivity().runOnUiThread(new Runnable() {
       @Override
       public void run() {
@@ -137,7 +141,19 @@ public class UdpDemoFragment extends Fragment {
         received_adapter.notifyDataSetChanged();
       }
     });
+    if (item.length() != my_mac_addr.length())
+      return;
 
+    String fwd = item + " -> " + my_mac_addr;
+    byte[] fwd_data = fwd.getBytes("UTF-8");
+    byte[] data = new byte[1 + fwd_data.length];
+    data[0] = (byte) fwd_data.length;
+    System.arraycopy(fwd_data, 0, data, 1, fwd_data.length);
+    try {
+      sock.send(new DatagramPacket(data, data.length, send_packet.getSocketAddress()));
+    } catch (IOException e) {
+      Log.e("Udp Demo", "Exception forwarding packet", e);
+    }
   }
 
   private void indicate_send(final boolean enable) {
@@ -184,6 +200,7 @@ public class UdpDemoFragment extends Fragment {
   private List<String> received_items = new ArrayList<>();
   private ArrayAdapter<String> received_adapter;
 
+  private String my_mac_addr;
   private DatagramPacket send_packet;
   private ScheduledExecutorService send_scheduler = null;
 
@@ -205,10 +222,7 @@ public class UdpDemoFragment extends Fragment {
 
         if (packet.getLength() != 0) {
           byte[] data = packet.getData();
-          if (is_loopback(data))
-            continue;
-
-          int strlen = data[0];
+          int strlen = data[0] & 0xff;
           try {
             receive(new String(data, 1, strlen, "UTF-8"));
           } catch (UnsupportedEncodingException e) {
