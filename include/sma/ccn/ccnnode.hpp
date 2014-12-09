@@ -10,6 +10,7 @@
 #include <sma/io/log>
 
 #include <vector>
+#include <atomic>
 
 namespace sma
 {
@@ -33,10 +34,14 @@ public:
   void post(M const& msg,
             std::vector<NodeId> recipients = std::vector<NodeId>());
 
-  /* Messages delegated to their respective handlers. */
-
+  /* Neighbor discovery */
   void receive(MessageHeader header, Beacon msg);
+  void receive(MessageHeader header, BeaconResponse msg);
+
+  /* Interest dissemination */
   void receive(MessageHeader header, InterestAnn msg);
+
+  /* Content announcement dissemination */
   void receive(MessageHeader header, ContentAnn msg);
 
   //! This node's universally unique identifier.
@@ -52,7 +57,7 @@ public:
 
 private:
   //! \a true if the node's graceful termination has been requested.
-  bool stopped = false;
+  std::atomic_bool stopped{false};
   //! Interface to the link layer connecting this node to the network.
   LinkLayer* linklayer;
 };

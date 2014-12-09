@@ -5,6 +5,8 @@
 
 #include <sma/smafwd.hpp>
 
+#include <sma/util/event.hpp>
+
 #include <sma/io/log>
 
 #include <sma/chrono.hpp>
@@ -19,7 +21,15 @@ class NeighborHelperImpl : public NeighborHelper
 public:
   NeighborHelperImpl(CcnNode& node);
 
+  void saw(NodeId const& node) override;
+  void saw(std::vector<NodeId> const& nodes) override;
+
   void receive(MessageHeader header, Beacon msg) override;
+
+  //! Fired when new neighbors arrive.
+  Event<std::vector<NodeId> const&> on_arrival;
+  //! Fired when known neighbors are dropped due to inactivity.
+  Event<std::vector<NodeId> const&> on_departure;
 
 private:
   using clock = sma::chrono::system_clock;

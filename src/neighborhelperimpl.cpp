@@ -1,5 +1,6 @@
 #include <sma/neighborhelperimpl.hpp>
 
+#include <sma/nodeid.hpp>
 #include <sma/ccn/ccnnode.hpp>
 
 #include <sma/messageheader.hpp>
@@ -22,6 +23,10 @@ NeighborHelperImpl::NeighborHelperImpl(CcnNode& node)
 {
   schedule_beacon(100ms);
 }
+
+void NeighborHelperImpl::saw(NodeId const& node) {}
+
+void NeighborHelperImpl::saw(std::vector<NodeId> const& nodes) {}
 
 void NeighborHelperImpl::receive(MessageHeader header, Beacon msg)
 {

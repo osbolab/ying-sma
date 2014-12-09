@@ -6,17 +6,17 @@
 
 namespace sma
 {
-struct Beacon {
-  EMPTY_SERIALIZABLE(Beacon)
+struct BeaconResponse {
+  EMPTY_SERIALIZABLE(BeaconResponse)
 
   /****************************************************************************
    * Serialized Fields
    */
   /***************************************************************************/
 
-  Beacon() {}
+  BeaconResponse() {}
 
-  Beacon(Beacon const&) = default;
-  Beacon& operator=(Beacon const&) = default;
+  BeaconResponse(BeaconResponse const&) = default;
+  BeaconResponse& operator=(BeaconResponse const&) = default;
 };
 }

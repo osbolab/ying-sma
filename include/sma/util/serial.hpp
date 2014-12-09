@@ -75,3 +75,7 @@
   {                                                                            \
   }                                                                            \
   SERIALIZER() { PUT_FIELDS(__VA_ARGS__); }
+
+#define EMPTY_SERIALIZABLE(CLASSNAME)                                          \
+  DESERIALIZING_CTOR(CLASSNAME) {}                                             \
+  SERIALIZER() {}

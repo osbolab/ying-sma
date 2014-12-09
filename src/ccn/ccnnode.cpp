@@ -33,6 +33,12 @@ void CcnNode::receive(MessageHeader header, Beacon msg)
   neighbors->receive(std::move(header), std::move(msg));
 }
 
+void CcnNode::receive(MessageHeader header, BeaconResponse msg)
+{
+  assert(neighbors);
+  neighbors->saw(header.sender);
+}
+
 void CcnNode::receive(MessageHeader header, InterestAnn msg)
 {
   assert(interests);
