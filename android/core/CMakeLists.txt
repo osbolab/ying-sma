@@ -1,4 +1,6 @@
-project("${SMA_ANDROID_CORE_LIB}")
+depend(SMA_LIB)
+
+project("${SMA_ANDROID_LIB}")
 
 ###############################################################################
 # SOURCES
@@ -13,7 +15,4 @@ set(sources
 # TARGETS
 
 add_library("${PROJECT_NAME}" STATIC ${sources})
-target_link_libraries("${PROJECT_NAME}" "${SMA_PLATFORM_LIB}")
-
-add_test_exe("androidcore_test" "test/test_main.cc")
-target_link_libraries("androidcore_test" "${PROJECT_NAME}")
+target_link_libraries("${PROJECT_NAME}" "${SMA_LIB}")

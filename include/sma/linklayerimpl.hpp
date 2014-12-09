@@ -45,9 +45,5 @@ private:
 
   //! Buffer outgoing messages to be sent by the forwarding strategy.
   RingBuffer<BUFFER_SIZE> send_buf;
-
-  // Incoming messages are still synchronous; this is just so we can reuse the
-  // stringbuf and istream;
-  char recv_buf[BUFFER_SIZE];
 };
 }

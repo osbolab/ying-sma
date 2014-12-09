@@ -115,14 +115,15 @@ std::size_t LinkLayerImpl::forward_one()
 
 void LinkLayerImpl::on_link_readable(Link& link)
 {
+  std::uint8_t buf[BUFFER_SIZE];
   std::size_t read;
-  while (node && (read = link.read(recv_buf, sizeof recv_buf))) {
-    Reader<BinaryInput> reader(recv_buf, read);
+  while (node && (read = link.read(buf, sizeof buf))) {
+    Reader<BinaryInput> reader(buf, read);
     // Consume the hacked in packet sequence
     reader.template get<std::uint64_t>();
     // Read the packet seq
     std::uint64_t packetseq;
-    std::memcpy(&packetseq, recv_buf, sizeof(std::uint64_t));
+    std::memcpy(&packetseq, buf, sizeof(std::uint64_t));
 
     // Count the packet as received
     if (packets.erase(packetseq) != 0) {
@@ -150,7 +151,7 @@ void LinkLayerImpl::on_link_readable(Link& link)
 
     auto msg_typecode = reader.template get<MessageTypes::typecode_type>();
     // Deduce the type of the message from its typecode and call the unmarshal
-    // operator to deserialize an instance of that type and pass it to the node.
+    // operator to deserialize a message of that type and pass it to the node.
     assert(node);
     if (!MessageTypes::apply(msg_typecode,
                              Unmarshal::instance,
