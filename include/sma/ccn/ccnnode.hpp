@@ -36,7 +36,6 @@ public:
 
   /* Neighbor discovery */
   void receive(MessageHeader header, Beacon msg);
-  void receive(MessageHeader header, BeaconResponse msg);
 
   /* Interest dissemination */
   void receive(MessageHeader header, InterestAnn msg);

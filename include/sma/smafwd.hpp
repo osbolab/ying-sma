@@ -11,5 +11,4 @@ struct MessageHeader;
 
 class NeighborHelper;
 struct Beacon;
-struct BeaconResponse;
 }

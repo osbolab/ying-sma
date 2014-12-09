@@ -2,7 +2,6 @@
 #include <sma/util/typesieve.hpp>
 
 #include <sma/beacon.hpp>
-#include <sma/beaconresponse.hpp>
 #include <sma/ccn/interestann.hpp>
 #include <sma/ccn/contentann.hpp>
 
@@ -12,7 +11,6 @@ namespace sma
 
   using MessageTypes = TypeSieve<MessageTypecode>
     ::map<0, Beacon>
-    ::map<1, BeaconResponse>
     ::map<16, InterestAnn>
     ::map<17, ContentAnn>;
 }

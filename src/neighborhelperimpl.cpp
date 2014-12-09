@@ -24,13 +24,19 @@ NeighborHelperImpl::NeighborHelperImpl(CcnNode& node)
   schedule_beacon(100ms);
 }
 
-void NeighborHelperImpl::saw(NodeId const& node) {}
+void NeighborHelperImpl::saw(NodeId const& node) { neighbors.update(node); }
 
-void NeighborHelperImpl::saw(std::vector<NodeId> const& nodes) {}
+void NeighborHelperImpl::saw(std::vector<NodeId> const& nodes)
+{
+  for (auto const& node : nodes)
+    saw(node);
+}
 
 void NeighborHelperImpl::receive(MessageHeader header, Beacon msg)
 {
-  neighbors.update(header.sender);
+  saw(header.sender);
+  if (!msg.is_response)
+    node->post(Beacon(true));
 }
 
 using millis = std::chrono::milliseconds;
