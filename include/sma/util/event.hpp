@@ -32,10 +32,10 @@ public:
     Lock lock(mx);
     auto it = handlers.begin();
     while (it != handlers.end())
-      if (!*it(std::forward<Args>(args)...))
-        it = handlers.erase(it);
-      else
+      if ((*it)(std::forward<Args>(args)...))
         ++it;
+      else
+        it = handlers.erase(it);
   }
 
 private:

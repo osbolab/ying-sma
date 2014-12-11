@@ -72,7 +72,6 @@ set(${PROJECT_NAME}_sources
 
   "src/neighborhelper.cpp"
   "src/neighborhelperimpl.cpp"
-  "src/neighbortable.cpp"
 
   "src/ccn/interesthelper.cpp"
   "src/ccn/interesthelperimpl.cpp"

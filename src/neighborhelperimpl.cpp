@@ -18,18 +18,20 @@ using namespace std::literals::chrono_literals;
 
 namespace sma
 {
+
+constexpr unsigned int NeighborHelperImpl::INITIAL_REFRESH_MS;
+
 NeighborHelperImpl::NeighborHelperImpl(CcnNode& node)
   : NeighborHelper(node)
 {
   schedule_beacon(100ms);
 }
 
-void NeighborHelperImpl::saw(NodeId const& node) { neighbors.update(node); }
-
-void NeighborHelperImpl::saw(std::vector<NodeId> const& nodes)
+void NeighborHelperImpl::saw(NodeId const& node)
 {
-  for (auto const& node : nodes)
-    saw(node);
+  auto result = neighbors.emplace(std::move(node), Neighbor());
+  if (!result.second)
+    result.first->second.saw();
 }
 
 void NeighborHelperImpl::receive(MessageHeader header, Beacon msg)
@@ -45,39 +47,42 @@ void NeighborHelperImpl::schedule_beacon(millis delay)
   using unit = millis::rep;
   unit min = delay.count() / 2;
   delay = millis(min + rand() % delay.count());
-  asynctask(std::bind(&NeighborHelperImpl::beacon, this)).do_in(delay);
+  asynctask(&NeighborHelperImpl::beacon, this).do_in(delay);
 }
 
+void NeighborHelperImpl::beacon() { node->post(Beacon()); }
 
-void NeighborHelperImpl::beacon()
+void NeighborHelperImpl::refresh_neighbors()
 {
-  node->post(Beacon());
-
-  schedule_beacon(3s);
-}
-
-void NeighborHelperImpl::prune_neighbors()
-{
-  if (std::uint32_t(node->id) != 0)
+  if (neighbors.empty())
     return;
 
-  if (!neighbors.empty()) {
-    neighbors.prune(prune_interval);
-    if (!neighbors.empty()) {
-      log.d("neighbors (%v):", neighbors.size());
-      std::ostringstream s;
-      for (auto it = neighbors.begin(); it != neighbors.end(); ++it) {
-        s << " " << std::setfill(' ') << std::setw(3) << it->first << " "
-          << sma::chrono::system_clock::utcstrftime(it->second.last_seen);
-        log.d(s.str());
-        s.str("");
-        s.clear();
-      }
+  bool will_beacon = false;
+  std::vector<NodeId> dropped;
 
-      log.d("");
+  auto it = neighbors.begin();
+  while (it != neighbors.end()) {
+    if (it->second.older_than(millis(INITIAL_REFRESH_MS))) {
+      if (it->second.times_pinged++ < 3) {
+        will_beacon = true;
+      } else {
+        dropped.push_back(it->first);
+        it = neighbors.erase(it);
+        continue;
+      }
     }
+    ++it;
   }
-  asynctask(std::bind(&NeighborHelperImpl::prune_neighbors, this))
-      .do_in(prune_interval);
+  if (will_beacon) {
+    beacon();
+    schedule_refresh(query_response_delay);
+  }
+
+  on_departure(std::move(dropped));
+}
+
+void NeighborHelperImpl::schedule_refresh(millis const& delay)
+{
+  asynctask(&NeighborHelperImpl::refresh_neighbors, this).do_in(delay);
 }
 }
