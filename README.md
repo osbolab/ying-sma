@@ -3,18 +3,18 @@
 ### Environment
 
     uname -rps
-    # Linux 3.13.0-39-generic x86_64 
+    # Linux 3.16.0-28-generic x86_64
 
     cmake --version
     # cmake version 2.8.12.2
 
     c++ --version
-    # Ubuntu clang version 3.6.0-svn220863-1~exp1 (trunk) (based on LLVM 3.6.0)
+    # Ubuntu clang version 3.6.0-svn224099-1~exp1 (trunk) (based on LLVM 3.6.0)
     # Target: x86_64-pc-linux-gnu
     # Thread model: posix
 
     python --version
-    # Python 2.7.6
+    # Python 2.7.8
 
 ### NS3
 
@@ -40,12 +40,13 @@ directory:
 ### SMA
 
 Configure the makefile by invoking `cmake` in the build directory.
-Build files are output to the *current directory* when running cmake, so make
+Build files are output to the current directory when running cmake, so make
 sure you're always in a subdirectory first.
 
 Cmake finds all of the source files and generates makefiles. You only need to
-run it once (or whenever you delete the build dir) and can run `make` after
-that. The makefile automatically updates itself when source files are added.
+run it once (or whenever you delete the build dir), after which you should run
+`make` to build the targets. The makefile automatically updates itself when 
+source files are added or removed to or from the `CMakelists.txt` file.
 
 Cmake generates subdirectories in the build path for the subprojects, like
 the sma-ns3 library. Targets for that project are output to its build
