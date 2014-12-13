@@ -14,7 +14,7 @@ repositories {
 
 android {
   compileSdkVersion 19
-  buildToolsVersion "19.1.0"
+  buildToolsVersion "21.1.2"
 
   defaultConfig {
     applicationId "edu.asu.ying.sma.client"
@@ -45,5 +45,5 @@ android {
 dependencies {
   compile fileTree(include: ['*.jar'], dir: 'libs')
   compile 'com.google.code.findbugs:jsr305:3.0.0'
-  compile 'com.android.support:support-v4:19.1.0'
+  compile 'com.android.support:support-v4:21.0.3'
 }

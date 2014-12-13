@@ -221,10 +221,9 @@ int main(int argc, char** argv)
   LOG(INFO) << "Created " << nnodes << " nodes";
   // ^^^^^^^^^^^^^^^^^^^^^^^^^ SMA STUFF ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  LOG(DEBUG) << "Traffic will output to log/wifi_simple-x-x.pcap";
-  LOG(DEBUG) << "Tracing routes every 10 seconds to log/wifi-simple.routes";
+  LOG(DEBUG) << "Traffic will output to /var/log/sma/pcap/wifi_simple-x-x.pcap";
   ns3::AsciiTraceHelper ascii;
-  wifiPhy.EnablePcap("log/wifi_simple", devices);
+  wifiPhy.EnablePcap("/var/log/sma/pcap/wifi_simple", devices);
 
   if (enable_olsr) {
     auto routeStream = ns3::Create<ns3::OutputStreamWrapper>(
@@ -253,12 +252,12 @@ void configure_logs(int& argc, char** argv)
   _START_EASYLOGGINGPP(argc, argv);
 
   std::cout << "Configuring application logging from log.conf...\n";
-  el::Configurations logconf("../../conf/log.conf");
+  el::Configurations logconf("/etc/sma/log.conf");
   el::Loggers::reconfigureAllLoggers(logconf);
   LOG(INFO) << "\n\n----------------------------------- session "
                "-----------------------------------";
   LOG(DEBUG) << "Configuring node logging from nodelog.conf...";
-  el::Configurations nodelogconf("../../conf/nodelog.conf");
+  el::Configurations nodelogconf("/etc/sma/nodelog.conf");
   el::Loggers::setDefaultConfigurations(nodelogconf, false);
   el::Loggers::getLogger("nodes");
   CLOG(INFO, "nodes") << "------------------------- session "

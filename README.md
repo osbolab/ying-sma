@@ -56,15 +56,102 @@ executables.
     # -DCMAKE_BUILD_TYPE=Debug - attach symbols to the output (on by default)
     # -Dbuild_tests=OFF        - don't build test executables
 
-    mkdir build
-    cd build/
-    cmake ../
-    make
-    cd ns3/
-    # Running with no options creates 2 nodes at a distance of 2000m.
-    ./wifi-test --nodes=2 --distance=100
+    $ mkdir build
+    $ cd build/
+    $ cmake ../
+    $ make
+    $ cd ns3/
+    $ ./wifi-test --nodes=2 --distance=100
 
 Project sources are declared in `CMakeLists.txt`.
+
+
+### Android
+
+#### Extract SDK and NDK to install path
+  
+##### SDK
+    $ wget http://dl.google.com/android/android-sdk_r24.0.1-linux.tgz
+    $ tar xzvf android-sdk-r24.0.1-linux.tgz
+    $ sudo mkdir /usr/android
+    $ sudo mv android-sdk-r24.0.1-linux /usr/android/sdk
+
+##### NDK
+    $ wget http://dl.google.com/android/ndk/android-ndk-r10d-linux-x86_64.bin
+    $ chmod a+x android-ndk-r10d-linux-x86_64.bin
+    $ ./android-ndk-r10d-linux-x86-64.bin
+    $ sudo mkdir /usr/android/ndk
+    $ sudo mv android-ndk-r10d /usr/android/ndk/r10d
+    $ sudo ln -s /usr/android/ndk/r10d /usr/android/ndk/current
+
+#### Export variables for build environment
+    $ tail -n6 ~/.bashrc
+
+    export ANDROID_SDK=/usr/android/sdk
+    export ANDROID_HOME=$ANDROID_SDK
+    export PATH=$PATH:$ANDROID_SDK/tools:$ANDROID_SDK/platform-tools
+
+    export ANDROID_NDK=/usr/android/ndk/current
+    export PATH=$PATH:$ANDROID_NDK
+
+#### Install SDK platforms and build tools
+
+Use the graphical installer to select the packages
+
+  - Android SDK Tools **24.0.1**
+  - Android SDK Platform-tools **21**
+  - Android SDK Build-tools **21.1.2**
+  - Android 4.4.2 (API **19**)
+    - SDK Platform
+  - Android 4.3.1 (API **18**)
+    - SDK Platform
+  - Android Support Repository **10**
+  - Android Support Library **21.0.3**
+
+    $ android
+    # Install above packages
+
+    $ tree -d -L 3 /usr/android
+
+    /usr/android
+    ├── ndk
+    │   ├── current -> r10d
+    │   └── r10d
+    │       ├── build
+    │       ├── docs
+    │       ├── platforms
+    │       ├── prebuilt
+    │       ├── samples
+    │       ├── sources
+    │       ├── tests
+    │       └── toolchains
+    └── sdk
+        ├── add-ons
+        ├── build-tools
+        │   └── 21.1.2
+        ├── extras
+        │   ├── android
+        │   └── google
+        ├── platforms
+        │   ├── android-18
+        │   └── android-19
+        ├── platform-tools
+        │   ├── api
+        │   └── systrace
+        ├── temp
+        └── tools
+            ├── ant
+            ├── apps
+            ├── lib
+            ├── proguard
+            ├── support
+            └── templates
+
+#### Cannot run program ... aapt: error=2, No such file or directory
+
+Some i386 runtimes are missing on x86\_64 linux:
+
+    sudo apt-get install lib32stdc++6 lib32z1
 
 ## Testing
 
