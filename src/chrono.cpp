@@ -1,9 +1,6 @@
 #include <sma/chrono.hpp>
 #include <sma/io/log>
 
-#include <ctime>
-#include <string>
-
 namespace sma
 {
 namespace chrono
