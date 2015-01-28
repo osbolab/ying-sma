@@ -1,4 +1,5 @@
 media/
+.idea/
 
 # Object directories
 build/
