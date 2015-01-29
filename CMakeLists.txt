@@ -78,6 +78,8 @@ set(${PROJECT_NAME}_sources
   "src/ccn/contenthelper.cpp"
   "src/ccn/contenthelperimpl.cpp"
 
+  "src/ccn/memorycontentstore.cpp"
+
   "src/chrono.cpp"
   "src/context.cpp"
   "src/gps.cpp"

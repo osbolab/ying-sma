@@ -25,8 +25,6 @@ static sma::chrono::system_clock::time_point g_published;
 
 void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
 {
-  bool forward = false;
-
   auto& descriptor = msg.descriptor;
   // Break loops
   if (descriptor.publisher == node->id)
@@ -85,7 +83,9 @@ void ContentHelperImpl::publish(ContentType type,
   log.d("");
 
   auto hash = Hasher(std::string(type))(std::string(name)).digest();
+  /*
   node->post(ContentAnn(
       ContentDescriptor(std::move(hash), type, name, node->id)));
+      */
 }
 }

@@ -11,6 +11,7 @@
 
 #include <sma/chrono.hpp>
 
+#include <cstdint>
 #include <ctime>
 #include <functional>
 
@@ -22,38 +23,49 @@ namespace sma
  * within the same application domain.
  */
 struct ContentDescriptor {
-  TRIVIALLY_SERIALIZABLE(
-      ContentDescriptor, hash, type, name, publisher, distance, blocks)
+  TRIVIALLY_SERIALIZABLE(ContentDescriptor,
+                         type,
+                         name,
+                         hash,
+                         size,
+                         block_size,
+                         publisher,
+                         distance)
+
+  using size_type = std::uint32_t;
+  using block_size_type = std::uint32_t;
 
   using clock = sma::chrono::system_clock;
   using time_point = clock::time_point;
 
   /****************************
    * Serialized              */
-  Hash hash;
-
   ContentType type;
   ContentName name;
 
+  Hash hash;
+
+  size_type size;
+  block_size_type block_size;
+
   NodeId publisher;
   NetworkDistance distance;
-
-  //! The block set naming each block
-  std::vector<Hash> blocks;
   /**************************/
 
   ContentDescriptor(Hash hash,
+                    size_type size,
+                    block_size_type block_size,
                     ContentType type,
                     ContentName name,
                     NodeId publisher,
-                    std::vector<Hash> blocks = std::vector<Hash>(),
                     NetworkDistance distance = 0)
     : hash(hash)
+    , size(size)
+    , block_size(block_size)
     , type(type)
     , name(name)
     , publisher(publisher)
     , distance(distance)
-    , blocks(std::move(blocks))
   {
     touch();
   }
