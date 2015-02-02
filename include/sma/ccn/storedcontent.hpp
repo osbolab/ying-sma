@@ -25,6 +25,9 @@ public:
   virtual StoredBlock* block(std::uint32_t index) = 0;
   virtual StoredBlock const* cblock(std::uint32_t index) const = 0;
 
+  virtual StoredBlock& create_block(std::uint32_t index, std::uint32_t size)
+      = 0;
+
   bool complete() const;
   std::vector<std::uint32_t> missing_blocks() const;
 

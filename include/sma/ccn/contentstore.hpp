@@ -17,7 +17,7 @@ public:
 
   virtual StoredContent const* find(Hash hash) = 0;
 
-  virtual std::pair<Hash, StoredContent const*>
+  virtual std::pair<Hash, StoredContent const&>
   store_from(std::istream& in, std::uint32_t block_size) = 0;
 };
 }

@@ -99,7 +99,7 @@ ContentMetadata ContentHelperImpl::create_new(ContentType type,
 {
   auto result = local_cache.store_from(in, 1024);
   auto& hash = result.first;
-  auto& data = *(result.second);
+  auto const& data = result.second;
 
   return ContentMetadata(
       hash, type, name, data.size(), data.block_size(), node.id);

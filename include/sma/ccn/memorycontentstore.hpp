@@ -52,6 +52,9 @@ private:
     virtual StoredBlock* block(std::uint32_t index) override;
     virtual StoredBlock const* cblock(std::uint32_t index) const override;
 
+    virtual StoredBlock& create_block(std::uint32_t index,
+                                      std::uint32_t size) override;
+
     std::unordered_map<std::uint32_t, std::unique_ptr<Block>> blocks;
   };
 
@@ -60,7 +63,7 @@ public:
 
   virtual StoredContent const* find(Hash content) override;
 
-  virtual std::pair<Hash, StoredContent const*>
+  virtual std::pair<Hash, StoredContent const&>
   store_from(std::istream& in, std::uint32_t block_size) override;
 
 private:

@@ -128,6 +128,17 @@ StoredBlock const* MemoryContentStore::Record::cblock(std::uint32_t index) const
   else
     return nullptr;
 }
+
+StoredBlock& MemoryContentStore::Record::create_block(std::uint32_t index,
+                                                      std::uint32_t size)
+{
+  assert(index < blocks_count());
+  assert(size <= block_size());
+
+  blocks.erase(index);
+  return *(blocks.emplace(index, std::make_unique<Block>(index, size))
+               .first->second);
+}
 /* Record
  *****************************************************************************/
 
@@ -141,7 +152,7 @@ StoredContent const* MemoryContentStore::find(Hash hash)
     return nullptr;
 }
 
-std::pair<Hash, StoredContent const*>
+std::pair<Hash, StoredContent const&>
 MemoryContentStore::store_from(std::istream& in, std::uint32_t block_size)
 {
   auto hasher = Hasher();
@@ -188,7 +199,7 @@ MemoryContentStore::store_from(std::istream& in, std::uint32_t block_size)
       std::make_unique<Record>(total_size, block_size, std::move(blocks)));
 
   assert(result.second);
-  return std::make_pair(hash, result.first->second.get());
+  return std::pair<Hash, StoredContent const&>(hash, *(result.first->second));
 }
 }
 
