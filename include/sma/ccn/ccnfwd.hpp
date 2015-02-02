@@ -10,6 +10,8 @@ struct ContentDescriptor;
 
 struct InterestAnn;
 struct ContentAnn;
+struct BlockRequest;
+struct BlockResponse;
 
 class InterestHelper;
 class ContentHelper;

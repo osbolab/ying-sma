@@ -44,4 +44,16 @@ void CcnNode::receive(MessageHeader header, ContentAnn msg)
   assert(content);
   content->receive(std::move(header), std::move(msg));
 }
+
+void CcnNode::receive(MessageHeader header, BlockRequest msg)
+{
+  assert(content);
+  content->receive(std::move(header), std::move(msg));
+}
+
+void CcnNode::receive(MessageHeader header, BlockResponse msg)
+{
+  assert(content);
+  content->receive(std::move(header), std::move(msg));
+}
 }

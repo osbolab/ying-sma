@@ -1,9 +1,7 @@
 #pragma once
 
-#include <sma/nodeid.hpp>
+#include <sma/ccn/contentmetadata.hpp>
 #include <sma/networkdistance.hpp>
-#include <sma/ccn/contenttype.hpp>
-#include <sma/ccn/contentname.hpp>
 
 #include <sma/util/hash.hpp>
 
@@ -23,14 +21,7 @@ namespace sma
  * within the same application domain.
  */
 struct ContentDescriptor {
-  TRIVIALLY_SERIALIZABLE(ContentDescriptor,
-                         type,
-                         name,
-                         hash,
-                         size,
-                         block_size,
-                         publisher,
-                         distance)
+  TRIVIALLY_SERIALIZABLE(ContentDescriptor, hash, metadata, distance)
 
   using size_type = std::uint32_t;
   using block_size_type = std::uint32_t;
@@ -40,31 +31,17 @@ struct ContentDescriptor {
 
   /****************************
    * Serialized              */
-  ContentType type;
-  ContentName name;
-
   Hash hash;
+  ContentMetadata metadata;
 
-  size_type size;
-  block_size_type block_size;
-
-  NodeId publisher;
   NetworkDistance distance;
   /**************************/
 
   ContentDescriptor(Hash hash,
-                    size_type size,
-                    block_size_type block_size,
-                    ContentType type,
-                    ContentName name,
-                    NodeId publisher,
+                    ContentMetadata metadata,
                     NetworkDistance distance = 0)
     : hash(hash)
-    , size(size)
-    , block_size(block_size)
-    , type(type)
-    , name(name)
-    , publisher(publisher)
+    , metadata(metadata)
     , distance(distance)
   {
     touch();
@@ -77,7 +54,6 @@ struct ContentDescriptor {
       return false;
 
     distance = info.distance;
-    publisher = info.publisher;
     return true;
   }
 

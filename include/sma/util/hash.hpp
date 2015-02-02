@@ -9,6 +9,7 @@
 #include <cassert>
 #include <functional>
 
+
 namespace sma
 {
 struct Hash {

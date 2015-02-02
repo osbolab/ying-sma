@@ -1,6 +1,7 @@
 #include <sma/ns3/ns3nodecontainer.hpp>
 #include <sma/ns3/ns3inetlink.hpp>
 #include <sma/link.hpp>
+#include <sma/ccn/contentstore.hpp>
 
 #include <sma/io/log>
 
@@ -92,7 +93,10 @@ void Ns3NodeContainer::StartApplication()
 
   neighbor_helper = std::make_unique<NeighborHelperImpl>(*node);
   interest_helper = std::make_unique<InterestHelperImpl>(*node);
-  content_helper = std::make_unique<ContentHelperImpl>(*node);
+
+  content_store = std::make_unique<MemoryContentStore>();
+  content_helper = std::make_unique<ContentHelperImpl>(
+      *node, static_cast<ContentStore*>(content_store.get()));
 
   // Send received messages to the node
   linklayer->receive_to(*node);

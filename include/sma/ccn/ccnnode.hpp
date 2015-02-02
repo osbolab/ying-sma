@@ -42,6 +42,8 @@ public:
 
   /* Content announcement dissemination */
   void receive(MessageHeader header, ContentAnn msg);
+  void receive(MessageHeader header, BlockRequest msg);
+  void receive(MessageHeader header, BlockResponse msg);
 
   //! This node's universally unique identifier.
   NodeId const id;

@@ -32,14 +32,15 @@ struct PublishContentAction : Action {
 
   virtual void operator()() override
   {
-    char data[62 * 1024];
+    char data[4*1024];
+    std::memset(data, 'a', sizeof data);
     std::stringbuf sbuf;
     sbuf.pubsetbuf(data, sizeof data);
     std::istream is(&sbuf);
 
     CcnNode& node = *(context->node);
     node.log.d("Action: publish new content");
-    node.content->publish(type, name, is);
+    //node.content->publish(type, name, is);
   }
 
   ContentType type;

@@ -78,9 +78,9 @@ bool InterestHelperImpl::learn_remote_interest(ContentType const& interest)
   return existing.update();
 }
 
-bool InterestHelperImpl::interested_in(ContentDescriptor const& info) const
+bool InterestHelperImpl::interested_in(ContentDescriptor const& descr) const
 {
-  return lit.find(info.type) != lit.end();
+  return lit.find(descr.metadata.type) != lit.end();
 }
 
 bool InterestHelperImpl::know_remote(ContentType const& type) const

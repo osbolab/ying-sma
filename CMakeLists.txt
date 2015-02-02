@@ -75,6 +75,7 @@ set(${PROJECT_NAME}_sources
   "src/ccn/interesthelperimpl.cpp"
   "src/ccn/remoteinterest.cpp"
 
+  "src/ccn/storedcontent.cpp"
   "src/ccn/contenthelper.cpp"
   "src/ccn/contenthelperimpl.cpp"
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sma/ccn/contenthelper.hpp>
+
 #include <sma/ccn/contentdescriptor.hpp>
 #include <sma/util/hash.hpp>
 
@@ -14,6 +15,8 @@
 
 namespace sma
 {
+class ContentStore;
+
 //! Manages the metadata, data, and traffic for content items in the network.
 /*! The content helper's responsibilities include publishing, storing,
  * segmenting, caching, and replicating content and its metadata.
@@ -26,15 +29,29 @@ class ContentHelperImpl : public ContentHelper
 {
 public:
   //! Construct a helper to manage the content for the given node.
-  ContentHelperImpl(CcnNode& node)
+  ContentHelperImpl(CcnNode& node, ContentStore* local_cache)
     : ContentHelper(node)
+    , local_cache(local_cache)
   {
   }
 
   /* Implement ContentHelper */
 
   void receive(MessageHeader header, ContentAnn msg) override;
-  void publish(ContentType type, ContentName name, std::istream& is) override;
+
+  void receive(MessageHeader header, BlockRequest req) override;
+  void receive(MessageHeader header, BlockResponse resp) override;
+
+
+  std::pair<bool, StoredContent const*> stored_content(Hash hash) override;
+
+  StoredContent const*
+  create_new(ContentType type, ContentName name, std::istream& in) override;
+
+  void start_fetch(Hash content_hash,
+                   std::uint32_t block_idx,
+                   std::chrono::milliseconds timeout_ms) override;
+
 
 private:
   using clock = sma::chrono::system_clock;
@@ -48,9 +65,11 @@ private:
   //! The Known Content Table (KCT) of announced content metadata.
   /*! The KCT reflects all the content in the network for which we will forward
    * requests from consumers. Entries are created when we receive content
-   * metadata anns and expire after some time without recurring
-   * anns.
+   * metadata announcements and expire after some time without recurring
+   * announcements.
    */
   std::unordered_map<Hash, ContentDescriptor> kct;
+
+  ContentStore* local_cache;
 };
 }

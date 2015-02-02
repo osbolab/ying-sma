@@ -1,20 +1,23 @@
 #pragma once
 
+#include <sma/util/hash.hpp>
+
 #include <iosfwd>
+#include <utility>
 
 
 namespace sma
 {
-struct ContentType;
-struct ContentName;
-struct ContentDescriptor;
+class StoredContent;
 
 class ContentStore
 {
 public:
   virtual ~ContentStore() {}
 
-  virtual ContentDescriptor
-  store(ContentType type, ContentName name, std::istream& is) = 0;
+  virtual StoredContent* find(Hash hash) = 0;
+
+  virtual StoredContent* store_from(std::istream& in, std::uint32_t block_size)
+      = 0;
 };
 }
