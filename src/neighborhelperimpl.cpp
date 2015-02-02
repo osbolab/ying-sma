@@ -38,7 +38,7 @@ void NeighborHelperImpl::receive(MessageHeader header, Beacon msg)
 {
   saw(header.sender);
   if (!msg.is_response)
-    node->post(Beacon(true));
+    node.post(Beacon(true));
 }
 
 using millis = std::chrono::milliseconds;
@@ -50,7 +50,7 @@ void NeighborHelperImpl::schedule_beacon(millis delay)
   asynctask(&NeighborHelperImpl::beacon, this).do_in(delay);
 }
 
-void NeighborHelperImpl::beacon() { node->post(Beacon()); }
+void NeighborHelperImpl::beacon() { node.post(Beacon()); }
 
 void NeighborHelperImpl::refresh_neighbors()
 {

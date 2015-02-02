@@ -2,7 +2,7 @@
 
 #include <sma/helper.hpp>
 #include <sma/ccn/ccnfwd.hpp>
-#include <sma/ccn/storedcontent.hpp>
+#include <sma/ccn/contentmetadata.hpp>
 #include <sma/ccn/storedblock.hpp>
 
 #include <sma/util/event.hpp>
@@ -11,8 +11,12 @@
 
 namespace sma
 {
+class StoredContent;
+
 class ContentHelper : public Helper
 {
+  friend class RemoteContent;
+
 public:
   ContentHelper(CcnNode& node);
 
@@ -28,15 +32,10 @@ public:
   virtual void receive(MessageHeader header, BlockRequest req) = 0;
   virtual void receive(MessageHeader header, BlockResponse resp) = 0;
 
-  virtual std::pair<bool, StoredContent const*> stored_content(Hash hash) = 0;
+  virtual StoredContent const* find_data(Hash hash) = 0;
 
-  virtual StoredContent const*
+  virtual ContentMetadata
   create_new(ContentType type, ContentName name, std::istream& in) = 0;
-
-  //! Submit a request for the given block to the network.
-  virtual void start_fetch(Hash content_hash,
-                           std::uint32_t block_idx,
-                           std::chrono::milliseconds timeout_ms) = 0;
 
   Event<StoredBlock const*> on_block_arrived;
   Event<Hash, std::uint32_t> on_fetch_timeout;

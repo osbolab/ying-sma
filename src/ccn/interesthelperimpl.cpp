@@ -3,8 +3,6 @@
 
 #include <sma/ccn/ccnnode.hpp>
 
-#include <sma/ccn/contentdescriptor.hpp>
-
 #include <sma/context.hpp>
 #include <sma/async.hpp>
 
@@ -41,7 +39,7 @@ void log_interest_table(Logger& log,
 void InterestHelperImpl::receive(MessageHeader header, InterestAnn msg)
 {
   // Ignore loopback
-  if (msg.interested_node == node->id)
+  if (msg.interested_node == node.id)
     return;
 
   log.t("<-- %v interests from n(%v) via n(%v)",
@@ -62,7 +60,7 @@ void InterestHelperImpl::receive(MessageHeader header, InterestAnn msg)
 
   if (!msg.interests.empty()) {
     log.t("--> forward %v interests", msg.interests.size());
-    node->post(msg);
+    node.post(msg);
 
     //log_interest_table(log, rit);
     schedule_announcement();
@@ -78,9 +76,9 @@ bool InterestHelperImpl::learn_remote_interest(ContentType const& interest)
   return existing.update();
 }
 
-bool InterestHelperImpl::interested_in(ContentDescriptor const& descr) const
+bool InterestHelperImpl::interested_in(ContentMetadata const& metadata) const
 {
-  return lit.find(descr.metadata.type) != lit.end();
+  return lit.find(metadata.type) != lit.end();
 }
 
 bool InterestHelperImpl::know_remote(ContentType const& type) const
@@ -109,7 +107,7 @@ void InterestHelperImpl::schedule_announcement(std::chrono::milliseconds delay)
 
 void InterestHelperImpl::announce()
 {
-  InterestAnn msg(node->id);
+  InterestAnn msg(node.id);
 
   // Our interests are 0 hops from us... the receiver will account for our
   // link to them.
@@ -129,7 +127,7 @@ void InterestHelperImpl::announce()
 
   if (!msg.interests.empty()) {
     log.t("--> announce %v interests", msg.interests.size());
-    node->post(msg);
+    node.post(msg);
 
     schedule_announcement();
   }

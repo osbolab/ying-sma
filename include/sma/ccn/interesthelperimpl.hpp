@@ -41,7 +41,7 @@ public:
 
   void receive(MessageHeader header, InterestAnn msg) override;
   void insert_new(std::vector<ContentType> types) override;
-  bool interested_in(ContentDescriptor const& info) const override;
+  bool interested_in(ContentMetadata const& metadata) const override;
   bool know_remote(ContentType const& type) const override;
 
 private:

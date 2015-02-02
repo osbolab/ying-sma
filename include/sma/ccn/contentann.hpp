@@ -1,18 +1,21 @@
 #pragma once
 
-#include <sma/ccn/contentdescriptor.hpp>
+#include <sma/ccn/contentmetadata.hpp>
+#include <sma/networkdistance.hpp>
 
 #include <sma/util/serial.hpp>
 
 namespace sma
 {
 struct ContentAnn {
-  TRIVIALLY_SERIALIZABLE(ContentAnn, descriptor)
+  TRIVIALLY_SERIALIZABLE(ContentAnn, metadata, distance)
 
-  ContentDescriptor descriptor;
+  ContentMetadata metadata;
+  NetworkDistance distance;
 
-  ContentAnn(ContentDescriptor descriptor)
-    : descriptor(std::move(descriptor))
+  ContentAnn(ContentMetadata metadata, NetworkDistance distance)
+    : metadata(metadata)
+    , distance(distance)
   {
   }
 

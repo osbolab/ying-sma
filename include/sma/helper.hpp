@@ -12,7 +12,7 @@ public:
   virtual ~Helper() {}
 
 protected:
-  CcnNode* node;
+  CcnNode& node;
   Logger log;
 };
 }

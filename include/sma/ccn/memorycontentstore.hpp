@@ -58,10 +58,10 @@ private:
 public:
   virtual ~MemoryContentStore() {}
 
-  virtual StoredContent* find(Hash content) override;
+  virtual StoredContent const* find(Hash content) override;
 
-  virtual StoredContent* store_from(std::istream& in,
-                                    std::uint32_t block_size) override;
+  virtual std::pair<Hash, StoredContent const*>
+  store_from(std::istream& in, std::uint32_t block_size) override;
 
 private:
   std::unordered_map<Hash, std::unique_ptr<Record>> content;

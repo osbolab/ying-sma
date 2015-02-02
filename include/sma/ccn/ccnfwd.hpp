@@ -6,7 +6,7 @@ namespace sma
 {
 struct ContentType;
 struct ContentName;
-struct ContentDescriptor;
+struct ContentMetadata;
 
 struct InterestAnn;
 struct ContentAnn;

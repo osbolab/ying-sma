@@ -5,7 +5,7 @@
 namespace sma
 {
 Helper::Helper(CcnNode& node)
-  : node(&node)
+  : node(node)
   , log(node.log)
 {
 }

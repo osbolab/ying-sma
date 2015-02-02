@@ -96,7 +96,7 @@ void Ns3NodeContainer::StartApplication()
 
   content_store = std::make_unique<MemoryContentStore>();
   content_helper = std::make_unique<ContentHelperImpl>(
-      *node, static_cast<ContentStore*>(content_store.get()));
+      *node, static_cast<ContentStore&>(*content_store));
 
   // Send received messages to the node
   linklayer->receive_to(*node);
