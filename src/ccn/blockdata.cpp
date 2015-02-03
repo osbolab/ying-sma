@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include <cassert>
+#include <utility>
 
 
 namespace sma
@@ -29,6 +30,7 @@ BlockData::BlockData(BlockData&& rhs)
   : index(rhs.index)
   , size(rhs.size)
   , data(rhs.data)
+  , gaps(std::move(rhs.gaps))
 {
   rhs.data = nullptr;
 }
@@ -39,6 +41,7 @@ BlockData& BlockData::operator=(BlockData&& rhs)
   size = rhs.size;
   data = rhs.data;
   rhs.data = nullptr;
+  std::swap(gaps, rhs.gaps);
   return *this;
 }
 

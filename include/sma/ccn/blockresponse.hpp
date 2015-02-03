@@ -16,8 +16,8 @@ struct BlockFragmentResponse {
   std::uint8_t* data;
 
   BlockFragmentResponse(std::uint32_t offset,
-                        std::uint32_t size,
-                        std::uint8_t const* src)
+                        std::uint8_t const* src,
+                        std::uint32_t size)
     : offset(offset)
     , size(size)
     , data(new std::uint8_t[size])
@@ -47,7 +47,7 @@ struct BlockFragmentResponse {
   }
 
   BlockFragmentResponse(BlockFragmentResponse const& rhs)
-    : BlockFragmentResponse(rhs.offset, rhs.size, rhs.data)
+    : BlockFragmentResponse(rhs.offset, rhs.data, rhs.size)
   {
   }
 
@@ -75,21 +75,21 @@ struct BlockFragmentResponse {
 
 struct BlockResponse {
   TRIVIALLY_SERIALIZABLE(
-      BlockResponse, hash, index, size_kB, fragments)
+      BlockResponse, hash, index, size, fragments)
 
   Hash hash;
   std::uint16_t index;
-  std::uint8_t size_kB;
+  std::uint32_t size;
   std::vector<BlockFragmentResponse> fragments;
 
 
   BlockResponse(Hash hash,
                 std::uint16_t index,
-                std::uint8_t size_kB,
+                std::uint32_t size,
                 std::vector<BlockFragmentResponse> fragments)
     : hash(hash)
     , index(index)
-    , size_kB(size_kB)
+    , size(size)
     , fragments(std::move(fragments))
   {
   }

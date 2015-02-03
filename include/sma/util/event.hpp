@@ -27,12 +27,13 @@ public:
     return *this;
   }
 
-  void operator()(Args&&... args)
+  template <typename... A>
+  void operator()(A&&... args)
   {
     Lock lock(mx);
     auto it = handlers.begin();
     while (it != handlers.end())
-      if ((*it)(std::forward<Args>(args)...))
+      if ((*it)(std::forward<A>(args)...))
         ++it;
       else
         it = handlers.erase(it);

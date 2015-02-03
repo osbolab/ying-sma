@@ -2,6 +2,8 @@
 
 #include <sma/util/detail/uint_with_size.hpp>
 
+#include <sma/io/log>
+
 #include <cassert>
 #include <cstring>
 
@@ -86,7 +88,7 @@ BinaryOutput& BinaryOutput::operator<<(std::uint8_t const& t)
 BinaryOutput& BinaryOutput::operator<<(std::uint16_t const& t)
 {
   char buf[]{char(t >> 8 & 0xff), char(t & 0xff)};
-  return write(buf, sizeof buf);
+  return write(buf, 2);
 }
 
 BinaryOutput& BinaryOutput::operator<<(std::uint32_t const& t)
@@ -95,7 +97,7 @@ BinaryOutput& BinaryOutput::operator<<(std::uint32_t const& t)
              char(t >> 16 & 0xff),
              char(t >> 8 & 0xff),
              char(t & 0xff)};
-  return write(buf, sizeof buf);
+  return write(buf, 4);
 }
 
 BinaryOutput& BinaryOutput::operator<<(std::uint64_t const& t)
@@ -108,7 +110,7 @@ BinaryOutput& BinaryOutput::operator<<(std::uint64_t const& t)
              char(t >> 16 & 0xff),
              char(t >> 8 & 0xff),
              char(t & 0xff)};
-  return write(buf, sizeof buf);
+  return write(buf, 8);
 }
 
 BinaryOutput& BinaryOutput::operator<<(std::int8_t const& t)

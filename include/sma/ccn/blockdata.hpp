@@ -32,6 +32,7 @@ struct BlockData {
   index_type index;
   size_type size;
   std::uint8_t* data;
+  bool notified{false};
 
   // Index of start of gap (inclusive) and end of gap (exclusive)
   std::vector<size_type> gaps;

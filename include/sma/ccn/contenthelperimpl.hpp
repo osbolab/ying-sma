@@ -50,22 +50,18 @@ public:
   virtual void fetch_block(Hash const& hash, std::size_t index) override;
 
 private:
+  struct MetaRecord {
+    ContentMetadata metadata;
+    NetworkDistance distance;
+  };
+
   using clock = sma::chrono::system_clock;
 
-  //! Alter the Known Content Table by adding or updating the specified entry.
-  /*! \return \a true if the entry was added or updated, or \false if it exists
-   *          and nothing was changed.
-   */
-  bool update_kct(ContentMetadata const& metadata, NetworkDistance distance);
+  bool update(ContentMetadata const& metadata, NetworkDistance distance);
 
-  //! The Known Content Table (KCT) of announced content metadata.
-  /*! The KCT reflects all the content in the network for which we will forward
-   * requests from consumers. Entries are created when we receive content
-   * metadata announcements and expire after some time without recurring
-   * announcements.
-   */
-  std::unordered_map<Hash, RemoteContent> kct;
-
+  std::unordered_map<Hash, MetaRecord> meta_table;
   ContentCache cache;
 };
+
+bool on_block(Hash hash, std::size_t index);
 }

@@ -12,12 +12,13 @@ namespace sma
 {
 struct ContentMetadata {
   TRIVIALLY_SERIALIZABLE(
-      ContentMetadata, hash, type, name, publisher, size, block_size)
+      ContentMetadata, hash, publisher, type, name, size, block_size)
 
   using size_type = std::uint32_t;
 
   Hash hash;
   NodeId publisher;
+
   ContentType type;
   ContentName name;
 

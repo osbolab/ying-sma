@@ -2,6 +2,8 @@
 
 #include <sma/util/detail/uint_with_size.hpp>
 
+#include <sma/io/log>
+
 #include <cassert>
 #include <cstring>
 
@@ -58,7 +60,7 @@ std::string BinaryInput::get<std::string>()
     // Remove the flag bit and fetch the low byte
     size = (size & ~0x80) << 8 | get<std::uint8_t>();
 
-  if (size > sizeof buf)
+  if (size > 1024)
     cstr = new std::string::value_type[size];
 
   read(cstr, size);
@@ -100,16 +102,16 @@ std::uint8_t BinaryInput::get<std::uint8_t>()
 template <>
 std::uint16_t BinaryInput::get<std::uint16_t>()
 {
-  std::uint8_t buf[sizeof(uint16_t)];
-  read(buf, sizeof buf);
+  std::uint8_t buf[2];
+  read(buf, 2);
   return std::uint16_t{buf[0]} << 8 | std::uint16_t{buf[1]};
 }
 
 template <>
 std::uint32_t BinaryInput::get<std::uint32_t>()
 {
-  std::uint8_t buf[sizeof(uint32_t)];
-  read(buf, sizeof buf);
+  std::uint8_t buf[4];
+  read(buf, 4);
   return std::uint32_t{buf[0]} << 24 | std::uint32_t{buf[1]} << 16
          | std::uint32_t{buf[2]} << 8 | std::uint32_t{buf[3]};
 }
@@ -117,8 +119,8 @@ std::uint32_t BinaryInput::get<std::uint32_t>()
 template <>
 std::uint64_t BinaryInput::get<std::uint64_t>()
 {
-  std::uint8_t buf[sizeof(uint64_t)];
-  read(buf, sizeof buf);
+  std::uint8_t buf[8];
+  read(buf, 8);
   return std::uint64_t{buf[0]} << 56 | std::uint64_t{buf[1]} << 48
          | std::uint64_t{buf[2]} << 40 | std::uint64_t{buf[3]} << 32
          | std::uint64_t{buf[4]} << 24 | std::uint64_t{buf[5]} << 16

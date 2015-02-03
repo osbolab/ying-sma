@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <limits>
 
+
 namespace sma
 {
 class BinaryOutput

@@ -111,12 +111,16 @@ bool ContentCache::validate_data(ContentMetadata const& metadata) const
 std::vector<std::size_t>
 ContentCache::missing_blocks(ContentMetadata const& metadata) const
 {
-  auto const blocks = find_const(metadata.hash);
-  assert(blocks != nullptr);
-
+  std::size_t expected_blocks = 1 + ((metadata.size - 1) / metadata.block_size);
   std::vector<std::size_t> missing;
 
-  std::size_t expected_blocks = 1 + ((metadata.size - 1) / metadata.block_size);
+  auto const blocks = find_const(metadata.hash);
+  if (blocks == nullptr) {
+    for (std::size_t i = 0; i < expected_blocks; ++i)
+      missing.push_back(i);
+    return missing;
+  }
+
   for (std::size_t i = 0; i < expected_blocks; ++i) {
     auto block_search = blocks->find(i);
     if (block_search == blocks->end())
