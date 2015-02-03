@@ -117,7 +117,7 @@ void LinkLayerImpl::on_link_readable(Link& link)
 {
   std::uint8_t buf[BUFFER_SIZE];
   std::size_t read;
-  while (node && (read = link.read(buf, sizeof buf))) {
+  while (node && (read = link.read(buf, BUFFER_SIZE))) {
     Reader<BinaryInput> reader(buf, read);
     // Consume the hacked in packet sequence
     reader.template get<std::uint64_t>();

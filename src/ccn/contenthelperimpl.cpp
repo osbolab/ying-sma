@@ -3,11 +3,15 @@
 #include <sma/context.hpp>
 #include <sma/ccn/ccnnode.hpp>
 
+#include <sma/ccn/contentcache.hpp>
+
 #include <sma/ccn/contenttype.hpp>
 #include <sma/ccn/contentname.hpp>
 
 #include <sma/messageheader.hpp>
 #include <sma/ccn/contentann.hpp>
+#include <sma/ccn/blockrequest.hpp>
+#include <sma/ccn/blockresponse.hpp>
 
 #include <sma/ccn/interesthelper.hpp>
 
@@ -15,7 +19,9 @@
 
 #include <ctime>
 #include <chrono>
+#include <string>
 #include <istream>
+
 
 using namespace std::literals::chrono_literals;
 
@@ -25,67 +31,189 @@ static sma::chrono::system_clock::time_point g_published;
 
 void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
 {
-  bool forward = false;
-
-  auto& descriptor = msg.descriptor;
+  auto& metadata = msg.metadata;
   // Break loops
-  if (descriptor.publisher == node->id)
+  if (metadata.publisher == node.id)
     return;
 
-  ++descriptor.distance;
+  ++msg.distance;
 
-  if (node->interests->interested_in(descriptor)) {
+  if (node.interests->interested_in(metadata)) {
     log.d("** I got content I wanted! **");
+    auto blocks_to_fetch = cache.missing_blocks(metadata);
+    if (!blocks_to_fetch.empty()) {
+      log.d("Fetch %v blocks for this content", blocks_to_fetch.size());
+      fetch_block(metadata.hash, blocks_to_fetch[0]);
+    }
   }
 
-  if (!update_kct(descriptor))
+  if (!update(metadata, msg.distance))
     return;
 
-  /*
-  log.d("Content descriptor from n(%v)", header.sender);
-  log.d("| distance: %v hops", std::uint32_t(descriptor.distance));
-  log.d("| type: %v", descriptor.type);
-  log.d("| name: %v", descriptor.name);
-  log.d("| publisher: %v", descriptor.publisher);
-  */
+  log.d("Content metadata from n(%v)", header.sender);
+  log.d("| distance: %v hop(s)", std::uint32_t(msg.distance));
+  log.d("| publisher: %v", metadata.publisher);
+  log.d("| hash: %v", std::string(metadata.hash));
+  log.d("| type: %v", metadata.type);
+  log.d("| name: %v", metadata.name);
+  log.d("| size: %v bytes", metadata.size);
+  log.d("| block size: %v bytes", metadata.block_size);
   log.d("got it");
 
-    log.d(descriptor.name.size());
   auto time = std::chrono::duration_cast<std::chrono::milliseconds>(
       clock::now() - g_published);
   log.i("delay: %v ms", time.count());
 
-  if (node->interests->know_remote(descriptor.type)) {
+  if (node.interests->know_remote(metadata.type)) {
     log.d("--> (forward)");
-    node->post(msg);
-  }
-  else
+    node.post(msg);
+  } else
     log.d("not forwarding");
   log.d("");
 }
 
-bool ContentHelperImpl::update_kct(ContentDescriptor const& descriptor)
+bool ContentHelperImpl::update(ContentMetadata const& metadata,
+                               NetworkDistance distance)
 {
-  auto try_add = kct.emplace(descriptor.hash, descriptor);
-  if (try_add.second)
-    return true;
-  auto& existing = try_add.first->second;
-  return existing.update(descriptor);
+  auto it = meta_table.find(metadata.hash);
+  if (it != meta_table.end()) {
+    auto& record = it->second;
+    if (distance < record.distance) {
+      record.distance = distance;
+      return true;
+    } else
+      return false;
+  }
+
+  meta_table.emplace(metadata.hash, MetaRecord{metadata, distance});
+
+  return true;
 }
 
-void ContentHelperImpl::publish(ContentType type,
-                                ContentName name,
-                                std::istream& is)
+ContentMetadata ContentHelperImpl::create_new(ContentType const& type,
+                                              ContentName const& name,
+                                              std::istream& in)
 {
-  g_published = clock::now();
+  std::size_t const block_size = 1024;
 
-  log.d("Publish content:");
-  // log.d("| type: %v", type);
-  // log.d("| name: %v", name);
-  log.d("");
+  auto stored = cache.load(in, block_size);
+  auto& hash = stored.first;
+  auto& size = stored.second;
 
-  auto hash = Hasher(std::string(type))(std::string(name)).digest();
-  node->post(ContentAnn(
-      ContentDescriptor(std::move(hash), type, name, node->id)));
+  auto metadata = ContentMetadata(hash, type, name, size, block_size, node.id);
+  meta_table.emplace(hash, MetaRecord{metadata, 0});
+
+  log.d("Created content");
+  log.d("| publisher: %v", node.id);
+  log.d("| hash: %v", std::string(hash));
+  log.d("| name: %v", name);
+  log.d("| type: %v", type);
+  log.d("| size: %v bytes", size);
+  log.d("| block size: %v bytes", block_size);
+
+  return metadata;
+}
+
+void ContentHelperImpl::publish(Hash const& hash)
+{
+  log.d("Publish content %v", std::string(hash));
+
+  auto metadata_search = meta_table.find(hash);
+  assert(metadata_search != meta_table.end());
+  auto const& metadata = metadata_search->second.metadata;
+
+  assert(cache.validate_data(metadata));
+
+  node.post(ContentAnn(metadata, 0));
+}
+
+bool on_block(Hash hash, std::size_t index)
+{
+  LOG(DEBUG) << "++++ CALLBACK: Block " << index << " of " << std::string(hash) << " arrived";
+  return false;
+}
+
+void ContentHelperImpl::fetch_block(Hash const& hash, std::size_t index)
+{
+  std::vector<BlockFragmentRequest> fragments;
+
+  auto blocks = cache.find(hash);
+  if (blocks != nullptr) {
+    auto it = blocks->find(index);
+    if (it != blocks->end()) {
+      auto& gaps = it->second.gaps;
+      for (std::size_t i = 0; i < gaps.size() - 1; i += 2)
+        fragments.emplace_back(gaps[i], gaps[i + 1] - gaps[i]);
+    }
+  }
+
+  on_block_arrived += on_block;
+  node.post(BlockRequest(hash, index, std::move(fragments)));
+}
+
+void ContentHelperImpl::receive(MessageHeader header, BlockRequest req)
+{
+  log.d("Block request");
+  log.d("| hash: %v", std::string(req.hash));
+  log.d("| index: %v", req.index);
+  for (auto& fragment : req.fragments)
+    log.d("| fragment: %v - %v", fragment.offset, fragment.size);
+
+  auto blocks = cache.find(req.hash);
+  if (blocks != nullptr) {
+    auto block_search = blocks->find(req.index);
+    if (block_search != blocks->end()) {
+      log.d("I have this block");
+      auto const& block = block_search->second;
+      std::vector<BlockFragmentResponse> fragments;
+      fragments.emplace_back(0, block.data, block.size);
+      log.d("Sending %v byte fragment for block %v", block.size, block.index);
+      node.post(BlockResponse(req.hash, req.index, block.size, fragments));
+      return;
+    }
+  }
+
+  auto it = meta_table.find(req.hash);
+  if (it != meta_table.end()) {
+    log.d("Should forward block request");
+  }
+}
+
+void ContentHelperImpl::receive(MessageHeader header, BlockResponse resp)
+{
+  auto& blocks = cache.find_or_allocate(resp.hash);
+  auto it = blocks.find(resp.index);
+  if (it == blocks.end()) {
+    it = blocks.emplace(resp.index, BlockData(resp.index, resp.size)).first;
+    log.d("Allocated new block %v (%v bytes) of content %v",
+          resp.index,
+          resp.size,
+          std::string(resp.hash));
+  }
+  auto& block = it->second;
+
+  log.d("Populating block %v of content %v (from node %v)",
+        resp.index,
+        std::string(resp.hash),
+        header.sender);
+
+  for (auto& fragment : resp.fragments) {
+    log.d("- inserting %v bytes at position %v", fragment.size, fragment.offset);
+    block.insert(fragment.offset, fragment.data, fragment.size);
+  }
+
+  if (not block.notified and block.complete()) {
+    block.notified = true;
+    on_block_arrived(resp.hash, block.index);
+  }
+
+  auto meta_search = meta_table.find(resp.hash);
+  assert(meta_search != meta_table.end());
+  auto const& record = meta_search->second;
+  std::vector<std::size_t> missing = cache.missing_blocks(record.metadata);
+  if (not missing.empty())
+    fetch_block(resp.hash, missing[0]);
+  else
+    log.d("++++ No more blocks to fetch!");
 }
 }

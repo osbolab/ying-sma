@@ -92,6 +92,7 @@ void Ns3NodeContainer::StartApplication()
 
   neighbor_helper = std::make_unique<NeighborHelperImpl>(*node);
   interest_helper = std::make_unique<InterestHelperImpl>(*node);
+
   content_helper = std::make_unique<ContentHelperImpl>(*node);
 
   // Send received messages to the node

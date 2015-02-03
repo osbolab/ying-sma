@@ -63,8 +63,6 @@ set(SMA_NS3_LIB "smans3")
 depend(SMA_LIB)
 project(${SMA_LIB})
 
-include_directories("include")
-
 set(${PROJECT_NAME}_sources
   "src/util/hash.cpp"
   "src/util/detail/sha256.cpp"
@@ -87,6 +85,9 @@ set(${PROJECT_NAME}_sources
 
   "src/ccn/contenthelper.cpp"
   "src/ccn/contenthelperimpl.cpp"
+  "src/ccn/contentcache.cpp"
+  "src/ccn/blockdata.cpp"
+  "src/ccn/remotecontent.cpp"
 
   "src/chrono.cpp"
   "src/context.cpp"
@@ -95,6 +96,8 @@ set(${PROJECT_NAME}_sources
   "src/util/binaryinput.cpp"
   "src/util/binaryoutput.cpp"
 )
+
+include_directories("include")
 
 add_library("${PROJECT_NAME}" STATIC ${${PROJECT_NAME}_sources})
 #add_test_exe("${PROJECT_NAME}_test" "test/test_main.cpp")

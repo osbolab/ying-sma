@@ -4,6 +4,7 @@
 
 #include <sma/ccn/contenttype.hpp>
 #include <sma/ccn/contentname.hpp>
+#include <sma/ccn/contentmetadata.hpp>
 
 #include <sma/ccn/ccnnode.hpp>
 #include <sma/ccn/contenthelper.hpp>
@@ -32,14 +33,16 @@ struct PublishContentAction : Action {
 
   virtual void operator()() override
   {
-    char data[62 * 1024];
+    char data[4*1024];
+    std::memset(data, 'a', sizeof data);
     std::stringbuf sbuf;
     sbuf.pubsetbuf(data, sizeof data);
-    std::istream is(&sbuf);
+    std::istream content_stream(&sbuf);
 
     CcnNode& node = *(context->node);
     node.log.d("Action: publish new content");
-    node.content->publish(type, name, is);
+    auto metadata = node.content->create_new(type, name, content_stream);
+    node.content->publish(metadata.hash);
   }
 
   ContentType type;

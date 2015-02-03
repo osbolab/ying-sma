@@ -42,6 +42,8 @@ public:
 
   /* Content announcement dissemination */
   void receive(MessageHeader header, ContentAnn msg);
+  void receive(MessageHeader header, BlockRequest msg);
+  void receive(MessageHeader header, BlockResponse msg);
 
   //! This node's universally unique identifier.
   NodeId const id;
@@ -50,8 +52,12 @@ public:
   //! A logger tailored to provide context-sensitive output for this node.
   Logger log;
 
+  //! Manages the neighbor table to track what nodes are broadcasting in our
+  //! neighborhood.
   NeighborHelper* neighbors = nullptr;
+  //! Manages our personal interest table and that of other broadcasting nodes.
   InterestHelper* interests = nullptr;
+  //! Manages content we're providing and remote content we've cached.
   ContentHelper* content = nullptr;
 
 private:
@@ -64,6 +70,7 @@ private:
 template <typename M>
 void CcnNode::post(M const& msg, std::vector<NodeId> recipients)
 {
+  // Serialize the message (and its network header) into a memory buffer
   MessageBuffer<20000> buf(MessageHeader(id, std::move(recipients)), msg);
   post(buf.cdata(), buf.size());
 }

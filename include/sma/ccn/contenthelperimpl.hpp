@@ -1,7 +1,11 @@
 #pragma once
 
 #include <sma/ccn/contenthelper.hpp>
-#include <sma/ccn/contentdescriptor.hpp>
+#include <sma/ccn/contentmetadata.hpp>
+#include <sma/ccn/remotecontent.hpp>
+#include <sma/ccn/contentcache.hpp>
+
+#include <sma/networkdistance.hpp>
 #include <sma/util/hash.hpp>
 
 #include <sma/ccn/ccnfwd.hpp>
@@ -11,6 +15,7 @@
 
 #include <iosfwd>
 #include <unordered_map>
+
 
 namespace sma
 {
@@ -31,26 +36,32 @@ public:
   {
   }
 
-  /* Implement ContentHelper */
+  virtual void receive(MessageHeader header, ContentAnn msg) override;
 
-  void receive(MessageHeader header, ContentAnn msg) override;
-  void publish(ContentType type, ContentName name, std::istream& is) override;
+  virtual void receive(MessageHeader header, BlockRequest req) override;
+  virtual void receive(MessageHeader header, BlockResponse resp) override;
+
+  virtual ContentMetadata create_new(ContentType const& type,
+                                     ContentName const& name,
+                                     std::istream& in) override;
+
+  virtual void publish(Hash const& hash) override;
+
+  virtual void fetch_block(Hash const& hash, std::size_t index) override;
 
 private:
+  struct MetaRecord {
+    ContentMetadata metadata;
+    NetworkDistance distance;
+  };
+
   using clock = sma::chrono::system_clock;
 
-  //! Alter the Known Content Table by adding or updating the specified entry.
-  /*! \return \a true if the entry was added or updated, or \false if it exists
-   *          and nothing was changed.
-   */
-  bool update_kct(ContentDescriptor const& descriptor);
+  bool update(ContentMetadata const& metadata, NetworkDistance distance);
 
-  //! The Known Content Table (KCT) of announced content metadata.
-  /*! The KCT reflects all the content in the network for which we will forward
-   * requests from consumers. Entries are created when we receive content
-   * metadata anns and expire after some time without recurring
-   * anns.
-   */
-  std::unordered_map<Hash, ContentDescriptor> kct;
+  std::unordered_map<Hash, MetaRecord> meta_table;
+  ContentCache cache;
 };
+
+bool on_block(Hash hash, std::size_t index);
 }

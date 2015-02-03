@@ -18,7 +18,7 @@ public:
 
   virtual void insert_new(std::vector<ContentType> types) = 0;
 
-  virtual bool interested_in(ContentDescriptor const& descriptor) const = 0;
+  virtual bool interested_in(ContentMetadata const& metadata) const = 0;
   virtual bool know_remote(ContentType const& type) const = 0;
 };
 }

@@ -206,10 +206,8 @@ int main(int argc, char** argv)
       interests.emplace_back("dogs");
       // app->act_emplace_front<sma::CreateInterestAction>(3s,
       //                                                  std::move(interests));
-      char namebuf[packet_size];
-      std::memset(namebuf, 'a', packet_size);
       app->act_emplace_front<sma::PublishContentAction>(
-          3s, "cats", std::string(namebuf, packet_size));
+          3s, "cats", "my cool cat");
     }
 
     auto apps = ns3::ApplicationContainer(app);

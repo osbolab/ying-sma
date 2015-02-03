@@ -27,8 +27,11 @@ namespace chrono
 
     private:
       start_time_s_() {}
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "NotImplementedFunctions"
       start_time_s_(start_time_s_ const&);
       void operator=(start_time_s_ const&);
+#pragma clang diagnostic pop
     };
   }
 

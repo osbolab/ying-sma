@@ -80,6 +80,7 @@ private:
 
   std::unique_ptr<NeighborHelperImpl> neighbor_helper;
   std::unique_ptr<InterestHelperImpl> interest_helper;
+
   std::unique_ptr<ContentHelperImpl> content_helper;
 
   std::vector<std::unique_ptr<Component>> components;
