@@ -3,6 +3,7 @@
 #include <sma/ccn/contenthelper.hpp>
 #include <sma/ccn/contentmetadata.hpp>
 #include <sma/ccn/remotecontent.hpp>
+#include <sma/ccn/contentcache.hpp>
 
 #include <sma/networkdistance.hpp>
 #include <sma/util/hash.hpp>
@@ -15,10 +16,9 @@
 #include <iosfwd>
 #include <unordered_map>
 
+
 namespace sma
 {
-class ContentStore;
-
 //! Manages the metadata, data, and traffic for content items in the network.
 /*! The content helper's responsibilities include publishing, storing,
  * segmenting, caching, and replicating content and its metadata.
@@ -31,25 +31,23 @@ class ContentHelperImpl : public ContentHelper
 {
 public:
   //! Construct a helper to manage the content for the given node.
-  ContentHelperImpl(CcnNode& node, ContentStore& local_cache)
+  ContentHelperImpl(CcnNode& node)
     : ContentHelper(node)
-    , local_cache(local_cache)
   {
   }
 
-  /* Implement ContentHelper */
+  virtual void receive(MessageHeader header, ContentAnn msg) override;
 
-  void receive(MessageHeader header, ContentAnn msg) override;
+  virtual void receive(MessageHeader header, BlockRequest req) override;
+  virtual void receive(MessageHeader header, BlockResponse resp) override;
 
-  void receive(MessageHeader header, BlockRequest req) override;
-  void receive(MessageHeader header, BlockResponse resp) override;
+  virtual ContentMetadata create_new(ContentType const& type,
+                                     ContentName const& name,
+                                     std::istream& in) override;
 
+  virtual void publish(Hash const& hash) override;
 
-  StoredContent const* find_data(Hash hash) override;
-
-  ContentMetadata
-  create_new(ContentType type, ContentName name, std::istream& in) override;
-
+  virtual void fetch_block(Hash const& hash, std::size_t index) override;
 
 private:
   using clock = sma::chrono::system_clock;
@@ -68,6 +66,6 @@ private:
    */
   std::unordered_map<Hash, RemoteContent> kct;
 
-  ContentStore& local_cache;
+  ContentCache cache;
 };
 }

@@ -9,7 +9,6 @@
 #include <sma/neighborhelperimpl.hpp>
 #include <sma/ccn/interesthelperimpl.hpp>
 #include <sma/ccn/contenthelperimpl.hpp>
-#include <sma/ccn/memorycontentstore.hpp>
 
 #include <sma/ns3/action.hpp>
 
@@ -82,7 +81,6 @@ private:
   std::unique_ptr<NeighborHelperImpl> neighbor_helper;
   std::unique_ptr<InterestHelperImpl> interest_helper;
 
-  std::unique_ptr<MemoryContentStore> content_store;
   std::unique_ptr<ContentHelperImpl> content_helper;
 
   std::vector<std::unique_ptr<Component>> components;

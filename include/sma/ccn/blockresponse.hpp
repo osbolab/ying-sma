@@ -75,21 +75,21 @@ struct BlockFragmentResponse {
 
 struct BlockResponse {
   TRIVIALLY_SERIALIZABLE(
-      BlockResponse, content_hash, block_idx, block_kB, fragments)
+      BlockResponse, hash, index, size_kB, fragments)
 
-  Hash content_hash;
-  std::uint16_t block_idx;
-  std::uint8_t block_kB;
+  Hash hash;
+  std::uint16_t index;
+  std::uint8_t size_kB;
   std::vector<BlockFragmentResponse> fragments;
 
 
-  BlockResponse(Hash content_hash,
-                std::uint16_t block_idx,
-                std::uint8_t block_kB,
+  BlockResponse(Hash hash,
+                std::uint16_t index,
+                std::uint8_t size_kB,
                 std::vector<BlockFragmentResponse> fragments)
-    : content_hash(content_hash)
-    , block_idx(block_idx)
-    , block_kB(block_kB)
+    : hash(hash)
+    , index(index)
+    , size_kB(size_kB)
     , fragments(std::move(fragments))
   {
   }

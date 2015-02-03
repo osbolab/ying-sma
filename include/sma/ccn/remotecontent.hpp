@@ -11,9 +11,7 @@
 
 namespace sma
 {
-class CcnNode;
 class ContentHelper;
-class ContentStore;
 
 class RemoteContent
 {
@@ -21,24 +19,18 @@ class RemoteContent
   using time_point = clock::time_point;
 
 public:
-  RemoteContent(CcnNode& node,
-                ContentHelper& helper,
-                ContentStore& store,
+  RemoteContent(ContentHelper& helper,
                 ContentMetadata metadata,
                 NetworkDistance distance);
 
   ContentMetadata metadata() const { return meta; }
-
-  void fetch_block(std::uint32_t index, std::chrono::milliseconds timeout);
 
   bool saw(NetworkDistance distance);
 
 private:
   void touch() { last_seen = clock::now(); }
 
-  CcnNode& node;
   ContentHelper& helper;
-  ContentStore& store;
 
   ContentMetadata meta;
   time_point last_seen;

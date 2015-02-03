@@ -39,34 +39,14 @@ private:
     StoredBlock::gaps_vec gaps_;
   };
 
-  class Record : public StoredContent
-  {
-  public:
-    Record(std::uint32_t size,
-           std::uint32_t block_size,
-           std::vector<std::unique_ptr<Block>> blocks);
-
-    virtual std::size_t read(std::uint8_t* dst,
-                             std::size_t size) const override;
-
-    virtual StoredBlock* block(std::uint32_t index) override;
-    virtual StoredBlock const* cblock(std::uint32_t index) const override;
-
-    virtual StoredBlock& create_block(std::uint32_t index,
-                                      std::uint32_t size) override;
-
-    std::unordered_map<std::uint32_t, std::unique_ptr<Block>> blocks;
-  };
-
 public:
   virtual ~MemoryContentStore() {}
 
-  virtual StoredContent const* find(Hash content) override;
+  virtual block_map* find(Hash content) override;
 
-  virtual std::pair<Hash, StoredContent const&>
-  store_from(std::istream& in, std::uint32_t block_size) override;
+  virtual Hash store_from(std::istream& in, std::uint32_t block_size) override;
 
 private:
-  std::unordered_map<Hash, std::unique_ptr<Record>> content;
+  std::unordered_map<Hash, block_map> content;
 };
 }

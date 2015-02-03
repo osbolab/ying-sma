@@ -30,18 +30,18 @@ struct BlockFragmentRequest {
 
 
 struct BlockRequest {
-  TRIVIALLY_SERIALIZABLE(BlockRequest, content_hash, block_idx, fragments)
+  TRIVIALLY_SERIALIZABLE(BlockRequest, hash, index, fragments)
 
-  Hash content_hash;
-  std::uint16_t block_idx;
+  Hash hash;
+  std::uint16_t index;
   std::vector<BlockFragmentRequest> fragments;
 
 
-  BlockRequest(Hash content_hash,
-               std::uint16_t block_idx,
+  BlockRequest(Hash hash,
+               std::uint16_t index,
                std::vector<BlockFragmentRequest> fragments)
-    : content_hash(content_hash)
-    , block_idx(block_idx)
+    : hash(hash)
+    , index(index)
     , fragments(std::move(fragments))
   {
   }

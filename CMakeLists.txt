@@ -75,12 +75,11 @@ set(${PROJECT_NAME}_sources
   "src/ccn/interesthelperimpl.cpp"
   "src/ccn/remoteinterest.cpp"
 
-  "src/ccn/remotecontent.cpp"
-  "src/ccn/storedcontent.cpp"
   "src/ccn/contenthelper.cpp"
   "src/ccn/contenthelperimpl.cpp"
-
-  "src/ccn/memorycontentstore.cpp"
+  "src/ccn/contentcache.cpp"
+  "src/ccn/blockdata.cpp"
+  "src/ccn/remotecontent.cpp"
 
   "src/chrono.cpp"
   "src/context.cpp"
