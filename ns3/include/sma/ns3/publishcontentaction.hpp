@@ -13,7 +13,7 @@
 #include <vector>
 
 #include <istream>
-#include <strstream>
+#include <sstream>
 
 namespace sma
 {
@@ -35,7 +35,7 @@ struct PublishContentAction : Action {
   {
     char data[4 * 1024];
     std::memset(data, 'a', sizeof data);
-    std::strstream content_stream(data, sizeof data, std::ios_base::in);
+    std::istringstream content_stream(std::string(data, sizeof data));
 
     CcnNode& node = *(context->node);
     node.log.d("Action: publish new content");
