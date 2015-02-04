@@ -13,7 +13,7 @@
 #include <vector>
 
 #include <istream>
-#include <sstream>
+#include <strstream>
 
 namespace sma
 {
@@ -33,11 +33,9 @@ struct PublishContentAction : Action {
 
   virtual void operator()() override
   {
-    char data[4*1024];
+    char data[4 * 1024];
     std::memset(data, 'a', sizeof data);
-    std::stringbuf sbuf;
-    sbuf.pubsetbuf(data, sizeof data);
-    std::istream content_stream(&sbuf);
+    std::strstream content_stream(data, sizeof data, std::ios_base::in);
 
     CcnNode& node = *(context->node);
     node.log.d("Action: publish new content");
