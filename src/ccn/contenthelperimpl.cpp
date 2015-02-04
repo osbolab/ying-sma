@@ -237,21 +237,13 @@ void ContentHelperImpl::receive(MessageHeader header, BlockResponse resp)
     block.insert(fragment.offset, fragment.data, fragment.size);
   }
 
-  // Here it should check the pending requests and fulfill one
+  // TODO: Here it should check the pending requests and fulfill one
 
   if (not block.notified and block.complete()) {
     block.notified = true;
     on_block_arrived(resp.hash, block.index);
   }
 
-  auto meta_search = kct.find(resp.hash);
-  assert(meta_search != kct.end());
-  auto const& record = meta_search->second;
-  std::vector<std::size_t> missing = cache.missing_blocks(record.metadata);
-  if (not missing.empty())
-    request_block(resp.hash, missing[0]);
-  else
-    log.d("++++ No more blocks to fetch!");
   log.d("");
 }
 }
