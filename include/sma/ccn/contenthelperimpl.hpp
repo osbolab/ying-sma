@@ -46,22 +46,32 @@ public:
                                      std::istream& in) override;
 
   virtual void publish(Hash const& hash) override;
+  virtual bool should_forward(ContentMetadata const& metadata) const override;
 
-  virtual void fetch_block(Hash const& hash, std::size_t index) override;
+  virtual void request_block(Hash const& hash, std::size_t index) override;
 
 private:
+  using clock = sma::chrono::system_clock;
+  using time_point = clock::time_point;
+
   struct MetaRecord {
     ContentMetadata metadata;
     NetworkDistance distance;
   };
 
-  using clock = sma::chrono::system_clock;
+  struct PendingRequest {
+    Hash hash;
+    std::size_t index;
+    // include fragments
+  };
 
   bool update(ContentMetadata const& metadata, NetworkDistance distance);
 
-  std::unordered_map<Hash, MetaRecord> meta_table;
+  //! Store actual content data in memory
   ContentCache cache;
+  //! Known Content Table - Remote content for which we have metadata
+  std::unordered_map<Hash, MetaRecord> kct;
+  //! Pending Request Table
+  std::unordered_map<Hash, PendingRequest> prt;
 };
-
-bool on_block(Hash hash, std::size_t index);
 }

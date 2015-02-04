@@ -36,6 +36,12 @@ void log_interest_table(Logger& log,
   log.d("");
 }
 
+InterestHelperImpl::InterestHelperImpl(CcnNode& node)
+  : InterestHelper(node)
+{
+  prune_remote();
+}
+
 void InterestHelperImpl::receive(MessageHeader header, InterestAnn msg)
 {
   // Ignore loopback
@@ -50,8 +56,8 @@ void InterestHelperImpl::receive(MessageHeader header, InterestAnn msg)
   // Cull any that we aren't already broadcasting with a closer distance.
   // The result is that our neighbors always see the shortest path we know of.
   for (auto it = msg.interests.begin(); it != msg.interests.end();) {
-    auto& interest = *it;
-    if (!learn_remote_interest(interest.type))
+    auto& entry = *it;
+    if (!learn_remote(entry.interest))
       // Only forward interests we learned something new about
       it = msg.interests.erase(it);
     else
@@ -61,13 +67,10 @@ void InterestHelperImpl::receive(MessageHeader header, InterestAnn msg)
   if (!msg.interests.empty()) {
     log.t("--> forward %v interests", msg.interests.size());
     node.post(msg);
-
-    //log_interest_table(log, rit);
-    schedule_announcement();
   }
 }
 
-bool InterestHelperImpl::learn_remote_interest(ContentType const& interest)
+bool InterestHelperImpl::learn_remote(Interest const& interest)
 {
   auto try_add = rit.emplace(interest, RemoteInterest());
   if (try_add.second)
@@ -78,31 +81,18 @@ bool InterestHelperImpl::learn_remote_interest(ContentType const& interest)
 
 bool InterestHelperImpl::interested_in(ContentMetadata const& metadata) const
 {
-  return lit.find(metadata.type) != lit.end();
+  return lit.find(Interest(metadata)) != lit.end();
 }
 
-bool InterestHelperImpl::know_remote(ContentType const& type) const
+bool InterestHelperImpl::know_remote(Interest const& interest) const
 {
-  return rit.find(type) != rit.end();
+  return rit.find(interest) != rit.end();
 }
 
-void InterestHelperImpl::insert_new(std::vector<ContentType> types)
+void InterestHelperImpl::create_local(std::vector<Interest> types)
 {
   for (auto& t : types)
     lit.emplace(t, InterestRank());
-
-  if (!lit.empty())
-    schedule_announcement(200ms);
-}
-
-void InterestHelperImpl::schedule_announcement(std::chrono::milliseconds delay)
-{
-  using unit = std::chrono::milliseconds::rep;
-  unit min = delay.count() / 2;
-  delay = std::chrono::milliseconds(min + rand() % delay.count());
-  log.t("announce interests in %v ms", delay.count());
-  asynctask(std::bind(&InterestHelperImpl::announce, this)).do_in(delay);
-  return;
 }
 
 void InterestHelperImpl::announce()
@@ -113,7 +103,7 @@ void InterestHelperImpl::announce()
   // link to them.
   if (!lit.empty()) {
     msg.interests.reserve(lit.size());
-    for (auto& entry : lit)
+    for (auto const& entry : lit)
       msg.interests.emplace_back(entry.first, true);
   }
   // Add as many remote interests to our message as we can.
@@ -121,15 +111,26 @@ void InterestHelperImpl::announce()
   std::size_t const nmax = 255;
   if (lit.size() < nmax) {
     auto nfwds = nmax - lit.size();
-    for (auto it = rit.begin(); nfwds-- > 0 && it != rit.end(); ++it)
+    for (auto it = rit.cbegin(); nfwds-- > 0 && it != rit.cend(); ++it)
       msg.interests.emplace_back(it->first, false);
   }
 
   if (!msg.interests.empty()) {
     log.t("--> announce %v interests", msg.interests.size());
     node.post(msg);
-
-    schedule_announcement();
   }
+}
+
+void InterestHelperImpl::prune_remote()
+{
+  auto it = rit.begin();
+  while (it != rit.end()) {
+    if (it->second.older_than(60s))
+      it = rit.erase(it);
+    else
+      ++it;
+  }
+
+  asynctask(std::bind(&InterestHelperImpl::prune_remote, this)).do_in(60s);
 }
 }

@@ -196,8 +196,8 @@ int main(int argc, char** argv)
         std::make_unique<sma::DummyGps>(sma::GPS::Coord{pos.x, pos.y})));
 
     if (i == (nnodes - 1)) {
-      std::vector<sma::ContentType> interests;
-      interests.emplace_back("cats");
+      std::vector<sma::Interest> interests;
+      interests.emplace_back(sma::ContentType("cats"));
       app->act_emplace_front<sma::CreateInterestAction>(1s,
                                                         std::move(interests));
     }

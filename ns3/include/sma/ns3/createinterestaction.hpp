@@ -2,7 +2,7 @@
 
 #include <sma/ns3/action.hpp>
 
-#include <sma/ccn/contenttype.hpp>
+#include <sma/ccn/interest.hpp>
 
 #include <sma/ccn/ccnnode.hpp>
 #include <sma/ccn/interesthelper.hpp>
@@ -14,9 +14,9 @@ namespace sma
 class Ns3NodeContainer;
 
 struct CreateInterestAction : Action {
-  using interests_type = std::vector<ContentType>;
+  using interest_vec = std::vector<Interest>;
 
-  CreateInterestAction(Ns3NodeContainer& context, interests_type interests)
+  CreateInterestAction(Ns3NodeContainer& context, interest_vec interests)
     : Action(context)
     , interests(interests)
   {
@@ -26,9 +26,9 @@ struct CreateInterestAction : Action {
   {
     CcnNode& node = *(context->node);
     node.log.d("Action: add %v interests", interests.size());
-    node.interests->insert_new(interests);
+    node.interests->create_local(interests);
   }
 
-  interests_type interests;
+  interest_vec interests;
 };
 }

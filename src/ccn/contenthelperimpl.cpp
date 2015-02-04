@@ -43,7 +43,7 @@ void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
     auto blocks_to_fetch = cache.missing_blocks(metadata);
     if (!blocks_to_fetch.empty()) {
       log.d("Fetch %v blocks for this content", blocks_to_fetch.size());
-      fetch_block(metadata.hash, blocks_to_fetch[0]);
+      request_block(metadata.hash, blocks_to_fetch[0]);
     }
   }
 
@@ -64,7 +64,7 @@ void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
       clock::now() - g_published);
   log.i("delay: %v ms", time.count());
 
-  if (node.interests->know_remote(metadata.type)) {
+  if (should_forward(metadata)) {
     log.d("--> (forward)");
     node.post(msg);
   } else
@@ -75,8 +75,8 @@ void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
 bool ContentHelperImpl::update(ContentMetadata const& metadata,
                                NetworkDistance distance)
 {
-  auto it = meta_table.find(metadata.hash);
-  if (it != meta_table.end()) {
+  auto it = kct.find(metadata.hash);
+  if (it != kct.end()) {
     auto& record = it->second;
     if (distance < record.distance) {
       record.distance = distance;
@@ -85,7 +85,7 @@ bool ContentHelperImpl::update(ContentMetadata const& metadata,
       return false;
   }
 
-  meta_table.emplace(metadata.hash, MetaRecord{metadata, distance});
+  kct.emplace(metadata.hash, MetaRecord{metadata, distance});
 
   return true;
 }
@@ -101,7 +101,7 @@ ContentMetadata ContentHelperImpl::create_new(ContentType const& type,
   auto& size = stored.second;
 
   auto metadata = ContentMetadata(hash, type, name, size, block_size, node.id);
-  meta_table.emplace(hash, MetaRecord{metadata, 0});
+  kct.emplace(hash, MetaRecord{metadata, 0});
 
   log.d("Created content");
   log.d("| publisher: %v", node.id);
@@ -118,8 +118,8 @@ void ContentHelperImpl::publish(Hash const& hash)
 {
   log.d("Publish content %v", std::string(hash));
 
-  auto metadata_search = meta_table.find(hash);
-  assert(metadata_search != meta_table.end());
+  auto metadata_search = kct.find(hash);
+  assert(metadata_search != kct.end());
   auto const& metadata = metadata_search->second.metadata;
 
   assert(cache.validate_data(metadata));
@@ -127,13 +127,12 @@ void ContentHelperImpl::publish(Hash const& hash)
   node.post(ContentAnn(metadata, 0));
 }
 
-bool on_block(Hash hash, std::size_t index)
+bool ContentHelperImpl::should_forward(ContentMetadata const& metadata) const
 {
-  LOG(DEBUG) << "++++ CALLBACK: Block " << index << " of " << std::string(hash) << " arrived";
-  return false;
+  return node.interests->know_remote(Interest(metadata));
 }
 
-void ContentHelperImpl::fetch_block(Hash const& hash, std::size_t index)
+void ContentHelperImpl::request_block(Hash const& hash, std::size_t index)
 {
   std::vector<BlockFragmentRequest> fragments;
 
@@ -147,7 +146,6 @@ void ContentHelperImpl::fetch_block(Hash const& hash, std::size_t index)
     }
   }
 
-  on_block_arrived += on_block;
   node.post(BlockRequest(hash, index, std::move(fragments)));
 }
 
@@ -173,8 +171,8 @@ void ContentHelperImpl::receive(MessageHeader header, BlockRequest req)
     }
   }
 
-  auto it = meta_table.find(req.hash);
-  if (it != meta_table.end()) {
+  auto it = kct.find(req.hash);
+  if (it != kct.end()) {
     log.d("Should forward block request");
   }
 }
@@ -198,7 +196,8 @@ void ContentHelperImpl::receive(MessageHeader header, BlockResponse resp)
         header.sender);
 
   for (auto& fragment : resp.fragments) {
-    log.d("- inserting %v bytes at position %v", fragment.size, fragment.offset);
+    log.d(
+        "- inserting %v bytes at position %v", fragment.size, fragment.offset);
     block.insert(fragment.offset, fragment.data, fragment.size);
   }
 
@@ -207,12 +206,12 @@ void ContentHelperImpl::receive(MessageHeader header, BlockResponse resp)
     on_block_arrived(resp.hash, block.index);
   }
 
-  auto meta_search = meta_table.find(resp.hash);
-  assert(meta_search != meta_table.end());
+  auto meta_search = kct.find(resp.hash);
+  assert(meta_search != kct.end());
   auto const& record = meta_search->second;
   std::vector<std::size_t> missing = cache.missing_blocks(record.metadata);
   if (not missing.empty())
-    fetch_block(resp.hash, missing[0]);
+    request_block(resp.hash, missing[0]);
   else
     log.d("++++ No more blocks to fetch!");
 }
