@@ -27,6 +27,7 @@ struct CreateInterestAction : Action {
     CcnNode& node = *(context->node);
     node.log.d("Action: add %v interests", interests.size());
     node.interests->create_local(interests);
+    node.interests->announce();
   }
 
   interest_vec interests;

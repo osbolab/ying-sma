@@ -63,11 +63,6 @@ void InterestHelperImpl::receive(MessageHeader header, InterestAnn msg)
     else
       ++it;
   }
-
-  if (!msg.interests.empty()) {
-    log.t("--> forward %v interests", msg.interests.size());
-    node.post(msg);
-  }
 }
 
 bool InterestHelperImpl::learn_remote(Interest const& interest)

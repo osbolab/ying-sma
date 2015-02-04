@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sma/nodeid.hpp>
+#include <sma/location.hpp>
 
 #include <sma/messagebuffer.hpp>
 #include <sma/messageheader.hpp>
@@ -44,6 +45,8 @@ public:
   void receive(MessageHeader header, ContentAnn msg);
   void receive(MessageHeader header, BlockRequest msg);
   void receive(MessageHeader header, BlockResponse msg);
+
+  Location location();
 
   //! This node's universally unique identifier.
   NodeId const id;

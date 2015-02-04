@@ -21,6 +21,11 @@ CcnNode::CcnNode(NodeId id, Context& context)
 {
 }
 
+Location CcnNode::location()
+{
+  return Location(79.12345, 123.4567);
+}
+
 void CcnNode::post(void const* src, std::size_t size)
 {
   assert(linklayer);

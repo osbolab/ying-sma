@@ -39,10 +39,10 @@ void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
   ++msg.distance;
 
   if (node.interests->interested_in(metadata)) {
-    log.d("** I got content I wanted! **");
+    log.d("** I got metadata I'm interested in! **");
     auto blocks_to_fetch = cache.missing_blocks(metadata);
     if (!blocks_to_fetch.empty()) {
-      log.d("Fetch %v blocks for this content", blocks_to_fetch.size());
+      log.d("Requesting the first block of %v", blocks_to_fetch.size());
       request_block(metadata.hash, blocks_to_fetch[0]);
     }
   }
@@ -52,20 +52,21 @@ void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
 
   log.d("Content metadata from n(%v)", header.sender);
   log.d("| distance: %v hop(s)", std::uint32_t(msg.distance));
-  log.d("| publisher: %v", metadata.publisher);
   log.d("| hash: %v", std::string(metadata.hash));
-  log.d("| type: %v", metadata.type);
-  log.d("| name: %v", metadata.name);
   log.d("| size: %v bytes", metadata.size);
   log.d("| block size: %v bytes", metadata.block_size);
-  log.d("got it");
+  log.d("| type: %v", metadata.type);
+  log.d("| name: %v", metadata.name);
+  log.d("| publisher: %v", metadata.publisher);
+  log.d("| origin: %v", std::string(metadata.origin));
+  log.d("| time: %v", metadata.publish_time);
 
   auto time = std::chrono::duration_cast<std::chrono::milliseconds>(
       clock::now() - g_published);
   log.i("delay: %v ms", time.count());
 
   if (should_forward(metadata)) {
-    log.d("--> (forward)");
+    log.d("--> forwarding because I know a remote interest for this");
     node.post(msg);
   } else
     log.d("not forwarding");
@@ -100,16 +101,32 @@ ContentMetadata ContentHelperImpl::create_new(ContentType const& type,
   auto& hash = stored.first;
   auto& size = stored.second;
 
-  auto metadata = ContentMetadata(hash, type, name, size, block_size, node.id);
+  auto publish_time
+      = std::chrono::duration_cast<std::chrono::seconds>(
+            chrono::system_clock::now().time_since_epoch()).count();
+
+  auto metadata = ContentMetadata(hash,
+                                  size,
+                                  block_size,
+                                  type,
+                                  name,
+                                  node.location(),
+                                  node.id,
+                                  publish_time);
+
   kct.emplace(hash, MetaRecord{metadata, 0});
 
+  /*
   log.d("Created content");
-  log.d("| publisher: %v", node.id);
   log.d("| hash: %v", std::string(hash));
-  log.d("| name: %v", name);
-  log.d("| type: %v", type);
   log.d("| size: %v bytes", size);
   log.d("| block size: %v bytes", block_size);
+  log.d("| name: %v", name);
+  log.d("| type: %v", type);
+  log.d("| publisher: %v", node.id);
+  log.d("| origin: %v", std::string(metadata.origin));
+  log.d("| time: %v", metadata.publish_time);
+  */
 
   return metadata;
 }
@@ -123,6 +140,8 @@ void ContentHelperImpl::publish(Hash const& hash)
   auto const& metadata = metadata_search->second.metadata;
 
   assert(cache.validate_data(metadata));
+
+  g_published = clock::now();
 
   node.post(ContentAnn(metadata, 0));
 }
@@ -146,26 +165,38 @@ void ContentHelperImpl::request_block(Hash const& hash, std::size_t index)
     }
   }
 
+  auto pending = prt.find({hash, index});
+  if (pending != prt.end()) {
+    auto& old_req = pending->second;
+    if (not old_req.add(fragments)) {
+      log.d("| Ignoring block request because I already forwarded it");
+      return;
+    }
+  } else {
+    prt.emplace(std::make_pair(hash, index), fragments);
+    log.d("| New pending request");
+  }
+
   node.post(BlockRequest(hash, index, std::move(fragments)));
 }
 
 void ContentHelperImpl::receive(MessageHeader header, BlockRequest req)
 {
-  log.d("Block request");
-  log.d("| hash: %v", std::string(req.hash));
-  log.d("| index: %v", req.index);
-  for (auto& fragment : req.fragments)
-    log.d("| fragment: %v - %v", fragment.offset, fragment.size);
-
   auto blocks = cache.find(req.hash);
   if (blocks != nullptr) {
     auto block_search = blocks->find(req.index);
     if (block_search != blocks->end()) {
-      log.d("I have this block");
+      log.d("Block request");
+      log.d("| sender: %v", header.sender);
+      log.d("| hash: %v", std::string(req.hash));
+      log.d("| index: %v", req.index);
+      for (auto& fragment : req.fragments)
+        log.d("| fragment: %v - %v", fragment.offset, fragment.size);
+      log.d("| I have this block; sending response");
+      log.d("");
       auto const& block = block_search->second;
       std::vector<BlockFragmentResponse> fragments;
       fragments.emplace_back(0, block.data, block.size);
-      log.d("Sending %v byte fragment for block %v", block.size, block.index);
       node.post(BlockResponse(req.hash, req.index, block.size, fragments));
       return;
     }
@@ -173,33 +204,40 @@ void ContentHelperImpl::receive(MessageHeader header, BlockRequest req)
 
   auto it = kct.find(req.hash);
   if (it != kct.end()) {
-    log.d("Should forward block request");
-  }
+    log.d("Block request");
+    log.d("| sender: %v", header.sender);
+    log.d("| hash: %v", std::string(req.hash));
+    log.d("| index: %v", req.index);
+    for (auto& fragment : req.fragments)
+      log.d("| fragment: %v - %v", fragment.offset, fragment.size);
+    log.d("| Should forward block request because I know this is available");
+    request_block(req.hash, req.index);
+  } else
+    log.d("Ignoring block request for unknown content");
+  log.d("");
 }
 
 void ContentHelperImpl::receive(MessageHeader header, BlockResponse resp)
 {
   auto& blocks = cache.find_or_allocate(resp.hash);
   auto it = blocks.find(resp.index);
-  if (it == blocks.end()) {
+  if (it == blocks.end())
     it = blocks.emplace(resp.index, BlockData(resp.index, resp.size)).first;
-    log.d("Allocated new block %v (%v bytes) of content %v",
-          resp.index,
-          resp.size,
-          std::string(resp.hash));
-  }
   auto& block = it->second;
 
-  log.d("Populating block %v of content %v (from node %v)",
-        resp.index,
-        std::string(resp.hash),
-        header.sender);
+  log.d("Block Response");
+  log.d("| hash: %v", std::string(resp.hash));
+  log.d("| index: %v", resp.index);
+  log.d("| sender: %v", header.sender);
 
   for (auto& fragment : resp.fragments) {
-    log.d(
-        "- inserting %v bytes at position %v", fragment.size, fragment.offset);
+    log.d("| fragment: [%v, %v]",
+          fragment.offset,
+          fragment.offset + fragment.size - 1);
     block.insert(fragment.offset, fragment.data, fragment.size);
   }
+
+  // Here it should check the pending requests and fulfill one
 
   if (not block.notified and block.complete()) {
     block.notified = true;
@@ -214,5 +252,6 @@ void ContentHelperImpl::receive(MessageHeader header, BlockResponse resp)
     request_block(resp.hash, missing[0]);
   else
     log.d("++++ No more blocks to fetch!");
+  log.d("");
 }
 }
