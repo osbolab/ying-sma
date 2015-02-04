@@ -40,3 +40,9 @@ target_link_libraries("random-walk" "${SMA_LIB}" "${PROJECT_NAME}" "${SMA_LIB}" 
 use_ns3_modules("random-walk"
   "core" "network" "mobility" "olsr" "internet" "wifi" "applications" "config-store"
   "netanim" "flow-monitor" "stats")
+  
+add_executable("trace-mobility" "sim/ns2tracemobility/trace-based-mobility-sim.cpp" ${simulation_sources})
+target_link_libraries("trace-mobility" "${SMA_LIB}" "${PROJECT_NAME}" "${SMA_LIB}" "gtest")
+use_ns3_modules("trace-mobility"
+  "core" "network" "mobility" "olsr" "internet" "wifi" "applications" "config-store"
+  "netanim" "flow-monitor" "stats")
