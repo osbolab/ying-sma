@@ -49,13 +49,16 @@ public:
 }
 
 #if 0
-
 // Example event handler (callback):
 
 class MyClass
 {
+  // Store a reference if you want access to the node
+  CcnNode& node;
+
 public:
   MyClass(CcnNode& node)
+    : node(node)
   {
     node.content->on_block_requested
         += std::bind(&MyClass::block_requested_callback, this);
@@ -79,6 +82,5 @@ public:
   {
     return true;
   }
-}
-
+};
 #endif
