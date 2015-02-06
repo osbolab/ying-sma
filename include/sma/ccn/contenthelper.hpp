@@ -5,8 +5,11 @@
 #include <sma/ccn/contentmetadata.hpp>
 
 #include <sma/util/event.hpp>
+#include <sma/util/vec2d.hpp>
 
 #include <iosfwd>
+#include <cstdlib>
+
 
 namespace sma
 {
@@ -44,3 +47,38 @@ public:
   Event<Hash, std::size_t> on_fetch_timeout;
 };
 }
+
+#if 0
+
+// Example event handler (callback):
+
+class MyClass
+{
+public:
+  MyClass(CcnNode& node)
+  {
+    node.content->on_block_requested
+        += std::bind(&MyClass::block_requested_callback, this);
+
+    node.content->on_block_arrived
+        += std::bind(&MyClass::block_arrived_callback, this);
+  }
+
+  bool block_requested_callback(Hash content_hash,
+                                std::size_t block_index,
+                                double utility,
+                                std::size_t ttl_ms,
+                                Vec2d origin_position)
+  {
+    // do stuff
+    bool receive_more_callbacks = true;
+    return receive_more_callbacks;
+  }
+
+  bool block_arrived_callback(Hash content_hash, std::size_t block_index)
+  {
+    return true;
+  }
+}
+
+#endif
