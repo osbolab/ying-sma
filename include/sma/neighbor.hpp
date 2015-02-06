@@ -28,7 +28,8 @@ struct Neighbor {
   void saw(Vec2d position)
   {
     auto k = positions.push_back(position);
-    means.push_back(compute_mean(k));
+    if (k > 0)
+      means.push_back(compute_mean(k));
     velocity = compute_velocity();
 
     last_seen = clock::now();
@@ -55,12 +56,12 @@ private:
     if (positions.size() < 4)
       return Vec2d(0.0, 0.0);
 
-    Vec2d dev;
+    Vec2d deviation;
     for (std::size_t k = 1; k < positions.size(); ++k)
-      dev += (positions[k] - means[k - 1]) / (positions[k] - means[k]);
+      deviation += (positions[k] - means[k - 1]) / (positions[k] - means[k]);
 
-    auto atten = Vec2d::exp(Vec2d::arith_div(4.0, means[k]).arithmetic_mul(dev));
-    auto atten = Vec2d::exp(means[k].divided_into(4.0).arithmetic_mul(dev));
-    return positions[k] / atten;
-  };
+    auto const k = positions.size() - 1;
+    return positions[k] / Vec2d::exp(Vec2d::divide(4.0, means[k]) * deviation);
+  }
+};
 }

@@ -110,7 +110,7 @@ ContentMetadata ContentHelperImpl::create_new(ContentType const& type,
                                   block_size,
                                   type,
                                   name,
-                                  node.location(),
+                                  node.position(),
                                   node.id,
                                   publish_time);
 
@@ -177,7 +177,7 @@ void ContentHelperImpl::request_block(Hash const& hash, std::size_t index)
     log.d("| New pending request");
   }
 
-  node.post(BlockRequest(hash, index, std::move(fragments)));
+  node.post(BlockRequest(hash, index, std::move(fragments), node.position()));
 }
 
 void ContentHelperImpl::receive(MessageHeader header, BlockRequest req)
@@ -188,6 +188,7 @@ void ContentHelperImpl::receive(MessageHeader header, BlockRequest req)
     if (block_search != blocks->end()) {
       log.d("Block request");
       log.d("| sender: %v", header.sender);
+      log.d("| position: %v", std::string(req.position));
       log.d("| hash: %v", std::string(req.hash));
       log.d("| index: %v", req.index);
       for (auto& fragment : req.fragments)
@@ -206,6 +207,7 @@ void ContentHelperImpl::receive(MessageHeader header, BlockRequest req)
   if (it != kct.end()) {
     log.d("Block request");
     log.d("| sender: %v", header.sender);
+    log.d("| position: %v", std::string(req.position));
     log.d("| hash: %v", std::string(req.hash));
     log.d("| index: %v", req.index);
     for (auto& fragment : req.fragments)

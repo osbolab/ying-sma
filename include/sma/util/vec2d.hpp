@@ -20,6 +20,12 @@ struct Vec2d {
     return Vec2d(std::exp(v.x), std::exp(v.y));
   }
 
+  static Vec2d divide(value_type const& dividend, Vec2d const& divisor)
+  {
+    return Vec2d(dividend / divisor.x, dividend / divisor.y);
+  }
+
+
   TRIVIALLY_SERIALIZABLE(Vec2d, x, y)
 
   Vec2d()
@@ -48,11 +54,6 @@ struct Vec2d {
   {
     auto len = 1.0 / length();
     return Vec2d(x * len, y * len);
-  }
-
-  Vec2d divided_into(value_type const& scalar) const
-  {
-    return Vec2d(scalar / x, scalar / y);
   }
 
   Vec2d& operator+=(Vec2d const& rhs)
@@ -102,21 +103,23 @@ struct Vec2d {
 
   Vec2d operator*(value_type const& scalar) const
   {
-    return Vec2d(*this) *= scalar;
+    return Vec2d(x * scalar, y * scalar);
+  }
+  Vec2d operator*(Vec2d const& rhs) const
+  {
+    return Vec2d(x * rhs.x, y * rhs.y);
   }
   Vec2d operator/(value_type const& scalar) const
   {
-    return Vec2d(*this) /= scalar;
+    return Vec2d(x / scalar, y / scalar);
+  }
+  Vec2d operator/(Vec2d const& rhs) const
+  {
+    return Vec2d(x / rhs.x, y / rhs.y);
   }
 
   value_type dot(Vec2d const& rhs) const { return x * rhs.x + y * rhs.y; }
 
-  Vec2d& arithmetic_mul(Vec2d const& rhs)
-  {
-    x *= rhs.x;
-    y *= rhs.y;
-    return *this;
-  }
 
   std::string to_string(std::size_t precision) const
   {

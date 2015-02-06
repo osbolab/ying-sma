@@ -4,7 +4,7 @@
 #include <sma/util/hash.hpp>
 #include <sma/ccn/contenttype.hpp>
 #include <sma/ccn/contentname.hpp>
-#include <sma/location.hpp>
+#include <sma/util/vec2d.hpp>
 
 #include <sma/util/serial.hpp>
 
@@ -32,7 +32,7 @@ struct ContentMetadata {
 
   ContentType type;
   ContentName name;
-  Location origin;
+  Vec2d origin;
   NodeId publisher;
   std::uint64_t publish_time;
 
@@ -42,7 +42,7 @@ struct ContentMetadata {
                   size_type block_size,
                   ContentType type,
                   ContentName name,
-                  Location origin,
+                  Vec2d origin,
                   NodeId publisher,
                   std::uint64_t publish_time)
     : hash(hash)

@@ -10,35 +10,44 @@ namespace sma
 template <typename T, std::size_t Capacity>
 class CircularBuffer
 {
-  static_assert(Capacity > 0);
+  static_assert(Capacity > 0, "Circular array must have nonzero capacity");
 
 public:
+  CircularBuffer()
+    : sz(0)
+    , first(0)
+    , v(Capacity)
+  {
+  }
+
   CircularBuffer(CircularBuffer&&) = default;
   CircularBuffer& operator=(CircularBuffer&&) = default;
 
   std::size_t push_back(T value)
   {
-    auto next = (first + size) % Capacity;
+    auto next = (first + sz) % Capacity;
     if (next == first)
       first = (first + 1) % Capacity;
     v[next] = std::move(value);
+    if (sz < Capacity)
+      ++sz;
     return next;
   }
 
-  std::size_t size() const { return size; }
+  std::size_t size() const { return sz; }
 
-  V& operator[](std::size_t const index)
+  T& operator[](std::size_t const index)
   {
-    assert(index < size);
+    assert(index < sz);
     return v[(first + index) % Capacity];
   }
 
-  V const& operator[](std::size_t const index) const { return (*this)[index]; }
+  T const& operator[](std::size_t const index) const { return (*this)[index]; }
 
 private:
   std::vector<T> v;
 
-  std::size_t size{0};
-  std::size_t first{0};
+  std::size_t sz;
+  std::size_t first;
 };
 }

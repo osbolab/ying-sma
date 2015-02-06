@@ -9,6 +9,9 @@
 
 namespace sma
 {
+class CcnNode;
+struct Vec2d;
+
 class NeighborHelper : public Helper
 {
 public:
@@ -17,7 +20,7 @@ public:
   virtual ~NeighborHelper() {}
 
   //! Update the neighbor table to include the specified node.
-  virtual void saw(NodeId const& node) = 0;
+  virtual void saw(NodeId const& node, Vec2d const& position) = 0;
 
   //! Handle an incoming beacon from a neighbor.
   virtual void receive(MessageHeader header, Beacon msg) = 0;
