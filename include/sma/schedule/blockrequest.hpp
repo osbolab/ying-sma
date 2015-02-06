@@ -10,7 +10,10 @@ class BlockRequest
 public:
 
   BlockRequest (Hash content_name, std::size seq, NodeID id)
-      : name(content_name), index (seq), node_id (id)
+      : name(content_name)
+      , index (seq)
+      , node_id (id)
+      , origin (location)
   {}
 
   Hash get_name() const;

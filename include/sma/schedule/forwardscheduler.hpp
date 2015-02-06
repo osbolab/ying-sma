@@ -10,8 +10,8 @@ namespace sma
 class ForwardScheduler
 {
 public:
-  virtual void on_interest <std::vector<Interest>> = 0;
-  virtual void on_metadata <std::vector<ContentMetadata>> = 0;
+//  virtual void on_interest <std::vector<Interest>> = 0;
+//  virtual void on_metadata <std::vector<ContentMetadata>> = 0;
   virtual void on_blockrequest <std::vector<BlockRequest>> = 0;
   virtual void on_blockresponse <std::vector<BlockResponse>> = 0;
 

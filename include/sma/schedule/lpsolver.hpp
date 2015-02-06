@@ -14,6 +14,7 @@ public:
                       int storage,
                       int bandwidth,
                       int num_of_neighbor,
+                      int * ttl_per_block,
                       const std::vector<std::vector<double> >&  utility)
   {
     glp_prob *mip = glp_create_prob();
@@ -143,7 +144,7 @@ public:
 //      ia_vec.push_back (2 * max_ttl + 4 + c);
       ia_vec.push_back (2 * max_ttl + 4 + c);
 //      ja_vec.push_back (1 + c * (max_ttl+2));
-      ja_vec.push_back (1 + c * (max_ttl+2) + max_ttl + 1);
+      ja_vec.push_back (1 + c * (max_ttl+2) + ttl_per_block[c] + 1);
  //     arr_vec.push_back(1);
       arr_vec.push_back(1);
     }
@@ -202,7 +203,6 @@ public:
 
     for (int i=0; i<num_of_cols; i++)
     {
-      std::cout << "retrieving " << i << "..." << std::endl;
       result.push_back (glp_mip_col_val(mip, i+1)); 
     }
 
@@ -210,12 +210,30 @@ public:
     delete[] ja;
     delete[] arr;
 
+
+    // need extra job to translate to the data panel
+    
+    bool cached = false;
+
     for (int it=0; it<num_of_cols; it++)
     {
       int c = it / (max_ttl+2);
       int t = it % (max_ttl+2);
-      std::cout << "content "<< c 
-          <<" at " << t << " = " << result[it] << std::endl;
+
+      if (result[it] == 1 && t == 0)
+      {
+        cached = true;
+        std::cout << "cache block " << c << std::endl;
+      }
+
+      if (cached == true)
+      {
+        if (result[it] == 0 && t != 0)
+        {
+          std::cout << "broad block at time " << t-1 << std::endl;
+          cached = false;
+        }
+      }
     }
   }
 };
