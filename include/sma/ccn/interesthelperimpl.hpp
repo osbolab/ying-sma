@@ -4,7 +4,7 @@
 
 #include <sma/ccn/ccnfwd.hpp>
 
-#include <sma/ccn/contenttype.hpp>
+#include <sma/ccn/interest.hpp>
 #include <sma/ccn/interestrank.hpp>
 #include <sma/ccn/remoteinterest.hpp>
 
@@ -32,36 +32,32 @@ class InterestHelperImpl : public InterestHelper
 {
 public:
   //! Construct a helper to manage interests for the given node.
-  InterestHelperImpl(CcnNode& node)
-    : InterestHelper(node)
-  {
-  }
+  InterestHelperImpl(CcnNode& node);
 
   /* Implement InterestHelper */
 
-  void receive(MessageHeader header, InterestAnn msg) override;
-  void insert_new(std::vector<ContentType> types) override;
-  bool interested_in(ContentMetadata const& metadata) const override;
-  bool know_remote(ContentType const& type) const override;
+  virtual void receive(MessageHeader header, InterestAnn announcement) override;
+  virtual void create_local(std::vector<Interest> interests) override;
+  virtual bool interested_in(ContentMetadata const& metadata) const override;
+  virtual bool know_remote(Interest const& interest) const override;
 
-private:
-  //! Schedule the future network broadcast of our tables to our neighbors.
-  void schedule_announcement(std::chrono::milliseconds delay
-                             = std::chrono::milliseconds(5000));
   //! Broadcast the contents of our tables to our neighbors.
   /* In the case that we have many records stored, they may be ordered and
    * culled based on some preference metrics.
    */
-  void announce();
+  virtual void announce() override;
 
+private:
   //! Insert a new, or update an existing, interest received from a remote node.
-  bool learn_remote_interest(ContentType const& interest);
+  bool learn_remote(Interest const& interest);
+
+  void prune_remote();
 
   //! The Local Interest Table records content this node is interested in.
   /*! These records always have precedence in dissemination as they are the
    * ultimate source of interests in the network.
    */
-  std::map<ContentType, InterestRank> lit;
+  std::map<Interest, InterestRank> lit;
 
   //! The Remote Interest Table records content other nodes are interested in.
   /*! This table is populated by InterestAnns from other nodes and its
@@ -71,6 +67,6 @@ private:
    * announcements only for those content in which we have previously seen
    * interest.
    */
-  std::unordered_map<ContentType, RemoteInterest> rit;
+  std::unordered_map<Interest, RemoteInterest> rit;
 };
 }

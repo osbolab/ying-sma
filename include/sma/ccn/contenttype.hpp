@@ -45,12 +45,9 @@ namespace std
 {
 template <>
 struct hash<sma::ContentType> {
-  using argument_type = sma::ContentType;
-  using result_type = std::size_t;
-
-  result_type operator()(argument_type const& a) const
+  size_t operator()(sma::ContentType const& a) const
   {
-    return hash<std::string>()(a.value);
+    return hash<string>()(a.value);
   }
 };
 }

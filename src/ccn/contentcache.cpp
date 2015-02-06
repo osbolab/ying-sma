@@ -72,10 +72,12 @@ std::pair<Hash, std::size_t> ContentCache::load(std::istream& in,
   if (content.erase(hash) != 0)
     LOG(WARNING) << "Overwriting duplicate content in cache";
 
+  /*
   LOG(DEBUG) << "Content cached";
   LOG(DEBUG) << "| hash: " << std::string(hash);
   LOG(DEBUG) << "| size: " << total_size;
   LOG(DEBUG) << "| blocks: " << blocks.size();
+  */
 
   content.emplace(hash, std::move(blocks));
 

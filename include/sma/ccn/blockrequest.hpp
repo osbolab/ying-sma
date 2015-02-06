@@ -3,6 +3,7 @@
 #include <sma/util/hash.hpp>
 
 #include <sma/util/serial.hpp>
+#include <sma/util/vec2d.hpp>
 
 #include <cstdint>
 
@@ -14,6 +15,7 @@ struct BlockFragmentRequest {
 
   std::uint32_t offset;
   std::uint32_t size;
+  Vec2d position;
 
   BlockFragmentRequest(std::uint32_t offset, std::uint32_t size)
     : offset(offset)
@@ -30,7 +32,7 @@ struct BlockFragmentRequest {
 
 
 struct BlockRequest {
-  TRIVIALLY_SERIALIZABLE(BlockRequest, hash, index, fragments)
+  TRIVIALLY_SERIALIZABLE(BlockRequest, hash, index, fragments, position)
 
   Hash hash;
   std::uint16_t index;
@@ -39,10 +41,12 @@ struct BlockRequest {
 
   BlockRequest(Hash hash,
                std::uint16_t index,
-               std::vector<BlockFragmentRequest> fragments)
+               std::vector<BlockFragmentRequest> fragments,
+               Vec2d position)
     : hash(hash)
     , index(index)
     , fragments(std::move(fragments))
+    , position(position)
   {
   }
 

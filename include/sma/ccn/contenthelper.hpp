@@ -34,9 +34,12 @@ public:
                                      std::istream& in) = 0;
 
   virtual void publish(Hash const& hash) = 0;
+  virtual bool should_forward(ContentMetadata const& metadata) const = 0;
 
-  virtual void fetch_block(Hash const& hash, std::size_t index) = 0;
+  virtual void request_block(Hash const& hash, std::size_t index) = 0;
 
+  // Content Hash, Block Index, Utility, TTL ms (deadline), Origin
+  Event<Hash, std::size_t, double, std::size_t, Vec2d> on_block_requested;
   Event<Hash, std::size_t> on_block_arrived;
   Event<Hash, std::size_t> on_fetch_timeout;
 };

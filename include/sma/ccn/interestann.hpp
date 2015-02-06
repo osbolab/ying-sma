@@ -1,7 +1,7 @@
 #pragma once
 
 #include <sma/nodeid.hpp>
-#include <sma/ccn/contenttype.hpp>
+#include <sma/ccn/interest.hpp>
 
 #include <sma/util/serial.hpp>
 
@@ -12,9 +12,9 @@ namespace sma
 struct InterestAnn {
   //! One interest from one node, of which an ann may contain several.
   struct Entry {
-    TRIVIALLY_SERIALIZABLE(Entry, type, is_original)
+    TRIVIALLY_SERIALIZABLE(Entry, interest, is_original)
     //! The type of content this node is interested in.
-    ContentType type;
+    Interest interest;
     //! \a true if the node sending this ann is the originator of the
     //! interest.
     /* Otherwise \a false if this is a replication.
@@ -25,8 +25,8 @@ struct InterestAnn {
      */
     bool is_original;
 
-    Entry(ContentType type, bool is_original)
-      : type(type)
+    Entry(Interest interest, bool is_original)
+      : interest(interest)
       , is_original(is_original)
     {
     }
@@ -35,19 +35,18 @@ struct InterestAnn {
   TRIVIALLY_SERIALIZABLE(InterestAnn, interested_node, interests)
 
 private:
-  using interest_vector = std::vector<Entry>;
+  using interest_vec = std::vector<Entry>;
 
 public:
   /****************************************************************************
    * Serialized Fields
    */
-  bool is_original;
   NodeId interested_node;
-  interest_vector interests;
+  interest_vec interests;
   /***************************************************************************/
 
   InterestAnn(NodeId node,
-      interest_vector interests = interest_vector())
+      interest_vec interests = interest_vec())
     : interested_node(node)
     , interests(std::move(interests))
   {

@@ -21,6 +21,11 @@ CcnNode::CcnNode(NodeId id, Context& context)
 {
 }
 
+Vec2d CcnNode::position()
+{
+  return Vec2d(123.456, 456.789);
+}
+
 void CcnNode::post(void const* src, std::size_t size)
 {
   assert(linklayer);
