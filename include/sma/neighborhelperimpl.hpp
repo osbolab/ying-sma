@@ -6,6 +6,7 @@
 
 #include <sma/nodeid.hpp>
 #include <sma/neighbor.hpp>
+#include <sma/neighborrecord.hpp>
 
 #include <sma/util/event.hpp>
 
@@ -28,9 +29,6 @@ struct Vec2d;
  */
 class NeighborHelperImpl : public NeighborHelper
 {
-  using table_type = std::unordered_map<NodeId, Neighbor>;
-  using value_type = table_type::value_type;
-
 public:
   NeighborHelperImpl(CcnNode& node);
 
@@ -39,6 +37,8 @@ public:
 
   //! Record the sender as a neighbor and respond to the beacon.
   void receive(MessageHeader header, Beacon msg) override;
+
+  std::vector<Neighbor> get() const override;
 
   //! Fired when new neighbors arrive.
   Event<std::vector<NodeId>> on_arrival;
@@ -71,6 +71,6 @@ private:
   time_point next_beacon_time;
 
   //! Immediate (one-hop) neighbors known to this node.
-  table_type neighbors;
+  std::unordered_map<NodeId, NeighborRecord> neighbors;
 };
 }

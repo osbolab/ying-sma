@@ -101,6 +101,19 @@ struct Vec2d {
     return *this;
   }
 
+  Vec2d& operator*=(Vec2d const& rhs)
+  {
+    x *= rhs.x;
+    y *= rhs.y;
+    return *this;
+  }
+  Vec2d& operator/=(Vec2d const& rhs)
+  {
+    x /= rhs.x;
+    y /= rhs.y;
+    return *this;
+  }
+
   Vec2d operator*(value_type const& scalar) const
   {
     return Vec2d(x * scalar, y * scalar);

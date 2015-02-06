@@ -42,7 +42,14 @@ public:
     return v[(first + index) % Capacity];
   }
 
-  T const& operator[](std::size_t const index) const { return (*this)[index]; }
+  T const& operator[](std::size_t const index) const
+  {
+    assert(index < sz);
+    return v[(first + index) % Capacity];
+  }
+
+  T& last() { return (*this)[sz - 1]; }
+  T const& clast() const { return (*this)[sz - 1]; }
 
 private:
   std::vector<T> v;
