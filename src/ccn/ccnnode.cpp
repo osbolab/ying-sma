@@ -21,9 +21,9 @@ CcnNode::CcnNode(NodeId id, Context& context)
 {
 }
 
-Location CcnNode::location()
+Vec2d CcnNode::position()
 {
-  return Location(79.12345, 123.4567);
+  return Vec2d(123.456, 456.789);
 }
 
 void CcnNode::post(void const* src, std::size_t size)

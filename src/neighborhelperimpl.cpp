@@ -27,18 +27,20 @@ NeighborHelperImpl::NeighborHelperImpl(CcnNode& node)
   schedule_beacon(100ms);
 }
 
-void NeighborHelperImpl::saw(NodeId const& node)
+void NeighborHelperImpl::saw(NodeId const& node, Vec2d const& position)
 {
-  auto result = neighbors.emplace(std::move(node), Neighbor());
-  if (!result.second)
-    result.first->second.saw();
+  auto it = neighbors.find(node);
+  if (it == neighbors.end())
+    neighbors.emplace(node, Neighbor(position));
+  else
+    it->second.saw(position);
 }
 
 void NeighborHelperImpl::receive(MessageHeader header, Beacon msg)
 {
-  saw(header.sender);
+  saw(header.sender, msg.position);
   if (!msg.is_response)
-    node.post(Beacon(true));
+    node.post(Beacon(node.position(), true));
 }
 
 using millis = std::chrono::milliseconds;
@@ -50,7 +52,7 @@ void NeighborHelperImpl::schedule_beacon(millis delay)
   asynctask(&NeighborHelperImpl::beacon, this).do_in(delay);
 }
 
-void NeighborHelperImpl::beacon() { node.post(Beacon()); }
+void NeighborHelperImpl::beacon() { node.post(Beacon(node.position())); }
 
 void NeighborHelperImpl::refresh_neighbors()
 {
