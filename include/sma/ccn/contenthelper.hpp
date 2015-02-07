@@ -21,8 +21,13 @@ class CacheEntry
 public:
   virtual ~CacheEntry() {}
 
+  //! Force the entry to not expire from the cache.
   virtual void freeze() = 0;
+  //! Allow the entry to expire from the cache.
   virtual void unfreeze() = 0;
+
+  // \return \a true if the entry will not expire from the cache.
+  virtual bool frozen() = 0;
 };
 
 
@@ -47,15 +52,27 @@ public:
                                      ContentName const& name,
                                      std::istream& in) = 0;
 
-  virtual void publish(Hash const& hash) = 0;
-  virtual bool should_forward(ContentMetadata const& metadata) const = 0;
+  //! Send one message to the network containing the metadata of all of the
+  //! specified content items.
+  virtual void publish_metadata(std::vector<Hash> hashes) = 0;
 
+  //! Send one message to the network containing all of the given block
+  //! requests.
   virtual void request_blocks(std::vector<BlockRequestArgs> requests) = 0;
+
+  //! Broadcast completely the data for the specified block.
+  // \return An interface that can be used to keep or mark as free the cache
+  //         entry for the block data that were broadcast.
   virtual CacheEntry* broadcast_block(Hash hash, std::size_t index) = 0;
 
-  // Content Hash, Block Index, Utility, TTL ms (deadline), Origin
+  //! Fired when a nonempty set of block requests arrives from the network.
   Event<std::vector<BlockRequestArgs>> on_blocks_requested;
+  //! Fired when a previously broadcast request exceeds its Time to Live
+  //! argument.
   Event<Hash, std::size_t> on_request_timeout;
+  //! Fired when block data arrive and are cached by the content helper.
+  // The \a CacheEntry argument provides functions to keep or release the cache
+  // entry for the given data.
   Event<Hash, std::size_t, CacheEntry*> on_block_arrived;
 };
 }

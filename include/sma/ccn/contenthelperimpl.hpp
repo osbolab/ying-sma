@@ -48,8 +48,7 @@ public:
                              ContentName const& name,
                              std::istream& in) override;
 
-  void publish(Hash const& hash) override;
-  bool should_forward(ContentMetadata const& metadata) const override;
+  void publish_metadata(std::vector<Hash> hashes) override;
 
   void request_blocks(std::vector<BlockRequestArgs> requests) override;
   CacheEntry* broadcast_block(Hash hash, std::size_t index) override;
