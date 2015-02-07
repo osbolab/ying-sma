@@ -29,6 +29,14 @@ namespace sma
 {
 static sma::chrono::system_clock::time_point g_published;
 
+std::vector<ContentMetadata> ContentHelperImpl::metadata() const
+{
+  std::vector<ContentMetadata> v;
+  for (auto& pair : kct)
+    v.push_back(pair.second.metadata);
+  return v;
+}
+
 void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
 {
   ++msg.distance;

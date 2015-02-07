@@ -18,6 +18,8 @@
 #include <iosfwd>
 #include <cstdlib>
 #include <utility>
+
+#include <vector>
 #include <unordered_map>
 
 
@@ -48,8 +50,8 @@ public:
                              ContentName const& name,
                              std::istream& in) override;
 
+  std::vector<ContentMetadata> metadata() const override;
   void publish_metadata(std::vector<Hash> hashes) override;
-
   void request_blocks(std::vector<BlockRequestArgs> requests) override;
   CacheEntry* broadcast_block(Hash hash, std::size_t index) override;
 

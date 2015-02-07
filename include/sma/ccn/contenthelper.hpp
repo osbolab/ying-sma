@@ -8,6 +8,7 @@
 #include <sma/util/event.hpp>
 #include <sma/util/vec2d.hpp>
 
+#include <vector>
 #include <iosfwd>
 #include <cstdlib>
 #include <utility>
@@ -51,6 +52,8 @@ public:
   virtual ContentMetadata create_new(ContentType const& type,
                                      ContentName const& name,
                                      std::istream& in) = 0;
+
+  virtual std::vector<ContentMetadata> metadata() const = 0;
 
   //! Send one message to the network containing the metadata of all of the
   //! specified content items.
