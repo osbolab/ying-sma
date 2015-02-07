@@ -27,17 +27,7 @@ public:
     if (blockresponse_sched_ptr != NULL)  delete blockresponse_sched_ptr;
   }
   
-  void on_interest (const std::vector<Interest*>& interests) 
-  {
-    interest_sched_ptr->add_interests(interests);
-  }
-
-  void on_metadata (const std::vector<ContentMetadata*>& metadata)
-  {
-    meta_sched_ptr->add_metadata(metadata); 
-  }
-
-  void on_blockrequest (const std::vector<BlockRequest*>& requests)
+  void on_blockrequest (const std::vector<BlockRequest>& requests)
   {
     blockrequest_sched_ptr->add_requests(requests); 
   }

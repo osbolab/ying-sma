@@ -14,7 +14,7 @@ public:
                       int storage,
                       int bandwidth,
                       int num_of_neighbor,
-                      int * ttl_per_block,
+                      const std::vector<std::vector<int> >& ttl_per_block,
                       const std::vector<std::vector<double> >&  utility)
   {
     glp_prob *mip = glp_create_prob();
@@ -25,7 +25,7 @@ public:
 
     int num_of_rows = (max_ttl+2) 
                     + (max_ttl+1) 
-                    + num_of_blocks 
+//                    + num_of_blocks 
                     + num_of_blocks * (max_ttl+1);
 
     glp_add_rows(mip, num_of_rows);
@@ -54,7 +54,7 @@ public:
     }
 
     // constraint set 3
-    for (int i=0; i<num_of_blocks; i++)
+/*    for (int i=0; i<num_of_blocks; i++)
     {
       std::ostringstream constraint_name;
       constraint_name << "c" << row_index;
@@ -62,7 +62,7 @@ public:
       glp_set_row_bnds (mip, row_index, GLP_FX, 0, 0); // 1->0
       row_index++;
     }
-
+*/
     //constraint set 4
 
     for (int i=0; i<num_of_blocks; i++)
@@ -82,30 +82,41 @@ public:
     
     int col_index = 1;
 
-    for (int i=0; i<num_of_blocks; i++)
-      for (int j=0; j<=max_ttl+1; j++)
+    for (int c=0; c<num_of_blocks; c++)
+    {
+      for (int t=0; t<=max_ttl+1; t++)
       {
         std::ostringstream constraint_name;
         constraint_name << "x" << col_index;
         glp_set_col_name (mip, col_index, constraint_name.str().c_str());
         glp_set_col_bnds (mip, col_index, GLP_DB, 0, 1);
-        if (j==0)
+        if (t==0)
         {
           double total_utilities = 0;
           for (int k=0; k<num_of_neighbor; k++)
           {
-            total_utilities += utility[k][i];
+            total_utilities += utility[k][c];
           }
           glp_set_obj_coef (mip, col_index, total_utilities);
         }
         else
         {
-          glp_set_obj_coef (mip, col_index, 0);
+          double total_utilities = 0;
+          for (int k=0; k<num_of_neighbor; k++)
+          {
+            if (ttl_per_block[k][c] == -1)
+              continue;
+            if (ttl_per_block[k][c] + 1 == t)
+            {
+              total_utilities += utility[k][c]; 
+            }
+          }
+          glp_set_obj_coef (mip, col_index, (-1) * total_utilities);
         }
         glp_set_col_kind (mip, col_index, GLP_BV); //binary
         col_index++;
       }
-
+    }
 
     //// assign coef at the constarint matrix
 
@@ -136,28 +147,25 @@ public:
         arr_vec.push_back (-1);
       }
 
-    
+/*    
     // construct coef array for constraint set 3
 
     for (int c=0; c<num_of_blocks; c++)
     {
-//      ia_vec.push_back (2 * max_ttl + 4 + c);
       ia_vec.push_back (2 * max_ttl + 4 + c);
-//      ja_vec.push_back (1 + c * (max_ttl+2));
       ja_vec.push_back (1 + c * (max_ttl+2) + ttl_per_block[c] + 1);
- //     arr_vec.push_back(1);
       arr_vec.push_back(1);
     }
-
+*/
 
     // construct coef array for constraint set 4
     
     for (int c=0; c<num_of_blocks; c++)
       for (int t=0; t<=max_ttl; t++)
       {
-        ia_vec.push_back(2 * max_ttl + 4 + num_of_blocks
+        ia_vec.push_back(2 * max_ttl + 4 //+ num_of_blocks
                 + c * (max_ttl+1) + t);
-        ia_vec.push_back(2 * max_ttl + 4 + num_of_blocks
+        ia_vec.push_back(2 * max_ttl + 4 //+ num_of_blocks
                 + c * (max_ttl+1) + t);
         ja_vec.push_back(1 + c * (max_ttl+2) + t);
         ja_vec.push_back(1 + c * (max_ttl+2) + t + 1);
