@@ -3,20 +3,31 @@
 #include <sma/helper.hpp>
 #include <sma/ccn/ccnfwd.hpp>
 #include <sma/ccn/contentmetadata.hpp>
+#include <sma/ccn/blockrequestargs.hpp>
 
 #include <sma/util/event.hpp>
 #include <sma/util/vec2d.hpp>
 
 #include <iosfwd>
 #include <cstdlib>
+#include <utility>
 
 
 namespace sma
 {
+
+class CacheEntry
+{
+public:
+  virtual ~CacheEntry() {}
+
+  virtual void freeze() = 0;
+  virtual void unfreeze() = 0;
+};
+
+
 class ContentHelper : public Helper
 {
-  friend class RemoteContent;
-
 public:
   ContentHelper(CcnNode& node);
 
@@ -39,14 +50,36 @@ public:
   virtual void publish(Hash const& hash) = 0;
   virtual bool should_forward(ContentMetadata const& metadata) const = 0;
 
-  virtual void request_block(Hash const& hash, std::size_t index) = 0;
+  virtual void request_blocks(std::vector<BlockRequestArgs> requests) = 0;
+  virtual CacheEntry* broadcast_block(Hash hash, std::size_t index) = 0;
 
   // Content Hash, Block Index, Utility, TTL ms (deadline), Origin
-  Event<Hash, std::size_t, double, std::size_t, Vec2d> on_block_requested;
-  Event<Hash, std::size_t> on_block_arrived;
-  Event<Hash, std::size_t> on_fetch_timeout;
+  Event<std::vector<BlockRequestArgs>> on_blocks_requested;
+  Event<Hash, std::size_t> on_request_timeout;
+  Event<Hash, std::size_t, CacheEntry*> on_block_arrived;
 };
 }
+
+namespace std
+{
+template <>
+struct hash<pair<sma::Hash, size_t>> {
+  size_t operator()(pair<sma::Hash, size_t> const& a) const
+  {
+    return 37 * hash<sma::Hash>()(a.first) + a.second;
+  }
+};
+
+template <>
+struct less<pair<sma::Hash, size_t>> {
+  using arg_type = pair<sma::Hash, size_t>;
+  bool operator()(arg_type const& lhs, arg_type const& rhs) const
+  {
+    return (lhs.first < rhs.first) && (lhs.second < rhs.second);
+  }
+};
+}
+
 
 #if 0
 // Example event handler (callback):
