@@ -5,16 +5,20 @@
 
 #include <sma/util/serial.hpp>
 
+#include <vector>
+
+
 namespace sma
 {
 struct ContentAnn {
   TRIVIALLY_SERIALIZABLE(ContentAnn, metadata, distance)
 
-  ContentMetadata metadata;
+  std::vector<ContentMetadata> metadata;
   NetworkDistance distance;
 
-  ContentAnn(ContentMetadata metadata, NetworkDistance distance)
-    : metadata(metadata)
+  ContentAnn(std::vector<ContentMetadata> metadata,
+             NetworkDistance distance = 0)
+    : metadata(std::move(metadata))
     , distance(distance)
   {
   }

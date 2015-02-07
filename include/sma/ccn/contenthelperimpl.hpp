@@ -5,6 +5,7 @@
 #include <sma/ccn/remotecontent.hpp>
 #include <sma/ccn/contentcache.hpp>
 #include <sma/ccn/blockrequest.hpp>
+#include <sma/ccn/blockrequestargs.hpp>
 
 #include <sma/networkdistance.hpp>
 #include <sma/util/hash.hpp>
@@ -17,19 +18,10 @@
 #include <iosfwd>
 #include <cstdlib>
 #include <utility>
+
+#include <vector>
 #include <unordered_map>
 
-
-namespace std
-{
-template <>
-struct hash<pair<sma::Hash, size_t>> {
-  size_t operator()(pair<sma::Hash, size_t> const& a) const
-  {
-    return 37 * hash<sma::Hash>()(a.first) + a.second;
-  }
-};
-}
 
 namespace sma
 {
@@ -50,18 +42,19 @@ public:
   {
   }
 
-  virtual void receive(MessageHeader header, ContentAnn msg) override;
-  virtual void receive(MessageHeader header, BlockRequest req) override;
-  virtual void receive(MessageHeader header, BlockResponse resp) override;
+  void receive(MessageHeader header, ContentAnn msg) override;
+  void receive(MessageHeader header, BlockRequest req) override;
+  void receive(MessageHeader header, BlockResponse resp) override;
 
-  virtual ContentMetadata create_new(ContentType const& type,
-                                     ContentName const& name,
-                                     std::istream& in) override;
+  ContentMetadata create_new(ContentType const& type,
+                             ContentName const& name,
+                             std::istream& in) override;
 
-  virtual void publish(Hash const& hash) override;
-  virtual bool should_forward(ContentMetadata const& metadata) const override;
+  std::vector<ContentMetadata> metadata() const override;
+  void publish_metadata(std::vector<Hash> hashes) override;
+  void request_blocks(std::vector<BlockRequestArgs> requests) override;
+  CacheEntry* broadcast_block(Hash hash, std::size_t index) override;
 
-  virtual void request_block(Hash const& hash, std::size_t index) override;
 
 private:
   using clock = sma::chrono::system_clock;
@@ -99,4 +92,3 @@ private:
   std::unordered_map<std::pair<Hash, std::size_t>, PendingRequest> prt;
 };
 }
-

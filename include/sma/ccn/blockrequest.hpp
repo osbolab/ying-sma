@@ -1,9 +1,8 @@
 #pragma once
 
-#include <sma/util/hash.hpp>
+#include <sma/ccn/blockrequestargs.hpp>
 
 #include <sma/util/serial.hpp>
-#include <sma/util/vec2d.hpp>
 
 #include <cstdint>
 
@@ -15,7 +14,6 @@ struct BlockFragmentRequest {
 
   std::uint32_t offset;
   std::uint32_t size;
-  Vec2d position;
 
   BlockFragmentRequest(std::uint32_t offset, std::uint32_t size)
     : offset(offset)
@@ -32,21 +30,13 @@ struct BlockFragmentRequest {
 
 
 struct BlockRequest {
-  TRIVIALLY_SERIALIZABLE(BlockRequest, hash, index, fragments, position)
+  TRIVIALLY_SERIALIZABLE(BlockRequest, requests)
 
-  Hash hash;
-  std::uint16_t index;
-  std::vector<BlockFragmentRequest> fragments;
+  std::vector<BlockRequestArgs> requests;
 
 
-  BlockRequest(Hash hash,
-               std::uint16_t index,
-               std::vector<BlockFragmentRequest> fragments,
-               Vec2d position)
-    : hash(hash)
-    , index(index)
-    , fragments(std::move(fragments))
-    , position(position)
+  BlockRequest(std::vector<BlockRequestArgs> requests)
+    : requests(std::move(requests))
   {
   }
 

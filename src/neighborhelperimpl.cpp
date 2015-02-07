@@ -27,18 +27,37 @@ NeighborHelperImpl::NeighborHelperImpl(CcnNode& node)
   schedule_beacon(100ms);
 }
 
+std::vector<Neighbor> NeighborHelperImpl::get() const
+{
+  std::vector<Neighbor> v;
+  for (auto& pair : neighbors)
+    v.push_back(
+        Neighbor{pair.first, pair.second.position(), pair.second.velocity});
+  return v;
+}
+
 void NeighborHelperImpl::saw(NodeId const& node, Vec2d const& position)
 {
   auto it = neighbors.find(node);
   if (it == neighbors.end())
-    neighbors.emplace(node, Neighbor(position));
-  else
+    neighbors.emplace(node, NeighborRecord(position));
+  else {
     it->second.saw(position);
+    log.d("Neighbor %v", it->first);
+    log.d("| position: %v", std::string(it->second.position()));
+    log.d("| velocity: %v m/s", it->second.velocity.length());
+  }
 }
 
 void NeighborHelperImpl::receive(MessageHeader header, Beacon msg)
 {
   saw(header.sender, msg.position);
+  for (auto& n : get()) {
+    log.d("Neighbor %v", n.id);
+    log.d("| position: %v", std::string(n.position));
+    log.d("| velocity: %v", std::string(n.velocity));
+  }
+
   if (!msg.is_response)
     node.post(Beacon(node.position(), true));
 }
