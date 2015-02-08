@@ -191,7 +191,7 @@ CacheEntry* ContentHelperImpl::broadcast_block(Hash hash, std::size_t index)
 void ContentHelperImpl::receive(MessageHeader header, BlockRequest msg)
 {
   if (not msg.requests.empty())
-    on_blocks_requested(std::move(msg.requests));
+    on_blocks_requested(header.sender, std::move(msg.requests));
 }
 
 void ContentHelperImpl::receive(MessageHeader header, BlockResponse resp)

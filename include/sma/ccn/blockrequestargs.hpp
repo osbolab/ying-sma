@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sma/util/hash.hpp>
+#include <sma/nodeid.hpp>
 #include <sma/util/vec2d.hpp>
 
 #include <sma/util/serial.hpp>
@@ -13,16 +14,27 @@
 namespace sma
 {
 struct BlockRequestArgs {
-  TRIVIALLY_SERIALIZABLE(BlockRequestArgs, hash, index, utility, ttl_ms, origin)
+  TRIVIALLY_SERIALIZABLE(BlockRequestArgs,
+                         hash,
+                         index,
+                         utility,
+                         ttl_ms,
+                         requester,
+                         requester_position)
 
   template <typename D>
-  BlockRequestArgs(
-      Hash hash, std::size_t index, double utility, D ttl, Vec2d origin)
+  BlockRequestArgs(Hash hash,
+                   std::size_t index,
+                   double utility,
+                   D ttl,
+                   NodeId requester,
+                   Vec2d requester_position)
     : hash(hash)
     , index(index)
     , utility(utility)
     , ttl_ms(std::chrono::duration_cast<std::chrono::milliseconds>(ttl).count())
-    , origin(origin)
+    , requester(requester)
+    , requester_position(requester_position)
   {
   }
 
@@ -30,8 +42,14 @@ struct BlockRequestArgs {
   BlockRequestArgs(std::pair<Hash, std::size_t> block,
                    double utility,
                    D ttl,
-                   Vec2d origin)
-    : BlockRequestArgs(block.first, block.second, utility, ttl, origin)
+                   NodeId requester,
+                   Vec2d requester_position)
+    : BlockRequestArgs(block.first,
+                       block.second,
+                       utility,
+                       ttl,
+                       requester,
+                       requester_position)
   {
   }
 
@@ -45,6 +63,7 @@ struct BlockRequestArgs {
   std::uint32_t index;
   double utility;
   std::uint32_t ttl_ms;
-  Vec2d origin;
+  NodeId requester;
+  Vec2d requester_position;
 };
 }
