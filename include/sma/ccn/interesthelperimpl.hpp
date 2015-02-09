@@ -36,10 +36,11 @@ public:
 
   /* Implement InterestHelper */
 
-  virtual void receive(MessageHeader header, InterestAnn announcement) override;
-  virtual void create_local(std::vector<Interest> interests) override;
-  virtual bool interested_in(ContentMetadata const& metadata) const override;
-  virtual bool know_remote(Interest const& interest) const override;
+  void receive(MessageHeader header, InterestAnn announcement) override;
+  void create_local(std::vector<Interest> interests) override;
+  std::vector<Interest> local() const override;
+  bool interested_in(ContentMetadata const& metadata) const override;
+  bool know_remote(Interest const& interest) const override;
 
   //! Broadcast the contents of our tables to our neighbors.
   /* In the case that we have many records stored, they may be ordered and

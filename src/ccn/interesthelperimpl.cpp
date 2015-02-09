@@ -74,6 +74,14 @@ bool InterestHelperImpl::learn_remote(Interest const& interest)
   return existing.update();
 }
 
+std::vector<Interest> InterestHelperImpl::local() const
+{
+  std::vector<Interest> interests;
+  for (auto& i : lit)
+    interests.push_back(i.first);
+  return interests;
+}
+
 bool InterestHelperImpl::interested_in(ContentMetadata const& metadata) const
 {
   return lit.find(Interest(metadata)) != lit.end();
