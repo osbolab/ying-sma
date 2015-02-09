@@ -5,6 +5,7 @@
 #include <sma/ccn/contentmetadata.hpp>
 #include <sma/ccn/blockrequestargs.hpp>
 
+#include <sma/nodeid.hpp>
 #include <sma/util/event.hpp>
 #include <sma/util/vec2d.hpp>
 
@@ -69,7 +70,7 @@ public:
   virtual CacheEntry* broadcast_block(Hash hash, std::size_t index) = 0;
 
   //! Fired when a nonempty set of block requests arrives from the network.
-  Event<std::vector<BlockRequestArgs>> on_blocks_requested;
+  Event<NodeId, std::vector<BlockRequestArgs>> on_blocks_requested;
   //! Fired when a previously broadcast request exceeds its Time to Live
   //! argument.
   Event<Hash, std::size_t> on_request_timeout;

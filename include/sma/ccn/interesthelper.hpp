@@ -20,6 +20,8 @@ public:
 
   virtual void create_local(std::vector<Interest> interests) = 0;
 
+  virtual std::vector<Interest> local() const = 0;
+
   virtual bool interested_in(ContentMetadata const& metadata) const = 0;
   virtual bool know_remote(Interest const& interest) const = 0;
 
