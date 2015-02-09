@@ -4,6 +4,7 @@
 #include <sma/ccn/contentmetadata.hpp>
 #include <sma/ccn/remotecontent.hpp>
 #include <sma/ccn/contentcache.hpp>
+#include <sma/ccn/blockindex.hpp>
 #include <sma/ccn/blockrequest.hpp>
 #include <sma/ccn/blockrequestargs.hpp>
 
@@ -15,12 +16,12 @@
 #include <sma/chrono.hpp>
 #include <sma/io/log>
 
+#include <vector>
+#include <unordered_map>
+
 #include <iosfwd>
 #include <cstdlib>
 #include <utility>
-
-#include <vector>
-#include <unordered_map>
 
 
 namespace sma
@@ -51,9 +52,12 @@ public:
                              std::istream& in) override;
 
   std::vector<ContentMetadata> metadata() const override;
-  void publish_metadata(std::vector<Hash> hashes) override;
-  void request_blocks(std::vector<BlockRequestArgs> requests) override;
-  CacheEntry* broadcast_block(Hash hash, std::size_t index) override;
+  std::size_t publish_metadata(std::vector<Hash> hashes) override;
+  void request(std::vector<BlockRequestArgs> requests) override;
+  bool broadcast(Hash hash, BlockIndex index) override;
+  std::size_t freeze(std::vector<std::pair<Hash, BlockIndex>> blocks) override;
+  std::size_t
+  unfreeze(std::vector<std::pair<Hash, BlockIndex>> blocks) override;
 
 
 private:
@@ -89,6 +93,6 @@ private:
   //! Known Content Table - Remote content for which we have metadata
   std::unordered_map<Hash, MetaRecord> kct;
   //! Pending Request Table
-  std::unordered_map<std::pair<Hash, std::size_t>, PendingRequest> prt;
+  std::unordered_map<std::pair<Hash, BlockIndex>, PendingRequest> prt;
 };
 }

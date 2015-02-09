@@ -1,7 +1,8 @@
 #pragma once
 
-#include <sma/util/hash.hpp>
 #include <sma/nodeid.hpp>
+#include <sma/util/hash.hpp>
+#include <sma/ccn/blockindex.hpp>
 #include <sma/util/vec2d.hpp>
 
 #include <sma/util/serial.hpp>
@@ -24,8 +25,8 @@ struct BlockRequestArgs {
 
   template <typename D>
   BlockRequestArgs(Hash hash,
-                   std::size_t index,
-                   double utility,
+                   BlockIndex index,
+                   float utility,
                    D ttl,
                    NodeId requester,
                    Vec2d requester_position)
@@ -39,8 +40,8 @@ struct BlockRequestArgs {
   }
 
   template <typename D>
-  BlockRequestArgs(std::pair<Hash, std::size_t> block,
-                   double utility,
+  BlockRequestArgs(std::pair<Hash, BlockIndex> block,
+                   float utility,
                    D ttl,
                    NodeId requester,
                    Vec2d requester_position)
@@ -60,8 +61,8 @@ struct BlockRequestArgs {
   }
 
   Hash hash;
-  std::uint32_t index;
-  double utility;
+  BlockIndex index;
+  float utility;
   std::uint32_t ttl_ms;
   NodeId requester;
   Vec2d requester_position;
