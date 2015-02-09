@@ -2,7 +2,7 @@
 
 #include <sma/ccn/interest.hpp>
 #include <sma/ccn/contentmetadata.hpp>
-#include <sma/ccn/ccnfwd.hpp>
+#include <utility>
 
 namespace sma
 {
@@ -10,13 +10,32 @@ namespace sma
 class ForwardScheduler
 {
 public:
-//  virtual void on_interest <std::vector<Interest>> = 0;
-//  virtual void on_metadata <std::vector<ContentMetadata>> = 0;
-  virtual void on_blockrequest <std::vector<BlockRequest>> = 0;
-  virtual void on_blockresponse <std::vector<BlockResponse>> = 0;
-  virtual int get_max_ttl() const = 0;
-  virtual std::uint32_t get_sched_interval() const = 0;
+	
+  ForwardScheduler (CcnNode* host_node, std::uint32_t interval)
+	  : node (host_node)
+	  , sched_interval (interval)
+  {}
+	  
+  virtual void on_blockrequest (const std::vector<BlockRequestArgs> & requests) = 0;
+  virtual void on_block (const std::vector<std::pair<Hash, std::size_t>> & blocks)= 0;
+  virtual void sched() = 0;
 
   virtual ~ForwardScheduler() {}
+  
+  std::uint32_t get_sched_interval() const
+  {
+	return sched_interval;
+  }
+  
+  CcnNode* get_node() const
+  {
+	return node;
+  }
+  
+  
+private:
+	
+  CcnNode* node;
+  std::uint32_t sched_interval;
 };
 }

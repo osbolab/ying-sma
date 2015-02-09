@@ -15,8 +15,7 @@ class ForwardSchedulerImpl : public ForwardScheduler
 {
 public:
   ForwardSchedulerImpl(CcnNode* host_node, std::uint32_t interval)
-      : node (host_node)
-      , sched_interval (interval);
+      : ForwardScheduler (host_node, interval)
   {
     interest_sched_ptr = new InterestScheduler(); 
     meta_sched_ptr = new MetaScheduler();
@@ -32,14 +31,14 @@ public:
     if (blockresponse_sched_ptr != NULL)  delete blockresponse_sched_ptr;
   }
   
-  void on_blockrequest (const std::vector<BlockRequest>& requests)
+  void on_blockrequest (const std::vector<BlockRequestArgs> & requests) override
   {
     blockrequest_sched_ptr->add_requests(requests); 
   }
 
-  void on_blockresponse (const std::vector<BlockResponse*>& responses)
+  void on_block (const std::vector<std::pair<Hash, std::size_t>> & blocks) override
   {
-    blockresponse_sched_ptr->add_responses(responses); 
+    blockresponse_sched_ptr->add_responses(blocks); 
   }
 
   void freeze_block (Hash name, size_t index)
@@ -73,10 +72,15 @@ public:
 
   std::uint32_t get_sched_interval() const
   {
-    return sched_interval; 
+    return super::get_sched_interval();
+  }
+  
+  CcnNode* get_node() const
+  {
+	return ForwardScheduler::get_node();
   }
 
-  void sched ()  // which will be called regularly
+  void sched () override // which will be called regularly
   {
     // all the nums will be used later for piroritized broadcast
     
@@ -95,12 +99,10 @@ private:
   MetaScheduler* meta_sched_ptr;
   BlockRequestScheduler* blockrequest_sched_ptr;
   BlockRespondScheduler* blockresponse_sched_ptr;
-  CcnNode* node;
-  std::uint32_t sched_interval;
 
   void schedule_interest_fwd () { interest_sched_ptr->sched(); }
   void schedule_metadata_fwd () { meta_sched_ptr->sched(); }
-  void schedule_blockrequest_fwd { blockrequest_sched_ptr->sched(); }
+  void schedule_blockrequest_fwd () { blockrequest_sched_ptr->sched(); }
   void schedule_blockresponse_fwd () {blockresponse_sched_ptr->sched(); }
 };
 }
