@@ -130,7 +130,7 @@ ContentMetadata ContentHelperImpl::create_new(ContentType const& type,
   return metadata;
 }
 
-std::size_t ContentHelperImpl::publish_metadata(std::vector<Hash> hashes)
+std::size_t ContentHelperImpl::publish_metadata()
 {
   std::vector<ContentMetadata> metas;
 

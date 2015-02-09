@@ -25,6 +25,6 @@ public:
   virtual bool interested_in(ContentMetadata const& metadata) const = 0;
   virtual bool know_remote(Interest const& interest) const = 0;
 
-  virtual void announce() = 0;
+  virtual std::size_t announce() = 0;
 };
 }

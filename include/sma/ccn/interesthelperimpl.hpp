@@ -8,10 +8,16 @@
 #include <sma/ccn/interestrank.hpp>
 #include <sma/ccn/remoteinterest.hpp>
 
+#include <sma/chrono.hpp>
+
 #include <sma/io/log>
 
+#include <cstdlib>
+
 #include <map>
+#include <deque>
 #include <unordered_map>
+
 
 namespace sma
 {
@@ -31,10 +37,7 @@ namespace sma
 class InterestHelperImpl : public InterestHelper
 {
 public:
-  //! Construct a helper to manage interests for the given node.
   InterestHelperImpl(CcnNode& node);
-
-  /* Implement InterestHelper */
 
   void receive(MessageHeader header, InterestAnn announcement) override;
   void create_local(std::vector<Interest> interests) override;
@@ -42,32 +45,16 @@ public:
   bool interested_in(ContentMetadata const& metadata) const override;
   bool know_remote(Interest const& interest) const override;
 
-  //! Broadcast the contents of our tables to our neighbors.
-  /* In the case that we have many records stored, they may be ordered and
-   * culled based on some preference metrics.
-   */
-  virtual void announce() override;
+  virtual std::size_t announce() override;
 
 private:
-  //! Insert a new, or update an existing, interest received from a remote node.
-  bool learn_remote(Interest const& interest);
+  using clock = sma::chrono::system_clock;
+  using time_point = clock::time_point;
 
-  void prune_remote();
-
-  //! The Local Interest Table records content this node is interested in.
-  /*! These records always have precedence in dissemination as they are the
-   * ultimate source of interests in the network.
-   */
-  std::map<Interest, InterestRank> lit;
-
-  //! The Remote Interest Table records content other nodes are interested in.
-  /*! This table is populated by InterestAnns from other nodes and its
-   * entries expire without recurring announcements.
-   *
-   * An example application of this information is to decide to forward content
-   * announcements only for those content in which we have previously seen
-   * interest.
-   */
-  std::unordered_map<Interest, RemoteInterest> rit;
+  // Always ordered in decreasing time since last announced (never being
+  // shortest).
+  // On announcing, interests are selected off the head and replaced to the tail
+  // until no more can fit in the announcement.
+  std::deque<Interest> interests;
 };
 }
