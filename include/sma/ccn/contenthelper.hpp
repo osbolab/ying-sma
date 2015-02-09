@@ -41,10 +41,7 @@ public:
                                      std::istream& in) = 0;
 
   virtual std::vector<ContentMetadata> metadata() const = 0;
-
-  //! Send one message to the network containing the metadata of all of the
-  //! specified content items.
-  virtual std::size_t publish_metadata(std::vector<Hash> hashes) = 0;
+  virtual std::size_t publish_metadata() = 0;
 
   //! Send one message to the network containing all of the given block
   //! requests.
@@ -57,7 +54,6 @@ public:
 
   virtual std::size_t freeze(std::vector<std::pair<Hash, BlockIndex>> blocks)
       = 0;
-
   virtual std::size_t unfreeze(std::vector<std::pair<Hash, BlockIndex>> blocks)
       = 0;
 

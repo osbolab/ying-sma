@@ -15,31 +15,9 @@ using namespace std::literals::chrono_literals;
 
 namespace sma
 {
-void log_interest_table(Logger& log,
-                        std::unordered_map<ContentType, RemoteInterest>& rit)
-{
-  log.d(" remote interest table");
-  log.d("| content | age (ms) |");
-  log.d("| ------- | -------- |");
-  std::stringstream ss;
-  for (auto it = rit.begin(); it != rit.end(); ++it) {
-    ss.str("");
-    auto age_ms = it->second.template age<std::chrono::milliseconds>().count();
-    ss << "| " << std::left << std::setw(7) << std::string(it->first) << " | ";
-    if (age_ms != 0)
-      ss << std::left << std::setw(8) << std::to_string(age_ms) << " |";
-    else
-      ss << std::left << std::setw(8) << "   *"
-         << " |";
-    log.d(ss.str());
-  }
-  log.d("");
-}
-
 InterestHelperImpl::InterestHelperImpl(CcnNode& node)
   : InterestHelper(node)
 {
-  prune_remote();
 }
 
 void InterestHelperImpl::receive(MessageHeader header, InterestAnn msg)
@@ -65,75 +43,102 @@ void InterestHelperImpl::receive(MessageHeader header, InterestAnn msg)
   }
 }
 
-bool InterestHelperImpl::learn_remote(Interest const& interest)
+void InterestHelperImpl::learn_remote(Interest const& interest)
 {
-  auto try_add = rit.emplace(interest, RemoteInterest());
-  if (try_add.second)
-    return true;
-  auto& existing = try_add.first->second;
-  return existing.update();
+  for (auto& i : interests)
+    if (i.type == interest.type) {
+      i.update_with(interest);
+      return;
+    }
+  interests.emplace_front(
+      interest.type, interest.ttl<std::chrono::milliseconds>(), interest.hops);
 }
 
 std::vector<Interest> InterestHelperImpl::local() const
 {
   std::vector<Interest> interests;
-  for (auto& i : lit)
-    interests.push_back(i.first);
+  for (auto& i : interests)
+    if (i.local())
+      interests.push_back(i.first);
   return interests;
 }
 
 bool InterestHelperImpl::interested_in(ContentMetadata const& metadata) const
 {
-  return lit.find(Interest(metadata)) != lit.end();
+  for (auto& i : interests)
+    if (i.local())
+      for (auto& type : metadata.types)
+        if (i.type == type)
+          return true;
 }
 
 bool InterestHelperImpl::know_remote(Interest const& interest) const
 {
-  return rit.find(interest) != rit.end();
+  for (auto& i : interests)
+    if (i.remote() && i.type == interest.type)
+      return true;
 }
 
-void InterestHelperImpl::create_local(std::vector<Interest> types)
+void InterestHelperImpl::create_local(std::vector<ContentType> types)
 {
-  for (auto& t : types)
-    lit.emplace(t, InterestRank());
+  for (auto& type : types) {
+    for (auto it = interests.begin(); it != interests.end(); ++it)
+      if (it->type == type) {
+        interests.erase(it);
+        break;
+      }
+    interests.emplace_front(type, 10s);
+  }
 }
 
-void InterestHelperImpl::announce()
+std::size_t InterestHelperImpl::announce()
 {
-  InterestAnn msg(node.id);
+  // Max size of one announcement message to be filled with interests
+  std::size_t const max_size = 1024;
+  // Serialize the interests into a contiguous block of stack to
+  // a) avoid fragmenting allocations and b) provide a ready structure to
+  // write the serialized interests into a message.
+  std::uint8_t data_buf[max_size * 2];
+  // Mark the start of the current interest's buffer space
+  std::uint8_t* data = &data_buf;
+  // Total serialized length
+  std::size_t size = 0;
+  std::size_t count = 0;
 
-  // Our interests are 0 hops from us... the receiver will account for our
-  // link to them.
-  if (!lit.empty()) {
-    msg.interests.reserve(lit.size());
-    for (auto const& entry : lit)
-      msg.interests.emplace_back(entry.first, true);
-  }
-  // Add as many remote interests to our message as we can.
-  // FIXME: We need some real logic here.
-  std::size_t const nmax = 255;
-  if (lit.size() < nmax) {
-    auto nfwds = nmax - lit.size();
-    for (auto it = rit.cbegin(); nfwds-- > 0 && it != rit.cend(); ++it)
-      msg.interests.emplace_back(it->first, false);
+  while (count < interests.size()) {
+    auto& i = interests.begin();
+    i.elapse_ttl();
+    if (i.expired()) {
+      interests.pop_front();
+      continue;
+    }
+
+    BinaryOutput out(data, sizeof(data_buf) - size);
+    out << i;
+    auto const wrote = out.size();
+    // Don't overrun the message
+    if (size + wrote > max_size)
+      break;
+
+    size += wrote;
+    data += size;
+    ++count;
+    // Swap the interest to the end of the deque so others might be sent.
+    interests.push_back(std::move(i));
+    interests.pop_front();
+
+    if (size == max_size)
+      break;
   }
 
-  if (!msg.interests.empty()) {
-    log.t("--> announce %v interests", msg.interests.size());
+  if (count != 0) {
+    // The Interest Announcement message just dumps the buffer into the
+    // message data and reads it back out at the other end.
+    InterestAnn msg(count, data, size);
+    log.t("--> announce %v interests (%v bytes)", count, size);
     node.post(msg);
   }
-}
 
-void InterestHelperImpl::prune_remote()
-{
-  auto it = rit.begin();
-  while (it != rit.end()) {
-    if (it->second.older_than(60s))
-      it = rit.erase(it);
-    else
-      ++it;
-  }
-
-  asynctask(std::bind(&InterestHelperImpl::prune_remote, this)).do_in(60s);
+  return count;
 }
 }

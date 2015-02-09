@@ -52,7 +52,7 @@ public:
                              std::istream& in) override;
 
   std::vector<ContentMetadata> metadata() const override;
-  std::size_t publish_metadata(std::vector<Hash> hashes) override;
+  std::size_t publish_metadata() override;
   void request(std::vector<BlockRequestArgs> requests) override;
   bool broadcast(Hash hash, BlockIndex index) override;
   std::size_t freeze(std::vector<std::pair<Hash, BlockIndex>> blocks) override;
