@@ -130,7 +130,7 @@ ContentMetadata ContentHelperImpl::create_new(ContentType const& type,
   return metadata;
 }
 
-void ContentHelperImpl::publish_metadata(std::vector<Hash> hashes)
+std::size_t ContentHelperImpl::publish_metadata(std::vector<Hash> hashes)
 {
   std::vector<ContentMetadata> metas;
 
@@ -150,9 +150,11 @@ void ContentHelperImpl::publish_metadata(std::vector<Hash> hashes)
     g_published = clock::now();
     node.post(ContentAnn(std::move(metas)));
   }
+
+  return metas.size();
 }
 
-void ContentHelperImpl::request_blocks(std::vector<BlockRequestArgs> requests)
+void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
 {
   /*
   std::vector<BlockFragmentRequest> fragments;
@@ -183,9 +185,18 @@ void ContentHelperImpl::request_blocks(std::vector<BlockRequestArgs> requests)
   node.post(BlockRequest(std::move(requests)));
 }
 
-CacheEntry* ContentHelperImpl::broadcast_block(Hash hash, std::size_t index)
+bool ContentHelperImpl::broadcast(Hash hash, BlockIndex index) { return true; }
+
+std::size_t
+ContentHelperImpl::freeze(std::vector<std::pair<Hash, BlockIndex>> blocks)
 {
-  return nullptr;
+  return blocks.size();
+}
+
+std::size_t
+ContentHelperImpl::unfreeze(std::vector<std::pair<Hash, BlockIndex>> blocks)
+{
+  return blocks.size();
 }
 
 void ContentHelperImpl::receive(MessageHeader header, BlockRequest msg)
@@ -216,7 +227,7 @@ void ContentHelperImpl::receive(MessageHeader header, BlockResponse resp)
 
   if (not block.notified and block.complete()) {
     block.notified = true;
-    on_block_arrived(resp.hash, block.index, nullptr);
+    on_block_arrived(resp.hash, block.index);
   }
 
   log.d("");
