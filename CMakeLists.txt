@@ -95,6 +95,12 @@ set(${PROJECT_NAME}_sources
 
   "src/util/binaryinput.cpp"
   "src/util/binaryoutput.cpp"
+  
+  "src/schedule/blockrequestscheduler.cpp"
+  "src/schedule/blockresponsescheduler.cpp"
+  "src/schedule/forwardschedulerimpl.cpp"
+  "src/schedule/interestscheduler.cpp"
+  "src/schedule/metascheduler.cpp"
 )
 
 include_directories("include")

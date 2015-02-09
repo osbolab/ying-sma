@@ -5,18 +5,19 @@
 #include <sstream>
 #include <cassert>
 #include <iostream>
+#include <cstddef> 
 
 class LPSolver
 {
 public:
-  static void solve ( int max_ttl,
-                      int num_of_blocks,
-                      int storage,
-                      int bandwidth,
-                      int num_of_neighbor,
+  static void solve ( std::size_t max_ttl,
+                      std::size_t num_of_blocks,
+                      std::size_t storage,
+                      std::size_t bandwidth,
+                      std::size_t num_of_neighbor,
                       const std::vector<std::vector<int> >& ttl_per_block,
-                      const std::vector<std::vector<double> >&  utility,
-                      std::vector<std::vector<int> >& sched_result)
+                      const std::vector<std::vector<float> >&  utility,
+                      std::vector<std::vector<std::size_t> >& sched_result)
   {
     glp_prob *mip = glp_create_prob();
     glp_set_prob_name(mip, "joint_scheduling");
@@ -24,17 +25,17 @@ public:
 
     //// row
 
-    int num_of_rows = (max_ttl+2) 
+    std::size_t num_of_rows = (max_ttl+2) 
                     + (max_ttl+1) 
 //                    + num_of_blocks 
                     + num_of_blocks * (max_ttl+1);
 
     glp_add_rows(mip, num_of_rows);
 
-    int row_index = 1;
+    std::size_t row_index = 1;
 
     // constraint set 1
-    for (int i=0; i<=max_ttl+1; i++)
+    for (std::size_t i=0; i<=max_ttl+1; i++)
     {
       std::ostringstream constraint_name;
       constraint_name << "c" << row_index;
@@ -45,7 +46,7 @@ public:
 
     // constraint set 2
 
-    for (int i=0; i<=max_ttl; i++)
+    for (std::size_t i=0; i<=max_ttl; i++)
     {
       std::ostringstream constraint_name;
       constraint_name << "c" << row_index;
@@ -66,8 +67,8 @@ public:
 */
     //constraint set 4
 
-    for (int i=0; i<num_of_blocks; i++)
-      for (int j=0; j<=max_ttl; j++)
+    for (std::size_t i=0; i<num_of_blocks; i++)
+      for (std::size_t j=0; j<=max_ttl; j++)
       {
         std::ostringstream constraint_name;
         constraint_name << "c" << row_index;
@@ -78,14 +79,14 @@ public:
 
     //// column
     
-    int num_of_cols = (max_ttl+2) * num_of_blocks;
+    std::size_t num_of_cols = (max_ttl+2) * num_of_blocks;
     glp_add_cols(mip, num_of_cols);
     
-    int col_index = 1;
+    std::size_t col_index = 1;
 
-    for (int c=0; c<num_of_blocks; c++)
+    for (std::size_t c=0; c<num_of_blocks; c++)
     {
-      for (int t=0; t<=max_ttl+1; t++)
+      for (std::size_t t=0; t<=max_ttl+1; t++)
       {
         std::ostringstream constraint_name;
         constraint_name << "x" << col_index;
@@ -94,7 +95,7 @@ public:
         if (t==0)
         {
           double total_utilities = 0;
-          for (int k=0; k<num_of_neighbor; k++)
+          for (std::size_t k=0; k<num_of_neighbor; k++)
           {
             total_utilities += utility[k][c];
           }
@@ -102,8 +103,8 @@ public:
         }
         else
         {
-          double total_utilities = 0;
-          for (int k=0; k<num_of_neighbor; k++)
+          float total_utilities = 0;
+          for (std::size_t k=0; k<num_of_neighbor; k++)
           {
             if (ttl_per_block[k][c] == -1)
               continue;
@@ -123,12 +124,12 @@ public:
 
     std::vector<int> ia_vec;
     std::vector<int> ja_vec;
-    std::vector<int> arr_vec;
+    std::vector<double> arr_vec;
 
     // construct coef array for constraint set 1
 
-    for (int t=0; t<= max_ttl+1; t++)
-      for (int c=0; c<num_of_blocks; c++)
+    for (std::size_t t=0; t<= max_ttl+1; t++)
+      for (std::size_t c=0; c<num_of_blocks; c++)
       {
         ia_vec.push_back (1+t);
         ja_vec.push_back (1 + c * (max_ttl+2) + t);
@@ -137,8 +138,8 @@ public:
 
     // construct coef array for constraint set 2
 
-    for (int t=0; t<=max_ttl; t++)
-      for (int c=0; c<num_of_blocks; c++)
+    for (std::size_t t=0; t<=max_ttl; t++)
+      for (std::size_t c=0; c<num_of_blocks; c++)
       {
         ia_vec.push_back (max_ttl + 3 + t);
         ia_vec.push_back (max_ttl + 3 + t);
@@ -161,8 +162,8 @@ public:
 
     // construct coef array for constraint set 4
     
-    for (int c=0; c<num_of_blocks; c++)
-      for (int t=0; t<=max_ttl; t++)
+    for (std::size_t c=0; c<num_of_blocks; c++)
+      for (std::size_t t=0; t<=max_ttl; t++)
       {
         ia_vec.push_back(2 * max_ttl + 4 //+ num_of_blocks
                 + c * (max_ttl+1) + t);
@@ -176,7 +177,7 @@ public:
 
     assert (ia_vec.size() == ja_vec.size() && ia_vec.size() == arr_vec.size());
 
-    int sz = ia_vec.size();
+    std::size_t sz = ia_vec.size();
     std::cout <<"size is " << sz << std::endl;
 
     int * ia = new int[sz+1];
@@ -190,7 +191,7 @@ public:
     std::copy (ja_vec.begin(), ja_vec.end(), ja+1);
     std::copy (arr_vec.begin(), arr_vec.end(), arr+1);
 
-    for (int i=0; i<=sz; i++)
+    for (std::size_t i=0; i<=sz; i++)
     {
       std::cout << "ia = " << ia[i] << ", " << "ja = " << ja[i] 
           << ", arr = " << arr[i] << std::endl; 
@@ -208,7 +209,7 @@ public:
     
     std::cout << "max utility is " << max_utility << std::endl;
     
-    std::vector<double> result;
+    std::vector<float> result;
 
     for (int i=0; i<num_of_cols; i++)
     {
@@ -224,10 +225,10 @@ public:
     
     bool cached = false;
 
-    for (int it=0; it<num_of_cols; it++)
+    for (std::size_t it=0; it<num_of_cols; it++)
     {
-      int c = it / (max_ttl+2);
-      int t = it % (max_ttl+2);
+      std::size_t c = it / (max_ttl+2);
+      std::size_t t = it % (max_ttl+2);
 
       sched_result[c][t] = result[it];
     }

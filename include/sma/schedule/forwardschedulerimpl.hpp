@@ -12,6 +12,7 @@
 #include <sma/neighbor.hpp>
 #include <sma/ccn/blockrequestargs.hpp>
 #include <cstddef>
+#include <vector>
 
 namespace sma
 {
@@ -25,10 +26,12 @@ public:
   void on_block (const std::vector<std::pair<Hash, BlockIndex>> & blocks) override;
   void sched () override;
 
-  void freeze_block (Hash name, BlockIndex index);
-  void unfreeze_block (Hash name, BlockIndex index);
-  void broadcast_block (Hash name, BlockIndex index); 
-  void request_blocks (std::vector<BlockRequestArgs> requests);
+  std::size_t freeze_blocks (std::vector<Hash, BlockIndex> blocks);
+  std::size_t unfreeze_blocks (td::vector<Hash, BlockIndex> blocks);
+  bool broadcast_block (Hash name, BlockIndex index); 
+  std::size_t request_blocks (std::vector<BlockRequestArgs> requests);
+  std::size_t fwd_interests ();
+  std::size_t fwd_metas ();
 
   
   std::vector<Neighbor> get_neighbors() const;

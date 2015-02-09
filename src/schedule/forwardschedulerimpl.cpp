@@ -9,6 +9,7 @@
 #include <sma/neighbor.hpp>
 #include <cstddef>
 #include <sma/ccn/blockrequestargs.hpp>
+#include <vector>
 
 namespace sma
 {
@@ -40,19 +41,19 @@ namespace sma
       blockresponse_sched_ptr->add_responses(blocks); 
     }
 	
-    void ForwardSchedulerImpl::freeze_block (Hash name, BlockIndex index)
+    std::size_t ForwardSchedulerImpl::freeze_blocks (td::vector<Hash, BlockIndex> blocks)
     {
-      content->freeze (name, index); 
+      return node->content->freeze (blocks); 
     }
 	
-    void ForwardSchedulerImpl::unfreeze_block (Hash name, BlockIndex index)
+    std::size_t ForwardSchedulerImpl::unfreeze_blocks (td::vector<Hash, BlockIndex> blocks)
     {
-      content->unfreeze (name, index);  
+      return node->content->unfreeze (blocks);  
     }
 	
-    void ForwardSchedulerImpl::broadcast_block (Hash name, BlockIndex index)
+    bool ForwardSchedulerImpl::broadcast_block (Hash name, BlockIndex index)
     {
-      content->request (name, index); 
+      return node->content->request (name, index); 
     }
 	
     std::vector<Neighbor> ForwardSchedulerImpl::get_neighbors() const
@@ -69,6 +70,16 @@ namespace sma
     {
       node->content->request (requests); 
     }
+	
+	std::size_t ForwardSchedulerImpl::fwd_interests()
+	{
+	  return node->interest->announce();
+	}
+	
+	std::size_t ForwardSchedulerImpl::fwd_metas()
+	{
+	  return node->content->publish_metadata();
+	}
 	
     std::uint32_t ForwardSchedulerImpl::get_sched_interval() const
     {

@@ -8,6 +8,7 @@
 #include <vector>
 #include <cstddef>
 #include <sma/ccn/blockindex.hpp> 
+#include <sma/schedule/forwardschedulerimpl.hpp>
 
 namespace sma
 {
@@ -22,7 +23,7 @@ public:
   void add_request_desc (const std::vector<BlockRequestArgs>& requests);
   std::size_t sched();
   int get_ttl (NodeID id, Hash content_name, BlockIndex block_index);
-  double get_utility(NodeID id, Hash content_name, BlockIndex block_index);
+  float get_utility(NodeID id, Hash content_name, BlockIndex block_index);
 
 private:
 
@@ -30,7 +31,7 @@ private:
   std::queue<BlockRequestDesc> request_queue;
   ForwardSchedulerImpl* sched_ptr;
 
-  int fwd_request (int max_num_of_requests);
+  std::size_t fwd_request (std::size_t max_num_of_requests);
   void insert_request (BlockRequestArgs request);
   
 };

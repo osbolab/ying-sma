@@ -66,9 +66,10 @@ namespace sma
                        utils,
                        sched_result
                        );
-
-    
-      std::size_t num_of_broadcasts = 0;
+	  
+	  std::vector<std::pair<Hash, BlockIndex>> blocks_to_freeze;
+	  std::vector<std::pair<Hash, BlockIndex>> blocks_to_unfreeze;
+	  std::vector<std::pair<Hash, BlockIndex>> blocks_to_broadcast;
 
       for (std::size_t c=0; c<sched_result.size(); c++)
       {
@@ -77,27 +78,32 @@ namespace sma
         if (sched_result[c][0] == 1)
         {
           //// freeze cache
-          sched_ptr->freeze_block (block_id->first, 
-                                   block_id->second);
+		  blocks_to_freeze.push_back (block_id);
 
           if (sched_result[c][1] == 0)
           {
-            num_of_broadcasts++;
             sched_ptr->broadcast_block (block_id->first,
                                         block_id->second);
-  		  block_to_schedule.erase (std::pair<Hash, BlockIndex> (block_id->first,
-  		                                                     block_id->second));
+			blocks_to_broadcast.push_back (block_id);
+  		    block_to_schedule.erase (block_id);
           }
         }
         else
         {
           //// unfreeze cache 
-          sched_ptr->unfreeze_block (block_id->first,
-                                     block_id->second);
+          blocks_to_unfreeze.push_back (block_id);
         }
       }
+	  
+	  sched_ptr->freeze_blocks (blocks_to_freeze);
+	  sched_ptr->unfreeze_blocks (blocks_to_unfreeze);
+	  
+	  for (std::size_t c=blocks_to_broadcast.begin(); c!=blocks_to_broadcast.end(); c++)
+	  {
+		sched_ptr->broadcast_block (c->first, c->second);
+	  }
 
-      return num_of_broadcasts; // update the num_of_blocks to broadcast  
+      return blocks_to_broadcast.size(); // update the num_of_blocks to broadcast  
     }
 	
     std::pair<Hash, BlockIndex> BlockResponseScheduler::get_blockid (std::size_t seq)

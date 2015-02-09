@@ -54,7 +54,7 @@ namespace sma
       }
     }
 	
-    double BlockRequestScheduler::get_utility(NodeID id, Hash content_name, BlockIndex block_index)
+    float BlockRequestScheduler::get_utility(NodeID id, Hash content_name, BlockIndex block_index)
     {
       auto requests_per_node = request_desc_table.find(id);
       if (requests_per_node != request_desc_table.end())
@@ -85,7 +85,7 @@ namespace sma
         return 0; 
     }
 	
-    int BlockRequestScheduler::fwd_request (int max_num_of_requests)
+    std::size_t BlockRequestScheduler::fwd_request (std::size_t max_num_of_requests)
     {
       std::vector<BlockRequestArgs> request_to_fwd;
       while (!request_queue.empty() && max_num_of_requests > 0)
