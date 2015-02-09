@@ -17,6 +17,7 @@
 #include <sma/io/log>
 
 #include <vector>
+#include <deque>
 #include <unordered_map>
 
 #include <iosfwd>
@@ -36,10 +37,15 @@ namespace sma
  */
 class ContentHelperImpl : public ContentHelper
 {
+  using clock = sma::chrono::system_clock;
+  using time_point = clock::time_point;
+
 public:
   //! Construct a helper to manage the content for the given node.
   ContentHelperImpl(CcnNode& node)
     : ContentHelper(node)
+    , next_announce_time(clock::now())
+    , to_announce(0)
   {
   }
 
@@ -47,12 +53,12 @@ public:
   void receive(MessageHeader header, BlockRequest req) override;
   void receive(MessageHeader header, BlockResponse resp) override;
 
-  ContentMetadata create_new(ContentType const& type,
+  ContentMetadata create_new(std::vector<ContentType> types,
                              ContentName const& name,
                              std::istream& in) override;
 
   std::vector<ContentMetadata> metadata() const override;
-  std::size_t publish_metadata() override;
+  std::size_t announce_metadata() override;
   void request(std::vector<BlockRequestArgs> requests) override;
   bool broadcast(Hash hash, BlockIndex index) override;
   std::size_t freeze(std::vector<std::pair<Hash, BlockIndex>> blocks) override;
@@ -61,12 +67,9 @@ public:
 
 
 private:
-  using clock = sma::chrono::system_clock;
-  using time_point = clock::time_point;
-
   struct MetaRecord {
     ContentMetadata metadata;
-    NetworkDistance distance;
+    std::uint8_t hops;
   };
 
   struct PendingRequest {
@@ -91,6 +94,10 @@ private:
   //! Store actual content data in memory
   ContentCache cache;
   //! Known Content Table - Remote content for which we have metadata
+  std::deque<Hash> ann_queue;
+  time_point next_announce_time;
+  std::size_t to_announce;
+
   std::unordered_map<Hash, MetaRecord> kct;
   //! Pending Request Table
   std::unordered_map<std::pair<Hash, BlockIndex>, PendingRequest> prt;

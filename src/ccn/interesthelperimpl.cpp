@@ -17,50 +17,51 @@ namespace sma
 {
 InterestHelperImpl::InterestHelperImpl(CcnNode& node)
   : InterestHelper(node)
+  , next_announce_time(clock::now())
+  , to_announce(0)
 {
 }
 
 void InterestHelperImpl::receive(MessageHeader header, InterestAnn msg)
 {
-  // Ignore loopback
-  if (msg.interested_node == node.id)
-    return;
-
-  log.t("<-- %v interests from n(%v) via n(%v)",
-        msg.interests.size(),
-        msg.interested_node,
-        header.sender);
-
-  // Cull any that we aren't already broadcasting with a closer distance.
-  // The result is that our neighbors always see the shortest path we know of.
-  for (auto it = msg.interests.begin(); it != msg.interests.end();) {
-    auto& entry = *it;
-    if (!learn_remote(entry.interest))
-      // Only forward interests we learned something new about
-      it = msg.interests.erase(it);
-    else
-      ++it;
-  }
+  log.d("Interest announcement received");
 }
 
-void InterestHelperImpl::learn_remote(Interest const& interest)
+void InterestHelperImpl::create_local(ContentType type)
 {
-  for (auto& i : interests)
-    if (i.type == interest.type) {
-      i.update_with(interest);
-      return;
+  std::size_t idx = 0;
+  for (auto it = interests.begin(); it != interests.end(); ++it, ++idx) {
+    if (it->type == type) {
+      if (it->local())
+        return;
+
+      interests.erase(it);
+      // If we replaced a remote interest that was going to be announced then
+      // don't count it as another interest to announce.
+      if (idx < to_announce)
+        --to_announce;
+
+      break;
     }
-  interests.emplace_front(
-      interest.type, interest.ttl<std::chrono::milliseconds>(), interest.hops);
+  }
+
+  interests.emplace_front(type, 10s);
+  ++to_announce;
+}
+
+void InterestHelperImpl::create_local(std::vector<ContentType> types)
+{
+  for (auto& type : types)
+    create_local(type);
 }
 
 std::vector<Interest> InterestHelperImpl::local() const
 {
-  std::vector<Interest> interests;
+  std::vector<Interest> locals;
   for (auto& i : interests)
     if (i.local())
-      interests.push_back(i.first);
-  return interests;
+      locals.push_back(i);
+  return locals;
 }
 
 bool InterestHelperImpl::interested_in(ContentMetadata const& metadata) const
@@ -72,27 +73,40 @@ bool InterestHelperImpl::interested_in(ContentMetadata const& metadata) const
           return true;
 }
 
-bool InterestHelperImpl::know_remote(Interest const& interest) const
+void InterestHelperImpl::learn_remote(Interest const& interest)
 {
-  for (auto& i : interests)
-    if (i.remote() && i.type == interest.type)
-      return true;
+  std::size_t idx = 0;
+  for (auto it = interests.begin(); it != interests.end(); ++it, ++idx)
+    if (it->type == interest.type) {
+      if (it->update_with(interest)) {
+        auto i = std::move(*it);
+        interests.erase(it);
+        interests.push_front(std::move(i));
+        // Check if we promoted an already-announced element
+        if (idx >= to_announce)
+          ++to_announce;
+      }
+      return;
+    }
+
+  interests.emplace_front(
+      interest.type, interest.ttl<std::chrono::milliseconds>(), interest.hops);
+  ++to_announce;
 }
 
-void InterestHelperImpl::create_local(std::vector<ContentType> types)
+bool InterestHelperImpl::know_remote(ContentType const& type) const
 {
-  for (auto& type : types) {
-    for (auto it = interests.begin(); it != interests.end(); ++it)
-      if (it->type == type) {
-        interests.erase(it);
-        break;
-      }
-    interests.emplace_front(type, 10s);
-  }
+  for (auto& i : interests)
+    if (i.remote() && i.type == type)
+      return true;
+  return false;
 }
 
 std::size_t InterestHelperImpl::announce()
 {
+  if (clock::now() < next_announce_time)
+    return 0;
+
   // Max size of one announcement message to be filled with interests
   std::size_t const max_size = 1024;
   // Serialize the interests into a contiguous block of stack to
@@ -100,16 +114,17 @@ std::size_t InterestHelperImpl::announce()
   // write the serialized interests into a message.
   std::uint8_t data_buf[max_size * 2];
   // Mark the start of the current interest's buffer space
-  std::uint8_t* data = &data_buf;
+  std::uint8_t* data = data_buf;
   // Total serialized length
   std::size_t size = 0;
   std::size_t count = 0;
 
   while (count < interests.size()) {
-    auto& i = interests.begin();
+    auto& i = interests.front();
     i.elapse_ttl();
     if (i.expired()) {
       interests.pop_front();
+      --to_announce;
       continue;
     }
 
@@ -126,9 +141,15 @@ std::size_t InterestHelperImpl::announce()
     // Swap the interest to the end of the deque so others might be sent.
     interests.push_back(std::move(i));
     interests.pop_front();
+    --to_announce;
 
     if (size == max_size)
       break;
+  }
+
+  if (to_announce == 0) {
+    to_announce = interests.size();
+    next_announce_time = clock::now() + 2s;
   }
 
   if (count != 0) {

@@ -36,12 +36,12 @@ public:
   virtual void receive(MessageHeader header, BlockRequest req) = 0;
   virtual void receive(MessageHeader header, BlockResponse resp) = 0;
 
-  virtual ContentMetadata create_new(ContentType const& type,
+  virtual ContentMetadata create_new(std::vector<ContentType> types,
                                      ContentName const& name,
                                      std::istream& in) = 0;
 
   virtual std::vector<ContentMetadata> metadata() const = 0;
-  virtual std::size_t publish_metadata() = 0;
+  virtual std::size_t announce_metadata() = 0;
 
   //! Send one message to the network containing all of the given block
   //! requests.

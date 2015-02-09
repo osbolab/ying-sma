@@ -39,7 +39,7 @@ std::vector<ContentMetadata> ContentHelperImpl::metadata() const
 
 void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
 {
-  ++msg.distance;
+  ++msg.hops;
 
   for (auto& metadata : msg.metadata) {
     // Break loops
@@ -50,15 +50,16 @@ void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
       log.d("** I got metadata I'm interested in! **");
     }
 
-    if (!update(metadata, msg.distance))
+    if (!update(metadata, msg.hops))
       return;
 
     log.d("Content metadata from n(%v)", header.sender);
-    log.d("| distance: %v hop(s)", std::uint32_t(msg.distance));
+    log.d("| distance: %v hop(s)", std::uint32_t(msg.hops));
     log.d("| hash: %v", std::string(metadata.hash));
     log.d("| size: %v bytes", metadata.size);
     log.d("| block size: %v bytes", metadata.block_size);
-    log.d("| type: %v", metadata.type);
+    for (auto& type : metadata.types)
+      log.d("| type: %v", type);
     log.d("| name: %v", metadata.name);
     log.d("| publisher: %v", metadata.publisher);
     log.d("| origin: %v", std::string(metadata.origin));
@@ -73,24 +74,24 @@ void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
 }
 
 bool ContentHelperImpl::update(ContentMetadata const& metadata,
-                               NetworkDistance distance)
+                               std::uint8_t hops)
 {
   auto it = kct.find(metadata.hash);
   if (it != kct.end()) {
     auto& record = it->second;
-    if (distance < record.distance) {
-      record.distance = distance;
+    if (hops < record.hops) {
+      record.hops = hops;
       return true;
     } else
       return false;
   }
 
-  kct.emplace(metadata.hash, MetaRecord{metadata, distance});
+  kct.emplace(metadata.hash, MetaRecord{metadata, hops});
 
   return true;
 }
 
-ContentMetadata ContentHelperImpl::create_new(ContentType const& type,
+ContentMetadata ContentHelperImpl::create_new(std::vector<ContentType> types,
                                               ContentName const& name,
                                               std::istream& in)
 {
@@ -107,13 +108,15 @@ ContentMetadata ContentHelperImpl::create_new(ContentType const& type,
   auto metadata = ContentMetadata(hash,
                                   size,
                                   block_size,
-                                  type,
+                                  std::move(types),
                                   name,
                                   node.position(),
                                   node.id,
                                   publish_time);
 
   kct.emplace(hash, MetaRecord{metadata, 0});
+  ann_queue.push_back(hash);
+  ++to_announce;
 
   /*
   log.d("Created content");
@@ -130,21 +133,14 @@ ContentMetadata ContentHelperImpl::create_new(ContentType const& type,
   return metadata;
 }
 
-std::size_t ContentHelperImpl::publish_metadata()
+std::size_t ContentHelperImpl::announce_metadata()
 {
+  if (clock::now() < next_announce_time)
+    return 0;
+
   std::vector<ContentMetadata> metas;
-
-  for (auto& hash : hashes) {
-    log.d("Publish content %v", std::string(hash));
-
-    auto metadata_search = kct.find(hash);
-    assert(metadata_search != kct.end());
-    auto const& metadata = metadata_search->second.metadata;
-
-    assert(cache.validate_data(metadata));
-
-    metas.push_back(metadata);
-  }
+  for (auto& pair : kct)
+    metas.push_back(pair.second.metadata);
 
   if (not metas.empty()) {
     g_published = clock::now();
@@ -156,19 +152,27 @@ std::size_t ContentHelperImpl::publish_metadata()
 
 void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
 {
-  /*
   std::vector<BlockFragmentRequest> fragments;
 
-  auto blocks = cache.find(hash);
-  if (blocks != nullptr) {
-    auto it = blocks->find(index);
-    if (it != blocks->end()) {
+  auto req = requests.begin();
+  while (req != requests.end()) {
+    auto blocks = cache.find(req->hash);
+    if (blocks != nullptr) {
+      auto it = blocks->find(req->index);
+      if (it != blocks->end() && it->second.complete()) {
+        req = requests.erase(req);
+        continue;
+      }
+      /*
       auto& gaps = it->second.gaps;
       for (std::size_t i = 0; i < gaps.size() - 1; i += 2)
         fragments.emplace_back(gaps[i], gaps[i + 1] - gaps[i]);
+        */
     }
+    ++req;
   }
 
+  /*
   auto pending = prt.find({hash, index});
   if (pending != prt.end()) {
     auto& old_req = pending->second;
@@ -182,7 +186,8 @@ void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
   }
   */
 
-  node.post(BlockRequest(std::move(requests)));
+  if (not requests.empty())
+    node.post(BlockRequest(std::move(requests)));
 }
 
 bool ContentHelperImpl::broadcast(Hash hash, BlockIndex index) { return true; }

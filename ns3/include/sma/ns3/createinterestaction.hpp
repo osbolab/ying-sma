@@ -14,7 +14,7 @@ namespace sma
 class Ns3NodeContainer;
 
 struct CreateInterestAction : Action {
-  using interest_vec = std::vector<Interest>;
+  using interest_vec = std::vector<ContentType>;
 
   CreateInterestAction(Ns3NodeContainer& context, interest_vec interests)
     : Action(context)

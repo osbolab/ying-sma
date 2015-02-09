@@ -3,20 +3,28 @@
 #include <sma/gps.hpp>
 #include <sma/gpscomponent.hpp>
 
+#include <ns3/mobility-helper.h>
+#include <ns3/mobility-model.h>
+
+
 namespace sma
 {
 class DummyGps : public GpsComponent
 {
 public:
-  DummyGps(GPS::Coord pos)
-    : pos(std::move(pos))
+  DummyGps(ns3::Ptr<ns3::MobilityModel> mob)
+    : mob(mob)
   {
   }
   virtual ~DummyGps() {}
 
-  virtual GPS::Coord position() const override { return pos; }
+  virtual GPS::Coord position() const override
+  {
+    auto pos = mob->GetPosition();
+    return GPS::Coord{pos.x, pos.y};
+  }
 
 protected:
-  GPS::Coord pos;
+  ns3::Ptr<ns3::MobilityModel> mob;
 };
 }

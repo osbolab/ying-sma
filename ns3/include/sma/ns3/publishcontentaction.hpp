@@ -39,8 +39,8 @@ struct PublishContentAction : Action {
 
     CcnNode& node = *(context->node);
     node.log.d("Action: publish new content");
-    auto metadata = node.content->create_new(type, name, content_stream);
-    node.content->publish_metadata(std::vector<Hash>{metadata.hash});
+    auto metadata = node.content->create_new({type}, name, content_stream);
+    node.content->announce_metadata();
   }
 
   ContentType type;
