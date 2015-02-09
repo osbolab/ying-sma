@@ -3,6 +3,7 @@
 #include <vector>
 #include <utility>
 #include <sma/util/hash.hpp>
+#include <sma/neighbor.hpp>
 
 class BlockResponseScheduler
 {
@@ -44,20 +45,39 @@ public:
     {
       block_to_schedule.insert(*it, seq);
 
-      int neighbor_seq = 0;
+      std::vector<Neighbor> neighbors = sched_ptr->get_neighbors();
+      for (int i=0; i<neighbors.end(); i++)
+      {
+        NodeID node_id = neighbors[i].id;
+        utils[i][seq] = sched_ptr->get_utility (node_id, 
+                                               it->first->first, 
+                                               it->first->second);
+        ttls[i][seq] = sched_ptr->get_ttl (node_id,
+                                           it->first->first,
+                                           it->first->second);
 
-      //populate the ttl table
-      
-      
+      }
       seq++;
       it++; 
     }
 
+    // t = 0...max_ttl+1
+    std::vector<std::vector<int>> sched_result (num_of_blocks,
+            std::vector<int>(max_ttl+2));
+
+
+    LPSolver::solve (max_ttl,
+                     num_of_blocks,
+                     storage,
+                     bandwidth,
+                     num_of_neighbor,
+                     ttls,
+                     utils,
+                     sched_result
+                     );
 
     
-
     
-    //populate the utility table
   }
 
 private:

@@ -15,7 +15,8 @@ public:
                       int bandwidth,
                       int num_of_neighbor,
                       const std::vector<std::vector<int> >& ttl_per_block,
-                      const std::vector<std::vector<double> >&  utility)
+                      const std::vector<std::vector<double> >&  utility,
+                      std::vector<std::vector<int> >& sched_result)
   {
     glp_prob *mip = glp_create_prob();
     glp_set_prob_name(mip, "joint_scheduling");
@@ -228,20 +229,7 @@ public:
       int c = it / (max_ttl+2);
       int t = it % (max_ttl+2);
 
-      if (result[it] == 1 && t == 0)
-      {
-        cached = true;
-        std::cout << "cache block " << c << std::endl;
-      }
-
-      if (cached == true)
-      {
-        if (result[it] == 0 && t != 0)
-        {
-          std::cout << "broad block at time " << t-1 << std::endl;
-          cached = false;
-        }
-      }
+      sched_result[c][t] = result[it];
     }
   }
 };

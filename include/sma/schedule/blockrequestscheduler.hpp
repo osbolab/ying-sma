@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sma/schedule/blockrequestdesc.hpp>
+#include <sma/ccn/blockrequestargs.hpp>
 #include <sma/nodeid.hpp>
 #include <sma/util/hash.hpp>
 #include <queue>
@@ -16,7 +17,7 @@ public:
       : sched_ptr (ptr)
   {}
 
-  void add_request_desc (const std::vector<BlockRequest>& requests)
+  void add_request_desc (const std::vector<BlockRequestArgs>& requests)
   {
     // nodeID is neighbor's node, not origin node's ID.
     for (auto it = requests.begin(); it != requests.end(); ++it)
@@ -91,26 +92,26 @@ public:
 
 private:
 
-  using block_request_desc_vec = std::vector<BlockRequestDesc>;
+  using block_request_desc_vec = std::vector<BlockRequestArgs>;
   std::unordered_map<NodeID, block_request_desc_vec> request_desc_table; 
 
-  std::queue<BlockRequestDesc> request_queue;
+  std::queue<BlockRequestArgs> request_queue;
   ForwardSchedulerImpl* sched_ptr;
 
   void fwd_request (int num_of_requests)
   {
-    std::vector<BlockRequestDesc> request_to_fwd;
+    std::vector<BlockRequestArgs> request_to_fwd;
     while (!request_queue.empty() && num_of_requests > 0)
     {
-      BlockRequestDesc desc = request_queue.front();
-      request_to_fwd.push_back(desc);
+      BlockRequestArgs args = request_queue.front();
+      request_to_fwd.push_back(args);
       request_queue.pop();
       num_of_requests--;
     }
   
   }
 
-  void insert_request (BlockRequest request)
+  void insert_request (BlockRequestArgs request)
   {
 
     request_queue.push(request);

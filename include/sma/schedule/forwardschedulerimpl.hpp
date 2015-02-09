@@ -5,13 +5,15 @@
 #include <sma/schedule/metascheduler.hpp>
 #include <sma/schedule/blockrequestscheduler.hpp>
 #include <sma/schedule/blockresponsescheduler.hpp>
+#include <sma/ccn/ccnnode.hpp>
 
 namespace sma
 {
 class ForwardSchedulerImpl : public ForwardScheduler
 {
 public:
-  ForwardSchedulerImpl()
+  ForwardSchedulerImpl(CcnNode* host_node)
+      : node (host_node);
   {
     interest_sched_ptr = new InterestScheduler(); 
     meta_sched_ptr = new MetaScheduler();
@@ -37,12 +39,18 @@ public:
     blockresponse_sched_ptr->add_responses(responses); 
   }
 
+  std::vector<Neighbor> get_neighbors()
+  {
+    return node->neighbors->get(); 
+  }
+
 
 private:
   InterestScheduler* interest_sched_ptr;
   MetaScheduler* meta_sched_ptr;
   BlockRequestScheduler* blockrequest_sched_ptr;
   BlockRespondScheduler* blockresponse_sched_ptr;
+  CcnNode* node;
 
   void schedule_interest_fwd () { interest_sched_ptr->sched(); }
   void schedule_metadata_fwd () { meta_sched_ptr->sched(); }
