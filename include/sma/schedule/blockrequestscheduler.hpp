@@ -26,12 +26,12 @@ public:
     }
   }
 
-  void sched()
+  int sched()
   {
     fwd_requests(10); // 10 is the magic number. needs adjusting
   }
 
-  int get_ttl (NodeID id, Hash content_name, size_t index)
+  int get_ttl (NodeID id, Hash content_name, std::uint32_t index)
   {
     auto requests_per_node = request_desc_table.find(id); 
     if (requests_per_node == request_desc_table.end())
@@ -59,7 +59,7 @@ public:
     }
   }
 
-  double get_utility(NodeID id, Hash content_name, size_t index)
+  double get_utility(NodeID id, Hash content_name, std::uint32_t index)
   {
     auto requests_per_node = request_desc_table.find(id);
     if (requests_per_node != request_desc_table.end())
@@ -92,29 +92,42 @@ public:
 
 private:
 
-  using block_request_desc_vec = std::vector<BlockRequestArgs>;
-  std::unordered_map<NodeID, block_request_desc_vec> request_desc_table; 
+  std::unordered_map<NodeID, std::vector<BlockRequestDesc>> request_desc_table; 
 
-  std::queue<BlockRequestArgs> request_queue;
+  std::queue<BlockRequestDesc> request_queue;
+
   ForwardSchedulerImpl* sched_ptr;
 
-  void fwd_request (int num_of_requests)
+  int fwd_request (int num_of_requests)
   {
     std::vector<BlockRequestArgs> request_to_fwd;
     while (!request_queue.empty() && num_of_requests > 0)
     {
-      BlockRequestArgs args = request_queue.front();
-      request_to_fwd.push_back(args);
+      BlockRequestDesc desc = request_queue.front();
+      
+      // translate from BlockRequestDesc to BlockRequestArgs, all about the ttl
+      auto current_time = sma::chrono::system_clock::now();
+      if (desc.expire < current_time)  continue;
+      BlockRequestArgs arg (desc.name,
+                            desc.index,
+                            desc.util,
+                            desc.expire,
+                            desc.location);
+     
+      request_to_fwd.push_back(arg);
       request_queue.pop();
       num_of_requests--;
     }
-  
+
+    if (request_to_fwd.size() > 0)
+      sched_ptr->request_blocks (request_to_fwd);
+
+    return request_to_fwd.size();
   }
 
   void insert_request (BlockRequestArgs request)
   {
 
-    request_queue.push(request);
 
     NodeID nodeID = request.get_node_from();
     auto requests_per_node = request_desc_table.find(nodeID);
@@ -128,10 +141,12 @@ private:
                            expire_time,
                            request.get_origin_location());
 
+    request_queue.push(desc);
 
     if (requests_per_node == request_desc_table.end())
     {
-      request_desc_table.emplace (nodeID, block_request_desc_vec);
+      request_desc_table.emplace (nodeID, 
+              std::vector<BlockRequestDesc>());
       request_desc_table[nodeID].push_back (desc);
     }
     else

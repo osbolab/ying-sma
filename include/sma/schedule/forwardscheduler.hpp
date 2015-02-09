@@ -14,6 +14,8 @@ public:
 //  virtual void on_metadata <std::vector<ContentMetadata>> = 0;
   virtual void on_blockrequest <std::vector<BlockRequest>> = 0;
   virtual void on_blockresponse <std::vector<BlockResponse>> = 0;
+  virtual int get_max_ttl() const = 0;
+  virtual std::uint32_t get_sched_interval() const = 0;
 
   virtual ~ForwardScheduler() {}
 };
