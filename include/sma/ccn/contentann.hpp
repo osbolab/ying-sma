@@ -11,15 +11,15 @@
 namespace sma
 {
 struct ContentAnn {
-  TRIVIALLY_SERIALIZABLE(ContentAnn, metadata, distance)
+  TRIVIALLY_SERIALIZABLE(ContentAnn, metadata, hops)
 
   std::vector<ContentMetadata> metadata;
-  NetworkDistance distance;
+  std::uint8_t hops;
 
   ContentAnn(std::vector<ContentMetadata> metadata,
-             NetworkDistance distance = 0)
+             std::uint8_t hops = 0)
     : metadata(std::move(metadata))
-    , distance(distance)
+    , hops(hops)
   {
   }
 

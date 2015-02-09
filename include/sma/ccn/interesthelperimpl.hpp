@@ -40,10 +40,11 @@ public:
   InterestHelperImpl(CcnNode& node);
 
   void receive(MessageHeader header, InterestAnn announcement) override;
-  void create_local(std::vector<Interest> interests) override;
+  void create_local(ContentType type);
+  void create_local(std::vector<ContentType> types) override;
   std::vector<Interest> local() const override;
   bool interested_in(ContentMetadata const& metadata) const override;
-  bool know_remote(Interest const& interest) const override;
+  bool know_remote(ContentType const& type) const override;
 
   virtual std::size_t announce() override;
 
@@ -51,10 +52,15 @@ private:
   using clock = sma::chrono::system_clock;
   using time_point = clock::time_point;
 
+  void learn_remote(Interest const& interest);
+
   // Always ordered in decreasing time since last announced (never being
   // shortest).
   // On announcing, interests are selected off the head and replaced to the tail
   // until no more can fit in the announcement.
   std::deque<Interest> interests;
+
+  time_point next_announce_time;
+  std::size_t to_announce;
 };
 }

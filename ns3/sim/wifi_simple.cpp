@@ -193,11 +193,11 @@ int main(int argc, char** argv)
     app->SetAttribute("id", ns3::UintegerValue(i));
 
     app->add_component(std::move(
-        std::make_unique<sma::DummyGps>(sma::GPS::Coord{pos.x, pos.y})));
+        std::make_unique<sma::DummyGps>(mob)));
 
     if (i == (nnodes - 1)) {
-      std::vector<sma::Interest> interests;
-      interests.emplace_back(sma::ContentType("cats"));
+      std::vector<sma::ContentType> interests;
+      interests.emplace_back("cats");
       app->act_emplace_front<sma::CreateInterestAction>(1s,
                                                         std::move(interests));
     }

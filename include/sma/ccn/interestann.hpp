@@ -19,7 +19,7 @@ struct InterestAnn {
    */
   std::uint8_t count;
   std::uint16_t size;
-  std::uint8_t const* data;
+  std::uint8_t* data = nullptr;
   /***************************************************************************/
 
   InterestAnn(std::size_t count, std::uint8_t const* data, std::size_t size)
@@ -30,7 +30,21 @@ struct InterestAnn {
     std::memcpy(this->data, data, size);
   }
 
-  DESERIALIZING_CONSTRUCTOR(InterestAnn)
+  InterestAnn(InterestAnn&& rhs)
+    : count(rhs.count)
+    , size(rhs.size)
+  {
+    std::swap(data, rhs.data);
+  }
+  InterestAnn& operator=(InterestAnn&& rhs)
+  {
+    count = rhs.count;
+    size = rhs.size;
+    std::swap(data, rhs.data);
+    return *this;
+  }
+
+  DESERIALIZING_CTOR(InterestAnn)
     : INIT_FIELDS(count, size)
     , data(new std::uint8_t[size])
   {
@@ -45,10 +59,7 @@ struct InterestAnn {
     PUT_BYTES(data, size);
   }
 
-  InterestAnn(InterestAnn&&) = default;
-  InterestAnn(InterestAnn const&) = default;
-
-  InterestAnn& operator=(InterestAnn&&) = default;
-  InterestAnn& operator=(InterestAnn const&) = default;
+  InterestAnn(InterestAnn const&) = delete;
+  InterestAnn& operator=(InterestAnn const&) = delete;
 };
 }

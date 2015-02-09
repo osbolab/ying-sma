@@ -39,8 +39,9 @@ std::vector<Neighbor> NeighborHelperImpl::get() const
 void NeighborHelperImpl::saw(NodeId const& node, Vec2d const& position)
 {
   auto it = neighbors.find(node);
-  if (it == neighbors.end())
+  if (it == neighbors.end()) {
     neighbors.emplace(node, NeighborRecord(position));
+  }
   else {
     it->second.saw(position);
     log.d("Neighbor %v", it->first);
@@ -55,7 +56,7 @@ void NeighborHelperImpl::receive(MessageHeader header, Beacon msg)
   for (auto& n : get()) {
     log.d("Neighbor %v", n.id);
     log.d("| position: %v", std::string(n.position));
-    log.d("| velocity: %v", std::string(n.velocity));
+    log.d("| velocity: %v m/s", n.velocity.length());
   }
 
   if (!msg.is_response)

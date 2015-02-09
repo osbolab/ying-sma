@@ -2,6 +2,7 @@
 
 #include <sma/context.hpp>
 #include <sma/linklayer.hpp>
+#include <sma/gpscomponent.hpp>
 
 #include <sma/messageheader.hpp>
 
@@ -23,7 +24,10 @@ CcnNode::CcnNode(NodeId id, Context& context)
 
 Vec2d CcnNode::position() const
 {
-  return Vec2d(123.456, 456.789);
+  auto const* gps = context->template try_get_component<GpsComponent>();
+  assert(gps);
+  auto pos = gps->position();
+  return Vec2d(pos.lon, pos.lat);
 }
 
 void CcnNode::post(void const* src, std::size_t size)

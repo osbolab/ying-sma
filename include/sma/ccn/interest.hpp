@@ -25,16 +25,10 @@ public:
   template <typename D>
   Interest(ContentType type, D ttl, std::size_t hops = 0)
     : type(type)
-    , hops(min_hops)
+    , hops(hops)
     , expiry_time(clock::now() + ttl)
   {
     this->ttl(ttl);
-  }
-
-  template <typename D>
-  Interest(ContentMetadata const& metadata, D ttl, std::size_t hops = 0)
-    : Interest(metadata.type, ttl, hops)
-  {
   }
 
   /****************************************************************************
@@ -60,22 +54,22 @@ public:
   bool local() const { return hops == 0; }
   bool remote() const { return hops != 0; }
 
-  bool closer_than(Interest const& i) const
-  {
-    return hops < i.hops;
-  }
+  bool closer_than(Interest const& i) const { return hops < i.hops; }
 
-  bool newer_than(Interest const& i) const
-  {
-    return ttl_ms > i.ttl_ms;
-  }
+  bool newer_than(Interest const& i) const { return ttl_ms > i.ttl_ms; }
 
-  void update_with(Interest const& i)
+  bool update_with(Interest const& i)
   {
-    if (i.closer_than(*this))
+    bool updated = false;
+    if (i.closer_than(*this)) {
       hops = i.hops;
+      updated = true;
+    }
     if (i.newer_than(*this)) {
       ttl(i.ttl<std::chrono::milliseconds>());
+      updated = true;
+    }
+    return updated;
   }
 
   void elapse_ttl()

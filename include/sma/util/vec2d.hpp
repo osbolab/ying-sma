@@ -141,7 +141,7 @@ struct Vec2d {
        << std::setprecision(precision) << y << ")";
     return ss.str();
   }
-  explicit operator std::string() const { return to_string(9); }
+  explicit operator std::string() const { return to_string(7); }
 
 
   value_type x;

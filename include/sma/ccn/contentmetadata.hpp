@@ -9,6 +9,7 @@
 #include <sma/util/serial.hpp>
 
 #include <cstdint>
+#include <vector>
 
 
 namespace sma
@@ -18,7 +19,7 @@ struct ContentMetadata {
                          hash,
                          size,
                          block_size,
-                         type,
+                         types,
                          name,
                          origin,
                          publisher,
@@ -30,7 +31,7 @@ struct ContentMetadata {
   size_type size;
   size_type block_size;
 
-  ContentType type;
+  std::vector<ContentType> types;
   ContentName name;
   Vec2d origin;
   NodeId publisher;
@@ -40,7 +41,7 @@ struct ContentMetadata {
   ContentMetadata(Hash hash,
                   size_type size,
                   size_type block_size,
-                  ContentType type,
+                  std::vector<ContentType> types,
                   ContentName name,
                   Vec2d origin,
                   NodeId publisher,
@@ -48,7 +49,7 @@ struct ContentMetadata {
     : hash(hash)
     , size(size)
     , block_size(block_size)
-    , type(type)
+    , types(types)
     , name(name)
     , origin(origin)
     , publisher(publisher)
