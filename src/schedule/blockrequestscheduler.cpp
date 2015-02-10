@@ -24,15 +24,15 @@ namespace sma
 	  return fwd_requests(10); // 10 is the magic number. needs adjusting
 	}
 	
-    int BlockRequestScheduler::get_ttl (NodeID id, Hash content_name, BlockIndex block_index)
+    int BlockRequestScheduler::get_ttl (NodeId id, Hash content_name, BlockIndex block_index)
     {
       auto requests_per_node = request_desc_table.find(id); 
       if (requests_per_node == request_desc_table.end())
         return -1;
       else
       {
-        auto it = requests_per_node.begin();
-        while (it != requests_per_node.end())
+        auto it = (requests_per_node->second).begin();
+        while (it != (requests_per_node->second).end())
         {
           if (it->content_name == content_name
             && it->block_index == block_index)
@@ -54,7 +54,7 @@ namespace sma
       }
     }
 	
-    float BlockRequestScheduler::get_utility(NodeID id, Hash content_name, BlockIndex block_index)
+    float BlockRequestScheduler::get_utility(NodeId id, Hash content_name, BlockIndex block_index)
     {
       auto requests_per_node = request_desc_table.find(id);
       if (requests_per_node != request_desc_table.end())
@@ -85,7 +85,7 @@ namespace sma
         return 0; 
     }
 	
-    std::size_t BlockRequestScheduler::fwd_request (std::size_t max_num_of_requests)
+    std::size_t BlockRequestScheduler::fwd_requests (std::size_t max_num_of_requests)
     {
       std::vector<BlockRequestArgs> request_to_fwd;
       while (!request_queue.empty() && max_num_of_requests > 0)
@@ -95,13 +95,15 @@ namespace sma
         // translate from BlockRequestDesc to BlockRequestArgs, all about the ttl
         auto current_time = sma::chrono::system_clock::now();
         if (desc.expire_time < current_time)  continue;
-  	  std::uint32_t ttl = std::chrono::duration_cast<std::chrono::microseconds>(expire_time - current_time).count();
-        BlockRequestArgs arg (desc.name,
-                              desc.index,
-                              desc.util,
+  	    auto ttl = std::chrono::duration_cast<std::chrono::microseconds>
+            (desc.expire_time - current_time);
+        auto arg 
+            = BlockRequestArgs (desc.content_name,
+                              desc.block_index,
+                              desc.utility,
                               ttl,
-  							desc.requester,
-                              desc.location);
+  							  desc.requester,
+                              desc.origin_location);
      
         request_to_fwd.push_back(arg);
         request_queue.pop();
@@ -116,18 +118,19 @@ namespace sma
 	
     void BlockRequestScheduler::insert_request (BlockRequestArgs request)
     {
-      NodeID nodeID = request.requester;
+      NodeId nodeID = request.requester;
       auto requests_per_node = request_desc_table.find(nodeID);
       auto current_time = sma::chrono::system_clock::now();
 	
   	// change from relative ttl to absolute ttl locally
-      auto expire_time = currenttime + request->ttl<std::chrono::microseconds>();
+      auto expire_time = current_time + request.ttl<std::chrono::microseconds>();
 
-      BlockRequestDesc desc (request.get_content_name(),
-                             request.get_index(),
-                             request.get_utility(),
+      BlockRequestDesc desc (request.hash,
+                             request.index,
+                             request.utility,
                              expire_time,
-                             request.get_origin_location());
+                             request.requester,
+                             request.requester_position);
 
       request_queue.push(desc);
 

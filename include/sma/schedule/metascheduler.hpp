@@ -5,7 +5,9 @@
 
 namespace sma
 {
-	
+
+class ForwardSchedulerImpl;
+
 class MetaScheduler
 {
 public:

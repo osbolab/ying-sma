@@ -4,6 +4,8 @@
 #include <sma/ccn/contentmetadata.hpp>
 #include <utility>
 #include <sma/ccn/blockindex.hpp>
+#include <sma/ccn/ccnnode.hpp>
+#include <sma/ccn/blockrequestargs.hpp>
 
 namespace sma
 {
@@ -18,7 +20,7 @@ public:
   {}
 	  
   virtual void on_blockrequest (const std::vector<BlockRequestArgs> & requests) = 0;
-  virtual void on_block (const std::vector<std::pair<Hash, BlockIndex>> & blocks)= 0;
+  virtual void on_block (std::pair<Hash, BlockIndex> & block)= 0;
   virtual void sched() = 0;
 
   virtual ~ForwardScheduler() {}

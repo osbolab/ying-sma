@@ -7,6 +7,8 @@
 #include <iostream>
 #include <cstddef> 
 
+namespace sma
+{
 class LPSolver
 {
 public:
@@ -234,3 +236,4 @@ public:
     }
   }
 };
+}

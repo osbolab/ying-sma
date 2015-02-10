@@ -6,9 +6,14 @@
 #include <sma/neighbor.hpp>
 #include <cassert>
 #include <sma/ccn/blockindex.hpp> 
+#include <unordered_set>
+#include <unordered_map>
+#include <sma/ccn/contenthelper.hpp>
 
 namespace sma
 {
+
+class ForwardSchedulerImpl;
 
 class BlockResponseScheduler
 {

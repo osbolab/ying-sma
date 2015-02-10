@@ -4,7 +4,9 @@
 #include <sma/util/hash.hpp>
 #include <sma/ccn/blockindex.hpp>
 #include <ctime>
-#include <chrono>
+#include <sma/chrono.hpp>
+#include <sma/nodeid.hpp>
+#include <sma/ccn/ccnnode.hpp>
 
 namespace sma
 {

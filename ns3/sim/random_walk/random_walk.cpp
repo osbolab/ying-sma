@@ -254,7 +254,7 @@ int main(int argc, char** argv)
     app->SetAttribute("id", ns3::UintegerValue(i));
 
     app->add_component(std::move(
-        std::make_unique<sma::DummyGps>(sma::GPS::Coord{pos.x, pos.y})));
+        std::make_unique<sma::DummyGps>(mob)));
 
     auto result = event_table.find(i);
     if (result != event_table.end()) {

@@ -9,9 +9,14 @@
 #include <cstddef>
 #include <sma/ccn/blockindex.hpp> 
 #include <sma/schedule/forwardschedulerimpl.hpp>
+#include <sma/ccn/ccnnode.hpp>
+#include <unordered_map>
 
 namespace sma
 {
+
+class ForwardSchedulerImpl;
+
 class BlockRequestScheduler
 {
 public:
@@ -20,19 +25,20 @@ public:
       : sched_ptr (ptr)
   {}
 
-  void add_request_desc (const std::vector<BlockRequestArgs>& requests);
+  void add_requests (const std::vector<BlockRequestArgs>& requests);
   std::size_t sched();
-  int get_ttl (NodeID id, Hash content_name, BlockIndex block_index);
-  float get_utility(NodeID id, Hash content_name, BlockIndex block_index);
+  int get_ttl (NodeId id, Hash content_name, BlockIndex block_index);
+  float get_utility(NodeId id, Hash content_name, BlockIndex block_index);
 
 private:
 
-  std::unordered_map<NodeID, std::vector<BlockRequestDesc>> request_desc_table; 
+  std::unordered_map<NodeId, std::vector<BlockRequestDesc>> request_desc_table; 
   std::queue<BlockRequestDesc> request_queue;
   ForwardSchedulerImpl* sched_ptr;
 
-  std::size_t fwd_request (std::size_t max_num_of_requests);
+  std::size_t fwd_requests (std::size_t max_num_of_requests);
   void insert_request (BlockRequestArgs request);
   
 };
+
 }

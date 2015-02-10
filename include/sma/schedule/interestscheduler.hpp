@@ -6,6 +6,8 @@
 namespace sma
 {
 
+class ForwardSchedulerImpl;
+
 class InterestScheduler
 {
 public:
