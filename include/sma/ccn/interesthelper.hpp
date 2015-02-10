@@ -21,9 +21,12 @@ public:
   virtual void create_local(std::vector<ContentType> types) = 0;
 
   virtual std::vector<Interest> local() const = 0;
+  virtual std::vector<Interest> all() const = 0;
+  virtual std::vector<Interest> remote() const = 0;
 
   virtual bool interested_in(ContentMetadata const& metadata) const = 0;
   virtual bool know_remote(ContentType const& type) const = 0;
+  virtual bool contains_any(std::vector<ContentType> const& types) const = 0;
 
   virtual std::size_t announce() = 0;
 };

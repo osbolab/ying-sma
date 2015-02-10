@@ -6,6 +6,8 @@
 #include <sma/context.hpp>
 #include <sma/async.hpp>
 
+#include <sma/util/binaryformat.hpp>
+
 #include <chrono>
 #include <limits>
 #include <sstream>
@@ -24,7 +26,16 @@ InterestHelperImpl::InterestHelperImpl(CcnNode& node)
 
 void InterestHelperImpl::receive(MessageHeader header, InterestAnn msg)
 {
-  log.d("Interest announcement received");
+  std::vector<Interest> interests;
+  interests.reserve(msg.count);
+  Reader<BinaryInput> reader(msg.data, msg.size);
+  for (std::size_t i = 0; i < msg.count; ++i)
+    interests.emplace_back(reader);
+
+  for (auto& interest : interests) {
+    ++interest.hops;
+    learn_remote(interest);
+  }
 }
 
 void InterestHelperImpl::create_local(ContentType type)
@@ -55,6 +66,15 @@ void InterestHelperImpl::create_local(std::vector<ContentType> types)
     create_local(type);
 }
 
+std::vector<Interest> InterestHelperImpl::all() const
+{
+  std::vector<Interest> all;
+  all.reserve(interests.size());
+  for (auto& i : interests)
+    all.emplace_back(i);
+  return all;
+}
+
 std::vector<Interest> InterestHelperImpl::local() const
 {
   std::vector<Interest> locals;
@@ -64,6 +84,15 @@ std::vector<Interest> InterestHelperImpl::local() const
   return locals;
 }
 
+std::vector<Interest> InterestHelperImpl::remote() const
+{
+  std::vector<Interest> remotes;
+  for (auto& i : interests)
+    if (i.remote())
+      remotes.push_back(i);
+  return remotes;
+}
+
 bool InterestHelperImpl::interested_in(ContentMetadata const& metadata) const
 {
   for (auto& i : interests)
@@ -71,6 +100,7 @@ bool InterestHelperImpl::interested_in(ContentMetadata const& metadata) const
       for (auto& type : metadata.types)
         if (i.type == type)
           return true;
+  return false;
 }
 
 void InterestHelperImpl::learn_remote(Interest const& interest)
@@ -79,6 +109,9 @@ void InterestHelperImpl::learn_remote(Interest const& interest)
   for (auto it = interests.begin(); it != interests.end(); ++it, ++idx)
     if (it->type == interest.type) {
       if (it->update_with(interest)) {
+        log.d("Promoted remote interest in '%v' (%v hops)",
+              interest.type,
+              std::uint32_t(interest.hops));
         auto i = std::move(*it);
         interests.erase(it);
         interests.push_front(std::move(i));
@@ -89,6 +122,9 @@ void InterestHelperImpl::learn_remote(Interest const& interest)
       return;
     }
 
+  log.d("Discovered remote interest in '%v' (%v hops)",
+        interest.type,
+        std::uint32_t(interest.hops));
   interests.emplace_front(
       interest.type, interest.ttl<std::chrono::milliseconds>(), interest.hops);
   ++to_announce;
@@ -99,6 +135,16 @@ bool InterestHelperImpl::know_remote(ContentType const& type) const
   for (auto& i : interests)
     if (i.remote() && i.type == type)
       return true;
+  return false;
+}
+
+bool InterestHelperImpl::contains_any(
+    std::vector<ContentType> const& types) const
+{
+  for (auto& i : interests)
+    for (auto& type : types)
+      if (i.type == type)
+        return true;
   return false;
 }
 
@@ -155,7 +201,7 @@ std::size_t InterestHelperImpl::announce()
   if (count != 0) {
     // The Interest Announcement message just dumps the buffer into the
     // message data and reads it back out at the other end.
-    InterestAnn msg(count, data, size);
+    InterestAnn msg(count, data_buf, size);
     log.t("--> announce %v interests (%v bytes)", count, size);
     node.post(msg);
   }

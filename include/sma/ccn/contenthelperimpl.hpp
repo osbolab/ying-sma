@@ -99,7 +99,6 @@ private:
   std::size_t to_announce;
 
   std::unordered_map<Hash, MetaRecord> kct;
-  //! Pending Request Table
-  std::unordered_map<std::pair<Hash, BlockIndex>, PendingRequest> prt;
+  std::unordered_map<std::pair<Hash, BlockIndex>, time_point> prt;
 };
 }
