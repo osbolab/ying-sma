@@ -40,11 +40,17 @@ public:
   InterestHelperImpl(CcnNode& node);
 
   void receive(MessageHeader header, InterestAnn announcement) override;
+
   void create_local(ContentType type);
   void create_local(std::vector<ContentType> types) override;
+
+  std::vector<Interest> all() const override;
   std::vector<Interest> local() const override;
+  std::vector<Interest> remote() const override;
+
   bool interested_in(ContentMetadata const& metadata) const override;
   bool know_remote(ContentType const& type) const override;
+  bool contains_any(std::vector<ContentType> const& types) const override;
 
   virtual std::size_t announce() override;
 

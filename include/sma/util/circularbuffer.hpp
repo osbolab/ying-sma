@@ -15,6 +15,7 @@ class CircularBuffer
 public:
   CircularBuffer()
     : sz(0)
+    , i(0)
     , first(0)
     , v(Capacity)
   {
@@ -25,10 +26,11 @@ public:
 
   std::size_t push_back(T value)
   {
-    auto next = (first + sz) % Capacity;
-    if (next == first)
-      first = (first + 1) % Capacity;
+    auto const next = i % Capacity;
     v[next] = std::move(value);
+    if (i >= Capacity)
+      first = (i + 1) % Capacity;
+    ++i;
     if (sz < Capacity)
       ++sz;
     return next;
@@ -55,6 +57,7 @@ private:
   std::vector<T> v;
 
   std::size_t sz;
+  std::size_t i;
   std::size_t first;
 };
 }

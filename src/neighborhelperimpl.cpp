@@ -41,23 +41,22 @@ void NeighborHelperImpl::saw(NodeId const& node, Vec2d const& position)
   auto it = neighbors.find(node);
   if (it == neighbors.end()) {
     neighbors.emplace(node, NeighborRecord(position));
-  }
-  else {
+  } else {
     it->second.saw(position);
-    log.d("Neighbor %v", it->first);
-    log.d("| position: %v", std::string(it->second.position()));
-    log.d("| velocity: %v m/s", it->second.velocity.length());
   }
 }
 
 void NeighborHelperImpl::receive(MessageHeader header, Beacon msg)
 {
   saw(header.sender, msg.position);
-  for (auto& n : get()) {
-    log.d("Neighbor %v", n.id);
-    log.d("| position: %v", std::string(n.position));
-    log.d("| velocity: %v m/s", n.velocity.length());
+  std::ostringstream ss;
+  std::size_t count = neighbors.size();
+  for (auto& pair : neighbors) {
+    ss << pair.first;
+    if (--count != 0)
+      ss << ", ";
   }
+  log.t("neighbors: %v", ss.str());
 
   if (!msg.is_response)
     node.post(Beacon(node.position(), true));
@@ -72,7 +71,11 @@ void NeighborHelperImpl::schedule_beacon(millis delay)
   asynctask(&NeighborHelperImpl::beacon, this).do_in(delay);
 }
 
-void NeighborHelperImpl::beacon() { node.post(Beacon(node.position())); }
+void NeighborHelperImpl::beacon()
+{
+  node.post(Beacon(node.position()));
+  schedule_beacon(2s);
+}
 
 void NeighborHelperImpl::refresh_neighbors()
 {

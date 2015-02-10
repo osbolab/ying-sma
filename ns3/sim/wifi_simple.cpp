@@ -250,12 +250,12 @@ void configure_logs(int& argc, char** argv)
   _START_EASYLOGGINGPP(argc, argv);
 
   std::cout << "Configuring application logging from log.conf...\n";
-  el::Configurations logconf("/etc/sma/log.conf");
+  el::Configurations logconf("../conf/log.conf");
   el::Loggers::reconfigureAllLoggers(logconf);
   LOG(INFO) << "\n\n----------------------------------- session "
                "-----------------------------------";
   LOG(DEBUG) << "Configuring node logging from nodelog.conf...";
-  el::Configurations nodelogconf("/etc/sma/nodelog.conf");
+  el::Configurations nodelogconf("../conf/nodelog.conf");
   el::Loggers::setDefaultConfigurations(nodelogconf, false);
   el::Loggers::getLogger("nodes");
   CLOG(INFO, "nodes") << "------------------------- session "

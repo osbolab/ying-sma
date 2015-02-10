@@ -4,8 +4,6 @@
 #include <sma/util/vec2d.hpp>
 #include <sma/util/circularbuffer.hpp>
 
-#include <sma/io/log>
-
 
 namespace sma
 {
@@ -31,7 +29,6 @@ struct NeighborRecord {
   {
     last_seen = clock::now();
 
-    LOG(DEBUG) << "postiion: " << std::string(position);
     positions.push_back(std::make_pair(last_seen, position));
     velocity = compute_velocity();
 
