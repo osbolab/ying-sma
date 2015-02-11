@@ -95,7 +95,7 @@ namespace sma
         // translate from BlockRequestDesc to BlockRequestArgs, all about the ttl
         auto current_time = sma::chrono::system_clock::now();
         if (desc.expire_time < current_time)  continue;
-  	    auto ttl = std::chrono::duration_cast<std::chrono::microseconds>
+  	    auto ttl = std::chrono::duration_cast<std::chrono::milliseconds>
             (desc.expire_time - current_time);
         auto arg 
             = BlockRequestArgs (desc.content_name,

@@ -97,6 +97,9 @@ set(${PROJECT_NAME}_sources
   "src/util/binaryoutput.cpp"
   
   "src/schedule/forwardschedulerimpl.cpp"
+
+  "src/ccn/behaviorhelper.cpp"
+  "src/ccn/behaviorhelperimpl.cpp"
 )
 
 include_directories("include")

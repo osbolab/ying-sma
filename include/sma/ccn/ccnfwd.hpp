@@ -15,4 +15,5 @@ struct BlockResponse;
 
 class InterestHelper;
 class ContentHelper;
+class BehaviorHelper;
 }

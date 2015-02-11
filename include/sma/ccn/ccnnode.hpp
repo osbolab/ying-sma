@@ -62,6 +62,9 @@ public:
   InterestHelper* interests = nullptr;
   //! Manages content we're providing and remote content we've cached.
   ContentHelper* content = nullptr;
+  //! Manages user behavior by triggering interest broadcast, content publication
+  //  and content retrieval.
+  BehaviorHelper* behavior = nullptr;
 
 private:
   //! \a true if the node's graceful termination has been requested.
