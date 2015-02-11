@@ -1,17 +1,11 @@
 #pragma once
 
 #include <sma/ccn/contenthelper.hpp>
-#include <sma/ccn/contentmetadata.hpp>
-#include <sma/ccn/remotecontent.hpp>
-#include <sma/ccn/contentcache.hpp>
-#include <sma/ccn/blockindex.hpp>
+
 #include <sma/ccn/blockrequest.hpp>
-#include <sma/ccn/blockrequestargs.hpp>
+#include <sma/ccn/contentcache.hpp>
 
-#include <sma/networkdistance.hpp>
 #include <sma/util/hash.hpp>
-
-#include <sma/ccn/ccnfwd.hpp>
 
 #include <sma/chrono.hpp>
 #include <sma/io/log>
@@ -59,19 +53,40 @@ public:
 
   std::vector<ContentMetadata> metadata() const override;
   std::size_t announce_metadata() override;
+
   void request(std::vector<BlockRequestArgs> requests) override;
-  bool broadcast(Hash hash, BlockIndex index) override;
-  std::size_t freeze(std::vector<std::pair<Hash, BlockIndex>> blocks) override;
-  std::size_t
-  unfreeze(std::vector<std::pair<Hash, BlockIndex>> blocks) override;
+  bool broadcast(BlockRef block) override;
+
+  std::size_t freeze(std::vector<BlockRef> blocks) override;
+  std::size_t unfreeze(std::vector<BlockRef> blocks) override;
+
+  //! Fired when a nonempty set of block requests arrives from the network.
+  Event<NodeId, std::vector<BlockRequestArgs>>& on_blocks_requested() override;
+  //! Fired when a previously broadcast request exceeds its Time to Live
+  //! argument.
+  Event<BlockRef>& on_request_timeout() override;
+  //! Fired when block data arrive and are cached by the content helper.
+  // The \a CacheEntry argument provides functions to keep or release the cache
+  // entry for the given data.
+  Event<BlockRef>& on_block_arrived() override;
 
 
 private:
-  struct MetaRecord {
-    ContentMetadata metadata;
-    std::uint8_t hops;
+  struct LocalMetadata {
+    ContentMetadata data;
+    time_point last_requested;
+    time_point last_announced;
   };
 
+  struct RemoteMetadata {
+    ContentMetadata data;
+    std::size_t hops;
+    time_point expiry_time;
+  };
+
+  /// Track the requested segments of each block additively; two requests for
+  /// different fragments of the same block become a single request for the
+  /// union of those two fragments.
   struct PendingRequest {
     PendingRequest(std::vector<BlockFragmentRequest> fragments)
       : fragments(std::move(fragments))
@@ -89,16 +104,27 @@ private:
     std::vector<BlockFragmentRequest> fragments;
   };
 
-  bool update(ContentMetadata const& metadata, NetworkDistance distance);
-
-  //! Store actual content data in memory
+  // Blocks we are storing transiently because we received them and may be asked
+  // to broadcast them in the near future.
+  // Acts as a least-recently-requested cache by default, but elements can be
+  // locked at the head on request.
   ContentCache cache;
-  //! Known Content Table - Remote content for which we have metadata
+
   std::deque<Hash> ann_queue;
   time_point next_announce_time;
   std::size_t to_announce;
 
-  std::unordered_map<Hash, MetaRecord> kct;
-  std::unordered_map<std::pair<Hash, BlockIndex>, time_point> prt;
+  // Local Metadata Table
+  // Content for which we have all of the data stored permanently.
+  std::vector<LocalMetadata> lmt;
+
+  // Remote Metadata Table
+  // Content we know of on the network, but for which we don't have a permanent
+  // store.
+  std::vector<RemoteMetadata> rmt;
+
+  // Pending Request Table
+  // Content blocks that have been requested from us.
+  std::unordered_map<BlockRef, time_point> prt;
 };
 }

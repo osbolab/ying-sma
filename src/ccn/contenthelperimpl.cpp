@@ -15,8 +15,6 @@
 
 #include <sma/ccn/interesthelper.hpp>
 
-#include <sma/chrono.hpp>
-
 #include <ctime>
 #include <chrono>
 #include <string>
@@ -27,7 +25,9 @@ using namespace std::literals::chrono_literals;
 
 namespace sma
 {
+
 static sma::chrono::system_clock::time_point g_published;
+
 
 std::vector<ContentMetadata> ContentHelperImpl::metadata() const
 {
@@ -36,6 +36,7 @@ std::vector<ContentMetadata> ContentHelperImpl::metadata() const
     v.push_back(pair.second.metadata);
   return v;
 }
+
 
 void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
 {
@@ -98,6 +99,7 @@ void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
   log.d("");
 }
 
+
 bool ContentHelperImpl::update(ContentMetadata const& metadata,
                                std::uint8_t hops)
 {
@@ -115,6 +117,7 @@ bool ContentHelperImpl::update(ContentMetadata const& metadata,
 
   return true;
 }
+
 
 ContentMetadata ContentHelperImpl::create_new(std::vector<ContentType> types,
                                               ContentName const& name,
@@ -146,6 +149,7 @@ ContentMetadata ContentHelperImpl::create_new(std::vector<ContentType> types,
   return metadata;
 }
 
+
 std::size_t ContentHelperImpl::announce_metadata()
 {
   if (clock::now() < next_announce_time)
@@ -164,6 +168,7 @@ std::size_t ContentHelperImpl::announce_metadata()
 
   return metas.size();
 }
+
 
 void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
 {
@@ -191,7 +196,8 @@ void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
     node.post(BlockRequest(std::move(requests)));
 }
 
-bool ContentHelperImpl::broadcast(Hash hash, BlockIndex index)
+
+bool ContentHelperImpl::broadcast(BlockRef block)
 {
   auto blocks = cache.find(hash);
   if (blocks != nullptr) {
@@ -209,23 +215,25 @@ bool ContentHelperImpl::broadcast(Hash hash, BlockIndex index)
   return false;
 }
 
-std::size_t
-ContentHelperImpl::freeze(std::vector<std::pair<Hash, BlockIndex>> blocks)
+
+std::size_t ContentHelperImpl::freeze(std::vector<BlockRef> blocks)
 {
   return blocks.size();
 }
 
-std::size_t
-ContentHelperImpl::unfreeze(std::vector<std::pair<Hash, BlockIndex>> blocks)
+
+std::size_t ContentHelperImpl::unfreeze(std::vector<BlockRef> blocks)
 {
   return blocks.size();
 }
+
 
 void ContentHelperImpl::receive(MessageHeader header, BlockRequest msg)
 {
   if (not msg.requests.empty())
     on_blocks_requested(header.sender, std::move(msg.requests));
 }
+
 
 void ContentHelperImpl::receive(MessageHeader header, BlockResponse resp)
 {

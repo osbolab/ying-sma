@@ -1,7 +1,6 @@
 #pragma once
 
 #include <sma/ccn/contentmetadata.hpp>
-#include <sma/networkdistance.hpp>
 
 #include <sma/util/serial.hpp>
 
@@ -16,8 +15,7 @@ struct ContentAnn {
   std::vector<ContentMetadata> metadata;
   std::uint8_t hops;
 
-  ContentAnn(std::vector<ContentMetadata> metadata,
-             std::uint8_t hops = 0)
+  ContentAnn(std::vector<ContentMetadata> metadata, std::uint8_t hops = 0)
     : metadata(std::move(metadata))
     , hops(hops)
   {

@@ -55,21 +55,24 @@ struct Hasher {
 private:
   SHA256 sha;
 };
+
+std::ostream& operator<<(std::ostream& os, Hash const& h)
+{
+  return os << std::string(h);
+}
 }
 
 namespace std
 {
 template <>
 struct hash<sma::Hash> {
-  using argument_type = sma::Hash;
-  using result_type = size_t;
-
-  result_type operator()(argument_type const& a) const
+  size_t operator()(sma::Hash const& a) const
   {
     size_t hash = 1;
     for (size_t i = 0; i < sma::Hash::LENGTH; i += 4)
       hash = 31 * hash + (size_t(a.data[i]) << 24 | size_t(a.data[i + 1]) << 16
-                          | size_t(a.data[i + 2]) << 8 | a.data[i + 3]);
+                          | size_t(a.data[i + 2]) << 8
+                          | a.data[i + 3]);
     return hash;
   }
 };
