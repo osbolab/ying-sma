@@ -8,6 +8,8 @@
 
 #include <sma/util/binaryformat.hpp>
 
+#include <sma/stats.hpp>
+
 #include <chrono>
 #include <limits>
 #include <sstream>
@@ -33,6 +35,7 @@ void InterestHelperImpl::receive(MessageHeader header, InterestAnn msg)
     interests.emplace_back(reader);
 
   for (auto& interest : interests) {
+    stats::Ints::on_received(node.id, interest);
     ++interest.hops;
     learn_remote(interest);
   }
@@ -183,6 +186,8 @@ std::size_t InterestHelperImpl::announce()
       --to_announce;
       continue;
     }
+
+    stats::Ints::on_sent(node.id, i);
 
     BinaryOutput out(data, sizeof(data_buf) - size);
     out << i;

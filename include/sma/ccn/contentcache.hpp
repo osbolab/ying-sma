@@ -4,6 +4,8 @@
 
 #include <sma/util/hash.hpp>
 
+#include <sma/io/log>
+
 #include <iosfwd>
 #include <utility>
 #include <cstdlib>
@@ -15,6 +17,7 @@
 
 namespace sma
 {
+class CcnNode;
 struct ContentMetadata;
 class BlockData;
 
@@ -29,9 +32,10 @@ public:
                 "Block size must be a power of 2.");
 
 
+  // Construct a cache with the given capacity in bytes.
   // If capacity is zero this cache is unbounded and dynamic with no initial
   // size; otherwise it is a bounded LRU allocated at construction.
-  ContentCache(std::size_t capacity = 0);
+  ContentCache(CcnNode& node, std::size_t capacity = 0);
 
   BlockData end() const;
 
@@ -43,7 +47,12 @@ public:
   // Insert a new item of content into the cache by dividing into blocks,
   // hashing, and caching the given data.
   // Return the content's hash, also its unique internal identifier.
-  Hash load(void const* src, std::size_t size);
+  Hash store(void const* src, std::size_t size);
+
+  BlockData store(BlockRef ref,
+             std::size_t expected_size,
+             void const* src,
+             std::size_t size);
 
   // Return true if all blocks for the given content exist and are complete.
   bool validate_data(ContentMetadata const& metadata) const;
@@ -75,6 +84,10 @@ private:
   std::vector<std::size_t> reserve_slots(std::size_t count);
 
   void promote(std::size_t idx);
+
+  void log_utilization();
+
+  Logger log;
 
   std::size_t capacity;
   // The actual data, initially allocated when capacity is nonzero.

@@ -1,7 +1,8 @@
 #include <sma/ccn/contentcache.hpp>
 
-#include <sma/ccn/contentmetadata.hpp>
+#include <sma/ccn/ccnnode.hpp>
 
+#include <sma/ccn/contentmetadata.hpp>
 #include <sma/ccn/blockdata.hpp>
 
 #include <sma/io/log>
@@ -31,8 +32,16 @@ namespace detail
 constexpr std::size_t ContentCache::block_size;
 
 
-ContentCache::ContentCache(std::size_t capacity)
-  : capacity(capacity == 0 ? 0 : detail::next_power_of_two(capacity))
+void ContentCache::log_utilization()
+{
+  log.i("cache utilization, %v",
+        1.0 - double(free_idxs.size() * block_size) / capacity);
+}
+
+
+ContentCache::ContentCache(CcnNode& node, std::size_t capacity)
+  : log(node.log)
+  , capacity(capacity == 0 ? 0 : detail::next_power_of_two(capacity))
   , slots(capacity / block_size)
   , free_idxs(capacity / block_size)
 {
@@ -94,6 +103,7 @@ std::size_t ContentCache::ensure_capacity(std::size_t count)
     else
       free_slots(count - free_idxs.size());
   }
+
   return std::min(count, free_idxs.size());
 }
 
@@ -107,6 +117,7 @@ std::size_t ContentCache::reserve_slot()
   auto const idx = free_idxs.back();
   free_idxs.pop_back();
   occupied_idxs.push_front(idx);
+
   return idx;
 }
 
@@ -141,7 +152,7 @@ void ContentCache::promote(std::size_t idx)
 }
 
 
-Hash ContentCache::load(void const* src, std::size_t size)
+Hash ContentCache::store(void const* src, std::size_t size)
 {
   std::size_t const block_count = 1 + ((size - 1) / block_size);
 
@@ -172,14 +183,40 @@ Hash ContentCache::load(void const* src, std::size_t size)
     slot.expected_size = slot.size = to_read;
   }
 
-  LOG(DEBUG) << "Content cached";
-  LOG(DEBUG) << "| hash: " << hash;
-  LOG(DEBUG) << "| size: " << read;
-  LOG(DEBUG) << "| blocks: " << taken_idxs.size();
+  log.d("New content cached");
+  log.d("| hash: %v", hash);
+  log.d("| size: %v", read);
+  log.d("| blocks: %v", taken_idxs.size());
 
   content.emplace(hash, std::move(taken_idxs));
 
+  log_utilization();
+
   return hash;
+}
+
+
+BlockData ContentCache::store(BlockRef ref,
+                              std::size_t expected_size,
+                              void const* src,
+                              std::size_t size)
+{
+  auto& idxs = content[ref.hash];
+  for (auto& idx : idxs)
+    if (slots[idx].block_index == ref.index)
+      return end();
+
+  auto idx = reserve_slot();
+  idxs.push_back(idx);
+
+  auto& slot = slots[idx];
+  std::memcpy(slot.data, src, size);
+  slot.expected_size = expected_size;
+  slot.size = size;
+
+  log_utilization();
+
+  return BlockData(this, idx);
 }
 
 

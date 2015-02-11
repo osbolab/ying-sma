@@ -58,20 +58,16 @@ int main(int argc, char** argv)
   cmd.Parse(argc, argv);
 
 
-  LOG(DEBUG) << "Create 802.11b device template";
   // clang-format off
   // Don't fragment frames < 2200 bytes
   ns3::Config::SetDefault("ns3::WifiRemoteStationManager::FragmentationThreshold",
                           ns3::StringValue(fragmentThreshold));
-  LOG(DEBUG) << "  - Fragmentation lower limit: " << fragmentThreshold << " bytes";
   // Turn off RTS/CTS for frames < 2200 bytes
   ns3::Config::SetDefault("ns3::WifiRemoteStationManager::RtsCtsThreshold",
                           ns3::StringValue(fragmentThreshold));
-  LOG(DEBUG) << "  - RTS/CTS disabled below: " << fragmentThreshold << " bytes";
   // Adjust non-unicast data rate to be the same as unicast
   ns3::Config::SetDefault("ns3::WifiRemoteStationManager::NonUnicastMode",
                           ns3::StringValue(phyMode));
-  LOG(DEBUG) << "  - Multicast/broadcast unthrottled";
 
   // clang-format on
   ns3::WifiHelper wifi;
@@ -81,19 +77,15 @@ int main(int argc, char** argv)
   auto wifiPhy = ns3::YansWifiPhyHelper::Default();
   // When using a fixed RSS model this should be zero lest gain be added
   wifiPhy.Set("RxGain", ns3::DoubleValue(0));
-  LOG(DEBUG) << "  - Rx gain: 0 dBm";
   // Something about RadioTap and Prism tracing
   wifiPhy.SetPcapDataLinkType(ns3::YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
 
   ns3::YansWifiChannelHelper wifiChannel;
   wifiChannel.SetPropagationDelay("ns3::ConstantSpeedPropagationDelayModel");
-  LOG(DEBUG) << "  - Propagation delay: constant";
   // Receive strength is fixed regardless of distance or TX power
   wifiChannel.AddPropagationLoss("ns3::FriisPropagationLossModel");
-  LOG(DEBUG) << "  - Propagation loss model: Friis";
 
   wifiPhy.SetChannel(wifiChannel.Create());
-  LOG(DEBUG) << "802.11b physical model created";
 
   auto wifiMac = ns3::NqosWifiMacHelper::Default();
   wifi.SetRemoteStationManager("ns3::ConstantRateWifiManager",
@@ -103,16 +95,6 @@ int main(int argc, char** argv)
                                ns3::StringValue(phyMode));
   wifiMac.SetType("ns3::AdhocWifiMac");
 
-  LOG(DEBUG) << "WiFi MAC:";
-  LOG(DEBUG) << "  - QoS: none";
-  LOG(DEBUG) << "  - Data mode: " << phyMode;
-  LOG(DEBUG) << "  - Control mode: " << phyMode;
-  LOG(DEBUG) << "  - Rate: constant";
-  LOG(DEBUG) << "  - Mode: adhoc";
-
-  LOG(DEBUG) << "Create " << nnodes << " virtual WiFi devices";
-  LOG(DEBUG) << "  - Mobility: fixed";
-  LOG(DEBUG) << "  - Position: grid (" << distance << "m distance)";
   ns3::NodeContainer nodes;
   nodes.Create(nnodes);
   auto devices = wifi.Install(wifiPhy, wifiMac, nodes);
@@ -149,13 +131,9 @@ int main(int argc, char** argv)
   mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
   mobility.Install(nodes);
 
-  LOG(DEBUG) << "Create Internet and assign IP addresses to devices";
-  LOG(DEBUG) << "  - Base IP: " << baseIp;
-  LOG(DEBUG) << "  - Subnet: " << subnet;
   ns3::OlsrHelper olsr;
   ns3::Ipv4ListRoutingHelper list;
   if (enable_olsr) {
-    LOG(DEBUG) << "  - Routing: OLSR";
     ns3::Ipv4StaticRoutingHelper staticRouting;
     list.Add(staticRouting, 0);
     list.Add(olsr, 10);
@@ -177,7 +155,6 @@ int main(int argc, char** argv)
   // and packets to the sockets; the sockets in turn call up through the
   // channels to the messengers which deliver messages to the high-level
   // application.
-  LOG(DEBUG) << "Install SMA application instances in virtual nodes";
   ns3::ObjectFactory sma_factory;
   sma_factory.SetTypeId(sma::Ns3NodeContainer::TypeId());
 
@@ -216,10 +193,8 @@ int main(int argc, char** argv)
 
     node->AddApplication(app);
   }
-  LOG(INFO) << "Created " << nnodes << " nodes";
   // ^^^^^^^^^^^^^^^^^^^^^^^^^ SMA STUFF ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  LOG(DEBUG) << "Traffic will output to /var/log/sma/pcap/wifi_simple-x-x.pcap";
   ns3::AsciiTraceHelper ascii;
   wifiPhy.EnablePcap("/var/log/sma/pcap/wifi_simple", devices);
 
