@@ -12,6 +12,7 @@
 namespace sma
 {
 struct CcnNode;
+struct NodeId;
 struct ContentType;
 struct ContentName;
 struct ContentMetadata;
@@ -48,7 +49,7 @@ public:
                                      ContentName const& name,
                                      std::istream& in) = 0;
 
-  virtual std::vector<ContentMetadata> metadata() const = 0;
+  virtual std::vector<ContentMetadata> metadata() = 0;
   virtual std::size_t announce_metadata() = 0;
 
   //! Send one message to the network containing all of the given block

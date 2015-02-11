@@ -2,25 +2,47 @@
 
 #include <sma/ccn/contenthelper.hpp>
 
+#include <sma/ccn/contentmetadata.hpp>
+
+#include <sma/ccn/blockref.hpp>
 #include <sma/ccn/blockrequest.hpp>
-#include <sma/ccn/contentcache.hpp>
 
 #include <sma/util/hash.hpp>
 
+#include <sma/util/event.hpp>
+
 #include <sma/chrono.hpp>
-#include <sma/io/log>
 
 #include <vector>
 #include <deque>
 #include <unordered_map>
 
+#include <chrono>
 #include <iosfwd>
 #include <cstdlib>
 #include <utility>
+#include <memory>
 
 
 namespace sma
 {
+struct CcnNode;
+struct ContentType;
+struct ContentName;
+struct ContentMetadata;
+
+struct MessageHeader;
+struct ContentAnn;
+struct BlockRef;
+struct BlockRequest;
+struct BlockResponse;
+struct BlockRequestArgs;
+
+template <typename...>
+struct Event;
+
+class ContentCache;
+
 //! Manages the metadata, data, and traffic for content items in the network.
 /*! The content helper's responsibilities include publishing, storing,
  * segmenting, caching, and replicating content and its metadata.
@@ -31,17 +53,8 @@ namespace sma
  */
 class ContentHelperImpl : public ContentHelper
 {
-  using clock = sma::chrono::system_clock;
-  using time_point = clock::time_point;
-
 public:
-  //! Construct a helper to manage the content for the given node.
-  ContentHelperImpl(CcnNode& node)
-    : ContentHelper(node)
-    , next_announce_time(clock::now())
-    , to_announce(0)
-  {
-  }
+  ContentHelperImpl(CcnNode& node);
 
   void receive(MessageHeader header, ContentAnn msg) override;
   void receive(MessageHeader header, BlockRequest req) override;
@@ -51,7 +64,7 @@ public:
                              ContentName const& name,
                              std::istream& in) override;
 
-  std::vector<ContentMetadata> metadata() const override;
+  std::vector<ContentMetadata> metadata() override;
   std::size_t announce_metadata() override;
 
   void request(std::vector<BlockRequestArgs> requests) override;
@@ -61,27 +74,44 @@ public:
   std::size_t unfreeze(std::vector<BlockRef> blocks) override;
 
   //! Fired when a nonempty set of block requests arrives from the network.
-  Event<NodeId, std::vector<BlockRequestArgs>>& on_blocks_requested() override;
+  Event<NodeId, std::vector<BlockRequestArgs>>& on_blocks_requested() override
+  {
+    return blocks_requested_event;
+  }
   //! Fired when a previously broadcast request exceeds its Time to Live
   //! argument.
-  Event<BlockRef>& on_request_timeout() override;
+  Event<BlockRef>& on_request_timeout() override
+  {
+    return request_timeout_event;
+  }
   //! Fired when block data arrive and are cached by the content helper.
   // The \a CacheEntry argument provides functions to keep or release the cache
   // entry for the given data.
-  Event<BlockRef>& on_block_arrived() override;
+  Event<BlockRef>& on_block_arrived() override { return block_arrived_event; }
 
 
 private:
+  using clock = sma::chrono::system_clock;
+  using time_point = clock::time_point;
+
   struct LocalMetadata {
+    LocalMetadata(ContentMetadata data);
+
+    void requested();
+    void announced();
+
     ContentMetadata data;
     time_point last_requested;
-    time_point last_announced;
+    time_point next_announce;
   };
 
   struct RemoteMetadata {
+    RemoteMetadata(ContentMetadata data);
+
+    void announced();
+
     ContentMetadata data;
-    std::size_t hops;
-    time_point expiry_time;
+    time_point next_announce;
   };
 
   /// Track the requested segments of each block additively; two requests for
@@ -104,14 +134,16 @@ private:
     std::vector<BlockFragmentRequest> fragments;
   };
 
-  // Blocks we are storing transiently because we received them and may be asked
-  // to broadcast them in the near future.
-  // Acts as a least-recently-requested cache by default, but elements can be
-  // locked at the head on request.
-  ContentCache cache;
+  bool learn_remote(ContentMetadata const& meta);
+
+
+  Event<NodeId, std::vector<BlockRequestArgs>> blocks_requested_event;
+  Event<BlockRef> request_timeout_event;
+  Event<BlockRef> block_arrived_event;
+
+  std::unique_ptr<ContentCache> cache;
 
   std::deque<Hash> ann_queue;
-  time_point next_announce_time;
   std::size_t to_announce;
 
   // Local Metadata Table
@@ -124,7 +156,6 @@ private:
   std::vector<RemoteMetadata> rmt;
 
   // Pending Request Table
-  // Content blocks that have been requested from us.
-  std::unordered_map<BlockRef, time_point> prt;
+  std::unordered_map<BlockRef, std::pair<time_point, bool>> prt;
 };
 }

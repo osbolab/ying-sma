@@ -10,14 +10,12 @@
 namespace sma
 {
 struct ContentAnn {
-  TRIVIALLY_SERIALIZABLE(ContentAnn, metadata, hops)
+  TRIVIALLY_SERIALIZABLE(ContentAnn, metadata)
 
   std::vector<ContentMetadata> metadata;
-  std::uint8_t hops;
 
-  ContentAnn(std::vector<ContentMetadata> metadata, std::uint8_t hops = 0)
+  ContentAnn(std::vector<ContentMetadata> metadata)
     : metadata(std::move(metadata))
-    , hops(hops)
   {
   }
 

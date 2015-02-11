@@ -23,8 +23,10 @@ struct BlockRequestArgs {
                    float utility,
                    D ttl,
                    NodeId requester,
-                   Vec2d requester_position)
+                   Vec2d requester_position,
+                   bool keep = false)
     : block(block)
+    , keep(keep)
     , utility(utility)
     , ttl_ms(std::chrono::duration_cast<std::chrono::milliseconds>(ttl).count())
     , requester(requester)
@@ -38,10 +40,17 @@ struct BlockRequestArgs {
     return std::chrono::duration_cast<D>(std::chrono::milliseconds(ttl_ms));
   }
 
+  // Serialized
+
   BlockRef block;
   float utility;
   std::uint32_t ttl_ms;
   NodeId requester;
   Vec2d requester_position;
+
+  // Transient
+
+  // Signal to the content cache that this block should be stored permanently.
+  bool keep;
 };
 }
