@@ -2,16 +2,19 @@
 
 #include <sma/ccn/ccnnode.hpp>
 
-#include <sma/ccn/contentcache.hpp>
-
 #include <sma/ccn/contenttype.hpp>
 #include <sma/ccn/contentname.hpp>
+
+#include <sma/ccn/contentcache.hpp>
+#include <sma/ccn/blockdata.hpp>
 
 #include <sma/messageheader.hpp>
 #include <sma/ccn/contentann.hpp>
 #include <sma/ccn/blockresponse.hpp>
 
 #include <sma/ccn/interesthelper.hpp>
+
+#include <sma/async.hpp>
 
 #include <ctime>
 #include <chrono>
@@ -69,7 +72,8 @@ void ContentHelperImpl::RemoteMetadata::announced()
 
 ContentHelperImpl::ContentHelperImpl(CcnNode& node)
   : ContentHelper(node)
-  , cache(new ContentCache())
+  , cache(new ContentCache(1024 * 1024))
+  , store(new ContentCache())
   , to_announce(0)
 {
 }
@@ -118,7 +122,7 @@ void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
     log.d("Content metadata from n(%v)", header.sender);
     log.d("| distance: %v hop(s)", std::uint32_t(metadata.hops));
     log.d("| ttl: %v ms", metadata.ttl<std::chrono::milliseconds>().count());
-    log.d("| hash: %v", std::string(metadata.hash));
+    log.d("| hash: %v",metadata.hash);
     log.d("| size: %v bytes", metadata.size);
     log.d("| block size: %v bytes", metadata.block_size);
     for (auto& type : metadata.types)
@@ -136,8 +140,20 @@ void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
         if (type == interest.type) {
           if (interest.local()) {
             log.d("| I'm interested in this");
+            request({BlockRequestArgs(BlockRef(metadata.hash, 0),
+                  1.23,
+                  millis(10000),
+                  node.id,
+                  node.position(),
+                  true)});
           } else {
             log.d("| I know someone interested in this");
+            request({BlockRequestArgs(BlockRef(metadata.hash, 0),
+                  1.23,
+                  millis(10000),
+                  node.id,
+                  node.position(),
+                  false)});
           }
         }
   }
@@ -145,6 +161,117 @@ void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
   auto const time = std::chrono::duration_cast<std::chrono::milliseconds>(
       clock::now() - g_published);
   // log.i("delay: %v ms", time.count());
+
+  log.d("");
+}
+
+
+void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
+{
+  // Detect reentrance
+  if (already_in_request)
+    log.w("ContentHelperImpl::request has been reentered. Are you SURE the "
+          "caller is reentrant?");
+  already_in_request = true;
+
+  std::vector<BlockRef> already_have;
+
+  auto req = requests.begin();
+  while (req != requests.end()) {
+    // Skip a request if we have the block in cache or store.
+    auto cached_block = cache->find(req->block);
+    if (cached_block == cache->end())
+      cached_block = store->find(req->block);
+
+    if (cached_block != cache->end() && cached_block != store->end()
+        && cached_block.complete()) {
+      prt.erase(req->block);
+      already_have.push_back(std::move(req->block));
+      req = requests.erase(req);
+      continue;
+    }
+
+    auto const new_expiry = clock::now() + req->ttl<millis>();
+
+    auto it = prt.find(req->block);
+    if (it != prt.end()) {
+      auto& pending = it->second;
+      // Update existing pending requests to have a longer TTL or keep the
+      // requested block.
+      if (pending.expiry < new_expiry) {
+        pending.expiry = new_expiry;
+        check_pending_requests(new_expiry);
+      }
+      pending.keep_on_arrival |= req->keep_on_arrival;
+    } else {
+      // Add a new pending request to facilitate timeout and block storage.
+      prt.emplace(
+          req->block,
+          PendingRequest{clock::now(), new_expiry, req->keep_on_arrival});
+      check_pending_requests(new_expiry);
+    }
+
+    ++req;
+  }
+
+  if (not requests.empty()) {
+    log.d("Sending %v requests", requests.size());
+    node.post(BlockRequest(std::move(requests)));
+  }
+
+  // WARNING: caller must be reentrant if the callback invokes it!
+  // For example: the caller enters this function while looping over a
+  // collection that it modifies. If the block arrived handler reenters that
+  // caller, the inner execution will modify the collection while the outer
+  // execution is still iterating, invalidating its iterators.
+  for (auto& block : already_have)
+    block_arrived_event(block);
+
+  already_in_request = false;
+}
+
+
+void ContentHelperImpl::receive(MessageHeader header, BlockRequest msg)
+{
+  log.d("Got %v requests", msg.requests.size());
+  for (auto const& req : msg.requests) {
+    log.d("| block: %v", req.block);
+  }
+
+  if (not msg.requests.empty())
+    blocks_requested_event(header.sender, std::move(msg.requests));
+
+  broadcast(msg.requests[0].block);
+}
+
+
+void ContentHelperImpl::receive(MessageHeader header, BlockResponse resp)
+{
+  /*
+  auto& blocks = cache->find_or_allocate(resp.hash);
+  auto it = blocks.find(resp.index);
+  if (it == blocks.end())
+    it = blocks.emplace(resp.index, BlockData(resp.index, resp.size)).first;
+  auto& block = it->second;
+  */
+
+  log.d("Got block");
+  log.d("| %v", BlockRef(resp.hash, resp.index));
+  log.d("| sender: %v", header.sender);
+
+  /*
+  for (auto& fragment : resp.fragments) {
+    log.d("| fragment: [%v, %v]",
+          fragment.offset,
+          fragment.offset + fragment.size - 1);
+    block.insert(fragment.offset, fragment.data, fragment.size);
+  }
+
+  if (not block.notified and block.complete()) {
+    block.notified = true;
+    block_arrived_event(BlockRef(resp.hash, block.index));
+  }
+  */
 
   log.d("");
 }
@@ -168,13 +295,10 @@ bool ContentHelperImpl::learn_remote(ContentMetadata const& meta)
 
 ContentMetadata ContentHelperImpl::create_new(std::vector<ContentType> types,
                                               ContentName const& name,
-                                              std::istream& in)
+                                              void const* src,
+                                              std::size_t size)
 {
-  std::size_t const block_size = 1024;
-
-  auto stored = cache->load(in, block_size);
-  auto& hash = stored.first;
-  auto& size = stored.second;
+  auto hash = cache->load(src, size);
 
   auto publish_time
       = std::chrono::duration_cast<std::chrono::seconds>(
@@ -182,7 +306,7 @@ ContentMetadata ContentHelperImpl::create_new(std::vector<ContentType> types,
 
   auto metadata = ContentMetadata(hash,
                                   size,
-                                  block_size,
+                                  ContentCache::block_size,
                                   std::move(types),
                                   name,
                                   node.position(),
@@ -242,96 +366,78 @@ std::size_t ContentHelperImpl::announce_metadata()
 }
 
 
-void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
+void ContentHelperImpl::check_pending_requests(time_point when)
 {
-  std::vector<BlockFragmentRequest> fragments;
-  std::vector<BlockRef> already_have;
-
-  auto req = requests.begin();
-  while (req != requests.end()) {
-    auto block = cache.find(req->block);
-    if (block != nullptr) {
-      if (it != blocks->end() && it->second.complete()) {
-        req = requests.erase(req);
-        continue;
-      }
-      /*
-      auto& gaps = it->second.gaps;
-      for (std::size_t i = 0; i < gaps.size() - 1; i += 2)
-        fragments.emplace_back(gaps[i], gaps[i + 1] - gaps[i]);
-        */
-    }
-    ++req;
+  if (when != time_point()) {
+    asynctask(&ContentHelperImpl::check_pending_requests, this, time_point())
+        .do_in(when - clock::now());
+    return;
   }
 
-  if (not requests.empty())
-    node.post(BlockRequest(std::move(requests)));
+  std::vector<BlockRef> timed_out;
+
+  auto const now = clock::now();
+  auto it = prt.begin();
+  while (it != prt.end()) {
+    auto const& pending = it->second;
+    if (now >= pending.expiry) {
+      timed_out.push_back(std::move(it->first));
+      it = prt.erase(it);
+    } else
+      ++it;
+  }
+
+  for (auto& block : timed_out)
+    request_timeout_event(block);
 }
 
 
-bool ContentHelperImpl::broadcast(BlockRef block)
+bool ContentHelperImpl::broadcast(BlockRef ref)
 {
-  auto blocks = cache->find(block.hash);
-  if (blocks != nullptr) {
-    auto it = blocks->find(block.index);
-    if (it != blocks->end() && it->second.complete()) {
-      auto& found = it->second;
-      node.post(
-          BlockResponse(block.hash,
-                        block.index,
-                        found.size,
-                        {BlockFragmentResponse(0, found.data, found.size)}));
-      return true;
-    }
-  }
-  return false;
+  auto block = cache->find(ref);
+  if (block == cache->end() || not block.complete())
+    return false;
+
+  node.post(
+      BlockResponse(ref.hash,
+                    ref.index,
+                    block.size(),
+                    {BlockFragmentResponse(0, block.data(), block.size())}));
+
+  log.d("Sent block");
+  log.d("| %v", ref);
+  log.d("| size: %v bytes", block.size());
+
+  return true;
 }
 
 
 std::size_t ContentHelperImpl::freeze(std::vector<BlockRef> blocks)
 {
-  return blocks.size();
+  std::size_t count = 0;
+  for (auto const& ref : blocks) {
+    auto block = cache->find(ref);
+    if (block != cache->end()) {
+      block.frozen(true);
+      ++count;
+    }
+  }
+
+  return count;
 }
 
 
 std::size_t ContentHelperImpl::unfreeze(std::vector<BlockRef> blocks)
 {
-  return blocks.size();
-}
-
-
-void ContentHelperImpl::receive(MessageHeader header, BlockRequest msg)
-{
-  if (not msg.requests.empty())
-    blocks_requested_event(header.sender, std::move(msg.requests));
-}
-
-
-void ContentHelperImpl::receive(MessageHeader header, BlockResponse resp)
-{
-  auto& blocks = cache->find_or_allocate(resp.hash);
-  auto it = blocks.find(resp.index);
-  if (it == blocks.end())
-    it = blocks.emplace(resp.index, BlockData(resp.index, resp.size)).first;
-  auto& block = it->second;
-
-  log.d("Got block");
-  log.d("| hash: %v", std::string(resp.hash));
-  log.d("| index: %v", resp.index);
-  log.d("| sender: %v", header.sender);
-
-  for (auto& fragment : resp.fragments) {
-    log.d("| fragment: [%v, %v]",
-          fragment.offset,
-          fragment.offset + fragment.size - 1);
-    block.insert(fragment.offset, fragment.data, fragment.size);
+  std::size_t count = 0;
+  for (auto const& ref : blocks) {
+    auto block = cache->find(ref);
+    if (block != cache->end()) {
+      block.frozen(false);
+      ++count;
+    }
   }
 
-  if (not block.notified and block.complete()) {
-    block.notified = true;
-    block_arrived_event(BlockRef(resp.hash, block.index));
-  }
-
-  log.d("");
+  return count;
 }
 }

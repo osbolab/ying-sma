@@ -2,39 +2,38 @@
 
 #include <cstdlib>
 #include <cstdint>
-#include <vector>
 
 
 namespace sma
 {
-struct BlockData {
-  using index_type = std::size_t;
-  using size_type = std::size_t;
+class ContentCache;
 
-  BlockData(index_type index, size_type size);
-  BlockData(index_type index, size_type size, std::uint8_t const* src);
-  ~BlockData();
+class BlockData
+{
+public:
+  bool exists() const;
+  operator bool() const;
 
-  BlockData(BlockData&& rhs);
-  BlockData& operator=(BlockData&& rhs);
+  bool complete() const;
 
-  BlockData(BlockData const&) = delete;
-  BlockData& operator=(BlockData const&) = delete;
+  std::uint8_t* data();
+  std::uint8_t const* cdata() const;
 
-  bool complete() const { return gaps.empty(); }
+  std::size_t size() const;
 
-  size_type read(std::uint8_t* dst, size_type from, size_type size) const;
-  size_type read(std::uint8_t* dst, size_type size) const;
+  bool frozen() const;
+  bool frozen(bool enable);
 
-  void insert(size_type dst_off, std::uint8_t const* src, size_type size);
+  bool operator==(BlockData const& rhs) const;
+  bool operator!=(BlockData const& rhs) const;
 
+private:
+  friend class ContentCache;
 
-  index_type index;
-  size_type size;
-  std::uint8_t* data;
-  bool notified{false};
+  BlockData();
+  BlockData(ContentCache* cache, std::size_t idx);
 
-  // Index of start of gap (inclusive) and end of gap (exclusive)
-  std::vector<size_type> gaps;
+  ContentCache* cache;
+  std::size_t idx;
 };
 }

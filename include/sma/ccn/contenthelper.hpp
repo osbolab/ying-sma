@@ -4,7 +4,6 @@
 
 #include <vector>
 
-#include <iosfwd>
 #include <cstdlib>
 #include <utility>
 
@@ -47,7 +46,8 @@ public:
 
   virtual ContentMetadata create_new(std::vector<ContentType> types,
                                      ContentName const& name,
-                                     std::istream& in) = 0;
+                                     void const* src,
+                                     std::size_t size) = 0;
 
   virtual std::vector<ContentMetadata> metadata() = 0;
   virtual std::size_t announce_metadata() = 0;

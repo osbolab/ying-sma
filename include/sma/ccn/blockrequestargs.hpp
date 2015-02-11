@@ -24,9 +24,9 @@ struct BlockRequestArgs {
                    D ttl,
                    NodeId requester,
                    Vec2d requester_position,
-                   bool keep = false)
+                   bool keep_on_arrival = false)
     : block(block)
-    , keep(keep)
+    , keep_on_arrival(keep_on_arrival)
     , utility(utility)
     , ttl_ms(std::chrono::duration_cast<std::chrono::milliseconds>(ttl).count())
     , requester(requester)
@@ -51,6 +51,6 @@ struct BlockRequestArgs {
   // Transient
 
   // Signal to the content cache that this block should be stored permanently.
-  bool keep;
+  bool keep_on_arrival;
 };
 }

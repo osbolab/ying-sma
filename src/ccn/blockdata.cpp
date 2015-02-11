@@ -1,66 +1,93 @@
 #include <sma/ccn/blockdata.hpp>
 
-#include <cstring>
+#include <sma/ccn/contentcache.hpp>
+
 #include <cassert>
-#include <utility>
 
 
 namespace sma
 {
-BlockData::BlockData(index_type index, size_type size)
-  : index(index)
-  , size(size)
-  , data(new std::uint8_t[size])
+BlockData::BlockData()
+  : cache(nullptr)
+  , idx(-1)
 {
-  gaps.push_back(0);
-  gaps.push_back(size - 1);
 }
 
-BlockData::BlockData(index_type index, size_type size, std::uint8_t const* src)
-  : index(index)
-  , size(size)
-  , data(new std::uint8_t[size])
+
+BlockData::BlockData(ContentCache* cache, std::size_t idx)
+  : cache(cache)
+  , idx(idx)
 {
-  std::memcpy(data, src, size);
 }
 
-BlockData::~BlockData() { delete[] data; }
 
-BlockData::BlockData(BlockData&& rhs)
-  : index(rhs.index)
-  , size(rhs.size)
-  , data(rhs.data)
-  , gaps(std::move(rhs.gaps))
+bool BlockData::exists() const { return cache != nullptr; }
+
+
+BlockData::operator bool() const { return exists(); }
+
+
+bool BlockData::complete() const
 {
-  rhs.data = nullptr;
+  if (cache != nullptr)
+    return cache->slots[idx].size == cache->slots[idx].expected_size;
+  else
+    return false;
 }
 
-BlockData& BlockData::operator=(BlockData&& rhs)
+
+std::uint8_t* BlockData::data()
 {
-  index = rhs.index;
-  size = rhs.size;
-  data = rhs.data;
-  rhs.data = nullptr;
-  std::swap(gaps, rhs.gaps);
-  return *this;
+  assert(exists());
+  return cache->slots[idx].data;
 }
 
-BlockData::size_type
-BlockData::read(std::uint8_t* dst, size_type from, size_type size) const
-{
-  assert(from <= this->size);
-  if (from + size > this->size)
-    size = this->size - from;
 
-  std::memcpy(dst, data + from, size);
-  return size;
+std::uint8_t const* BlockData::cdata() const
+{
+  assert(exists());
+  return cache->slots[idx].data;
 }
 
-BlockData::size_type BlockData::read(std::uint8_t* dst, size_type size) const
+
+std::size_t BlockData::size() const
 {
-  return read(dst, 0, size);
+  assert(exists());
+  return cache->slots[idx].size;
 }
 
+
+bool BlockData::frozen() const
+{
+  assert(exists());
+  return cache->slots[idx].frozen;
+}
+
+bool BlockData::frozen(bool enable)
+{
+  assert(exists());
+  auto& slot = cache->slots[idx];
+  auto previous = slot.frozen;
+  slot.frozen = enable;
+  if (slot.frozen)
+    cache->promote(idx);
+  return previous;
+}
+
+
+bool BlockData::operator==(BlockData const& rhs) const
+{
+  return cache == rhs.cache && idx == rhs.idx;
+}
+
+
+bool BlockData::operator!=(BlockData const& rhs) const
+{
+  return !(*this == rhs);
+}
+
+
+#if 0
 void BlockData::insert(size_type dst_off,
                        std::uint8_t const* src,
                        size_type size)
@@ -99,4 +126,5 @@ void BlockData::insert(size_type dst_off,
 
   gaps.swap(new_gaps);
 }
+#endif
 }

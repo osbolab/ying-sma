@@ -2,6 +2,8 @@
 #include <sma/ns3/ns3inetlink.hpp>
 #include <sma/link.hpp>
 
+#include <sma/ccn/contentcache.hpp>
+
 #include <sma/io/log>
 
 #include <sma/async.hpp>
