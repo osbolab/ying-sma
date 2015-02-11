@@ -22,11 +22,17 @@ struct BlockRef {
   {
   }
 
+  bool operator==(BlockRef const& rhs) const
+  {
+    return hash == rhs.hash && index == rhs.index;
+  }
+  bool operator!=(BlockRef const& rhs) const { return !(*this == rhs); }
+
   Hash hash;
   BlockIndex index;
 };
 
-std::ostream& operator<<(std::ostream& os, BlockRef const& ref)
+inline std::ostream& operator<<(std::ostream& os, BlockRef const& ref)
 {
   return os << "(" << std::string(ref.hash) << ")[" << ref.index << "]";
 }

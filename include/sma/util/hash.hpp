@@ -56,7 +56,7 @@ private:
   SHA256 sha;
 };
 
-std::ostream& operator<<(std::ostream& os, Hash const& h)
+inline std::ostream& operator<<(std::ostream& os, Hash const& h)
 {
   return os << std::string(h);
 }

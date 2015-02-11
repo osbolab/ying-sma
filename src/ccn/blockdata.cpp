@@ -2,13 +2,25 @@
 
 #include <sma/ccn/contentcache.hpp>
 
-#include <cstring>
 #include <cassert>
-#include <utility>
 
 
 namespace sma
 {
+BlockData::BlockData()
+  : cache(nullptr)
+  , idx(-1)
+{
+}
+
+
+BlockData::BlockData(ContentCache* cache, std::size_t idx)
+  : cache(cache)
+  , idx(idx)
+{
+}
+
+
 bool BlockData::exists() const { return cache != nullptr; }
 
 
@@ -38,6 +50,31 @@ std::uint8_t const* BlockData::cdata() const
 }
 
 
+std::size_t BlockData::size() const
+{
+  assert(exists());
+  return cache->slots[idx].size;
+}
+
+
+bool BlockData::frozen() const
+{
+  assert(exists());
+  return cache->slots[idx].frozen;
+}
+
+bool BlockData::frozen(bool enable)
+{
+  assert(exists());
+  auto& slot = cache->slots[idx];
+  auto previous = slot.frozen;
+  slot.frozen = enable;
+  if (slot.frozen)
+    cache->promote(idx);
+  return previous;
+}
+
+
 bool BlockData::operator==(BlockData const& rhs) const
 {
   return cache == rhs.cache && idx == rhs.idx;
@@ -49,36 +86,6 @@ bool BlockData::operator!=(BlockData const& rhs) const
   return !(*this == rhs);
 }
 
-
-BlockData::BlockData()
-  : cache(nullptr)
-{
-}
-
-
-BlockData::BlockData(ContentCache* cache, std::size_t idx)
-  : cache(*cache)
-  , idx(idx)
-{
-}
-
-
-std::size_t
-BlockData::read(std::uint8_t* dst, std::size_t from, std::size_t size) const
-{
-  assert(from <= this->size);
-  if (from + size > this->size)
-    size = this->size - from;
-
-  std::memcpy(dst, data + from, size);
-  return size;
-}
-
-
-std::size_t BlockData::read(std::uint8_t* dst, std::size_t size) const
-{
-  return read(dst, 0, size);
-}
 
 #if 0
 void BlockData::insert(size_type dst_off,

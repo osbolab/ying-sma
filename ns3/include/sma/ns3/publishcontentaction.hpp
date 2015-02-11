@@ -12,8 +12,6 @@
 #include <string>
 #include <vector>
 
-#include <istream>
-#include <sstream>
 
 namespace sma
 {
@@ -34,12 +32,11 @@ struct PublishContentAction : Action {
   virtual void operator()() override
   {
     char data[4 * 1024];
-    std::memset(data, 'a', sizeof data);
-    std::istringstream content_stream(std::string(data, sizeof data));
+    std::memset(data, 'a', sizeof(data));
 
     CcnNode& node = *(context->node);
     node.log.d("Action: publish new content");
-    auto metadata = node.content->create_new({type}, name, content_stream);
+    auto metadata = node.content->create_new({type}, name, data, sizeof(data));
     node.content->announce_metadata();
   }
 

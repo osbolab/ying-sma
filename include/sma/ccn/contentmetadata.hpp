@@ -109,7 +109,7 @@ public:
     expiry_time = clock::now() + ttl;
   }
 
-  template <typename D = std::chrono::milliseconds>
+  template <typename D>
   D ttl() const
   {
     auto const now = clock::now();

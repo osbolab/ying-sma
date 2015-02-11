@@ -18,7 +18,6 @@
 #include <unordered_map>
 
 #include <chrono>
-#include <iosfwd>
 #include <cstdlib>
 #include <utility>
 #include <memory>
@@ -62,7 +61,8 @@ public:
 
   ContentMetadata create_new(std::vector<ContentType> types,
                              ContentName const& name,
-                             std::istream& in) override;
+                             void const* src,
+                             std::size_t size) override;
 
   std::vector<ContentMetadata> metadata() override;
   std::size_t announce_metadata() override;

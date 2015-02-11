@@ -1,140 +1,248 @@
 #include <sma/ccn/contentcache.hpp>
 
+#include <sma/ccn/contentmetadata.hpp>
+
+#include <sma/ccn/blockdata.hpp>
+
 #include <sma/io/log>
 
 #include <string>
 #include <cstring>
 #include <istream>
 #include <cassert>
+#include <algorithm>
 
 
 namespace sma
 {
-ContentCache::~ContentCache() {}
-
-ContentCache::block_map* ContentCache::find(Hash const& hash)
+namespace detail
 {
-  auto it = content.find(hash);
-  if (it != content.end())
-    return &(it->second);
-  else
-    return nullptr;
-}
-
-ContentCache::block_map const* ContentCache::find_const(Hash const& hash) const
-{
-  auto it = content.find(hash);
-  if (it != content.end())
-    return &(it->second);
-  else
-    return nullptr;
-}
-
-ContentCache::block_map& ContentCache::find_or_allocate(Hash const& hash)
-{
-  auto ptr = find(hash);
-  if (ptr)
-    return *ptr;
-  else {
-    auto it = content.emplace(hash, block_map()).first;
-    return it->second;
+  template <typename T>
+  T next_power_of_two(T const& t)
+  {
+    T pow = 1;
+    while (pow < t)
+      pow *= 2;
+    return pow;
   }
 }
 
-std::pair<Hash, std::size_t> ContentCache::load(std::istream& in,
-                                                std::size_t block_size)
+
+constexpr std::size_t ContentCache::block_size;
+
+
+ContentCache::ContentCache(std::size_t capacity)
+  : capacity(capacity == 0 ? 0 : detail::next_power_of_two(capacity))
+  , slots(capacity / block_size)
+  , free_idxs(capacity / block_size)
 {
-  auto hasher = Hasher();
+  std::size_t i = 0;
+  for (auto& idx : free_idxs)
+    idx = i++;
+}
 
-  block_map blocks;
-  std::size_t total_size = 0;
 
-  BlockData::index_type index = 0;
-  char buffer[block_size];
+BlockData ContentCache::end() const { return BlockData(); }
 
-  while (in) {
-    in.read(buffer, sizeof buffer);
-    std::size_t const read = in.gcount();
 
-    if (read != 0) {
-      auto block = BlockData(
-          index, read, reinterpret_cast<std::uint8_t const*>(buffer));
-      hasher(block.data, read);
-      blocks.emplace(index++, std::move(block));
+void ContentCache::grow_to_fit(std::size_t count)
+{
+  if (count <= free_idxs.size())
+    return;
 
-      total_size += read;
+  // Mark the starting point for inserting new indices
+  std::size_t free_i = free_idxs.size();
+  free_idxs.resize(count);
+  // Mark the beginning of the new range of indices
+  std::size_t new_i = slots.size();
+  for (; free_i != free_idxs.size(); ++free_i)
+    free_idxs[free_i] = new_i++;
+
+  slots.resize(count);
+}
+
+
+void ContentCache::free_slots(std::size_t count)
+{
+  if (count == 0)
+    return;
+
+  auto begin = occupied_idxs.begin();
+  auto it = --occupied_idxs.end();
+  while (count-- != 0) {
+    auto const idx = *it;
+    auto& slot = slots[idx];
+    if (not slot.frozen) {
+      slot.size = slot.expected_size = 0;
+      slot.block_index = 0;
+      it = --occupied_idxs.erase(it);
+      free_idxs.push_back(idx);
+    } else {
+      --it;
     }
+    if (it == begin)
+      count = 1;
+  }
+}
+
+
+std::size_t ContentCache::ensure_capacity(std::size_t count)
+{
+  if (free_idxs.size() < count) {
+    if (capacity == 0)
+      grow_to_fit(count);
+    else
+      free_slots(count - free_idxs.size());
+  }
+  return std::min(count, free_idxs.size());
+}
+
+
+std::size_t ContentCache::reserve_slot()
+{
+  auto const min_capacity = ensure_capacity(1);
+  assert(min_capacity == 1
+         && "Can't reserve slot; cache is full and no slots can be freed.");
+
+  auto const idx = free_idxs.back();
+  free_idxs.pop_back();
+  occupied_idxs.push_front(idx);
+  return idx;
+}
+
+
+std::vector<std::size_t> ContentCache::reserve_slots(std::size_t count)
+{
+  auto const min_capacity = ensure_capacity(count);
+  assert(min_capacity == count
+         && "Can't reserve slots; cache is full and no slots can be freed.");
+
+  // Copy and erase slot indices all at once; first to the result vector and
+  // then to the head of the occupied list.
+  auto const& end = free_idxs.cend();
+  auto const& begin = end - count;
+  auto idxs = std::vector<std::size_t>(begin, end);
+  occupied_idxs.insert(occupied_idxs.begin(), begin, end);
+  free_idxs.erase(begin, end);
+
+  return idxs;
+}
+
+
+void ContentCache::promote(std::size_t idx)
+{
+  auto it = occupied_idxs.begin();
+  while (it != occupied_idxs.end())
+    if (*it == idx) {
+      occupied_idxs.erase(it);
+      occupied_idxs.push_front(idx);
+      return;
+    }
+}
+
+
+Hash ContentCache::load(void const* src, std::size_t size)
+{
+  std::size_t const block_count = 1 + ((size - 1) / block_size);
+
+  auto hash = Hasher(src, size).digest();
+
+  auto existing = content.find(hash);
+  if (existing != content.end()) {
+    assert(existing->second.size() == block_count
+           && "Data already cached with this hash has different block count.");
+    LOG(DEBUG) << "Not overwriting existing cache entry for " << hash;
+    return hash;
   }
 
-  assert(!blocks.empty());
+  auto taken_idxs = reserve_slots(block_count);
 
-  auto hash = hasher.digest();
-  if (content.erase(hash) != 0)
-    LOG(WARNING) << "Overwriting duplicate content in cache";
+  // Total size read in bytes
+  std::size_t read = 0;
+  BlockIndex block_index = 0;    // of block currently being created
 
-  /*
+  auto bsrc = reinterpret_cast<std::uint8_t const*>(src);
+  while (read != size) {
+    auto& slot = slots[taken_idxs[block_index]];
+    slot.block_index = block_index++;
+
+    auto to_read = std::min(block_size, size - read);
+    std::memcpy(slot.data, bsrc + read, to_read);
+    read += to_read;
+    slot.expected_size = slot.size = to_read;
+  }
+
   LOG(DEBUG) << "Content cached";
-  LOG(DEBUG) << "| hash: " << std::string(hash);
-  LOG(DEBUG) << "| size: " << total_size;
-  LOG(DEBUG) << "| blocks: " << blocks.size();
-  */
+  LOG(DEBUG) << "| hash: " << hash;
+  LOG(DEBUG) << "| size: " << read;
+  LOG(DEBUG) << "| blocks: " << taken_idxs.size();
 
-  content.emplace(hash, std::move(blocks));
+  content.emplace(hash, std::move(taken_idxs));
 
-  return std::make_pair(hash, total_size);
+  return hash;
 }
+
+
+BlockData ContentCache::find(BlockRef ref)
+{
+  auto it = content.find(ref.hash);
+  if (it != content.end()) {
+    auto const& slot_idxs = it->second;
+    for (auto const idx : slot_idxs)
+      if (slots[idx].block_index == ref.index)
+        return BlockData(this, idx);
+  }
+
+  return end();
+}
+
+
+BlockData ContentCache::operator[](BlockRef ref) { return find(ref); }
+
 
 bool ContentCache::validate_data(ContentMetadata const& metadata) const
 {
-  auto const blocks = find_const(metadata.hash);
-  if (blocks == nullptr)
+  auto it = content.find(metadata.hash);
+  if (it == content.end())
     return false;
 
-  std::size_t expected_blocks = 1 + ((metadata.size - 1) / metadata.block_size);
-  std::size_t last_block_size = metadata.size
-                                - metadata.block_size * (expected_blocks - 1);
+  auto const block_count = metadata.block_count();
 
-  for (std::size_t i = 0; i < expected_blocks; ++i) {
-    auto block_search = blocks->find(i);
-    if (block_search == blocks->end())
-      return false;
-    auto const& block = block_search->second;
-    if (i == expected_blocks - 1)
-      assert(block.size == last_block_size);
-    else
-      assert(block.size == metadata.block_size);
-    if (not block.complete())
-      return false;
-  }
+  auto const& slot_idxs = it->second;
+  if (slot_idxs.size() != block_count)
+    return false;
+
+  std::size_t size = 0;
+  for (auto const idx : slot_idxs)
+    size += slots[idx].size;
+  assert(size == metadata.size && "Block count valid, but data size is not.");
 
   return true;
 }
 
-std::vector<std::size_t>
+
+std::vector<BlockIndex>
 ContentCache::missing_blocks(ContentMetadata const& metadata) const
 {
-  std::size_t expected_blocks = 1 + ((metadata.size - 1) / metadata.block_size);
-  std::vector<std::size_t> missing;
+  auto block_count = metadata.block_count();
+  std::vector<bool> missing(block_count, true);
 
-  auto const blocks = find_const(metadata.hash);
-  if (blocks == nullptr) {
-    for (std::size_t i = 0; i < expected_blocks; ++i)
-      missing.push_back(i);
-    return missing;
-  }
-
-  for (std::size_t i = 0; i < expected_blocks; ++i) {
-    auto block_search = blocks->find(i);
-    if (block_search == blocks->end())
-      missing.push_back(i);
-    else {
-      auto const& block = block_search->second;
-      if (not block.complete())
-        missing.push_back(i);
+  auto it = content.find(metadata.hash);
+  if (it != content.end()) {
+    auto const& slot_idxs = it->second;
+    for (auto const idx : it->second) {
+      missing[slots[idx].block_index] = false;
+      --block_count;
     }
   }
 
-  return missing;
+  std::vector<BlockIndex> missing_idxs;
+  missing_idxs.reserve(block_count);
+  for (std::size_t i = 0; i < missing.size(); ++i)
+    if (missing[i])
+      missing_idxs.push_back(i);
+
+  return missing_idxs;
 }
 }
 

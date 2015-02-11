@@ -2,7 +2,6 @@
 
 #include <cstdlib>
 #include <cstdint>
-#include <vector>
 
 
 namespace sma
@@ -11,6 +10,7 @@ class ContentCache;
 
 class BlockData
 {
+public:
   bool exists() const;
   operator bool() const;
 
@@ -18,6 +18,11 @@ class BlockData
 
   std::uint8_t* data();
   std::uint8_t const* cdata() const;
+
+  std::size_t size() const;
+
+  bool frozen() const;
+  bool frozen(bool enable);
 
   bool operator==(BlockData const& rhs) const;
   bool operator!=(BlockData const& rhs) const;
