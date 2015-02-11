@@ -3,21 +3,18 @@
 #include <sma/ccn/interest.hpp>
 #include <sma/ccn/contentmetadata.hpp>
 #include <utility>
-#include <sma/ccn/blockindex.hpp>
 #include <sma/ccn/ccnnode.hpp>
 #include <sma/ccn/blockrequestargs.hpp>
+#include <sma/helper.hpp>
 
 namespace sma
 {
 
-class ForwardScheduler
+class ForwardScheduler : public Helper
 {
 public:
 	
-  ForwardScheduler (CcnNode* host_node, std::uint32_t interval)
-	  : node (host_node)
-	  , sched_interval (interval)
-  {}
+  ForwardScheduler (CcnNode& node, std::uint32_t interval);
 	  
   virtual bool on_blockrequest (NodeId id, std::vector<BlockRequestArgs> requests) = 0;
   virtual bool on_block (BlockRef block)= 0;
@@ -30,15 +27,8 @@ public:
 	return sched_interval;
   }
   
-  CcnNode* get_node() const
-  {
-	return node;
-  }
-  
-  
 private:
 	
-  CcnNode* node;
   std::uint32_t sched_interval;
 };
 }

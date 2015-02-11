@@ -2,7 +2,7 @@
 
 #include <sma/util/vec2d.hpp>
 #include <sma/util/hash.hpp>
-#include <sma/ccn/blockindex.hpp>
+#include <sma/ccn/blockref.hpp>
 #include <ctime>
 #include <sma/chrono.hpp>
 #include <sma/nodeid.hpp>

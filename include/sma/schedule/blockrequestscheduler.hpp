@@ -7,10 +7,10 @@
 #include <queue>
 #include <vector>
 #include <cstddef>
-#include <sma/ccn/blockindex.hpp> 
 #include <sma/schedule/forwardschedulerimpl.hpp>
 #include <sma/ccn/ccnnode.hpp>
 #include <unordered_map>
+#include <sma/ccn/blockref.hpp> 
 
 namespace sma
 {

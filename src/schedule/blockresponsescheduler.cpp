@@ -16,8 +16,10 @@ namespace sma
 	
     std::size_t BlockResponseScheduler::sched()
     {
-      std::size_t max_ttl = sched_ptr->get_max_ttl();
       std::size_t num_of_blocks = block_to_schedule.size();
+      if (num_of_blocks == 0)
+          return 0;
+      std::size_t max_ttl = sched_ptr->get_max_ttl();
       std::size_t storage = sched_ptr->get_storage();
       std::size_t bandwidth = sched_ptr->get_bandwidth();
       std::size_t num_of_neighbor = sched_ptr->get_num_of_neighbor();

@@ -8,13 +8,13 @@
 #include <sma/ccn/ccnnode.hpp>
 #include <ctime>
 #include <cstdlib>
-#include <sma/ccn/blockindex.hpp>
 #include <sma/neighbor.hpp>
 #include <sma/ccn/blockrequestargs.hpp>
 #include <cstddef>
 #include <vector>
 #include <utility>
 #include <sma/ccn/blockref.hpp>
+#include <sma/io/log>
 
 namespace sma
 {
@@ -22,11 +22,11 @@ namespace sma
 class ForwardSchedulerImpl : public ForwardScheduler
 {
 public:
-  ForwardSchedulerImpl(CcnNode* host_node, std::uint32_t interval);
+  ForwardSchedulerImpl(CcnNode& host_node, std::uint32_t interval);
   ~ForwardSchedulerImpl();
   
-  void on_blockrequest (NodeId id, std::vector<BlockRequestArgs>  requests) override;
-  void on_block (BlockRef block) override;
+  bool on_blockrequest (NodeId id, std::vector<BlockRequestArgs>  requests) override;
+  bool on_block (BlockRef block) override;
   void sched () override;
 
   std::size_t freeze_blocks (std::vector<BlockRef> blocks);
@@ -45,6 +45,7 @@ public:
   std::size_t get_bandwidth() const;
   int get_ttl (NodeId id, Hash content_name, BlockIndex block_index);                                                                     
   float get_utility (NodeId id, Hash content_name, BlockIndex block_index); 
+  const Logger* get_logger() const;
 
 
 private:
@@ -52,7 +53,6 @@ private:
   MetaScheduler* meta_sched_ptr;
   BlockRequestScheduler* blockrequest_sched_ptr;
   BlockResponseScheduler* blockresponse_sched_ptr;
-  CcnNode* node;
 
   void schedule_interest_fwd ();
   void schedule_metadata_fwd ();

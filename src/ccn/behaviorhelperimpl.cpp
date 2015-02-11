@@ -68,7 +68,8 @@ namespace sma
       auto metadata = node.content->create_new(
               {type},
               get_rand_str_n(16),
-              content_stream);
+              data,
+              sizeof data);
 
       node.content->announce_metadata();
 
@@ -96,12 +97,12 @@ namespace sma
         for (std::size_t i=0; i<num_of_blocks; i++)
         {
 
-          requests.push_back (BlockRequestArgs(content_name,
-                     i,
+          requests.push_back (BlockRequestArgs(BlockRef(content_name,i),
                      utility_per_block,
                      ttl,
                      node.id,
-                     node.position()));
+                     node.position(),
+                     true));
         }
 
         node.content->request (requests);

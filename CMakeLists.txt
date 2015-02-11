@@ -12,7 +12,7 @@ else(APPLE)
 endif()
 
 if(LIBSTD)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=${LIBSTD} ")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=${LIBSTD} -lglpk")
 endif()
 
 # Locate external libaries
@@ -96,6 +96,7 @@ set(${PROJECT_NAME}_sources
   "src/util/binaryoutput.cpp"
   
   "src/schedule/forwardschedulerimpl.cpp"
+  "src/schedule/forwardscheduler.cpp"
 
   "src/ccn/behaviorhelper.cpp"
   "src/ccn/behaviorhelperimpl.cpp"

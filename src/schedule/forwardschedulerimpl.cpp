@@ -1,7 +1,6 @@
 #include <sma/schedule/forwardscheduler.hpp>
 #include <sma/schedule/forwardschedulerimpl.hpp>
 #include <sma/ccn/ccnnode.hpp>
-#include <sma/ccn/blockindex.hpp>
 #include <sma/ccn/blockref.hpp>
 #include <sma/schedule/interestscheduler.hpp>
 #include <sma/schedule/metascheduler.hpp>
@@ -15,25 +14,32 @@
 #include <sma/ccn/contenthelper.hpp>
 #include <sma/ccn/interesthelper.hpp>
 #include <sma/schedule/lpsolver.hpp>
+#include <sma/async.hpp>
+#include <chrono>
+#include <sma/util/event.hpp>
+#include <sma/io/log>
 
 namespace sma
 {
-    ForwardSchedulerImpl::ForwardSchedulerImpl(CcnNode* host_node, std::uint32_t interval)
+
+    using namespace std::placeholders;
+
+    ForwardSchedulerImpl::ForwardSchedulerImpl(CcnNode& host_node, std::uint32_t interval)
         : ForwardScheduler (host_node, interval)
     {
-	  node = ForwardScheduler::get_node();
       interest_sched_ptr = new InterestScheduler(this); 
       meta_sched_ptr = new MetaScheduler(this);
       blockrequest_sched_ptr = new BlockRequestScheduler(this);
       blockresponse_sched_ptr = new BlockResponseScheduler(this);
 
-      node.content->on_block_arrived() += std::bind(&ForwardSchedulerImpl::on_block, this);
-      node.content->on_blocks_requested() += std::bind(&ForwardSchedulerImpl::on_blockrequest, this);
+      node.content->on_block_arrived() += std::bind(&ForwardSchedulerImpl::on_block, this, _1);
+      node.content->on_blocks_requested() += std::bind(&ForwardSchedulerImpl::on_blockrequest, this, _1, _2);
 
       // add time_out async callback later
 
       
-      asynctask (&ForwardSchedulerImpl::sched, this).do_in (ForwardScheduler::get_sched_interval());
+      asynctask (&ForwardSchedulerImpl::sched, this).do_in (
+              std::chrono::milliseconds (ForwardScheduler::get_sched_interval()));
     }
 	
     ForwardSchedulerImpl::~ForwardSchedulerImpl()
@@ -44,12 +50,12 @@ namespace sma
       if (blockresponse_sched_ptr != NULL)  delete blockresponse_sched_ptr;
     }
 	
-    void ForwardSchedulerImpl::on_blockrequest (NodeId id, std::vector<BlockRequestArgs> requests)
+    bool ForwardSchedulerImpl::on_blockrequest (NodeId id, std::vector<BlockRequestArgs> requests)
     {
       blockrequest_sched_ptr->add_requests(requests); 
     }
 	
-    void ForwardSchedulerImpl::on_block (BlockRef block)
+    bool ForwardSchedulerImpl::on_block (BlockRef block)
     {
       blockresponse_sched_ptr->add_responses(block); 
     }
@@ -66,42 +72,42 @@ namespace sma
 	
     std::size_t ForwardSchedulerImpl::freeze_blocks (std::vector<BlockRef> blocks)
     {
-      return node->content->freeze (blocks); 
+      return node.content->freeze (blocks); 
     }
 	
     std::size_t ForwardSchedulerImpl::unfreeze_blocks (std::vector<BlockRef> blocks)
     {
-      return node->content->unfreeze (blocks);  
+      return node.content->unfreeze (blocks);  
     }
 	
     bool ForwardSchedulerImpl::broadcast_block (Hash name, BlockIndex index)
     {
-      return node->content->broadcast (BlockRef(name, index)); 
+      return node.content->broadcast (BlockRef(name, index)); 
     }
 	
     std::vector<Neighbor> ForwardSchedulerImpl::get_neighbors() const
     {
-      return node->neighbors->get(); 
+      return node.neighbors->get(); 
     }
 	
     std::size_t ForwardSchedulerImpl::get_num_of_neighbor() const
     {
-      return (node->neighbors->get()).size();
+      return (node.neighbors->get()).size();
     }
 	
     void ForwardSchedulerImpl::request_blocks (std::vector<BlockRequestArgs> requests)
     {
-      node->content->request (requests); 
+      node.content->request (requests); 
     }
 	
 	std::size_t ForwardSchedulerImpl::fwd_interests()
 	{
-	  return node->interests->announce();
+	  return node.interests->announce();
 	}
 	
 	std::size_t ForwardSchedulerImpl::fwd_metas()
 	{
-	  return node->content->announce_metadata();
+	  return node.content->announce_metadata();
 	}
 	
     std::uint32_t ForwardSchedulerImpl::get_sched_interval() const
@@ -130,13 +136,14 @@ namespace sma
     
       int num_of_requests = blockrequest_sched_ptr->sched();
       int num_of_blocks = blockresponse_sched_ptr->sched();
-      int num_of_meta = meta_sched_ptr->sched();
-      int num_of_interests = interest_sched_ptr->sched();
+//      int num_of_meta = meta_sched_ptr->sched();
+//      int num_of_interests = interest_sched_ptr->sched();
 
       //// async task
       // put sched() itself to the chain
-      asynctask (&ForwardSchedulerImpl::sched, this).do_in (ForwardScheduler::get_sched_interval());
-
+      asynctask (&ForwardSchedulerImpl::sched, this).do_in (
+              std::chrono::milliseconds (ForwardScheduler::get_sched_interval()));
+ 
     }
 	
     void ForwardSchedulerImpl::schedule_interest_fwd () { interest_sched_ptr->sched(); }
@@ -147,7 +154,10 @@ namespace sma
 	
     void ForwardSchedulerImpl::schedule_blockresponse_fwd () {blockresponse_sched_ptr->sched(); }
 	
-	
+    const Logger* ForwardSchedulerImpl::get_logger() const
+    {
+      return &log; 
+    }
 	
 	
 	////// blockresponsescheduler.cpp
@@ -166,8 +176,14 @@ namespace sma
       }
       block_arrived_buf.clear();
 
-      std::size_t max_ttl = sched_ptr->get_max_ttl();
+
       std::size_t num_of_blocks = block_to_schedule.size();
+
+      sched_ptr->get_logger()->d("scheduling %v blocks", num_of_blocks);
+
+      if (num_of_blocks == 0)
+          return 0;
+      std::size_t max_ttl = sched_ptr->get_max_ttl();
       std::size_t storage = sched_ptr->get_storage();
       std::size_t bandwidth = sched_ptr->get_bandwidth();
       std::size_t num_of_neighbor = sched_ptr->get_num_of_neighbor();
@@ -185,7 +201,7 @@ namespace sma
       auto it = block_to_schedule.begin();
       while (it != block_to_schedule.end())
       {
-        block_to_seq.insert(*it, seq);
+        block_to_seq.insert(std::make_pair(*it, seq));
 
         std::vector<Neighbor> neighbors = sched_ptr->get_neighbors();
         for (std::size_t i=0; i<neighbors.size(); i++)
@@ -255,7 +271,7 @@ namespace sma
       return blocks_to_broadcast.size(); // update the num_of_blocks to broadcast  
     }
 	
-    std::pair<Hash, BlockIndex> BlockResponseScheduler::get_blockid (std::size_t seq)
+    BlockRef BlockResponseScheduler::get_blockid (std::size_t seq)
     {
       auto blockIt = block_to_seq.begin();
       while (blockIt != block_to_seq.end())
@@ -359,8 +375,7 @@ namespace sma
   	    auto ttl = std::chrono::duration_cast<std::chrono::microseconds>
             (desc.expire_time - current_time);
         auto arg 
-            = BlockRequestArgs (desc.content_name,
-                              desc.block_index,
+            = BlockRequestArgs (BlockRef (desc.content_name,desc.block_index),
                               desc.utility,
                               ttl,
   							  desc.requester,
@@ -386,8 +401,8 @@ namespace sma
   	// change from relative ttl to absolute ttl locally
       auto expire_time = current_time + request.ttl<std::chrono::microseconds>();
 
-      BlockRequestDesc desc (request.hash,
-                             request.index,
+      BlockRequestDesc desc (request.block.hash,
+                             request.block.index,
                              request.utility,
                              expire_time,
                              request.requester,

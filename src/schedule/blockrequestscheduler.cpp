@@ -6,7 +6,6 @@
 #include <sma/util/hash.hpp>
 #include <queue>
 #include <vector>
-#include <sma/ccn/blockindex.hpp> 
 
 namespace sma
 {

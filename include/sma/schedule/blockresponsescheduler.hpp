@@ -5,7 +5,6 @@
 #include <sma/util/hash.hpp>
 #include <sma/neighbor.hpp>
 #include <cassert>
-#include <sma/ccn/blockindex.hpp> 
 #include <sma/ccn/blockref.hpp>
 #include <unordered_set>
 #include <unordered_map>
@@ -33,7 +32,7 @@ private:
   ForwardSchedulerImpl* sched_ptr;
   std::unordered_map<BlockRef, std::size_t> block_to_seq;
 
-  std::pair<Hash, BlockIndex> get_blockid (std::size_t seq);
+  BlockRef get_blockid (std::size_t seq);
   
 };
 
