@@ -67,32 +67,32 @@ public:
   std::vector<ContentMetadata> metadata() override;
   std::size_t announce_metadata() override;
 
+  // WARNING: the on_block_arrived event is fired from this function.
+  // If the handler for that event calls this function's caller the caller MUST
+  // be reentrant!
+  // For example, calling this while iterating a collection that is modified
+  // by the caller may cause the caller's iterator to be invalidated.
   void request(std::vector<BlockRequestArgs> requests) override;
   bool broadcast(BlockRef block) override;
 
   std::size_t freeze(std::vector<BlockRef> blocks) override;
   std::size_t unfreeze(std::vector<BlockRef> blocks) override;
 
-  //! Fired when a nonempty set of block requests arrives from the network.
   Event<NodeId, std::vector<BlockRequestArgs>>& on_blocks_requested() override
   {
     return blocks_requested_event;
   }
-  //! Fired when a previously broadcast request exceeds its Time to Live
-  //! argument.
   Event<BlockRef>& on_request_timeout() override
   {
     return request_timeout_event;
   }
-  //! Fired when block data arrive and are cached by the content helper.
-  // The \a CacheEntry argument provides functions to keep or release the cache
-  // entry for the given data.
   Event<BlockRef>& on_block_arrived() override { return block_arrived_event; }
 
 
 private:
   using clock = sma::chrono::system_clock;
   using time_point = clock::time_point;
+  using millis = std::chrono::milliseconds;
 
   struct LocalMetadata {
     LocalMetadata(ContentMetadata data);
@@ -114,34 +114,31 @@ private:
     time_point next_announce;
   };
 
-  /// Track the requested segments of each block additively; two requests for
-  /// different fragments of the same block become a single request for the
-  /// union of those two fragments.
   struct PendingRequest {
-    PendingRequest(std::vector<BlockFragmentRequest> fragments)
-      : fragments(std::move(fragments))
-    {
-    }
-
-    PendingRequest(PendingRequest&&) = default;
-    PendingRequest& operator=(PendingRequest&&) = default;
-
-    bool add(std::vector<BlockFragmentRequest> const& fragments)
-    {
-      return false;
-    }
-
-    std::vector<BlockFragmentRequest> fragments;
+    time_point requested;
+    time_point expiry;
+    bool keep_on_arrival;
   };
 
+  // Add, or update, the given remote metadata in the Remote Metadata Table.
+  // Updating involves e.g. reflecting a nearer source for the content in the
+  // hop count.
+  // Return true if the metadata was added or updated and false if it exists
+  // and was not changed.
   bool learn_remote(ContentMetadata const& meta);
 
+  // If the `when` argument is provided, schedule this function's execution at
+  // that future point. Otherwise scan the pending request table and invoke the
+  // `on_request_timeout` event for any that exceed their expiry time (and
+  // remove them from the table).
+  void check_pending_requests(time_point when = time_point());
 
   Event<NodeId, std::vector<BlockRequestArgs>> blocks_requested_event;
   Event<BlockRef> request_timeout_event;
   Event<BlockRef> block_arrived_event;
 
   std::unique_ptr<ContentCache> cache;
+  std::unique_ptr<ContentCache> store;
 
   std::deque<Hash> ann_queue;
   std::size_t to_announce;
@@ -156,6 +153,9 @@ private:
   std::vector<RemoteMetadata> rmt;
 
   // Pending Request Table
-  std::unordered_map<BlockRef, std::pair<time_point, bool>> prt;
+  std::unordered_map<BlockRef, PendingRequest> prt;
+
+  // Detect reentrance to request() so we can warn the caller
+  bool already_in_request{false};
 };
 }

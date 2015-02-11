@@ -1,5 +1,7 @@
 #include <sma/ccn/blockdata.hpp>
 
+#include <sma/ccn/contentcache.hpp>
+
 #include <cstring>
 #include <cassert>
 #include <utility>
@@ -7,46 +9,62 @@
 
 namespace sma
 {
-BlockData::BlockData(index_type index, size_type size)
-  : index(index)
-  , size(size)
-  , data(new std::uint8_t[size])
+bool BlockData::exists() const { return cache != nullptr; }
+
+
+BlockData::operator bool() const { return exists(); }
+
+
+bool BlockData::complete() const
 {
-  gaps.push_back(0);
-  gaps.push_back(size - 1);
+  if (cache != nullptr)
+    return cache->slots[idx].size == cache->slots[idx].expected_size;
+  else
+    return false;
 }
 
-BlockData::BlockData(index_type index, size_type size, std::uint8_t const* src)
-  : index(index)
-  , size(size)
-  , data(new std::uint8_t[size])
+
+std::uint8_t* BlockData::data()
 {
-  std::memcpy(data, src, size);
+  assert(exists());
+  return cache->slots[idx].data;
 }
 
-BlockData::~BlockData() { delete[] data; }
 
-BlockData::BlockData(BlockData&& rhs)
-  : index(rhs.index)
-  , size(rhs.size)
-  , data(rhs.data)
-  , gaps(std::move(rhs.gaps))
+std::uint8_t const* BlockData::cdata() const
 {
-  rhs.data = nullptr;
+  assert(exists());
+  return cache->slots[idx].data;
 }
 
-BlockData& BlockData::operator=(BlockData&& rhs)
+
+bool BlockData::operator==(BlockData const& rhs) const
 {
-  index = rhs.index;
-  size = rhs.size;
-  data = rhs.data;
-  rhs.data = nullptr;
-  std::swap(gaps, rhs.gaps);
-  return *this;
+  return cache == rhs.cache && idx == rhs.idx;
 }
 
-BlockData::size_type
-BlockData::read(std::uint8_t* dst, size_type from, size_type size) const
+
+bool BlockData::operator!=(BlockData const& rhs) const
+{
+  return !(*this == rhs);
+}
+
+
+BlockData::BlockData()
+  : cache(nullptr)
+{
+}
+
+
+BlockData::BlockData(ContentCache* cache, std::size_t idx)
+  : cache(*cache)
+  , idx(idx)
+{
+}
+
+
+std::size_t
+BlockData::read(std::uint8_t* dst, std::size_t from, std::size_t size) const
 {
   assert(from <= this->size);
   if (from + size > this->size)
@@ -56,11 +74,13 @@ BlockData::read(std::uint8_t* dst, size_type from, size_type size) const
   return size;
 }
 
-BlockData::size_type BlockData::read(std::uint8_t* dst, size_type size) const
+
+std::size_t BlockData::read(std::uint8_t* dst, std::size_t size) const
 {
   return read(dst, 0, size);
 }
 
+#if 0
 void BlockData::insert(size_type dst_off,
                        std::uint8_t const* src,
                        size_type size)
@@ -99,4 +119,5 @@ void BlockData::insert(size_type dst_off,
 
   gaps.swap(new_gaps);
 }
+#endif
 }

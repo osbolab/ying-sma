@@ -280,38 +280,98 @@ std::size_t ContentHelperImpl::announce_metadata()
 
 void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
 {
-  std::vector<BlockFragmentRequest> fragments;
+  // Detect reentrance
+  if (already_in_request)
+    log.w("ContentHelperImpl::request has been reentered. Are you SURE the "
+          "caller is reentrant?");
+  already_in_request = true;
+
   std::vector<BlockRef> already_have;
 
-  auto it = requests.begin();
-  while (it != requests.end()) {
-    auto block = cache.find(it->block);
-    if (block != nullptr) {
-      if (block->complete()) {
-        already_have.push_back(std::move(*it));
-        it = requests.erase(it);
-        continue;
-      }
-#if 0
-      // Update the existing request to include the newly requested bits
-      auto& gaps = it->second.gaps;
-      for (std::size_t i = 0; i < gaps.size() - 1; i += 2)
-        fragments.emplace_back(gaps[i], gaps[i + 1] - gaps[i]);
-#endif
+  auto req = requests.begin();
+  while (req != requests.end()) {
+    // Skip a request if we have the block in cache or store.
+    auto cached_block = cache.find(req->block);
+    if (cached_block == nullptr)
+      cached_block = store.find(req->block);
+
+    if (cached_block != nullptr && cached_block->complete()) {
+      prt.erase(req->block);
+      already_have.push_back(std::move(*req));
+      req = requests.erase(req);
+      continue;
     }
-    ++it;
+
+    auto const new_expiry = clock::now() + req->ttl();
+
+    auto it = prt.find(req->block);
+    if (it != prt.end()) {
+      auto& pending = it->second;
+      // Update existing pending requests to have a longer TTL or keep the
+      // requested block.
+      if (pending.expiry < new_expiry) {
+        pending.expiry = new_expiry;
+        check_pending_requests(new_expiry);
+      }
+      pending.keep_on_arrival |= req->keep_on_arrival;
+    } else {
+      // Add a new pending request to facilitate timeout and block storage.
+      prt.emplace(
+          req->block,
+          PendingRequest{clock::now(), new_expiry, req->keep_on_arrival});
+      check_pending_requests(new_expiry);
+    }
+
+    ++req;
   }
 
   if (not requests.empty())
     node.post(BlockRequest(std::move(requests)));
 
+  // WARNING: caller must be reentrant if the callback invokes it!
+  // For example: the caller enters this function while looping over a
+  // collection that it modifies. If the block arrived handler reenters that
+  // caller, the inner execution will modify the collection while the outer
+  // execution is still iterating, invalidating its iterators.
   for (auto& block : already_have)
     block_arrived_event(block);
+
+  already_in_request = false;
+}
+
+
+void ContentHelperImpl::check_pending_requests(time_point when)
+{
+  if (when != time_point()) {
+    asynctask(&ContentHelperImpl::check_pending_requests, this)
+        .do_in(when - clock::now());
+    return;
+  }
+
+  std::vector<BlockRef> timed_out;
+
+  auto const now = clock::now();
+  auto it = prt.begin();
+  while (it != prt.end()) {
+    auto const& pending = it->second;
+    if (now >= pending.expiry) {
+      timed_out.push_back(std::move(it->first));
+      it = prt.erase(it);
+    } else
+      ++it;
+  }
+
+  for (auto& block : timed_out)
+    request_timeout_event(block);
 }
 
 
 bool ContentHelperImpl::broadcast(BlockRef block)
 {
+  auto existing = cache->find(block);
+  if (existing != nullptr) {
+  }
+
   auto blocks = cache->find(block.hash);
   if (blocks != nullptr) {
     auto it = blocks->find(block.index);
