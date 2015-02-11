@@ -314,6 +314,7 @@ std::size_t ContentHelperImpl::announce_metadata()
     if (it->data.expired())
       it = rmt.erase(it);
     else if (node.interests->contains_any(it->data.types)) {
+      log.d("I'm forwarding metadata about %v", it->data.types[0]);
       metas.push_back(it->data);
       it->announced();
       ++it;
