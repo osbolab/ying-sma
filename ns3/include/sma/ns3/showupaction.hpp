@@ -14,11 +14,11 @@ struct ShowupAction : Action {
   ShowupAction (Ns3NodeContainer& context,
                 std::chrono::milliseconds interest_freq,
                 std::chrono::milliseconds content_freq,
-                std::chrono::milliseconds content_freq)
+                std::chrono::milliseconds request_freq)
       : Action (context)
       , post_interest_freq (interest_freq)
       , post_content_freq (content_freq)
-      , download_content_freq (content_freq)
+      , download_content_freq (request_freq)
   {}
 
 

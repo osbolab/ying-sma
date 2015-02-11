@@ -9,6 +9,7 @@
 #include <sma/neighborhelperimpl.hpp>
 #include <sma/ccn/interesthelperimpl.hpp>
 #include <sma/ccn/contenthelperimpl.hpp>
+#include <sma/ccn/behaviorhelperimpl.hpp>
 
 #include <sma/ns3/action.hpp>
 
@@ -80,6 +81,7 @@ private:
 
   std::unique_ptr<NeighborHelperImpl> neighbor_helper;
   std::unique_ptr<InterestHelperImpl> interest_helper;
+  std::unique_ptr<BehaviorHelperImpl> behavior_helper;
 
   std::unique_ptr<ContentHelperImpl> content_helper;
 

@@ -26,10 +26,7 @@ public:
   void behave ();
 
 private:
-  static constexpr char alphanum[] =
-      "0123456789"
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-      "abcdefghipqrstuvwxyz";
+  static const char * alphanum;
 
   std::chrono::milliseconds interest_freq;
   std::chrono::milliseconds publish_freq;

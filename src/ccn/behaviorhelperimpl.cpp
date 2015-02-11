@@ -10,7 +10,13 @@
 #include <sma/ccn/contenthelper.hpp>
 
 namespace sma
-{
+{	
+    static const char const_alphanum[] =
+       { "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghipqrstuvwxyz"};
+	
+	const char* BehaviorHelperImpl::alphanum = const_alphanum;
 
     BehaviorHelperImpl::BehaviorHelperImpl (CcnNode& node,
            std::chrono::milliseconds post_interest_freq,
@@ -76,26 +82,30 @@ namespace sma
     {
       std::vector<ContentMetadata> meta_vec = node.content->metadata();
       // need rank
-      std::size_t rand_index = rand() % meta_vec.size();
-      Hash content_name = meta_vec[rand_index].hash;
-      float utility_per_block = 1.0f;
-      int num_of_blocks = meta_vec[rand_index].size;
 
-      std::vector<BlockRequestArgs> requests;
-      std::chrono::milliseconds ttl (20000);
-      for (std::size_t i=0; i<num_of_blocks; i++)
+
+      if (meta_vec.size() != 0)
       {
+        std::size_t rand_index = rand() % meta_vec.size();
+        Hash content_name = meta_vec[rand_index].hash;
+        float utility_per_block = 1.0f;
+        int num_of_blocks = 1+((meta_vec[rand_index].size-1)/meta_vec[rand_index].block_size);
 
-         requests.push_back (BlockRequestArgs(content_name,
+        std::vector<BlockRequestArgs> requests;
+        std::chrono::milliseconds ttl (20000);
+        for (std::size_t i=0; i<num_of_blocks; i++)
+        {
+
+          requests.push_back (BlockRequestArgs(content_name,
                      i,
                      utility_per_block,
                      ttl,
                      node.id,
                      node.position()));
-      }
+        }
 
-      node.content->request (requests);
-      
+        node.content->request (requests);
+      }
       // schedule next request behavior
       float ratio = (rand()%60 - 30) / 100.0;
       auto new_delay = request_freq * (1 + ratio);
