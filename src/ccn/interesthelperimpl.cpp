@@ -141,8 +141,6 @@ void InterestHelperImpl::learn_remote(Interest const& interest)
   interests.emplace_front(
       interest.type, interest.ttl<std::chrono::milliseconds>(), interest.hops);
   ++to_announce;
-
-  announce();
 }
 
 bool InterestHelperImpl::know_remote(ContentType const& type) const
@@ -222,9 +220,6 @@ std::size_t InterestHelperImpl::announce()
     log.t("--> announce %v interests (%v bytes)", count, size);
     node.post(msg);
   }
-
-  asynctask(&InterestHelperImpl::announce, this)
-      .do_in(std::chrono::milliseconds(200));
 
   return count;
 }

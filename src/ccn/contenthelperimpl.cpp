@@ -174,8 +174,6 @@ void ContentHelperImpl::receive(MessageHeader header, BlockRequest msg)
 
   if (not msg.requests.empty())
     blocks_requested_event(header.sender, std::move(msg.requests));
-
-  broadcast(msg.requests[0].block);
 }
 
 
@@ -223,9 +221,6 @@ void ContentHelperImpl::receive(MessageHeader header, BlockResponse resp)
   log.d("");
 
   block_arrived_event(ref);
-
-  log.d("Broadcasting %v", ref);
-  broadcast(ref);
 }
 
 
@@ -328,13 +323,8 @@ std::size_t ContentHelperImpl::announce_metadata()
 
   auto const announced = metas.size();
 
-  if (not metas.empty()) {
-    g_published = clock::now();
+  if (not metas.empty())
     node.post(ContentAnn(std::move(metas)));
-  }
-
-  asynctask(&ContentHelperImpl::announce_metadata, this)
-      .do_in(std::chrono::milliseconds(200));
 
   return announced;
 }
@@ -374,8 +364,6 @@ void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
       log.d("| publisher: %v", metadata.publisher);
       log.d("| publish time: %v ms", metadata.publish_time_ms);
       log.d("| publish location: %v", std::string(metadata.origin));
-
-      announce_metadata();
     }
   }
 
