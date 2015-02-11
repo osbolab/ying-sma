@@ -6,6 +6,7 @@
 #include <sma/neighbor.hpp>
 #include <cassert>
 #include <sma/ccn/blockindex.hpp> 
+#include <sma/ccn/blockref.hpp>
 #include <unordered_set>
 #include <unordered_map>
 #include <sma/ccn/contenthelper.hpp>
@@ -23,13 +24,14 @@ public:
       : sched_ptr (ptr) 
   {}
     
-  void add_responses(const std::pair<Hash, BlockIndex>& blockid);
+  void add_responses(BlockRef blockid);
   std::size_t sched();
 
 private:
-  std::unordered_set<std::pair<Hash, BlockIndex>> block_to_schedule;
+  std::unordered_set<BlockRef> block_to_schedule;
+  std::unordered_set<BlockRef> block_arrived_buf;
   ForwardSchedulerImpl* sched_ptr;
-  std::unordered_map<std::pair<Hash, BlockIndex>, std::size_t> block_to_seq;
+  std::unordered_map<BlockRef, std::size_t> block_to_seq;
 
   std::pair<Hash, BlockIndex> get_blockid (std::size_t seq);
   

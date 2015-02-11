@@ -66,6 +66,8 @@ public:
   //  and content retrieval.
   BehaviorHelper* behavior = nullptr;
 
+  ForwardScheduler* sched = nullptr;
+
 private:
   //! \a true if the node's graceful termination has been requested.
   std::atomic_bool stopped{false};

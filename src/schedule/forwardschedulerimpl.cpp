@@ -2,6 +2,7 @@
 #include <sma/schedule/forwardschedulerimpl.hpp>
 #include <sma/ccn/ccnnode.hpp>
 #include <sma/ccn/blockindex.hpp>
+#include <sma/ccn/blockref.hpp>
 #include <sma/schedule/interestscheduler.hpp>
 #include <sma/schedule/metascheduler.hpp>
 #include <sma/schedule/blockrequestscheduler.hpp>
@@ -25,6 +26,14 @@ namespace sma
       meta_sched_ptr = new MetaScheduler(this);
       blockrequest_sched_ptr = new BlockRequestScheduler(this);
       blockresponse_sched_ptr = new BlockResponseScheduler(this);
+
+      node.content->on_block_arrived() += std::bind(&ForwardSchedulerImpl::on_block, this);
+      node.content->on_blocks_requested() += std::bind(&ForwardSchedulerImpl::on_blockrequest, this);
+
+      // add time_out async callback later
+
+      
+      asynctask (&ForwardSchedulerImpl::sched, this).do_in (ForwardScheduler::get_sched_interval());
     }
 	
     ForwardSchedulerImpl::~ForwardSchedulerImpl()
@@ -35,12 +44,12 @@ namespace sma
       if (blockresponse_sched_ptr != NULL)  delete blockresponse_sched_ptr;
     }
 	
-    void ForwardSchedulerImpl::on_blockrequest (const std::vector<BlockRequestArgs> & requests)
+    void ForwardSchedulerImpl::on_blockrequest (NodeId id, std::vector<BlockRequestArgs> requests)
     {
       blockrequest_sched_ptr->add_requests(requests); 
     }
 	
-    void ForwardSchedulerImpl::on_block (std::pair<Hash, BlockIndex> & block)
+    void ForwardSchedulerImpl::on_block (BlockRef block)
     {
       blockresponse_sched_ptr->add_responses(block); 
     }
@@ -55,19 +64,19 @@ namespace sma
       return blockrequest_sched_ptr->get_utility (id, content_name, block_index); 
     }
 	
-    std::size_t ForwardSchedulerImpl::freeze_blocks (std::vector<std::pair<Hash, BlockIndex>> blocks)
+    std::size_t ForwardSchedulerImpl::freeze_blocks (std::vector<BlockRef> blocks)
     {
       return node->content->freeze (blocks); 
     }
 	
-    std::size_t ForwardSchedulerImpl::unfreeze_blocks (std::vector<std::pair<Hash, BlockIndex>> blocks)
+    std::size_t ForwardSchedulerImpl::unfreeze_blocks (std::vector<BlockRef> blocks)
     {
       return node->content->unfreeze (blocks);  
     }
 	
     bool ForwardSchedulerImpl::broadcast_block (Hash name, BlockIndex index)
     {
-      return node->content->broadcast (name, index); 
+      return node->content->broadcast (BlockRef(name, index)); 
     }
 	
     std::vector<Neighbor> ForwardSchedulerImpl::get_neighbors() const
@@ -126,6 +135,8 @@ namespace sma
 
       //// async task
       // put sched() itself to the chain
+      asynctask (&ForwardSchedulerImpl::sched, this).do_in (ForwardScheduler::get_sched_interval());
+
     }
 	
     void ForwardSchedulerImpl::schedule_interest_fwd () { interest_sched_ptr->sched(); }
@@ -141,13 +152,20 @@ namespace sma
 	
 	////// blockresponsescheduler.cpp
 	
-    void BlockResponseScheduler::add_responses(const std::pair<Hash, BlockIndex>& blockid)
+    void BlockResponseScheduler::add_responses(BlockRef blockid)
     {
-        block_to_schedule.insert(blockid);
+        block_arrived_buf.insert(blockid);
     }
 	
     std::size_t BlockResponseScheduler::sched()
     {
+      for (auto it=block_arrived_buf.begin();
+              it != block_arrived_buf.end(); it++)
+      {
+        block_to_schedule.insert (*it); 
+      }
+      block_arrived_buf.clear();
+
       std::size_t max_ttl = sched_ptr->get_max_ttl();
       std::size_t num_of_blocks = block_to_schedule.size();
       std::size_t storage = sched_ptr->get_storage();
@@ -167,18 +185,18 @@ namespace sma
       auto it = block_to_schedule.begin();
       while (it != block_to_schedule.end())
       {
-        block_to_seq.insert(std::make_pair(*it, seq));
+        block_to_seq.insert(*it, seq);
 
         std::vector<Neighbor> neighbors = sched_ptr->get_neighbors();
         for (std::size_t i=0; i<neighbors.size(); i++)
         {
           NodeId node_id = neighbors[i].id;
           utils[i][seq] = sched_ptr->get_utility (node_id, 
-                                                 it->first, 
-                                                 it->second);
+                                                 it->hash, 
+                                                 it->index);
           ttls[i][seq] = sched_ptr->get_ttl (node_id,
-                                             it->first,
-                                             it->second);
+                                             it->hash,
+                                             it->index);
         }
         seq++;
         it++; 
@@ -199,14 +217,14 @@ namespace sma
                        sched_result
                        );
 	  
-	  std::vector<std::pair<Hash, BlockIndex>> blocks_to_freeze;
-	  std::vector<std::pair<Hash, BlockIndex>> blocks_to_unfreeze;
-	  std::vector<std::pair<Hash, BlockIndex>> blocks_to_broadcast;
+	  std::vector<BlockRef> blocks_to_freeze;
+	  std::vector<BlockRef> blocks_to_unfreeze;
+	  std::vector<BlockRef> blocks_to_broadcast;
 
       for (std::size_t c=0; c<sched_result.size(); c++)
       {
 
-        std::pair<Hash, BlockIndex> block_id = get_blockid (c);
+        BlockRef block_id = get_blockid (c);
         if (sched_result[c][0] == 1)
         {
           //// freeze cache
@@ -214,8 +232,6 @@ namespace sma
 
           if (sched_result[c][1] == 0)
           {
-            sched_ptr->broadcast_block (block_id.first,
-                                        block_id.second);
 			blocks_to_broadcast.push_back (block_id);
   		    block_to_schedule.erase (block_id);
           }
@@ -232,8 +248,8 @@ namespace sma
 	  
 	  for (std::size_t c=0; c!=blocks_to_broadcast.size(); c++)
 	  {
-		sched_ptr->broadcast_block (blocks_to_broadcast[c].first,
-                                    blocks_to_broadcast[c].second);
+		sched_ptr->broadcast_block (blocks_to_broadcast[c].hash,
+                                    blocks_to_broadcast[c].index);
 	  }
 
       return blocks_to_broadcast.size(); // update the num_of_blocks to broadcast  

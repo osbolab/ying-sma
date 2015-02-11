@@ -14,6 +14,7 @@
 #include <cstddef>
 #include <vector>
 #include <utility>
+#include <sma/ccn/blockref.hpp>
 
 namespace sma
 {
@@ -24,12 +25,12 @@ public:
   ForwardSchedulerImpl(CcnNode* host_node, std::uint32_t interval);
   ~ForwardSchedulerImpl();
   
-  void on_blockrequest (const std::vector<BlockRequestArgs> & requests) override;
-  void on_block (std::pair<Hash, BlockIndex> & blocks) override;
+  void on_blockrequest (NodeId id, std::vector<BlockRequestArgs>  requests) override;
+  void on_block (BlockRef block) override;
   void sched () override;
 
-  std::size_t freeze_blocks (std::vector<std::pair<Hash, BlockIndex>> blocks);
-  std::size_t unfreeze_blocks (std::vector<std::pair<Hash, BlockIndex>> blocks);
+  std::size_t freeze_blocks (std::vector<BlockRef> blocks);
+  std::size_t unfreeze_blocks (std::vector<BlockRef> blocks);
   bool broadcast_block (Hash name, BlockIndex index); 
   void request_blocks (std::vector<BlockRequestArgs> requests);
   std::size_t fwd_interests ();

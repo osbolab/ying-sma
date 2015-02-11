@@ -19,8 +19,8 @@ public:
 	  , sched_interval (interval)
   {}
 	  
-  virtual void on_blockrequest (const std::vector<BlockRequestArgs> & requests) = 0;
-  virtual void on_block (std::pair<Hash, BlockIndex> & block)= 0;
+  virtual bool on_blockrequest (NodeId id, std::vector<BlockRequestArgs> requests) = 0;
+  virtual bool on_block (BlockRef block)= 0;
   virtual void sched() = 0;
 
   virtual ~ForwardScheduler() {}
