@@ -52,12 +52,12 @@ namespace sma
 	
     bool ForwardSchedulerImpl::on_blockrequest (NodeId id, std::vector<BlockRequestArgs> requests)
     {
-      blockrequest_sched_ptr->add_requests(requests); 
+      return true;
     }
 	
     bool ForwardSchedulerImpl::on_block (BlockRef block)
     {
-      blockresponse_sched_ptr->add_responses(block); 
+      return true;
     }
 
     int ForwardSchedulerImpl::get_ttl (NodeId id, Hash content_name, BlockIndex block_index)
@@ -136,8 +136,8 @@ namespace sma
     
       int num_of_requests = blockrequest_sched_ptr->sched();
       int num_of_blocks = blockresponse_sched_ptr->sched();
-//      int num_of_meta = meta_sched_ptr->sched();
-//      int num_of_interests = interest_sched_ptr->sched();
+      int num_of_meta = meta_sched_ptr->sched();
+      int num_of_interests = interest_sched_ptr->sched();
 
       //// async task
       // put sched() itself to the chain
