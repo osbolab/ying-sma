@@ -1,7 +1,6 @@
 #pragma once
 
 #include <sma/ccn/contentmetadata.hpp>
-#include <sma/networkdistance.hpp>
 
 #include <sma/util/serial.hpp>
 
@@ -11,15 +10,12 @@
 namespace sma
 {
 struct ContentAnn {
-  TRIVIALLY_SERIALIZABLE(ContentAnn, metadata, hops)
+  TRIVIALLY_SERIALIZABLE(ContentAnn, metadata)
 
   std::vector<ContentMetadata> metadata;
-  std::uint8_t hops;
 
-  ContentAnn(std::vector<ContentMetadata> metadata,
-             std::uint8_t hops = 0)
+  ContentAnn(std::vector<ContentMetadata> metadata)
     : metadata(std::move(metadata))
-    , hops(hops)
   {
   }
 

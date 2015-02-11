@@ -66,6 +66,16 @@ void InterestHelperImpl::create_local(std::vector<ContentType> types)
     create_local(type);
 }
 
+void InterestHelperImpl::clear_local()
+{
+  auto it = interests.begin();
+  while (it != interests.end())
+    if (it->local())
+      it = interests.erase(it);
+    else
+      ++it;
+}
+
 std::vector<Interest> InterestHelperImpl::all() const
 {
   std::vector<Interest> all;

@@ -1,10 +1,11 @@
 #pragma once
 
-#include <sma/smafwd.hpp>
 #include <sma/io/log>
 
 namespace sma
 {
+struct CcnNode;
+
 class Helper
 {
 public:

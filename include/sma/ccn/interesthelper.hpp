@@ -18,7 +18,9 @@ public:
 
   virtual void receive(MessageHeader header, InterestAnn announcement) = 0;
 
+  virtual void create_local(ContentType type) = 0;
   virtual void create_local(std::vector<ContentType> types) = 0;
+  virtual void clear_local() = 0;
 
   virtual std::vector<Interest> local() const = 0;
   virtual std::vector<Interest> all() const = 0;

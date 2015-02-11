@@ -87,7 +87,6 @@ set(${PROJECT_NAME}_sources
   "src/ccn/contenthelperimpl.cpp"
   "src/ccn/contentcache.cpp"
   "src/ccn/blockdata.cpp"
-  "src/ccn/remotecontent.cpp"
 
   "src/chrono.cpp"
   "src/context.cpp"

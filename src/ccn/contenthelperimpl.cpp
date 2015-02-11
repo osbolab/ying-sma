@@ -1,6 +1,5 @@
 #include <sma/ccn/contenthelperimpl.hpp>
 
-#include <sma/context.hpp>
 #include <sma/ccn/ccnnode.hpp>
 
 #include <sma/ccn/contentcache.hpp>
@@ -10,12 +9,9 @@
 
 #include <sma/messageheader.hpp>
 #include <sma/ccn/contentann.hpp>
-#include <sma/ccn/blockrequest.hpp>
 #include <sma/ccn/blockresponse.hpp>
 
 #include <sma/ccn/interesthelper.hpp>
-
-#include <sma/chrono.hpp>
 
 #include <ctime>
 #include <chrono>
@@ -23,41 +19,105 @@
 #include <istream>
 
 
-using namespace std::literals::chrono_literals;
-
 namespace sma
 {
+using namespace std::literals::chrono_literals;
+
 static sma::chrono::system_clock::time_point g_published;
 
-std::vector<ContentMetadata> ContentHelperImpl::metadata() const
+
+ContentHelperImpl::LocalMetadata::LocalMetadata(ContentMetadata data)
+  : data(data)
+  , last_requested(clock::now())
+  , next_announce(clock::now())
+{
+}
+
+
+void ContentHelperImpl::LocalMetadata::requested()
+{
+  last_requested = clock::now();
+}
+
+
+void ContentHelperImpl::LocalMetadata::announced()
+{
+  // 2^t growth
+  auto const now = clock::now();
+  auto delay = now - last_requested;
+  if (delay > 60s)
+    delay = 60s;
+  if (delay < 1s)
+    delay = 1s;
+
+  next_announce = now + delay;
+}
+
+
+ContentHelperImpl::RemoteMetadata::RemoteMetadata(ContentMetadata data)
+  : data(data)
+  , next_announce(clock::now())
+{
+}
+
+void ContentHelperImpl::RemoteMetadata::announced()
+{
+  next_announce = clock::now() + 1s;
+}
+
+
+
+ContentHelperImpl::ContentHelperImpl(CcnNode& node)
+  : ContentHelper(node)
+  , cache(new ContentCache())
+  , to_announce(0)
+{
+}
+
+
+std::vector<ContentMetadata> ContentHelperImpl::metadata()
 {
   std::vector<ContentMetadata> v;
-  for (auto& pair : kct)
-    v.push_back(pair.second.metadata);
+  v.reserve(lmt.size() + rmt.size());
+
+  for (auto const& local : lmt)
+    v.push_back(local.data);
+
+  auto it = rmt.begin();
+  while (it != rmt.end())
+    if (it->data.expired())
+      it = rmt.erase(it);
+    else
+      v.push_back((it++)->data);
+
+  v.shrink_to_fit();
   return v;
 }
 
+
 void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
 {
-  ++msg.hops;
-
-  for (auto& metadata : msg.metadata) {
+  for (auto metadata : msg.metadata) {
     // Break loops
     if (metadata.publisher == node.id)
       continue;
 
-    auto lit = node.interests->local();
+    // Count the link this came over
+    ++metadata.hops;
+
+    auto const lit = node.interests->local();
     log.d("");
     log.d("My interest table");
-    for (auto& i : lit)
+    for (auto const& i : lit)
       log.d("| %v (local)", i.type);
     auto rit = node.interests->remote();
-    for (auto& i : rit)
+    for (auto const& i : rit)
       log.d("| %v (%v hops)", i.type, std::uint32_t(i.hops));
     log.d("");
 
     log.d("Content metadata from n(%v)", header.sender);
-    log.d("| distance: %v hop(s)", std::uint32_t(msg.hops));
+    log.d("| distance: %v hop(s)", std::uint32_t(metadata.hops));
+    log.d("| ttl: %v ms", metadata.ttl<std::chrono::milliseconds>().count());
     log.d("| hash: %v", std::string(metadata.hash));
     log.d("| size: %v bytes", metadata.size);
     log.d("| block size: %v bytes", metadata.block_size);
@@ -65,56 +125,46 @@ void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
       log.d("| type: %v", type);
     log.d("| name: %v", metadata.name);
     log.d("| publisher: %v", metadata.publisher);
-    log.d("| origin: %v", std::string(metadata.origin));
-    log.d("| time: %v", metadata.publish_time);
+    log.d("| publish time: %v ms", metadata.publish_time_ms);
+    log.d("| publish location: %v", std::string(metadata.origin));
 
-    for (auto& interest : node.interests->all())
-      for (auto& type : metadata.types)
+    bool const changed = learn_remote(metadata);
+    log.d("| learned something new: %v", (changed ? "yes" : "no"));
+
+    for (auto const& interest : node.interests->all())
+      for (auto const& type : metadata.types)
         if (type == interest.type) {
           if (interest.local()) {
             log.d("| I'm interested in this");
           } else {
             log.d("| I know someone interested in this");
           }
-          std::vector<BlockRequestArgs> reqs;
-          reqs.emplace_back(
-              metadata.hash, 0, 0.0, 10s, node.id, node.position());
-          log.d("| Requesting block");
-          log.d("|> index: %v", 0);
-          log.d("|> ttl: %v ms", reqs[0].ttl_ms);
-          log.d("|> origin: %v", std::string(reqs[0].requester_position));
-          request(std::move(reqs));
         }
-
-    if (!update(metadata, msg.hops))
-      return;
   }
 
-
-  auto time = std::chrono::duration_cast<std::chrono::milliseconds>(
+  auto const time = std::chrono::duration_cast<std::chrono::milliseconds>(
       clock::now() - g_published);
   // log.i("delay: %v ms", time.count());
 
   log.d("");
 }
 
-bool ContentHelperImpl::update(ContentMetadata const& metadata,
-                               std::uint8_t hops)
+
+bool ContentHelperImpl::learn_remote(ContentMetadata const& meta)
 {
-  auto it = kct.find(metadata.hash);
-  if (it != kct.end()) {
-    auto& record = it->second;
-    if (hops < record.hops) {
-      record.hops = hops;
-      return true;
-    } else
-      return false;
-  }
+  for (auto& existing : rmt)
+    if (existing.data.hash == meta.hash) {
+      if (meta.hops < existing.data.hops) {
+        existing.data.hops = meta.hops;
+        return true;
+      } else
+        return false;
+    }
 
-  kct.emplace(metadata.hash, MetaRecord{metadata, hops});
-
+  rmt.emplace_back(meta);
   return true;
 }
+
 
 ContentMetadata ContentHelperImpl::create_new(std::vector<ContentType> types,
                                               ContentName const& name,
@@ -122,7 +172,7 @@ ContentMetadata ContentHelperImpl::create_new(std::vector<ContentType> types,
 {
   std::size_t const block_size = 1024;
 
-  auto stored = cache.load(in, block_size);
+  auto stored = cache->load(in, block_size);
   auto& hash = stored.first;
   auto& size = stored.second;
 
@@ -137,43 +187,70 @@ ContentMetadata ContentHelperImpl::create_new(std::vector<ContentType> types,
                                   name,
                                   node.position(),
                                   node.id,
-                                  publish_time);
+                                  publish_time,
+                                  10s);
 
-  kct.emplace(hash, MetaRecord{metadata, 0});
+  lmt.push_back(metadata);
   ann_queue.push_back(hash);
   ++to_announce;
 
   return metadata;
 }
 
+
 std::size_t ContentHelperImpl::announce_metadata()
 {
-  if (clock::now() < next_announce_time)
+  if ((lmt.empty() && rmt.empty()))
     return 0;
 
   std::vector<ContentMetadata> metas;
-  for (auto& pair : kct)
-    if (pair.second.hops == 0
-        || node.interests->contains_any(pair.second.metadata.types))
-      metas.push_back(pair.second.metadata);
+  metas.reserve(lmt.size() + rmt.size());
+
+  auto const now = clock::now();
+
+  // Local metadata do not expire, but their announcement frequency is limited.
+  for (auto& local : lmt) {
+    if (now >= local.next_announce) {
+      metas.push_back(local.data);
+      local.announced();
+    }
+  }
+
+  // Remotes are not announced if it's been too long since they were received
+  // from the original node; every intermediate node decays their TTL so they
+  // expire across the entire network at once.
+  auto it = rmt.begin();
+  while (it != rmt.end())
+    if (it->data.expired())
+      it = rmt.erase(it);
+    else if (node.interests->contains_any(it->data.types)) {
+      metas.push_back(it->data);
+      it->announced();
+      ++it;
+    }
+
+  metas.shrink_to_fit();
+
+  auto const announced = metas.size();
 
   if (not metas.empty()) {
     g_published = clock::now();
     node.post(ContentAnn(std::move(metas)));
   }
 
-  return metas.size();
+  return announced;
 }
+
 
 void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
 {
   std::vector<BlockFragmentRequest> fragments;
+  std::vector<BlockRef> already_have;
 
   auto req = requests.begin();
   while (req != requests.end()) {
-    auto blocks = cache.find(req->hash);
-    if (blocks != nullptr) {
-      auto it = blocks->find(req->index);
+    auto block = cache.find(req->block);
+    if (block != nullptr) {
       if (it != blocks->end() && it->second.complete()) {
         req = requests.erase(req);
         continue;
@@ -191,45 +268,48 @@ void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
     node.post(BlockRequest(std::move(requests)));
 }
 
-bool ContentHelperImpl::broadcast(Hash hash, BlockIndex index)
+
+bool ContentHelperImpl::broadcast(BlockRef block)
 {
-  auto blocks = cache.find(hash);
+  auto blocks = cache->find(block.hash);
   if (blocks != nullptr) {
-    auto it = blocks->find(index);
+    auto it = blocks->find(block.index);
     if (it != blocks->end() && it->second.complete()) {
-      auto& block = it->second;
+      auto& found = it->second;
       node.post(
-          BlockResponse(hash,
-                        index,
-                        block.size,
-                        {BlockFragmentResponse(0, block.data, block.size)}));
+          BlockResponse(block.hash,
+                        block.index,
+                        found.size,
+                        {BlockFragmentResponse(0, found.data, found.size)}));
       return true;
     }
   }
   return false;
 }
 
-std::size_t
-ContentHelperImpl::freeze(std::vector<std::pair<Hash, BlockIndex>> blocks)
+
+std::size_t ContentHelperImpl::freeze(std::vector<BlockRef> blocks)
 {
   return blocks.size();
 }
 
-std::size_t
-ContentHelperImpl::unfreeze(std::vector<std::pair<Hash, BlockIndex>> blocks)
+
+std::size_t ContentHelperImpl::unfreeze(std::vector<BlockRef> blocks)
 {
   return blocks.size();
 }
+
 
 void ContentHelperImpl::receive(MessageHeader header, BlockRequest msg)
 {
   if (not msg.requests.empty())
-    on_blocks_requested(header.sender, std::move(msg.requests));
+    blocks_requested_event(header.sender, std::move(msg.requests));
 }
+
 
 void ContentHelperImpl::receive(MessageHeader header, BlockResponse resp)
 {
-  auto& blocks = cache.find_or_allocate(resp.hash);
+  auto& blocks = cache->find_or_allocate(resp.hash);
   auto it = blocks.find(resp.index);
   if (it == blocks.end())
     it = blocks.emplace(resp.index, BlockData(resp.index, resp.size)).first;
@@ -249,7 +329,7 @@ void ContentHelperImpl::receive(MessageHeader header, BlockResponse resp)
 
   if (not block.notified and block.complete()) {
     block.notified = true;
-    on_block_arrived(resp.hash, block.index);
+    block_arrived_event(BlockRef(resp.hash, block.index));
   }
 
   log.d("");

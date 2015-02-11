@@ -1,14 +1,6 @@
 #pragma once
 
 #include <sma/helper.hpp>
-#include <sma/ccn/ccnfwd.hpp>
-#include <sma/ccn/contentmetadata.hpp>
-#include <sma/ccn/blockindex.hpp>
-#include <sma/ccn/blockrequestargs.hpp>
-
-#include <sma/nodeid.hpp>
-#include <sma/util/event.hpp>
-#include <sma/util/vec2d.hpp>
 
 #include <vector>
 
@@ -19,6 +11,23 @@
 
 namespace sma
 {
+struct CcnNode;
+struct NodeId;
+struct ContentType;
+struct ContentName;
+struct ContentMetadata;
+
+struct MessageHeader;
+struct ContentAnn;
+struct BlockRef;
+struct BlockRequest;
+struct BlockResponse;
+struct BlockRequestArgs;
+
+template <typename...>
+struct Event;
+
+
 class ContentHelper : public Helper
 {
 public:
@@ -40,7 +49,7 @@ public:
                                      ContentName const& name,
                                      std::istream& in) = 0;
 
-  virtual std::vector<ContentMetadata> metadata() const = 0;
+  virtual std::vector<ContentMetadata> metadata() = 0;
   virtual std::size_t announce_metadata() = 0;
 
   //! Send one message to the network containing all of the given block
@@ -50,41 +59,20 @@ public:
   //! Broadcast completely the data for the specified block.
   // \return An interface that can be used to keep or mark as free the cache
   //         entry for the block data that were broadcast.
-  virtual bool broadcast(Hash hash, BlockIndex index) = 0;
+  virtual bool broadcast(BlockRef block) = 0;
 
-  virtual std::size_t freeze(std::vector<std::pair<Hash, BlockIndex>> blocks)
-      = 0;
-  virtual std::size_t unfreeze(std::vector<std::pair<Hash, BlockIndex>> blocks)
-      = 0;
+  virtual std::size_t freeze(std::vector<BlockRef> blocks) = 0;
+  virtual std::size_t unfreeze(std::vector<BlockRef> blocks) = 0;
 
   //! Fired when a nonempty set of block requests arrives from the network.
-  Event<NodeId, std::vector<BlockRequestArgs>> on_blocks_requested;
+  virtual Event<NodeId, std::vector<BlockRequestArgs>>& on_blocks_requested()
+      = 0;
   //! Fired when a previously broadcast request exceeds its Time to Live
   //! argument.
-  Event<Hash, BlockIndex> on_request_timeout;
+  virtual Event<BlockRef>& on_request_timeout() = 0;
   //! Fired when block data arrive and are cached by the content helper.
   // The \a CacheEntry argument provides functions to keep or release the cache
   // entry for the given data.
-  Event<Hash, BlockIndex> on_block_arrived;
-};
-}
-
-namespace std
-{
-template <>
-struct hash<pair<sma::Hash, sma::BlockIndex>> {
-  size_t operator()(pair<sma::Hash, sma::BlockIndex> const& a) const
-  {
-    return 37 * hash<sma::Hash>()(a.first) + a.second;
-  }
-};
-
-template <>
-struct less<pair<sma::Hash, sma::BlockIndex>> {
-  using arg_type = pair<sma::Hash, sma::BlockIndex>;
-  bool operator()(arg_type const& lhs, arg_type const& rhs) const
-  {
-    return (lhs.first < rhs.first) && (lhs.second < rhs.second);
-  }
+  virtual Event<BlockRef>& on_block_arrived() = 0;
 };
 }

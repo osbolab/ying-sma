@@ -41,8 +41,9 @@ public:
 
   void receive(MessageHeader header, InterestAnn announcement) override;
 
-  void create_local(ContentType type);
+  void create_local(ContentType type) override;
   void create_local(std::vector<ContentType> types) override;
+  void clear_local() override;
 
   std::vector<Interest> all() const override;
   std::vector<Interest> local() const override;
@@ -52,7 +53,7 @@ public:
   bool know_remote(ContentType const& type) const override;
   bool contains_any(std::vector<ContentType> const& types) const override;
 
-  virtual std::size_t announce() override;
+  std::size_t announce() override;
 
 private:
   using clock = sma::chrono::system_clock;
