@@ -150,6 +150,42 @@ void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
 }
 
 
+void ContentHelperImpl::receive(MessageHeader header, BlockRequest msg)
+{
+  if (not msg.requests.empty())
+    blocks_requested_event(header.sender, std::move(msg.requests));
+}
+
+
+void ContentHelperImpl::receive(MessageHeader header, BlockResponse resp)
+{
+  auto& blocks = cache->find_or_allocate(resp.hash);
+  auto it = blocks.find(resp.index);
+  if (it == blocks.end())
+    it = blocks.emplace(resp.index, BlockData(resp.index, resp.size)).first;
+  auto& block = it->second;
+
+  log.d("Got block");
+  log.d("| hash: %v", std::string(resp.hash));
+  log.d("| index: %v", resp.index);
+  log.d("| sender: %v", header.sender);
+
+  for (auto& fragment : resp.fragments) {
+    log.d("| fragment: [%v, %v]",
+          fragment.offset,
+          fragment.offset + fragment.size - 1);
+    block.insert(fragment.offset, fragment.data, fragment.size);
+  }
+
+  if (not block.notified and block.complete()) {
+    block.notified = true;
+    block_arrived_event(BlockRef(resp.hash, block.index));
+  }
+
+  log.d("");
+}
+
+
 bool ContentHelperImpl::learn_remote(ContentMetadata const& meta)
 {
   for (auto& existing : rmt)
@@ -247,25 +283,30 @@ void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
   std::vector<BlockFragmentRequest> fragments;
   std::vector<BlockRef> already_have;
 
-  auto req = requests.begin();
-  while (req != requests.end()) {
-    auto block = cache.find(req->block);
+  auto it = requests.begin();
+  while (it != requests.end()) {
+    auto block = cache.find(it->block);
     if (block != nullptr) {
-      if (it != blocks->end() && it->second.complete()) {
-        req = requests.erase(req);
+      if (block->complete()) {
+        already_have.push_back(std::move(*it));
+        it = requests.erase(it);
         continue;
       }
-      /*
+#if 0
+      // Update the existing request to include the newly requested bits
       auto& gaps = it->second.gaps;
       for (std::size_t i = 0; i < gaps.size() - 1; i += 2)
         fragments.emplace_back(gaps[i], gaps[i + 1] - gaps[i]);
-        */
+#endif
     }
-    ++req;
+    ++it;
   }
 
   if (not requests.empty())
     node.post(BlockRequest(std::move(requests)));
+
+  for (auto& block : already_have)
+    block_arrived_event(block);
 }
 
 
@@ -297,41 +338,5 @@ std::size_t ContentHelperImpl::freeze(std::vector<BlockRef> blocks)
 std::size_t ContentHelperImpl::unfreeze(std::vector<BlockRef> blocks)
 {
   return blocks.size();
-}
-
-
-void ContentHelperImpl::receive(MessageHeader header, BlockRequest msg)
-{
-  if (not msg.requests.empty())
-    blocks_requested_event(header.sender, std::move(msg.requests));
-}
-
-
-void ContentHelperImpl::receive(MessageHeader header, BlockResponse resp)
-{
-  auto& blocks = cache->find_or_allocate(resp.hash);
-  auto it = blocks.find(resp.index);
-  if (it == blocks.end())
-    it = blocks.emplace(resp.index, BlockData(resp.index, resp.size)).first;
-  auto& block = it->second;
-
-  log.d("Got block");
-  log.d("| hash: %v", std::string(resp.hash));
-  log.d("| index: %v", resp.index);
-  log.d("| sender: %v", header.sender);
-
-  for (auto& fragment : resp.fragments) {
-    log.d("| fragment: [%v, %v]",
-          fragment.offset,
-          fragment.offset + fragment.size - 1);
-    block.insert(fragment.offset, fragment.data, fragment.size);
-  }
-
-  if (not block.notified and block.complete()) {
-    block.notified = true;
-    block_arrived_event(BlockRef(resp.hash, block.index));
-  }
-
-  log.d("");
 }
 }
