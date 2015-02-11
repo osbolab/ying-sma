@@ -10,6 +10,8 @@
 #include <sma/ccn/interesthelper.hpp>
 #include <sma/ccn/contenthelper.hpp>
 
+#include <sma/stats.hpp>
+
 #include <cassert>
 
 namespace sma
@@ -20,6 +22,7 @@ CcnNode::CcnNode(NodeId id, Context& context)
   , linklayer(context.linklayer)
   , log(context.log)
 {
+  stats::all_nodes.push_back(id);
 }
 
 Vec2d CcnNode::position() const

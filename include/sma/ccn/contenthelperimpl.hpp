@@ -88,7 +88,6 @@ public:
   }
   Event<BlockRef>& on_block_arrived() override { return block_arrived_event; }
 
-
 private:
   using clock = sma::chrono::system_clock;
   using time_point = clock::time_point;

@@ -8,6 +8,8 @@
 
 #include <sma/util/binaryformat.hpp>
 
+#include <sma/stats.hpp>
+
 #include <chrono>
 #include <limits>
 #include <sstream>
@@ -33,6 +35,7 @@ void InterestHelperImpl::receive(MessageHeader header, InterestAnn msg)
     interests.emplace_back(reader);
 
   for (auto& interest : interests) {
+    stats::Ints::on_received(node.id, interest);
     ++interest.hops;
     learn_remote(interest);
   }
@@ -138,6 +141,8 @@ void InterestHelperImpl::learn_remote(Interest const& interest)
   interests.emplace_front(
       interest.type, interest.ttl<std::chrono::milliseconds>(), interest.hops);
   ++to_announce;
+
+  announce();
 }
 
 bool InterestHelperImpl::know_remote(ContentType const& type) const
@@ -184,6 +189,8 @@ std::size_t InterestHelperImpl::announce()
       continue;
     }
 
+    stats::Ints::on_sent(node.id, i);
+
     BinaryOutput out(data, sizeof(data_buf) - size);
     out << i;
     auto const wrote = out.size();
@@ -215,6 +222,9 @@ std::size_t InterestHelperImpl::announce()
     log.t("--> announce %v interests (%v bytes)", count, size);
     node.post(msg);
   }
+
+  asynctask(&InterestHelperImpl::announce, this)
+      .do_in(std::chrono::milliseconds(200));
 
   return count;
 }

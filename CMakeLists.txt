@@ -57,6 +57,8 @@ depend(SMA_LIB)
 project(${SMA_LIB})
 
 set(${PROJECT_NAME}_sources
+  "src/stats.cpp"
+
   "src/util/hash.cpp"
   "src/util/detail/sha256.cpp"
 
