@@ -140,7 +140,6 @@ namespace sma
       int num_of_interests = interest_sched_ptr->sched();
 
       //// async task
-      // put sched() itself to the chain
       asynctask (&ForwardSchedulerImpl::sched, this).do_in (
               std::chrono::milliseconds (ForwardScheduler::get_sched_interval()));
  

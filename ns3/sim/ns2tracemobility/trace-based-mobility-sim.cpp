@@ -52,7 +52,7 @@ int main(int argc, char** argv)
 {
   configure_logs(argc, argv);
 
-  std::size_t nnodes = 10;
+  std::size_t nnodes = 2;
   long duration = 200;
 
   std::string baseIp("10.1.0.0");

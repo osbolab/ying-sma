@@ -43,6 +43,7 @@ namespace sma
     void BehaviorHelperImpl::behave_interest()
     {
       // clear local interest
+      node.interests->clear_local();
       // random create_new interest.
 
       std::vector<ContentType> types;
@@ -61,7 +62,8 @@ namespace sma
     {
 
       char data[4 * 1024];
-      std::memset (data, 'a', sizeof data);
+      std::string rand_str = get_rand_str_n (sizeof data).c_str();
+      std::strncpy (data, rand_str.c_str(), rand_str.size());
       std::istringstream content_stream (std::string(data, sizeof data));
       ContentType type ("onlyone");
 

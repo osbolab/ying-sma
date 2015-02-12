@@ -288,6 +288,8 @@ std::size_t ContentHelperImpl::announce_metadata()
     }
   }
 
+  log.d ("finish local meta");
+
 #if 0
     for (auto const& interest : node.interests->all())
       for (auto const& type : metadata.types)
