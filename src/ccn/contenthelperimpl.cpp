@@ -352,6 +352,16 @@ void ContentHelperImpl::receive(MessageHeader header, BlockResponse msg)
         and (store->find(msg.block) == store->end())) {
       log.d("| I'll store this permanently");
       store->store(msg.block, msg.size, msg.data, msg.size);
+      for (auto const& meta : rmt)
+        if (meta.data.hash == msg.block.hash) {
+          if (store->validate_data(meta.data)) {
+            log.i("Content %v complete at %v",
+                  msg.block.hash,
+                  std::chrono::duration_cast<millis>(
+                      clock::now().time_since_epoch()).count());
+          }
+          break;
+        }
       is_stored = true;
     }
 
