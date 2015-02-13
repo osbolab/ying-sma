@@ -52,11 +52,13 @@ namespace sma
 	
     bool ForwardSchedulerImpl::on_blockrequest (NodeId id, std::vector<BlockRequestArgs> requests)
     {
+      blockrequest_sched_ptr->add_requests (id, requests);
       return true;
     }
 	
     bool ForwardSchedulerImpl::on_block (BlockRef block)
     {
+      blockresponse_sched_ptr->add_response (block);
       return true;
     }
 
@@ -133,11 +135,20 @@ namespace sma
     void ForwardSchedulerImpl::sched() // which will be called regularly
     {
       // all the nums will be used later for piroritized broadcast
-    
+      auto start = std::chrono::system_clock::now();
+
       int num_of_requests = blockrequest_sched_ptr->sched();
       int num_of_blocks = blockresponse_sched_ptr->sched();
       int num_of_meta = meta_sched_ptr->sched();
       int num_of_interests = interest_sched_ptr->sched();
+
+      auto end = std::chrono::system_clock::now();
+
+      auto delay = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
+
+      log.i("| scheduling delay: %v", delay);
+
+      std::cout << "| scheduling delay " << delay << std::endl;
 
       //// async task
       asynctask (&ForwardSchedulerImpl::sched, this).do_in (
@@ -161,7 +172,7 @@ namespace sma
 	
 	////// blockresponsescheduler.cpp
 	
-    void BlockResponseScheduler::add_responses(BlockRef blockid)
+    void BlockResponseScheduler::add_response(BlockRef blockid)
     {
         block_arrived_buf.insert(blockid);
     }
@@ -178,10 +189,11 @@ namespace sma
 
       std::size_t num_of_blocks = block_to_schedule.size();
 
-      sched_ptr->get_logger()->d("scheduling %v blocks", num_of_blocks);
+      sched_ptr->get_logger()->d("scheduling %v blocks...", num_of_blocks);
 
       if (num_of_blocks == 0)
           return 0;
+
       std::size_t max_ttl = sched_ptr->get_max_ttl();
       std::size_t storage = sched_ptr->get_storage();
       std::size_t bandwidth = sched_ptr->get_bandwidth();
@@ -197,6 +209,8 @@ namespace sma
       //map blockid to seq from 0...n
     
       std::size_t seq = 0;
+
+      block_to_seq.clear();
       auto it = block_to_schedule.begin();
       while (it != block_to_schedule.end())
       {
@@ -222,7 +236,7 @@ namespace sma
               std::vector<std::size_t>(max_ttl+2));
 
 
-      LPSolver::solve (max_ttl,
+      double max_util = LPSolver::solve (max_ttl,
                        num_of_blocks,
                        storage,
                        bandwidth,
@@ -231,12 +245,14 @@ namespace sma
                        utils,
                        sched_result
                        );
+
+      sched_ptr->get_logger()->i ("| overall utility: %v", max_util);
 	  
 	  std::vector<BlockRef> blocks_to_freeze;
 	  std::vector<BlockRef> blocks_to_unfreeze;
 	  std::vector<BlockRef> blocks_to_broadcast;
 
-      for (std::size_t c=0; c<sched_result.size(); c++)
+      for (std::size_t c=0; c<sched_result.size();c++)
       {
 
         BlockRef block_id = get_blockid (c);
@@ -252,21 +268,25 @@ namespace sma
           }
         }
         else
-        {
+        { 
           //// unfreeze cache 
+          //
           blocks_to_unfreeze.push_back (block_id);
         }
       }
 	  
+      sched_ptr->get_logger()->d("sending freeze/unfreeze commands...");
 	  sched_ptr->freeze_blocks (blocks_to_freeze);
 	  sched_ptr->unfreeze_blocks (blocks_to_unfreeze);
 	  
+      sched_ptr->get_logger()->d("done.");
 	  for (std::size_t c=0; c!=blocks_to_broadcast.size(); c++)
 	  {
 		sched_ptr->broadcast_block (blocks_to_broadcast[c].hash,
                                     blocks_to_broadcast[c].index);
 	  }
 
+      sched_ptr->get_logger()->d("sending %v broadcast command...", blocks_to_broadcast.size());
       return blocks_to_broadcast.size(); // update the num_of_blocks to broadcast  
     }
 	
@@ -286,12 +306,12 @@ namespace sma
 	
     //// blockrequestscheduler.cpp
     
-    void BlockRequestScheduler::add_requests (const std::vector<BlockRequestArgs>& requests)
+    void BlockRequestScheduler::add_requests (NodeId id, std::vector<BlockRequestArgs> requests)
     {
       // nodeID is neighbor's node, not origin node's ID.
       for (auto it = requests.begin(); it != requests.end(); ++it)
       {
-        insert_request (*it);
+        insert_request (id, *it);
       }
     }
 	
@@ -370,17 +390,20 @@ namespace sma
       
         // translate from BlockRequestDesc to BlockRequestArgs, all about the ttl
         auto current_time = sma::chrono::system_clock::now();
-        if (desc.expire_time < current_time)  continue;
-  	    auto ttl = std::chrono::duration_cast<std::chrono::microseconds>
-            (desc.expire_time - current_time);
-        auto arg 
-            = BlockRequestArgs (BlockRef (desc.content_name,desc.block_index),
+        if (desc.expire_time >= current_time)  
+        {
+  	      auto ttl = std::chrono::duration_cast<std::chrono::microseconds>
+              (desc.expire_time - current_time);
+          auto arg 
+              = BlockRequestArgs (BlockRef (desc.content_name,desc.block_index),
                               desc.utility,
                               ttl,
   							  desc.requester,
-                              desc.origin_location);
+                              desc.origin_location,
+                              false);
      
-        request_to_fwd.push_back(arg);
+          request_to_fwd.push_back(arg);
+        }
         request_queue.pop();
         max_num_of_requests--;
       }
@@ -391,9 +414,8 @@ namespace sma
       return request_to_fwd.size();
     }
 	
-    void BlockRequestScheduler::insert_request (BlockRequestArgs request)
+    void BlockRequestScheduler::insert_request (NodeId nodeID, BlockRequestArgs request)
     {
-      NodeId nodeID = request.requester;
       auto requests_per_node = request_desc_table.find(nodeID);
       auto current_time = sma::chrono::system_clock::now();
 	
@@ -404,6 +426,7 @@ namespace sma
                              request.block.index,
                              request.utility,
                              expire_time,
+                             nodeID,
                              request.requester,
                              request.requester_position);
 

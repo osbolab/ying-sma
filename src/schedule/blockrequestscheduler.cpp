@@ -102,7 +102,8 @@ namespace sma
                               desc.utility,
                               ttl,
   							  desc.requester,
-                              desc.origin_location);
+                              desc.origin_location,
+                              false);
      
         request_to_fwd.push_back(arg);
         request_queue.pop();

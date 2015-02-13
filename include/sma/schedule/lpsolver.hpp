@@ -12,7 +12,7 @@ namespace sma
 class LPSolver
 {
 public:
-  static void solve ( std::size_t max_ttl,
+  static double solve ( std::size_t max_ttl,
                       std::size_t num_of_blocks,
                       std::size_t storage,
                       std::size_t bandwidth,
@@ -180,7 +180,7 @@ public:
     assert (ia_vec.size() == ja_vec.size() && ia_vec.size() == arr_vec.size());
 
     std::size_t sz = ia_vec.size();
-    std::cout <<"size is " << sz << std::endl;
+//    std::cout <<"size is " << sz << std::endl;
 
     int * ia = new int[sz+1];
     ia[0] = 0;
@@ -193,14 +193,14 @@ public:
     std::copy (ja_vec.begin(), ja_vec.end(), ja+1);
     std::copy (arr_vec.begin(), arr_vec.end(), arr+1);
 
-    for (std::size_t i=0; i<=sz; i++)
-    {
-      std::cout << "ia = " << ia[i] << ", " << "ja = " << ja[i] 
-          << ", arr = " << arr[i] << std::endl; 
-    }
+//    for (std::size_t i=0; i<=sz; i++)
+//    {
+//      std::cout << "ia = " << ia[i] << ", " << "ja = " << ja[i] 
+//          << ", arr = " << arr[i] << std::endl; 
+//    }
 
     glp_load_matrix (mip, sz, ia, ja, arr);
-
+    glp_term_out(GLP_OFF);
     glp_iocp parm;
     glp_init_iocp(&parm);
     parm.presolve = GLP_ON;
@@ -209,8 +209,6 @@ public:
 
     double max_utility = glp_mip_obj_val (mip);
     
-    std::cout << "max utility is " << max_utility << std::endl;
-    
     std::vector<float> result;
 
     for (int i=0; i<num_of_cols; i++)
@@ -218,10 +216,13 @@ public:
       result.push_back (glp_mip_col_val(mip, i+1)); 
     }
 
-    delete[] ia;
-    delete[] ja;
-    delete[] arr;
+    if (ia != NULL) delete[] ia;
+    if (ja != NULL) delete[] ja;
+    if (arr != NULL) delete[] arr;
 
+    ia = NULL;
+    ja = NULL;
+    arr = NULL;
 
     // need extra job to translate to the data panel
     
@@ -234,6 +235,8 @@ public:
 
       sched_result[c][t] = result[it];
     }
+
+    return max_utility;
   }
 };
 }

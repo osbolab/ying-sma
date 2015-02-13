@@ -205,7 +205,7 @@ void ContentHelperImpl::receive(MessageHeader header, BlockResponse resp)
     log.d("| Cached %v bytes", cached_data.size());
   }
 
-  auto prt_search = prt.find(ref);
+/*  auto prt_search = prt.find(ref);
   if (prt_search == prt.end())
     return;
 
@@ -217,7 +217,7 @@ void ContentHelperImpl::receive(MessageHeader header, BlockResponse resp)
         ref, resp.size, resp.fragments[0].data, resp.fragments[0].size);
     log.d("| Stored %v bytes", stored_data.size());
   }
-
+*/
   log.d("");
 
   block_arrived_event(ref);
@@ -288,8 +288,6 @@ std::size_t ContentHelperImpl::announce_metadata()
     }
   }
 
-  log.d ("finish local meta");
-
 #if 0
     for (auto const& interest : node.interests->all())
       for (auto const& type : metadata.types)
@@ -315,10 +313,13 @@ std::size_t ContentHelperImpl::announce_metadata()
   while (it != rmt.end())
     if (it->data.expired())
       it = rmt.erase(it);
-    else if (node.interests->contains_any(it->data.types)) {
-      log.d("I'm forwarding metadata about %v", it->data.types[0]);
-      metas.push_back(it->data);
-      it->announced();
+    else 
+    {
+      if (node.interests->contains_any(it->data.types)) {
+        log.d("I'm forwarding metadata about %v", it->data.types[0]);
+        metas.push_back(it->data);
+        it->announced();
+      }
       ++it;
     }
 
@@ -432,7 +433,6 @@ std::size_t ContentHelperImpl::freeze(std::vector<BlockRef> blocks)
       ++count;
     }
   }
-
   return count;
 }
 

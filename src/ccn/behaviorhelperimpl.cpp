@@ -42,12 +42,13 @@ namespace sma
 
     void BehaviorHelperImpl::behave_interest()
     {
+ 
       // clear local interest
       node.interests->clear_local();
       // random create_new interest.
 
       std::vector<ContentType> types;
-      ContentType type ("onlyone");
+      ContentType type ("alsotwo");
       types.push_back (type);
 
       node.interests->create_local(types);
@@ -84,12 +85,22 @@ namespace sma
     void BehaviorHelperImpl::behave_request()
     {
       std::vector<ContentMetadata> meta_vec = node.content->metadata();
+
       // need rank
-
-
-      if (meta_vec.size() != 0)
+      for (auto it=meta_vec.begin(); it!=meta_vec.end();)
       {
-        std::size_t rand_index = rand() % meta_vec.size();
+        if (it->publisher == node.id)
+            it = meta_vec.erase(it);
+        else
+            it++;
+      }
+
+      std::size_t total_metas = meta_vec.size();
+     
+
+      if (total_metas != 0)
+      {
+        std::size_t rand_index = rand() % total_metas;
         Hash content_name = meta_vec[rand_index].hash;
         float utility_per_block = 1.0f;
         int num_of_blocks = 1+((meta_vec[rand_index].size-1)/meta_vec[rand_index].block_size);

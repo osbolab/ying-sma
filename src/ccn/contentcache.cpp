@@ -34,6 +34,7 @@ constexpr std::size_t ContentCache::block_size;
 
 void ContentCache::log_utilization()
 {
+  log.i("cache capacity, %v", capacity);
   log.i("cache utilization, %v",
         1.0 - double(free_idxs.size() * block_size) / capacity);
 }
@@ -76,21 +77,28 @@ void ContentCache::free_slots(std::size_t count)
   if (count == 0)
     return;
 
+  count = std::min(count, occupied_idxs.size());
+
   auto begin = occupied_idxs.begin();
-  auto it = --occupied_idxs.end();
-  while (count-- != 0) {
+//  auto it = --occupied_idxs.end();
+  auto it = occupied_idxs.end();
+  while (it != begin && count != 0) {
+    it--;
     auto const idx = *it;
     auto& slot = slots[idx];
     if (not slot.frozen) {
       slot.size = slot.expected_size = 0;
       slot.block_index = 0;
-      it = --occupied_idxs.erase(it);
+//      it = --occupied_idxs.erase(it);
+      it = occupied_idxs.erase(it);
       free_idxs.push_back(idx);
-    } else {
-      --it;
-    }
-    if (it == begin)
-      count = 1;
+      count--;
+    } 
+    // else {
+//      --it;
+ //   }
+//    if (it == begin)
+//      count = 1;
   }
 }
 
@@ -143,12 +151,14 @@ std::vector<std::size_t> ContentCache::reserve_slots(std::size_t count)
 void ContentCache::promote(std::size_t idx)
 {
   auto it = occupied_idxs.begin();
-  while (it != occupied_idxs.end())
+  while (it != occupied_idxs.end()){
     if (*it == idx) {
       occupied_idxs.erase(it);
       occupied_idxs.push_front(idx);
       return;
     }
+    it++;
+  }
 }
 
 
@@ -226,8 +236,10 @@ BlockData ContentCache::find(BlockRef ref)
   if (it != content.end()) {
     auto const& slot_idxs = it->second;
     for (auto const idx : slot_idxs)
+    { 
       if (slots[idx].block_index == ref.index)
         return BlockData(this, idx);
+    }
   }
 
   return end();
@@ -268,6 +280,8 @@ ContentCache::missing_blocks(ContentMetadata const& metadata) const
   if (it != content.end()) {
     auto const& slot_idxs = it->second;
     for (auto const idx : it->second) {
+      if (slots[idx].size < slots[idx].expected_size)
+          continue;
       missing[slots[idx].block_index] = false;
       --block_count;
     }

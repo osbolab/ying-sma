@@ -17,6 +17,7 @@ struct BlockRequestDesc
   BlockIndex block_index;
   float utility;
   timestamp expire_time;
+  NodeId from;
   NodeId requester;
   Vec2d origin_location;
 
@@ -24,12 +25,14 @@ struct BlockRequestDesc
                     BlockIndex index,
                     float util,
                     timestamp expire,
+                    NodeId neighbor_id,
                     NodeId requester_node,
                     Vec2d location)
       : content_name (name)
       , block_index (index)
       , utility (util)
       , expire_time (expire)
+      , from (neighbor_id)
       , requester (requester_node)
       , origin_location (location)
   {}

@@ -25,7 +25,7 @@ public:
       : sched_ptr (ptr)
   {}
 
-  void add_requests (const std::vector<BlockRequestArgs>& requests);
+  void add_requests (NodeId id, std::vector<BlockRequestArgs> requests);
   std::size_t sched();
   int get_ttl (NodeId id, Hash content_name, BlockIndex block_index);
   float get_utility(NodeId id, Hash content_name, BlockIndex block_index);
@@ -37,7 +37,7 @@ private:
   ForwardSchedulerImpl* sched_ptr;
 
   std::size_t fwd_requests (std::size_t max_num_of_requests);
-  void insert_request (BlockRequestArgs request);
+  void insert_request (NodeId id, BlockRequestArgs request);
   
 };
 
