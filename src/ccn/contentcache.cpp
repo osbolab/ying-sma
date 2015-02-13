@@ -75,41 +75,17 @@ void ContentCache::free_slots(std::size_t count)
   if (count == 0)
     return;
 
-<<<<<<< HEAD
   auto rit = occupied_idxs.rbegin();
   while (count-- != 0 && rit != occupied_idxs.rend()) {
     auto const idx = *rit;
-=======
-  count = std::min(count, occupied_idxs.size());
-
-  auto begin = occupied_idxs.begin();
-//  auto it = --occupied_idxs.end();
-  auto it = occupied_idxs.end();
-  while (it != begin && count != 0) {
-    it--;
-    auto const idx = *it;
->>>>>>> temp20150211
     auto& slot = slots[idx];
     if (not slot.frozen) {
       slot.size = slot.expected_size = 0;
       slot.block_index = 0;
-<<<<<<< HEAD
       auto temp_it = occupied_idxs.erase(--rit.base());
       rit = decltype(occupied_idxs)::reverse_iterator(temp_it);
     } else
       ++rit;
-=======
-//      it = --occupied_idxs.erase(it);
-      it = occupied_idxs.erase(it);
-      free_idxs.push_back(idx);
-      count--;
-    }
-    // else {
-//      --it;
- //   }
-//    if (it == begin)
-//      count = 1;
->>>>>>> temp20150211
   }
 }
 
