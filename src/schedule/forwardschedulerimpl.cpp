@@ -119,17 +119,17 @@ namespace sma
 	
 	std::size_t ForwardSchedulerImpl::get_max_ttl() const
 	{
-		return 10;
+		return 20;
 	}
 	
 	std::size_t ForwardSchedulerImpl::get_storage() const
 	{
-		return 1000;
+		return 256;
 	}
 	
 	std::size_t ForwardSchedulerImpl::get_bandwidth() const
 	{
-		return 100;
+		return 20;
 	}
 	
     void ForwardSchedulerImpl::sched() // which will be called regularly
