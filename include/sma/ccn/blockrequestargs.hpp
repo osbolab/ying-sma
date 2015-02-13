@@ -15,8 +15,13 @@
 namespace sma
 {
 struct BlockRequestArgs {
-  TRIVIALLY_SERIALIZABLE(
-      BlockRequestArgs, block, utility, ttl_ms, requester, requester_position)
+  TRIVIALLY_SERIALIZABLE(BlockRequestArgs,
+                         block,
+                         utility,
+                         ttl_ms,
+                         requester,
+                         requester_position,
+                         hops_from_block)
 
   template <typename D>
   BlockRequestArgs(BlockRef block,
@@ -24,13 +29,17 @@ struct BlockRequestArgs {
                    D ttl,
                    NodeId requester,
                    Vec2d requester_position,
-                   bool keep_on_arrival = false)
+                   std::uint8_t hops_from_block,
+                   bool keep_on_arrival = false,
+                   bool local_only = false)
     : block(block)
     , keep_on_arrival(keep_on_arrival)
+    , local_only(local_only)
     , utility(utility)
     , ttl_ms(std::chrono::duration_cast<std::chrono::milliseconds>(ttl).count())
     , requester(requester)
     , requester_position(requester_position)
+    , hops_from_block(hops_from_block)
   {
   }
 
@@ -47,10 +56,13 @@ struct BlockRequestArgs {
   std::uint32_t ttl_ms;
   NodeId requester;
   Vec2d requester_position;
+  std::uint8_t hops_from_block;
 
   // Transient
 
   // Signal to the content cache that this block should be stored permanently.
   bool keep_on_arrival;
+  // Signal that this should not be forwarded
+  bool local_only;
 };
 }

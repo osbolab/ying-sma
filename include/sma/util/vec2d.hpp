@@ -7,6 +7,7 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include <ostream>
 
 
 namespace sma
@@ -147,4 +148,9 @@ struct Vec2d {
   value_type x;
   value_type y;
 };
+
+inline std::ostream& operator<<(std::ostream& os, Vec2d const& v)
+{
+  return os << std::string(v);
+}
 }

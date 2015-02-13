@@ -20,10 +20,14 @@ namespace stats
 
   extern std::vector<NodeId> all_nodes;
 
+  extern std::uint32_t time;
+
+  void print_stats();
 
   struct Ints {
     static void on_sent(NodeId sender, Interest interest);
     static void on_received(NodeId recipient, Interest interest);
+    static void print_received_prop();
 
     static std::unordered_map<ContentType, time_point> sent;
     static std::unordered_map<ContentType, std::vector<NodeId>> received;

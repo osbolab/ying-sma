@@ -17,57 +17,18 @@
 #include <sma/async.hpp>
 
 #include <ctime>
-#include <chrono>
 #include <string>
-#include <istream>
 
 
 namespace sma
 {
 using namespace std::literals::chrono_literals;
 
-static sma::chrono::system_clock::time_point g_published;
+constexpr std::chrono::milliseconds ContentHelperImpl::min_announce_interval;
+constexpr std::size_t ContentHelperImpl::fuzz_announce_min_ms;
+constexpr std::size_t ContentHelperImpl::fuzz_announce_max_ms;
 
-
-ContentHelperImpl::LocalMetadata::LocalMetadata(ContentMetadata data)
-  : data(data)
-  , last_requested(clock::now())
-  , next_announce(clock::now())
-{
-}
-
-
-void ContentHelperImpl::LocalMetadata::requested()
-{
-  last_requested = clock::now();
-}
-
-
-void ContentHelperImpl::LocalMetadata::announced()
-{
-  // 2^t growth
-  auto const now = clock::now();
-  auto delay = now - last_requested;
-  if (delay > 60s)
-    delay = 60s;
-  if (delay < 1s)
-    delay = 1s;
-
-  next_announce = now + delay;
-}
-
-
-ContentHelperImpl::RemoteMetadata::RemoteMetadata(ContentMetadata data)
-  : data(data)
-  , next_announce(clock::now())
-{
-}
-
-void ContentHelperImpl::RemoteMetadata::announced()
-{
-  next_announce = clock::now() + 1s;
-}
-
+constexpr std::chrono::milliseconds ContentHelperImpl::default_initial_ttl;
 
 
 ContentHelperImpl::ContentHelperImpl(CcnNode& node)
@@ -76,26 +37,184 @@ ContentHelperImpl::ContentHelperImpl(CcnNode& node)
   , store(new ContentCache(node))
   , to_announce(0)
 {
+  if (auto_announce)
+    asynctask(&ContentHelperImpl::announce_metadata, this)
+        .do_in(min_announce_interval);
 }
 
 
-std::vector<ContentMetadata> ContentHelperImpl::metadata()
+ContentMetadata ContentHelperImpl::create_new(std::vector<ContentType> types,
+                                              ContentName name,
+                                              void const* src,
+                                              std::size_t size)
 {
-  std::vector<ContentMetadata> v;
-  v.reserve(lmt.size() + rmt.size());
+  auto hash = cache->store(src, size);
 
-  for (auto const& local : lmt)
-    v.push_back(local.data);
+  auto publish_time_ms = std::chrono::duration_cast<millis>(
+                             clock::now().time_since_epoch()).count();
 
+  auto metadata = ContentMetadata(hash,
+                                  size,
+                                  ContentCache::block_size,
+                                  std::move(types),
+                                  name,
+                                  node.position(),
+                                  node.id,
+                                  publish_time_ms,
+                                  default_initial_ttl);
+
+  lmt.push_back(metadata);
+  ann_queue.push_back(hash);
+  ++to_announce;
+
+  return metadata;
+}
+
+
+std::size_t ContentHelperImpl::announce_metadata()
+{
+  if ((lmt.empty() && rmt.empty()))
+    return 0;
+
+  std::vector<ContentMetadata> will_announce;
+  will_announce.reserve(lmt.size() + rmt.size());
+
+  auto const now = clock::now();
+
+  // Local metadata do not expire, but their announcement frequency is limited.
+  // We announce them regardless of interests, but our neighbors are discerning.
+  for (auto& local : lmt) {
+    if (now >= local.next_announce) {
+      will_announce.push_back(local.data);
+      local.announced();
+    }
+  }
+
+#if 0
+    for (auto const& interest : node.interests->all())
+      for (auto const& type : metadata.types)
+        if (type == interest.type) {
+          if (interest.local()) {
+            log.d("| I'm interested in this");
+            request({BlockRequestArgs(BlockRef(metadata.hash, 0),
+                                      1.23,
+                                      millis(10000),
+                                      node.id,
+                                      node.position(),
+                                      true)});
+          } else {
+            log.d("| I know someone interested in this");
+          }
+        }
+#endif
+
+  // Remotes are not announced if it's been too long since they were received
+  // from the original node; every intermediate node decays their TTL so they
+  // expire across the entire network at once.
   auto it = rmt.begin();
   while (it != rmt.end())
     if (it->data.expired())
       it = rmt.erase(it);
-    else
-      v.push_back((it++)->data);
+    else {
+      if (node.interests->contains_any(it->data.types)) {
+        log.d("Announcing remote metadata about %v", it->data.types[0]);
+        will_announce.push_back(it->data);
+        it->announced();
+      }
+      ++it;
+    }
 
-  v.shrink_to_fit();
-  return v;
+  will_announce.shrink_to_fit();
+
+  auto const announced = will_announce.size();
+
+  if (not will_announce.empty())
+    node.post(ContentAnn(std::move(will_announce)));
+
+  if (auto_announce)
+    asynctask(&ContentHelperImpl::announce_metadata, this)
+        .do_in(min_announce_interval);
+
+  return announced;
+}
+
+
+void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
+{
+  for (auto metadata : msg.metadata) {
+    // Break loops
+    if (metadata.publisher == node.id)
+      continue;
+
+    // Count the link this came over
+    ++metadata.hops;
+
+    discover(metadata);
+  }
+}
+
+
+bool ContentHelperImpl::discover(ContentMetadata meta)
+{
+  for (auto& existing : rmt)
+    if (existing.data.hash == meta.hash) {
+      if (meta.hops < existing.data.hops) {
+        existing.data.hops = meta.hops;
+        return true;
+      } else
+        return false;
+    }
+
+  rmt.emplace_back(meta);
+
+  if (node.interests->contains_any(meta.types)) {
+    interesting_content_event(meta);
+
+    if (auto_fetch) {
+      for (std::size_t i = 0; i < meta.block_count(); ++i)
+        auto_fetch_queue.emplace_back(meta.hash, i);
+      do_auto_fetch();
+    }
+  }
+
+  return true;
+}
+
+
+void ContentHelperImpl::do_auto_fetch()
+{
+  if (auto_fetch_queue.empty())
+    return;
+
+  std::vector<BlockRequestArgs> reqs;
+
+  for (std::size_t i = 0; i < 4 && !auto_fetch_queue.empty(); ++i) {
+    auto block = auto_fetch_queue.front();
+    auto it = rmt.begin();
+    for (auto const& meta : rmt)
+      if (meta.data.hash == block.hash) {
+        reqs.emplace_back(block,
+                          1.0,
+                          default_initial_ttl,
+                          node.id,
+                          node.position(),
+                          meta.data.hops,
+                          true,
+                          true);
+        break;
+      }
+
+    auto_fetch_queue.pop_front();
+  }
+
+  log.d("Auto-fetching %v interesting blocks (%v more enqueued)",
+        reqs.size(),
+        auto_fetch_queue.size());
+
+  request(std::move(reqs));
+
+  if (not auto_fetch_queue.empty())
+    asynctask(&ContentHelperImpl::do_auto_fetch, this).do_in(1s);
 }
 
 
@@ -167,210 +286,88 @@ void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
 void ContentHelperImpl::receive(MessageHeader header, BlockRequest msg)
 {
   log.d("Got %v requests", msg.requests.size());
-  for (auto const& req : msg.requests) {
-    log.d("| block: %v", req.block);
-  }
-  log.d("");
 
-  if (not msg.requests.empty())
-    blocks_requested_event(header.sender, std::move(msg.requests));
-}
-
-
-void ContentHelperImpl::receive(MessageHeader header, BlockResponse resp)
-{
-  auto ref = BlockRef(resp.hash, resp.index);
-
-  log.d("Got block");
-  log.d("| %v", ref);
-  log.d("| sender: %v", header.sender);
-
-  bool is_cached = false;
-  bool is_stored = false;
-
-  auto cached = cache->find(ref);
-  if (cached != cache->end()) {
-    is_cached = true;
-    log.d("| I already have cached");
-  }
-
-  if (store->find(ref) != store->end()) {
-    log.d("| I already have stored");
-    bool is_stored = true;
-  }
-
-  if (not is_cached and not is_stored) {
-    auto cached_data = cache->store(
-        ref, resp.size, resp.fragments[0].data, resp.fragments[0].size);
-    log.d("| Cached %v bytes", cached_data.size());
-  }
-
-  auto prt_search = prt.find(ref);
-  if (prt_search == prt.end())
+  if (msg.requests.empty())
     return;
 
-  log.d("| I had a pending request for this");
+  blocks_requested_event(header.sender, std::move(msg.requests));
 
-  auto const& pending = prt_search->second;
-  if (pending.keep_on_arrival && not is_stored) {
-    auto stored_data = store->store(
-        ref, resp.size, resp.fragments[0].data, resp.fragments[0].size);
-    log.d("| Stored %v bytes", stored_data.size());
+  if (not auto_respond and not auto_forward_requests)
+    return;
+
+  for (auto const& req : msg.requests) {
+    if (auto_respond) {
+      broadcast(req.block);
+
+    } else if (auto_forward_requests) {
+      auto prt_search = prt.find(req.block);
+      if (prt_search != prt.end()) {
+        auto& pending = prt_search->second;
+        pending.local_only = false;
+        auto new_expiry = clock::now() + req.ttl<millis>();
+        if (pending.expiry < new_expiry) {
+          pending.expiry = new_expiry;
+          check_pending_requests(new_expiry);
+        }
+      }
+    }
   }
-
-  log.d("");
-
-  block_arrived_event(ref);
 }
 
 
-bool ContentHelperImpl::learn_remote(ContentMetadata const& meta)
+bool ContentHelperImpl::broadcast(BlockRef ref)
 {
-  for (auto& existing : rmt)
-    if (existing.data.hash == meta.hash) {
-      if (meta.hops < existing.data.hops) {
-        existing.data.hops = meta.hops;
-        return true;
-      } else
-        return false;
+  ContentCache* source = nullptr;
+  auto block = cache->find(ref);
+  if (block == cache->end()) {
+    block = store->find(ref);
+    if (block == store->end()) {
+      return false;
     }
+  }
 
-  rmt.emplace_back(meta);
+  log.d("Send block");
+  log.d("| %v", ref);
+  log.d("| size: %v bytes", block.size());
+  log.d("");
+
+  node.post(BlockResponse(ref, block.data(), block.size()));
+
   return true;
 }
 
 
-ContentMetadata ContentHelperImpl::create_new(std::vector<ContentType> types,
-                                              ContentName const& name,
-                                              void const* src,
-                                              std::size_t size)
+void ContentHelperImpl::receive(MessageHeader header, BlockResponse msg)
 {
-  auto hash = cache->store(src, size);
+  log.d("Got block from node %v", header.sender);
+  log.d("| %v", msg.block);
 
-  auto publish_time
-      = std::chrono::duration_cast<std::chrono::seconds>(
-            chrono::system_clock::now().time_since_epoch()).count();
+  bool is_stored = false;
+  bool will_rebroadcast = false;
 
-  auto metadata = ContentMetadata(hash,
-                                  size,
-                                  ContentCache::block_size,
-                                  std::move(types),
-                                  name,
-                                  node.position(),
-                                  node.id,
-                                  publish_time,
-                                  10s);
-
-  lmt.push_back(metadata);
-  ann_queue.push_back(hash);
-  ++to_announce;
-
-  return metadata;
-}
-
-
-std::size_t ContentHelperImpl::announce_metadata()
-{
-  if ((lmt.empty() && rmt.empty()))
-    return 0;
-
-  std::vector<ContentMetadata> metas;
-  metas.reserve(lmt.size() + rmt.size());
-
-  auto const now = clock::now();
-
-  // Local metadata do not expire, but their announcement frequency is limited.
-  for (auto& local : lmt) {
-    if (now >= local.next_announce) {
-      metas.push_back(local.data);
-      log.d("I'm providing %v", local.data.types[0]);
-      local.announced();
+  // Skip the cache if we're expecting to keep all this content's data.
+  auto pending = prt.find(msg.block);
+  if (pending != prt.end()) {
+    if (pending->second.keep_on_arrival
+        and (store->find(msg.block) == store->end())) {
+      log.d("| I'll store this permanently");
+      store->store(msg.block, msg.size, msg.data, msg.size);
+      is_stored = true;
     }
+
+    will_rebroadcast = auto_respond and not pending->second.local_only;
   }
 
-#if 0
-    for (auto const& interest : node.interests->all())
-      for (auto const& type : metadata.types)
-        if (type == interest.type) {
-          if (interest.local()) {
-            log.d("| I'm interested in this");
-            request({BlockRequestArgs(BlockRef(metadata.hash, 0),
-                                      1.23,
-                                      millis(10000),
-                                      node.id,
-                                      node.position(),
-                                      true)});
-          } else {
-            log.d("| I know someone interested in this");
-          }
-        }
-#endif
+  // Cache all blocks we come across
+  if (not is_stored and (cache->find(msg.block) == cache->end()))
+    cache->store(msg.block, msg.size, msg.data, msg.size);
 
-  // Remotes are not announced if it's been too long since they were received
-  // from the original node; every intermediate node decays their TTL so they
-  // expire across the entire network at once.
-  auto it = rmt.begin();
-  while (it != rmt.end())
-    if (it->data.expired())
-      it = rmt.erase(it);
-    else if (node.interests->contains_any(it->data.types)) {
-      log.d("I'm forwarding metadata about %v", it->data.types[0]);
-      metas.push_back(it->data);
-      it->announced();
-      ++it;
-    }
+  block_arrived_event(msg.block);
 
-  metas.shrink_to_fit();
-
-  auto const announced = metas.size();
-
-  if (not metas.empty())
-    node.post(ContentAnn(std::move(metas)));
-
-  return announced;
-}
-
-
-void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
-{
-  for (auto metadata : msg.metadata) {
-    // Break loops
-    if (metadata.publisher == node.id)
-      continue;
-
-    // Count the link this came over
-    ++metadata.hops;
-
-    bool const changed = learn_remote(metadata);
-    if (changed) {
-      auto const lit = node.interests->local();
-      log.d("");
-      log.d("My interest table");
-      for (auto const& i : lit)
-        log.d("| %v (local)", i.type);
-      auto rit = node.interests->remote();
-      for (auto const& i : rit)
-        log.d("| %v (%v hops)", i.type, std::uint32_t(i.hops));
-      log.d("");
-
-      log.d("Content metadata from n(%v)", header.sender);
-      log.d("| distance: %v hop(s)", std::uint32_t(metadata.hops));
-      log.d("| ttl: %v ms", metadata.ttl<std::chrono::milliseconds>().count());
-      log.d("| hash: %v", metadata.hash);
-      log.d("| size: %v bytes", metadata.size);
-      log.d("| block size: %v bytes", metadata.block_size);
-      for (auto& type : metadata.types)
-        log.d("| type: %v", type);
-      log.d("| name: %v", metadata.name);
-      log.d("| publisher: %v", metadata.publisher);
-      log.d("| publish time: %v ms", metadata.publish_time_ms);
-      log.d("| publish location: %v", std::string(metadata.origin));
-    }
+  if (will_rebroadcast) {
+    log.d("| I'll rebroadcast it, too");
+    broadcast(msg.block);
   }
-
-  auto const time = std::chrono::duration_cast<std::chrono::milliseconds>(
-      clock::now() - g_published);
-  // log.i("delay: %v ms", time.count());
 }
 
 
@@ -396,37 +393,18 @@ void ContentHelperImpl::check_pending_requests(time_point when)
   }
 
   for (auto& block : timed_out)
-    request_timeout_event(block);
-}
-
-bool ContentHelperImpl::broadcast(BlockRef ref)
-{
-  auto block = cache->find(ref);
-  if (block == cache->end() or not block.complete())
-    return false;
-
-  node.post(
-      BlockResponse(ref.hash,
-                    ref.index,
-                    block.size(),
-                    {BlockFragmentResponse(0, block.data(), block.size())}));
-
-  log.d("Sent block");
-  log.d("| %v", ref);
-  log.d("| size: %v bytes", block.size());
-  log.d("");
-
-  return true;
+    request_timedout_event(block);
 }
 
 
-std::size_t ContentHelperImpl::freeze(std::vector<BlockRef> blocks)
+std::size_t ContentHelperImpl::frozen(std::vector<BlockRef> const& blocks,
+                                      bool enabled)
 {
   std::size_t count = 0;
   for (auto const& ref : blocks) {
     auto block = cache->find(ref);
     if (block != cache->end()) {
-      block.frozen(true);
+      block.frozen(enabled);
       ++count;
     }
   }
@@ -435,17 +413,100 @@ std::size_t ContentHelperImpl::freeze(std::vector<BlockRef> blocks)
 }
 
 
-std::size_t ContentHelperImpl::unfreeze(std::vector<BlockRef> blocks)
+std::vector<ContentMetadata> ContentHelperImpl::metadata()
 {
-  std::size_t count = 0;
-  for (auto const& ref : blocks) {
-    auto block = cache->find(ref);
-    if (block != cache->end()) {
-      block.frozen(false);
-      ++count;
-    }
-  }
+  std::vector<ContentMetadata> v;
+  v.reserve(lmt.size() + rmt.size());
 
-  return count;
+  for (auto const& local : lmt)
+    v.push_back(local.data);
+
+  auto it = rmt.begin();
+  while (it != rmt.end())
+    if (it->data.expired())
+      it = rmt.erase(it);
+    else
+      v.push_back((it++)->data);
+
+  v.shrink_to_fit();
+  return v;
+}
+
+
+void ContentHelperImpl::log_metadata(NodeId sender, ContentMetadata const& meta)
+{
+  log.d("Content metadata from n(%v)", sender);
+  log.d("| distance: %v hop(s)", std::uint32_t(meta.hops));
+  log.d("| ttl: %v ms", meta.ttl<millis>().count());
+  log.d("| hash: %v", meta.hash);
+  log.d("| size: %v bytes", meta.size);
+  log.d("| block size: %v bytes", meta.block_size);
+  for (auto& type : meta.types)
+    log.d("| type: %v", type);
+  log.d("| name: %v", meta.name);
+  log.d("| publisher: %v", meta.publisher);
+  log.d("| publish time: %v ms", meta.publish_time_ms);
+  log.d("| publish location: %v", meta.origin);
+}
+
+Event<ContentMetadata>& ContentHelperImpl::on_interesting_content()
+{
+  return interesting_content_event;
+}
+
+Event<NodeId, std::vector<BlockRequestArgs>>&
+ContentHelperImpl::on_blocks_requested()
+{
+  return blocks_requested_event;
+}
+
+Event<BlockRef>& ContentHelperImpl::on_request_timeout()
+{
+  return request_timedout_event;
+}
+
+Event<BlockRef>& ContentHelperImpl::on_block_arrived()
+{
+  return block_arrived_event;
+}
+
+
+ContentHelperImpl::LocalMetadata::LocalMetadata(ContentMetadata data)
+  : data(data)
+  , last_requested(clock::now())
+  , next_announce(clock::now())
+{
+}
+
+
+void ContentHelperImpl::LocalMetadata::requested()
+{
+  last_requested = clock::now();
+}
+
+
+void ContentHelperImpl::LocalMetadata::announced()
+{
+  // 2^t growth
+  auto const now = clock::now();
+  auto delay = now - last_requested;
+  if (delay > 60s)
+    delay = 60s;
+  if (delay < 1s)
+    delay = 1s;
+
+  next_announce = now + delay;
+}
+
+
+ContentHelperImpl::RemoteMetadata::RemoteMetadata(ContentMetadata data)
+  : data(data)
+  , next_announce(clock::now())
+{
+}
+
+void ContentHelperImpl::RemoteMetadata::announced()
+{
+  next_announce = clock::now() + 1s;
 }
 }

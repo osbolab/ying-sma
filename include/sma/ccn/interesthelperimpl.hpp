@@ -13,6 +13,7 @@
 #include <sma/io/log>
 
 #include <cstdlib>
+#include <random>
 
 #include <map>
 #include <deque>
@@ -59,6 +60,8 @@ private:
   using clock = sma::chrono::system_clock;
   using time_point = clock::time_point;
 
+  void log_dump();
+
   void learn_remote(Interest const& interest);
 
   // Always ordered in decreasing time since last announced (never being
@@ -69,5 +72,15 @@ private:
 
   time_point next_announce_time;
   std::size_t to_announce;
+
+  bool auto_announce = true;
+
+  static constexpr auto min_announce_interval = std::chrono::milliseconds(500);
+  static constexpr std::size_t fuzz_announce_min_ms = 0;
+  static constexpr std::size_t fuzz_announce_max_ms = 500;
+
+  static constexpr auto default_initial_ttl = std::chrono::seconds(60);
+
+  std::default_random_engine rng;
 };
 }

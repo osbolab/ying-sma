@@ -3,6 +3,8 @@
 #include <sma/io/log>
 _INITIALIZE_EASYLOGGINGPP    // Call only once per application
 
+#include <sma/stats.hpp>
+
 #include <sma/gps.hpp>
 #include <sma/dummygps.hpp>
 #include <sma/ns3/ns3nodecontainer.hpp>
@@ -36,7 +38,7 @@ int main(int argc, char** argv)
   configure_logs(argc, argv);
 
   std::size_t nnodes = 2;
-  long duration = 10;
+  long duration = 60;
 
   std::string baseIp("10.1.0.0");
   std::string subnet("255.255.0.0");
@@ -46,14 +48,12 @@ int main(int argc, char** argv)
   double rss = -80.0;        // -dBm
   double distance = 2000;    // m
   std::string fragmentThreshold = "2200";
-  std::uint16_t packet_size = 64;
 
   ns3::CommandLine cmd;
   cmd.AddValue("phyMode", "Wifi physical mode", phyMode);
   cmd.AddValue("rss", "Received Signal Strength", rss);
   cmd.AddValue("distance", "distance (m)", distance);
   cmd.AddValue("nodes", "number of nodes", nnodes);
-  cmd.AddValue("packet", "packet size", packet_size);
   cmd.AddValue("olsr", "enable optimized link state routing", enable_olsr);
   cmd.Parse(argc, argv);
 
@@ -214,6 +214,8 @@ int main(int argc, char** argv)
 
   LOG(WARNING) << "Simulating " << duration << " seconds";
   ns3::Simulator::Stop(ns3::Seconds(duration + 5));
+  sma::stats::print_stats();
+
   ns3::Simulator::Run();
   LOG(WARNING) << "Simulation ended";
   ns3::Simulator::Destroy();

@@ -26,19 +26,11 @@
 namespace sma
 {
 struct CcnNode;
-struct ContentType;
-struct ContentName;
-struct ContentMetadata;
 
 struct MessageHeader;
 struct ContentAnn;
-struct BlockRef;
-struct BlockRequest;
 struct BlockResponse;
 struct BlockRequestArgs;
-
-template <typename...>
-struct Event;
 
 class ContentCache;
 
@@ -60,7 +52,7 @@ public:
   void receive(MessageHeader header, BlockResponse resp) override;
 
   ContentMetadata create_new(std::vector<ContentType> types,
-                             ContentName const& name,
+                             ContentName name,
                              void const* src,
                              std::size_t size) override;
 
@@ -75,18 +67,13 @@ public:
   void request(std::vector<BlockRequestArgs> requests) override;
   bool broadcast(BlockRef block) override;
 
-  std::size_t freeze(std::vector<BlockRef> blocks) override;
-  std::size_t unfreeze(std::vector<BlockRef> blocks) override;
+  std::size_t frozen(std::vector<BlockRef> const& blocks,
+                     bool enabled) override;
 
-  Event<NodeId, std::vector<BlockRequestArgs>>& on_blocks_requested() override
-  {
-    return blocks_requested_event;
-  }
-  Event<BlockRef>& on_request_timeout() override
-  {
-    return request_timeout_event;
-  }
-  Event<BlockRef>& on_block_arrived() override { return block_arrived_event; }
+  Event<ContentMetadata>& on_interesting_content() override;
+  Event<NodeId, std::vector<BlockRequestArgs>>& on_blocks_requested() override;
+  Event<BlockRef>& on_request_timeout() override;
+  Event<BlockRef>& on_block_arrived() override;
 
 private:
   using clock = sma::chrono::system_clock;
@@ -117,14 +104,18 @@ private:
     time_point requested;
     time_point expiry;
     bool keep_on_arrival;
+    bool local_only;
   };
+
+
+  static constexpr auto default_initial_ttl = millis(10000);
 
   // Add, or update, the given remote metadata in the Remote Metadata Table.
   // Updating involves e.g. reflecting a nearer source for the content in the
   // hop count.
   // Return true if the metadata was added or updated and false if it exists
   // and was not changed.
-  bool learn_remote(ContentMetadata const& meta);
+  bool discover(ContentMetadata meta);
 
   // If the `when` argument is provided, schedule this function's execution at
   // that future point. Otherwise scan the pending request table and invoke the
@@ -132,8 +123,13 @@ private:
   // remove them from the table).
   void check_pending_requests(time_point when = time_point());
 
+  void do_auto_fetch();
+
+  void log_metadata(NodeId sender, ContentMetadata const& meta);
+
+  Event<ContentMetadata> interesting_content_event;
   Event<NodeId, std::vector<BlockRequestArgs>> blocks_requested_event;
-  Event<BlockRef> request_timeout_event;
+  Event<BlockRef> request_timedout_event;
   Event<BlockRef> block_arrived_event;
 
   std::unique_ptr<ContentCache> cache;
@@ -153,6 +149,17 @@ private:
 
   // Pending Request Table
   std::unordered_map<BlockRef, PendingRequest> prt;
+
+  bool auto_announce = true;
+  bool auto_fetch = true;
+  bool auto_forward_requests = true;
+  bool auto_respond = true;
+
+  std::deque<BlockRef> auto_fetch_queue;
+
+  static constexpr auto min_announce_interval = millis(1000);
+  static constexpr std::size_t fuzz_announce_min_ms = 0;
+  static constexpr std::size_t fuzz_announce_max_ms = 500;
 
   // Detect reentrance to request() so we can warn the caller
   bool already_in_request{false};

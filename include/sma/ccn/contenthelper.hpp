@@ -45,7 +45,7 @@ public:
   virtual void receive(MessageHeader header, BlockResponse resp) = 0;
 
   virtual ContentMetadata create_new(std::vector<ContentType> types,
-                                     ContentName const& name,
+                                     ContentName name,
                                      void const* src,
                                      std::size_t size) = 0;
 
@@ -61,8 +61,11 @@ public:
   //         entry for the block data that were broadcast.
   virtual bool broadcast(BlockRef block) = 0;
 
-  virtual std::size_t freeze(std::vector<BlockRef> blocks) = 0;
-  virtual std::size_t unfreeze(std::vector<BlockRef> blocks) = 0;
+  virtual std::size_t frozen(std::vector<BlockRef> const& blocks, bool enabled)
+      = 0;
+
+  //! Fired when a metadata item arrives that matches one of our interests.
+  virtual Event<ContentMetadata>& on_interesting_content() = 0;
 
   //! Fired when a nonempty set of block requests arrives from the network.
   virtual Event<NodeId, std::vector<BlockRequestArgs>>& on_blocks_requested()

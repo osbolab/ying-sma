@@ -1,12 +1,26 @@
 #include <sma/stats.hpp>
 
+#include <sma/async.hpp>
 #include <sma/io/log>
+
+#include <chrono>
 
 
 namespace sma
 {
 namespace stats
 {
+  using namespace std::literals::chrono_literals;
+
+  std::uint32_t time = 0;
+
+  void print_stats()
+  {
+    //Ints::print_received_prop();
+
+    asynctask(print_stats).do_in(1s);
+  }
+
   ///
   /// Nodes
   ///
@@ -37,11 +51,28 @@ namespace stats
 
     auto sent_time = sent[interest.type];
 
+#if 0
     LOG(INFO) << "Interest received, " << recipient << ", " << interest.type
               << ", "
               << std::chrono::duration_cast<std::chrono::milliseconds>(
                      clock::now() - sent_time).count() << ", "
               << (double(recps.size()) / all_nodes.size());
+#endif
+  }
+
+  void Ints::print_received_prop()
+  {
+    double prop_sum = 0.0;
+
+    for (auto& sent_int : Ints::sent) {
+      auto& recvd = Ints::received[sent_int.first];
+      prop_sum += (double(recvd.size()) / all_nodes.size());
+    }
+
+    if (not Ints::sent.empty())
+      prop_sum /= Ints::sent.size();
+
+    LOG(INFO) << time++ << ", " << prop_sum;
   }
 
 

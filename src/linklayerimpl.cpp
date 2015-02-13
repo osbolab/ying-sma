@@ -62,6 +62,7 @@ void LinkLayerImpl::stop() { node = nullptr; }
 
 void LinkLayerImpl::enqueue(void const* src, std::size_t size)
 {
+  /*
   {
     auto buf = send_buf.acquire();
     assert(size <= buf.capacity());
@@ -75,6 +76,9 @@ void LinkLayerImpl::enqueue(void const* src, std::size_t size)
     fwd_strat->notify();
   else
     forward_one();
+    */
+  for (auto& link : links)
+    assert(link->write(src, size));
 }
 
 std::size_t LinkLayerImpl::forward_one()
@@ -120,6 +124,7 @@ void LinkLayerImpl::on_link_readable(Link& link)
   std::size_t read;
   while (node && (read = link.read(buf, BUFFER_SIZE))) {
     Reader<BinaryInput> reader(buf, read);
+    /*
     // Consume the hacked in packet sequence
     reader.template get<std::uint64_t>();
     // Read the packet seq
@@ -131,6 +136,7 @@ void LinkLayerImpl::on_link_readable(Link& link)
       g_bytes_frame += read - 8;
       g_bytes_in += read - 8;
     }
+    */
 
     // Read the actual message from the packet
     MessageHeader header(reader);
