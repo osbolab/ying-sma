@@ -75,17 +75,41 @@ void ContentCache::free_slots(std::size_t count)
   if (count == 0)
     return;
 
+<<<<<<< HEAD
   auto rit = occupied_idxs.rbegin();
   while (count-- != 0 && rit != occupied_idxs.rend()) {
     auto const idx = *rit;
+=======
+  count = std::min(count, occupied_idxs.size());
+
+  auto begin = occupied_idxs.begin();
+//  auto it = --occupied_idxs.end();
+  auto it = occupied_idxs.end();
+  while (it != begin && count != 0) {
+    it--;
+    auto const idx = *it;
+>>>>>>> temp20150211
     auto& slot = slots[idx];
     if (not slot.frozen) {
       slot.size = slot.expected_size = 0;
       slot.block_index = 0;
+<<<<<<< HEAD
       auto temp_it = occupied_idxs.erase(--rit.base());
       rit = decltype(occupied_idxs)::reverse_iterator(temp_it);
     } else
       ++rit;
+=======
+//      it = --occupied_idxs.erase(it);
+      it = occupied_idxs.erase(it);
+      free_idxs.push_back(idx);
+      count--;
+    }
+    // else {
+//      --it;
+ //   }
+//    if (it == begin)
+//      count = 1;
+>>>>>>> temp20150211
   }
 }
 
@@ -138,7 +162,7 @@ std::vector<std::size_t> ContentCache::reserve_slots(std::size_t count)
 void ContentCache::promote(std::size_t idx)
 {
   auto it = occupied_idxs.begin();
-  while (it != occupied_idxs.end())
+  while (it != occupied_idxs.end()){
     if (*it == idx) {
       occupied_idxs.erase(it);
       occupied_idxs.push_front(idx);
@@ -146,6 +170,8 @@ void ContentCache::promote(std::size_t idx)
     } else {
       ++it;
     }
+    it++;
+  }
 }
 
 
@@ -266,6 +292,8 @@ ContentCache::missing_blocks(ContentMetadata const& metadata) const
   if (it != content.end()) {
     auto const& slot_idxs = it->second;
     for (auto const idx : it->second) {
+      if (slots[idx].size < slots[idx].expected_size)
+          continue;
       missing[slots[idx].block_index] = false;
       --block_count;
     }

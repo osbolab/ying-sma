@@ -3,9 +3,16 @@ cmake_minimum_required(VERSION 2.8)
 set(CMAKE_BUILD_TYPE "Debug")
 
 # Allow C++11/14
-set(LIBSTD "c++14" CACHE STRING "C++ Standard Library [nothing/c++11/c++14]")
+# For Mac platform
+if(APPLE)
+  set(LIBSTD "c++1y" CACHE STRING "C++ Standard Library")
+# For Ubuntu Platform
+else(APPLE)
+  set(LIBSTD "c++14" CACHE STRING "C++ Standard Library [nothing/c++11/c++14]")
+endif()
+
 if(LIBSTD)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=${LIBSTD} ")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=${LIBSTD} -lglpk")
 endif()
 
 # Locate external libaries
@@ -72,6 +79,7 @@ set(${PROJECT_NAME}_sources
 
   "src/neighborhelper.cpp"
   "src/neighborhelperimpl.cpp"
+  #  "src/neighbortable.cpp"
 
   "src/ccn/interesthelper.cpp"
   "src/ccn/interesthelperimpl.cpp"
@@ -88,6 +96,12 @@ set(${PROJECT_NAME}_sources
 
   "src/util/binaryinput.cpp"
   "src/util/binaryoutput.cpp"
+  
+  "src/schedule/forwardschedulerimpl.cpp"
+  "src/schedule/forwardscheduler.cpp"
+
+  "src/ccn/behaviorhelper.cpp"
+  "src/ccn/behaviorhelperimpl.cpp"
 )
 
 include_directories("include")
