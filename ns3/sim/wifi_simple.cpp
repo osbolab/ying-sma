@@ -47,7 +47,7 @@ int main(int argc, char** argv)
   std::string phyMode("DsssRate1Mbps");
   double rss = -80.0;        // -dBm
   double distance = 2000;    // m
-  std::string fragmentThreshold = "2200";
+  std::string fragmentThreshold = "500";
 
   ns3::CommandLine cmd;
   cmd.AddValue("phyMode", "Wifi physical mode", phyMode);

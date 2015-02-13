@@ -32,6 +32,15 @@ set(simulation_sources
 # symbols by linking NS3 modules.
 add_library("${PROJECT_NAME}" STATIC ${lib_sources})
 
+add_executable("wifi-simple" "sim/wifi_simple.cpp" ${simulation_sources})
+target_link_libraries("wifi-simple" "${SMA_LIB}" "${PROJECT_NAME}" "${SMA_LIB}" "gtest")
+# Unfortunately, the nice thing waf does for us is build up their
+# configuration-encoded dependency hierarchy.
+# We have to figure it out by adding stuff until we stop getting link errors.
+use_ns3_modules("wifi-simple"
+  "core" "network" "mobility" "olsr" "internet" "wifi" "applications" "config-store"
+  "netanim" "flow-monitor" "stats")
+
 add_executable("random-walk" "sim/random_walk/random_walk.cpp" ${simulation_sources})
 target_link_libraries("random-walk" "${SMA_LIB}" "${PROJECT_NAME}" "${SMA_LIB}" "gtest")
 # Unfortunately, the nice thing waf does for us is build up their

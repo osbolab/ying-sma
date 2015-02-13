@@ -33,7 +33,7 @@ constexpr std::chrono::milliseconds ContentHelperImpl::default_initial_ttl;
 
 ContentHelperImpl::ContentHelperImpl(CcnNode& node)
   : ContentHelper(node)
-  , cache(new ContentCache(node, 1024 * 16))
+  , cache(new ContentCache(node, 1024 * 1024))
   , store(new ContentCache(node))
   , to_announce(0)
 {

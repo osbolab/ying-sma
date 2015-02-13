@@ -12,7 +12,7 @@ else(APPLE)
 endif()
 
 if(LIBSTD)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=${LIBSTD} -lglpk")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=${LIBSTD}")
 endif()
 
 # Locate external libaries
@@ -79,7 +79,6 @@ set(${PROJECT_NAME}_sources
 
   "src/neighborhelper.cpp"
   "src/neighborhelperimpl.cpp"
-  #  "src/neighbortable.cpp"
 
   "src/ccn/interesthelper.cpp"
   "src/ccn/interesthelperimpl.cpp"
@@ -107,6 +106,7 @@ set(${PROJECT_NAME}_sources
 include_directories("include")
 
 add_library("${PROJECT_NAME}" STATIC ${${PROJECT_NAME}_sources})
+target_link_libraries("${PROJECT_NAME}" "glpk")
 #add_test_exe("${PROJECT_NAME}_test" "test/test_main.cpp")
 #target_link_libraries("${PROJECT_NAME}_test" "${PROJECT_NAME}")
 

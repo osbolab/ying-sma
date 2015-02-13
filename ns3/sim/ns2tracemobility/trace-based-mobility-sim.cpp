@@ -8,7 +8,7 @@ _INITIALIZE_EASYLOGGINGPP    // Call only once per application
 #include <sma/ns3/ns3nodecontainer.hpp>
 #include <sma/ns3/action.hpp>
 #include <sma/ns3/showupaction.hpp>
-	
+
 #include <sma/nodeid.hpp>
 
 #include <ns3/core-module.h>
@@ -44,7 +44,7 @@ void add_stats_on_node (ns3::DataCollector& data, uint16_t node_id);
 
 void TxCallback (ns3::Ptr<ns3::CounterCalculator<uint32_t>>datac,
                  std::string path, ns3::Ptr<const ns3::Packet> packet);
-				 
+
 void RxCallback (ns3::Ptr<ns3::CounterCalculator<uint32_t>>datac,
                  std::string path, ns3::Ptr<const ns3::Packet> packet);
 
@@ -62,13 +62,13 @@ int main(int argc, char** argv)
   std::string phyMode("DsssRate1Mbps");
   double rss = -80.0;        // -dBm
   double distance = 100;    // m
-  std::string fragmentThreshold = "2200";
+  std::string fragmentThreshold = "500";
   std::uint16_t packet_size = 64;
 
   bool arq = true;
   bool enableFlowMonitor = true;
   std::string animFile = "trace-based-mobility-sim.xml";  // Name of file for animation output
-  
+
   std::string format ("omnet");
   std::string experiment ("trace-walk");
   std::string strategy ("friis model");
@@ -165,7 +165,7 @@ int main(int argc, char** argv)
   // open log file for output
   std::ofstream os;
   os.open (logFile.c_str());
-							 
+
   ns2mobility.Install();
 
   ns3::Config::Connect ("/NodeList/*/$ns3::MobilityModel/CourseChange",
@@ -260,7 +260,7 @@ int main(int argc, char** argv)
   anim.SetMobilityPollInterval (ns3::Seconds (2));
 //  anim.EnablePacketMetadata (); // Optional
 //  anim.EnableIpv4L3ProtocolCounters (ns3::Seconds (0), ns3::Seconds (10)); // Optional
-  
+
   //---------------------------------------------------------------------------
   //-- Setup stats and data collection
   //---------------------------------------------------------------------------
@@ -278,8 +278,8 @@ int main(int argc, char** argv)
 //                    strategy,
 //					input,
 //					runID);
-  
-  
+
+
 //  add_stats_on_node(data, 0);
 //  add_stats_on_node(data, 1);
 //  add_stats_on_node(data, 2);
@@ -334,18 +334,18 @@ int main(int argc, char** argv)
 
 
 */
-  
-  
+
+
 
   LOG(WARNING) << "Simulation ended";
   LOG(INFO) << "Animation Trace file created:" << animFile.c_str();
- 
-  
+
+
   //---------------------------------------------------------------------------
   //-- Generate statistics output.
   //---------------------------------------------------------------------------
-  
-  
+
+
 //  ns3::Ptr<ns3::DataOutputInterface> output = 0;
 //  if (format == "omnet") {
 //	LOG(INFO) << "Creating omnet formatted data output.";
@@ -358,14 +358,14 @@ int main(int argc, char** argv)
 //  } else {
 //	  LOG(INFO) << "Unknown output format " << format;
 //  }
-  
+
 //  if (output != 0)
 //	output->Output (data);
-  
+
   //---------------------------------------------------------------------------
   //-- End of simulation
   //---------------------------------------------------------------------------
-  
+
   ns3::Simulator::Destroy();
   os.close();
   LOG(INFO) << "done.";
@@ -388,12 +388,12 @@ void configure_logs(int& argc, char** argv)
   _START_EASYLOGGINGPP(argc, argv);
 
   std::cout << "Configuring application logging from log.conf...\n";
-  el::Configurations logconf("../../conf/log.conf");
+  el::Configurations logconf("/etc/sma/log.conf");
   el::Loggers::reconfigureAllLoggers(logconf);
   LOG(INFO) << "\n\n----------------------------------- session "
                "-----------------------------------";
   LOG(DEBUG) << "Configuring node logging from nodelog.conf...";
-  el::Configurations nodelogconf("../../conf/nodelog.conf");
+  el::Configurations nodelogconf("/etc/sma/nodelog.conf");
   el::Loggers::setDefaultConfigurations(nodelogconf, false);
   el::Loggers::getLogger("nodes");
   CLOG(INFO, "nodes") << "------------------------- session "
@@ -408,34 +408,34 @@ void configure_logs(int& argc, char** argv)
 void add_stats_on_node (ns3::DataCollector& data, uint16_t node_id)
 {
 
-					
-    ns3::Ptr<ns3::CounterCalculator<uint32_t>> totalTx = 
+
+    ns3::Ptr<ns3::CounterCalculator<uint32_t>> totalTx =
   	  ns3::CreateObject<ns3::CounterCalculator<uint32_t>>();
-  
-  
+
+
     totalTx->SetKey ("random-walk-tx-frame");
     std::stringstream sstr ("");
     sstr << node_id;
     totalTx->SetContext (sstr.str());
     sstr.str("");
-  
+
     sstr << "/NodeList/" << node_id << "/DeviceList/*/$ns3::WifiNetDevice/Mac/MacTx";
     LOG(INFO) << "NODELIST: " << sstr.str();
-  
+
     ns3::Config::Connect (sstr.str(),
                         ns3::MakeBoundCallback (&TxCallback, totalTx));
   //  ns3::Config::Connect ("/NodeList/0/DeviceList/*/$ns3::WifiNetDevice/Mac/MacTx",
   //				   ns3::MakeBoundCallback (&TxCallback, totalTx));
     data.AddDataCalculator (totalTx);
-  
-    ns3::Ptr<ns3::CounterCalculator<uint32_t>> totalRx = 
+
+    ns3::Ptr<ns3::CounterCalculator<uint32_t>> totalRx =
   	  ns3::CreateObject<ns3::CounterCalculator<uint32_t>>();
     totalRx->SetKey ("random-walk-rx-frame");
     sstr.str("");
     sstr << node_id;
     totalRx->SetContext (sstr.str());
     sstr.str("");
-  
+
     sstr << "/NodeList/" << node_id << "/DeviceList/*/$ns3::WifiNetDevice/Mac/MacRx",
     ns3::Config::Connect (sstr.str(),
     					ns3::MakeBoundCallback(&RxCallback, totalRx));
@@ -448,11 +448,11 @@ void add_stats_on_node (ns3::DataCollector& data, uint16_t node_id)
 }
 
 void TxCallback (ns3::Ptr<ns3::CounterCalculator<uint32_t>>datac,
-                 std::string path, ns3::Ptr<const ns3::Packet> packet) 
+                 std::string path, ns3::Ptr<const ns3::Packet> packet)
 {
   LOG(INFO) << "Frame transmitted";
   LOG(INFO) << "Sent frame counted in " << datac->GetKey();
-  datac->Update();           	
+  datac->Update();
 }
 
 void RxCallback (ns3::Ptr<ns3::CounterCalculator<uint32_t>>datac,
@@ -460,5 +460,5 @@ void RxCallback (ns3::Ptr<ns3::CounterCalculator<uint32_t>>datac,
 {
   LOG(INFO) << "Frame recieved";
   LOG(INFO) << "Received frame counted in " << datac->GetKey();
-  datac->Update();				 	
+  datac->Update();
 }
