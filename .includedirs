@@ -1,0 +1,3 @@
+include/
+ext/gtest-1.7.0/include/
+ext/easyloggingpp/include/
