@@ -15,12 +15,6 @@ if(LIBSTD)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=${LIBSTD}")
 endif()
 
-# Locate external libaries
-set(EXT_DIR "${CMAKE_SOURCE_DIR}/ext" CACHE PATH "External library sources")
-if(NOT EXISTS "${EXT_DIR}/")
-  message(FATAL_ERROR "External library directory doesn't exist: ${EXT_DIR}")
-endif()
-
 #------------------------------------------------------------------------------
 # Set up output directory by binary type
 macro(set_build_dir path)
@@ -34,9 +28,8 @@ macro(set_build_dir path)
   set(LIBRARY_OUTPUT_DIRECTORY "${path}")
   set(ARCHIVE_OUTPUT_DIRECTORY "${path}")
   # Third-party libraries
-  set(EXT_OUTPUT_DIRECTORY     "${path}/ext")
 endmacro(set_build_dir)
-# Everything outputs in the root build dir by defailt
+# Everything outputs in the root build dir by default
 set_build_dir("${CMAKE_BINARY_DIR}")
 
 #------------------------------------------------------------------------------
@@ -55,7 +48,6 @@ endforeach()
 ###############################################################################
 
 set(SMA_LIB     "sma")
-set(SMA_NS3_LIB "smans3")
 
 ###############################################################################
 # Main SMA library project
@@ -106,12 +98,6 @@ set(${PROJECT_NAME}_sources
 include_directories("include")
 
 add_library("${PROJECT_NAME}" STATIC ${${PROJECT_NAME}_sources})
-target_link_libraries("${PROJECT_NAME}" "glpk")
-#add_test_exe("${PROJECT_NAME}_test" "test/test_main.cpp")
-#target_link_libraries("${PROJECT_NAME}_test" "${PROJECT_NAME}")
 
 ###############################################################################
 # Subprojects
-
-include_directories("ns3/include")
-add_subdirectory("ns3")
