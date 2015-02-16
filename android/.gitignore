@@ -2,6 +2,7 @@
 /.idea/workspace.xml
 /.idea/libraries
 /build
+libs/
 
 .gradle
 .iml
