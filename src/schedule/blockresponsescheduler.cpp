@@ -4,7 +4,7 @@
 #include <sma/util/hash.hpp>
 #include <sma/neighbor.hpp>
 #include <cassert>
-#include <sma/ccn/blockindex.hpp> 
+#include <sma/ccn/blockref.hpp>
 #include <cstddef>
 
 namespace sma
