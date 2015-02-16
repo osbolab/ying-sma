@@ -3,6 +3,7 @@
 /.idea/libraries
 /build
 libs/
+obj/
 
 .gradle
 .iml
