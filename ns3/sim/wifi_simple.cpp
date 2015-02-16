@@ -47,7 +47,8 @@ int main(int argc, char** argv)
   std::string phyMode("DsssRate1Mbps");
   double rss = -80.0;        // -dBm
   double distance = 2000;    // m
-  std::string fragmentThreshold = "500";
+  std::string fragmentThreshold = "1400";
+  std::string rtsCtsThreshold = "500";
 
   ns3::CommandLine cmd;
   cmd.AddValue("phyMode", "Wifi physical mode", phyMode);
@@ -61,10 +62,9 @@ int main(int argc, char** argv)
   // clang-format off
   // Don't fragment frames < 2200 bytes
   ns3::Config::SetDefault("ns3::WifiRemoteStationManager::FragmentationThreshold",
-                          ns3::StringValue(fragmentThreshold));
-  // Turn off RTS/CTS for frames < 2200 bytes
+                          ns3::StringValue(fragmentThreshold)); // Turn off RTS/CTS for frames < 2200 bytes
   ns3::Config::SetDefault("ns3::WifiRemoteStationManager::RtsCtsThreshold",
-                          ns3::StringValue(fragmentThreshold));
+                          ns3::StringValue(rtsCtsThreshold));
   // Adjust non-unicast data rate to be the same as unicast
   ns3::Config::SetDefault("ns3::WifiRemoteStationManager::NonUnicastMode",
                           ns3::StringValue(phyMode));
@@ -169,8 +169,7 @@ int main(int argc, char** argv)
     auto app = sma_factory.Create<sma::Ns3NodeContainer>();
     app->SetAttribute("id", ns3::UintegerValue(i));
 
-    app->add_component(std::move(
-        std::make_unique<sma::DummyGps>(mob)));
+    app->add_component(std::move(std::make_unique<sma::DummyGps>(mob)));
 
     if (i == (nnodes - 1)) {
       std::vector<sma::ContentType> interests;

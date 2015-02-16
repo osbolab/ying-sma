@@ -90,24 +90,6 @@ std::size_t ContentHelperImpl::announce_metadata()
     }
   }
 
-#if 0
-    for (auto const& interest : node.interests->all())
-      for (auto const& type : metadata.types)
-        if (type == interest.type) {
-          if (interest.local()) {
-            log.d("| I'm interested in this");
-            request({BlockRequestArgs(BlockRef(metadata.hash, 0),
-                                      1.23,
-                                      millis(10000),
-                                      node.id,
-                                      node.position(),
-                                      true)});
-          } else {
-            log.d("| I know someone interested in this");
-          }
-        }
-#endif
-
   // Remotes are not announced if it's been too long since they were received
   // from the original node; every intermediate node decays their TTL so they
   // expire across the entire network at once.
