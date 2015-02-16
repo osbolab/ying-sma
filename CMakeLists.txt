@@ -106,12 +106,6 @@ set(${PROJECT_NAME}_sources
 include_directories("include")
 
 add_library("${PROJECT_NAME}" STATIC ${${PROJECT_NAME}_sources})
-target_link_libraries("${PROJECT_NAME}" "glpk")
-#add_test_exe("${PROJECT_NAME}_test" "test/test_main.cpp")
-#target_link_libraries("${PROJECT_NAME}_test" "${PROJECT_NAME}")
 
 ###############################################################################
 # Subprojects
-
-include_directories("ns3/include")
-add_subdirectory("ns3")
