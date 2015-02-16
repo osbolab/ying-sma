@@ -17,7 +17,7 @@
 #include <sma/async.hpp>
 #include <chrono>
 #include <sma/util/event.hpp>
-#include <sma/io/log>
+#include <sma/io/log.hpp>
 
 namespace sma
 {

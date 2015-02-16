@@ -4,7 +4,7 @@
 
 #include <sma/util/hash.hpp>
 
-#include <sma/io/log>
+#include <sma/io/log.hpp>
 
 #include <iosfwd>
 #include <utility>

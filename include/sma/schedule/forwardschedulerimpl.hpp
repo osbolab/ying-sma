@@ -14,7 +14,7 @@
 #include <vector>
 #include <utility>
 #include <sma/ccn/blockref.hpp>
-#include <sma/io/log>
+#include <sma/io/log.hpp>
 
 namespace sma
 {

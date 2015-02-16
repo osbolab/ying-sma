@@ -3,7 +3,7 @@
 #include <sma/linklayer.hpp>
 
 #include <sma/component.hpp>
-#include <sma/io/log>
+#include <sma/io/log.hpp>
 
 #include <string>
 #include <vector>

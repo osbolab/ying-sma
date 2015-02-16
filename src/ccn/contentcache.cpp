@@ -5,7 +5,7 @@
 #include <sma/ccn/contentmetadata.hpp>
 #include <sma/ccn/blockdata.hpp>
 
-#include <sma/io/log>
+#include <sma/io/log.hpp>
 
 #include <string>
 #include <cstring>

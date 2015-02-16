@@ -8,8 +8,9 @@
 
 #include <sma/ccn/ccnfwd.hpp>
 
-#include <sma/io/log>
+#include <sma/io/log.hpp>
 
+#include <cstdlib>
 #include <vector>
 #include <atomic>
 

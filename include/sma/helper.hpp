@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sma/io/log>
+#include <sma/io/log.hpp>
 
 namespace sma
 {

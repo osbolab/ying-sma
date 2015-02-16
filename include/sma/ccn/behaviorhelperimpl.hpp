@@ -3,7 +3,7 @@
 #include <sma/ccn/behaviorhelper.hpp>
 #include <sma/smafwd.hpp>
 #include <sma/util/event.hpp>
-#include <sma/io/log>
+#include <sma/io/log.hpp>
 #include <chrono>
 #include <string>
 #include <sma/ccn/ccnnode.hpp>

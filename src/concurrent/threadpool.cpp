@@ -1,5 +1,5 @@
 #include <sma/threadpool.hpp>
-#include <sma/io/log>
+#include <sma/io/log.hpp>
 
 #include <mutex>
 #include <memory>

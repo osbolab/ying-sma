@@ -1,7 +1,7 @@
 #include <sma/stats.hpp>
 
 #include <sma/async.hpp>
-#include <sma/io/log>
+#include <sma/io/log.hpp>
 
 #include <chrono>
 
