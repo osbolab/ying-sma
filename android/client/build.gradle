@@ -68,6 +68,7 @@ android {
   }
   clean.dependsOn 'cleanNative'
 
+  //noinspection GroovyAssignabilityCheck
   task buildNative(type: Exec, description: 'Compile JNI source with ndk-build') {
     println('executing buildNative')
     def ndkDir = android.plugin.ndkFolder
@@ -78,6 +79,7 @@ android {
                 'NDK_DEBUG=1'
   }
 
+  //noinspection GroovyAssignabilityCheck
   task cleanNative(type: Exec, description: 'Clean JNI object files') {
     println('executing cleanNative')
     def ndkDir = android.plugin.ndkFolder
