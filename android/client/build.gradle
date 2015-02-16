@@ -55,19 +55,22 @@ android {
     }
   }
 
+  def ndkIntermediate = 'build/intermediates/ndk'
+  def ndkOutput = 'build/generated/libs'
+
   sourceSets.main {
     // Disable Android Studio's default NDK phase and automatic makefile generation
     jni.srcDirs = []
     // Use existing native libraries generated with ndk-build
-    jniLibs.srcDir 'build/generated/libs'
+    jniLibs.srcDir ndkOutput
   }
 
   //noinspection GroovyAssignabilityCheck
   task buildNative(type: Exec, description: 'Compile JNI source with ndk-build') {
     println('executing buildNative')
     def ndkDir = android.plugin.ndkFolder
-    def outDir = file('build/intermediates/ndk').absolutePath
-    def libsDir = file('build/generated/libs').absolutePath
+    def outDir = file(ndkIntermediate).absolutePath
+    def libsDir = file(ndkOutput).absolutePath
     commandLine "$ndkDir/ndk-build.cmd",
                 "NDK_APP_OUT=$outDir",
                 "NDK_LIBS_OUT=$libsDir",
@@ -81,8 +84,8 @@ android {
   task cleanNative(type: Exec, description: 'Clean JNI object files') {
     println('executing cleanNative')
     def ndkDir = android.plugin.ndkFolder
-    def outDir = file('build/intermediates/ndk').absolutePath
-    def libsDir = file('build/generated/libs').absolutePath
+    def outDir = file(ndkIntermediate).absolutePath
+    def libsDir = file(ndkOutput).absolutePath
     commandLine "$ndkDir/ndk-build.cmd",
                 "NDK_APP_OUT=$outDir",
                 "NDK_LIBS_OUT=$libsDir",
