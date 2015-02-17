@@ -1,0 +1,79 @@
+# Setting this produced weird results
+# Anyway, we use Linux newlines: break after namespace, class, and function
+# BaseOnStyle: Linux
+
+Language: Cpp
+Standard: Cpp11
+
+IndentWidth: 2
+UseTab: Never
+ColumnLimit: 80
+
+# Pointers are part of the type
+DerivePointerAlignment: false
+PointerAlignment: Left
+
+# Flush access modifiers with class brackets
+AccessModifierOffset: -2
+
+# Not even sure what this does
+AlignEscapedNewlinesLeft: false
+AlignTrailingComments: true
+
+# Allow this:
+# void myfun(
+#   param1,
+#   param2
+# );
+AllowAllParametersOfDeclarationOnNextLine: true
+
+# Either don't break in the list or break every item. This looks bad:
+# void myfun(param1, param2,
+#   param3, param4, param5);
+BinPackArguments: false
+BinPackParameters: false
+
+# If guards
+AllowShortBlocksOnASingleLine: true
+# Allow apparently means force
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: true
+
+AllowShortLoopsOnASingleLine: false
+
+# Unfortunately it does it for templates, too
+AlwaysBreakAfterDefinitionReturnType: false
+AlwaysBreakTemplateDeclarations: true
+
+AlwaysBreakBeforeMultilineStrings: false
+
+BreakBeforeBraces: Linux 
+# I don't like operators followed by the abyss of right-column whitespace
+BreakBeforeBinaryOperators: true
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializersBeforeComma: true
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+Cpp11BracedListStyle: true
+KeepEmptyLinesAtTheStartOfBlocks: true
+MaxEmptyLinesToKeep: 5
+
+# Indenting
+NamespaceIndentation: Inner
+ConstructorInitializerIndentWidth: 2
+IndentCaseLabels: true
+IndentWrappedFunctionNames: false
+
+# Spacing
+SpaceAfterCStyleCast: true 
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: ControlStatements
+SpacesInParentheses: false
+SpaceInEmptyParentheses: false
+SpacesInAngles: false
+SpacesInSquareBrackets: false
+SpacesBeforeTrailingComments: 4
+SpacesInCStyleCastParentheses: false
+SpacesInContainerLiterals: true
+
+
+
