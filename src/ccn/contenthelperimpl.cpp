@@ -339,6 +339,7 @@ void ContentHelperImpl::receive(MessageHeader header, BlockResponse msg)
                   msg.block.hash,
                   std::chrono::duration_cast<millis>(
                       clock::now().time_since_epoch()).count());
+            content_complete_event(msg.block.hash);
           }
           break;
         }
@@ -458,6 +459,11 @@ Event<BlockRef>& ContentHelperImpl::on_request_timeout()
 Event<BlockRef>& ContentHelperImpl::on_block_arrived()
 {
   return block_arrived_event;
+}
+
+Event<Hash>& ContentHelperImpl::on_content_complete()
+{
+  return content_complete_event;
 }
 
 
