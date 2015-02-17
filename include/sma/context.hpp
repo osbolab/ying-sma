@@ -44,6 +44,7 @@ private:
 template <typename T>
 T* Context::try_get_component() const
 {
+/*
   static_assert(std::is_base_of<Component, T>::value,
                 "Type must derive from Component");
 
@@ -52,6 +53,7 @@ T* Context::try_get_component() const
     if (t)
       return t;
   }
+  */
   return nullptr;
 }
 }

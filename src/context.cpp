@@ -29,9 +29,10 @@ Context& Context::operator=(Context&& r)
 
 void Context::add_component(Component& c)
 {
-  for (auto& component : components)
+  /*for (auto& component : components)
     if (typeid(*component) == typeid(c))
       return;
+  */
 
   components.push_back(&c);
 }
