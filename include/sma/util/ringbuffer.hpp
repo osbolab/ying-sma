@@ -97,7 +97,7 @@ public:
     }
 
   public:
-    constexpr typename Entry::size_type capacity() { return Entry::capacity; }
+    constexpr typename Entry::size_type capacity() const { return Entry::capacity; }
 
     typename Entry::value_type* data;
     typename Entry::size_type* size;
@@ -147,7 +147,7 @@ public:
     }
 
   public:
-    constexpr typename Entry::size_type capacity() { return Entry::capacity; }
+    constexpr typename Entry::size_type capacity() const { return Entry::capacity; }
 
     ReadableEntry(ReadableEntry&& r) { std::swap(entry, r.entry); }
     ReadableEntry(ReadableEntry const& r)
@@ -216,9 +216,7 @@ public:
     } while (entry->writing.test_and_set());
     // We have set the writing flag
 
-    if (entry->readers != 0)
-      throw std::runtime_error(
-          "Ring buffer overrun (the next slot to write is being read).");
+    assert(entry->readers == 0 && "Ring buffer overrun");
 
     return WritableEntry(*entry);
   }

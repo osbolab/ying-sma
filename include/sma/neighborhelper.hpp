@@ -4,7 +4,7 @@
 #include <sma/neighbor.hpp>
 #include <sma/smafwd.hpp>
 
-#include <sma/io/log>
+#include <sma/io/log.hpp>
 
 #include <vector>
 

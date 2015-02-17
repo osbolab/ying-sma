@@ -10,7 +10,7 @@
 
 #include <sma/chrono.hpp>
 
-#include <sma/io/log>
+#include <sma/io/log.hpp>
 
 #include <cstdlib>
 #include <random>
