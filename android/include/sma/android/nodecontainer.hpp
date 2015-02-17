@@ -14,17 +14,25 @@
 
 #include <sma/ccn/ccnnode.hpp>
 
+#include <jni.h>
 #include <memory>
+
+extern "C" {
+JNIEXPORT void JNICALL Java_edu_asu_sma_NodeContainer_create(JNIEnv*, jobject);
+JNIEXPORT void JNICALL Java_edu_asu_sma_NodeContainer_dispose(JNIEnv*, jobject);
+}
 
 namespace sma
 {
 class NodeContainer
 {
 public:
-  NodeContainer();
+  NodeContainer(JNIEnv* env);
   ~NodeContainer();
 
 private:
+  Logger log;
+
   std::unique_ptr<CcnNode> node;
 
   std::unique_ptr<Context> ctx;
