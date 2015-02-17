@@ -8,5 +8,9 @@ public class NodeContainer {
     System.loadLibrary("smajni");
   }
 
+  public native void create();
+
+  public native void dispose();
+
   public native String stringFromJNI();
 }
