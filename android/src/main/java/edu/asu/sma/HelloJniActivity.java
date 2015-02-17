@@ -20,5 +20,17 @@ public class HelloJniActivity extends Activity {
     TextView tv = new TextView(this);
     tv.setText(new NodeContainer().stringFromJNI());
     setContentView(tv);
+
+    container = new NodeContainer();
+    container.create();
   }
+
+  @Override
+  protected void onStop() {
+    super.onStop();
+
+    container.dispose();
+  }
+
+  private NodeContainer container;
 }
