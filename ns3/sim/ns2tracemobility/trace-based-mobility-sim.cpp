@@ -11,7 +11,7 @@ _INITIALIZE_EASYLOGGINGPP    // Call only once per application
 
 #include <sma/nodeid.hpp>
 
-#include <sma/utility.hpp>
+#include <utility>
 
 #include <ns3/core-module.h>
 #include <ns3/wifi-module.h>
@@ -57,8 +57,8 @@ int main(int argc, char** argv)
 {
   configure_logs(argc, argv);
 
-  std::size_t nnodes = 10;
-  long duration = 200;
+  std::size_t nnodes = 3;
+  long duration = 600;
 
   std::string baseIp("10.1.0.0");
   std::string subnet("255.255.0.0");
@@ -80,7 +80,7 @@ int main(int argc, char** argv)
   std::string strategy("friis model");
   std::string input;
   std::string runID;
-  std::string traceFile = "input-trace";
+  std::string traceFile = "../../traces/trace_60_600";
   std::string logFile = "ns2traceoutput.txt";
 
   ns3::CommandLine cmd;
@@ -402,12 +402,12 @@ void configure_logs(int& argc, char** argv)
   _START_EASYLOGGINGPP(argc, argv);
 
   std::cout << "Configuring application logging from log.conf...\n";
-  el::Configurations logconf("/etc/sma/log.conf");
+  el::Configurations logconf("../../conf/log.conf");
   el::Loggers::reconfigureAllLoggers(logconf);
   LOG(INFO) << "\n\n----------------------------------- session "
                "-----------------------------------";
   LOG(DEBUG) << "Configuring node logging from nodelog.conf...";
-  el::Configurations nodelogconf("/etc/sma/nodelog.conf");
+  el::Configurations nodelogconf("../../conf/nodelog.conf");
   el::Loggers::setDefaultConfigurations(nodelogconf, false);
   el::Loggers::getLogger("nodes");
   CLOG(INFO, "nodes") << "------------------------- session "
