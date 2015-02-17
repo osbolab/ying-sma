@@ -1,7 +1,6 @@
 media/
 .idea/
 *.iml
-*.gradle
 
 local.properties
 
