@@ -1,4 +1,5 @@
 #pragma once
+#pragma GCC diagnostic ignored "-Wextern-c-compat"
 
 #include <sma/util/serial.hpp>
 

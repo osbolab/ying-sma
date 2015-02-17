@@ -2,7 +2,7 @@
 
 #include <sma/util/detail/uint_with_size.hpp>
 
-#include <sma/io/log>
+#include <sma/io/log.hpp>
 
 #include <cassert>
 #include <cstring>

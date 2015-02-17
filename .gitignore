@@ -1,5 +1,9 @@
 media/
 .idea/
+*.iml
+*.gradle
+
+local.properties
 
 # Object directories
 build/
@@ -13,7 +17,6 @@ build/
 # Precompiled Headers
 *.gch
 *.pch
-
 
 # Compiled Dynamic libraries
 *.so

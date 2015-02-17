@@ -1,9 +1,11 @@
 #pragma once
+// Suppress "empty struct has size 0 in C, size 1 in C++"
+#pragma GCC diagnostic ignored "-Wextern-c-compat"
 
 #include <sma/linklayer.hpp>
 
 #include <sma/component.hpp>
-#include <sma/io/log>
+#include <sma/io/log.hpp>
 
 #include <string>
 #include <vector>
@@ -42,6 +44,7 @@ private:
 template <typename T>
 T* Context::try_get_component() const
 {
+/*
   static_assert(std::is_base_of<Component, T>::value,
                 "Type must derive from Component");
 
@@ -50,6 +53,7 @@ T* Context::try_get_component() const
     if (t)
       return t;
   }
+  */
   return nullptr;
 }
 }

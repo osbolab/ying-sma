@@ -10,7 +10,7 @@
 
 #include <sma/util/event.hpp>
 
-#include <sma/io/log>
+#include <sma/io/log.hpp>
 
 #include <sma/chrono.hpp>
 #include <chrono>

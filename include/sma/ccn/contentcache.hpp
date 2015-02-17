@@ -1,10 +1,11 @@
 #pragma once
+#pragma GCC diagnostic ignored "-Wextern-c-compat"
 
 #include <sma/ccn/blockref.hpp>
 
 #include <sma/util/hash.hpp>
 
-#include <sma/io/log>
+#include <sma/io/log.hpp>
 
 #include <iosfwd>
 #include <utility>

@@ -1,6 +1,7 @@
 #pragma once
+#pragma GCC diagnostic ignored "-Wextern-c-compat"
 
-#include <sma/io/log>
+#include <sma/io/log.hpp>
 
 #include <cstdlib>
 #include <vector>

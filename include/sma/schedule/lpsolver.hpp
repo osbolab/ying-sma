@@ -6,6 +6,8 @@
 #include <cassert>
 #include <iostream>
 #include <cstddef> 
+#include <cstdlib>
+
 
 namespace sma
 {
