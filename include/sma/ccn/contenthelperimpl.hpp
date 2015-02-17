@@ -7,6 +7,8 @@
 #include <sma/ccn/blockref.hpp>
 #include <sma/ccn/blockrequest.hpp>
 
+#include <sma/ccn/contentcache.hpp>
+
 #include <sma/util/hash.hpp>
 
 #include <sma/util/event.hpp>
