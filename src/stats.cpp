@@ -10,15 +10,13 @@ namespace sma
 {
 namespace stats
 {
-  using namespace std::literals::chrono_literals;
-
   std::uint32_t time = 0;
 
   void print_stats()
   {
     //Ints::print_received_prop();
 
-    asynctask(print_stats).do_in(1s);
+    asynctask(print_stats).do_in(std::chrono::seconds(1));
   }
 
   ///
@@ -57,6 +55,7 @@ namespace stats
               << std::chrono::duration_cast<std::chrono::milliseconds>(
                      clock::now() - sent_time).count() << ", "
               << (double(recps.size()) / all_nodes.size());
+
 #endif
   }
 
@@ -104,6 +103,7 @@ namespace stats
     LOG(INFO) << "Metadata received, " << recp << ", " << meta.types[0] << ", "
               << std::chrono::duration_cast<std::chrono::milliseconds>(
                      clock::now() - sent_time).count();
+
   }
 }
 }

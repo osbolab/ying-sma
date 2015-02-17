@@ -22,8 +22,6 @@
 
 namespace sma
 {
-using namespace std::literals::chrono_literals;
-
 constexpr std::chrono::milliseconds ContentHelperImpl::min_announce_interval;
 constexpr std::size_t ContentHelperImpl::fuzz_announce_min_ms;
 constexpr std::size_t ContentHelperImpl::fuzz_announce_max_ms;
@@ -196,7 +194,7 @@ void ContentHelperImpl::do_auto_fetch()
   request(std::move(reqs));
 
   if (not auto_fetch_queue.empty())
-    asynctask(&ContentHelperImpl::do_auto_fetch, this).do_in(1s);
+    asynctask(&ContentHelperImpl::do_auto_fetch, this).do_in(std::chrono::seconds(1));
 }
 
 
@@ -480,12 +478,15 @@ void ContentHelperImpl::LocalMetadata::requested()
 void ContentHelperImpl::LocalMetadata::announced()
 {
   // 2^t growth
+  auto const min = std::chrono::seconds(1);
+  auto const max = std::chrono::seconds(60);
+
   auto const now = clock::now();
   auto delay = now - last_requested;
-  if (delay > 60s)
-    delay = 60s;
-  if (delay < 1s)
-    delay = 1s;
+  if (delay > max)
+    delay = max;
+  if (delay < min)
+    delay = min;
 
   next_announce = now + delay;
 }
@@ -499,6 +500,6 @@ ContentHelperImpl::RemoteMetadata::RemoteMetadata(ContentMetadata data)
 
 void ContentHelperImpl::RemoteMetadata::announced()
 {
-  next_announce = clock::now() + 1s;
+  next_announce = clock::now() + std::chrono::seconds(1);
 }
 }

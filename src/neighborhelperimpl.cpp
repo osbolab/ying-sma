@@ -14,8 +14,6 @@
 
 #include <chrono>
 
-using namespace std::literals::chrono_literals;
-
 namespace sma
 {
 
@@ -24,7 +22,7 @@ constexpr unsigned int NeighborHelperImpl::INITIAL_REFRESH_MS;
 NeighborHelperImpl::NeighborHelperImpl(CcnNode& node)
   : NeighborHelper(node)
 {
-  schedule_beacon(100ms);
+  schedule_beacon(std::chrono::milliseconds(100));
 }
 
 std::vector<Neighbor> NeighborHelperImpl::get() const
@@ -74,7 +72,7 @@ void NeighborHelperImpl::schedule_beacon(millis delay)
 void NeighborHelperImpl::beacon()
 {
   node.post(Beacon(node.position()));
-  schedule_beacon(2s);
+  schedule_beacon(std::chrono::seconds(2));
 }
 
 void NeighborHelperImpl::refresh_neighbors()
