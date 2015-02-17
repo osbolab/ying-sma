@@ -5,12 +5,10 @@ package edu.asu.sma;
  */
 public class NodeContainer {
   static {
-    System.loadLibrary("smajni");
+    System.loadLibrary("smanative");
   }
 
   public native void create();
 
   public native void dispose();
-
-  public native String stringFromJNI();
 }
