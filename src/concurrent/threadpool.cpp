@@ -1,5 +1,6 @@
-#include <sma/concurrent/threadpool.hpp>
+#include <sma/concurrent/Threadpool.hpp>
 #include <sma/io/log.hpp>
+#include <sma/utility.hpp>
 
 #include <mutex>
 #include <memory>
@@ -9,9 +10,8 @@
 namespace sma
 {
 
-threadpool::threadpool(std::size_t nthreads, std::size_t min_capacity)
+Threadpool::Threadpool(std::size_t nthreads, std::size_t min_capacity)
 {
-  LOG(DEBUG) << nthreads << " threads";
   if (!min_capacity)
     min_capacity = 16;
 
@@ -27,20 +27,20 @@ threadpool::threadpool(std::size_t nthreads, std::size_t min_capacity)
   threads.resize(nthreads);
   while (nthreads != 0)
     threads[--nthreads]
-        = std::thread(&threadpool::thread_body, this, std::ref(*s));
+        = std::thread(&Threadpool::thread_body, this, std::ref(*s));
 }
-threadpool::threadpool(std::size_t nthreads)
-  : threadpool(nthreads, 16)
+Threadpool::Threadpool(std::size_t nthreads)
+  : Threadpool(nthreads, 16)
 {
 }
-threadpool::~threadpool()
+Threadpool::~Threadpool()
 {
   // join() locks and notifies so don't bother
   s->stop = true;
   join();
 }
 
-void threadpool::thread_body(shared_state& s)
+void Threadpool::thread_body(shared_state& s)
 {
   while (!s.stop) {
     Task task{nullptr};
@@ -71,7 +71,7 @@ void threadpool::thread_body(shared_state& s)
   }
 }
 
-void threadpool::push_back(Task task)
+void Threadpool::push_back(Task task)
 {
   {
     auto sz = s->tasks.size();
@@ -92,7 +92,7 @@ void threadpool::push_back(Task task)
   s->available.notify_one();
 }
 
-std::size_t threadpool::resize(shared_state& s, std::size_t len)
+std::size_t Threadpool::resize(shared_state& s, std::size_t len)
 {
   auto t_new = std::vector<Task>(len);
   ringmove(t_new, s.tasks, s.t, s.count);
@@ -102,13 +102,12 @@ std::size_t threadpool::resize(shared_state& s, std::size_t len)
   return len;
 }
 
-void threadpool::join()
+void Threadpool::join()
 {
   if (!threads.empty()) {
     {
       std::lock_guard<std::mutex>(s->mx);
       s->join= true;
-      LOG(DEBUG) << "joining " << threads.size() << " workers";
     }
     s->available.notify_all();
     for (auto& th : threads)
