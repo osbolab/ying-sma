@@ -10,6 +10,7 @@
 
 namespace sma
 {
+struct Hash;
 struct CcnNode;
 struct NodeId;
 struct ContentType;
@@ -77,5 +78,7 @@ public:
   // The \a CacheEntry argument provides functions to keep or release the cache
   // entry for the given data.
   virtual Event<BlockRef>& on_block_arrived() = 0;
+  //! Fired when the last block for the given content arrives.
+  virtual Event<Hash>& on_content_complete() = 0;
 };
 }
