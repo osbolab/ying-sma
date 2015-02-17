@@ -19,8 +19,6 @@
 
 namespace sma
 {
-using namespace std::literals::chrono_literals;
-
 constexpr std::chrono::milliseconds InterestHelperImpl::min_announce_interval;
 constexpr std::size_t InterestHelperImpl::fuzz_announce_min_ms;
 constexpr std::size_t InterestHelperImpl::fuzz_announce_max_ms;
@@ -249,6 +247,6 @@ void InterestHelperImpl::log_dump()
       log.d("| %v (%v hops)", i.type, std::uint32_t(i.hops));
   }
 
-  asynctask(&InterestHelperImpl::log_dump, this).do_in(1s);
+  asynctask(&InterestHelperImpl::log_dump, this).do_in(std::chrono::seconds(1));
 }
 }

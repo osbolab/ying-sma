@@ -11,6 +11,7 @@ _INITIALIZE_EASYLOGGINGPP    // Call only once per application
 #include <sma/ns3/action.hpp>
 #include <sma/ns3/createinterestaction.hpp>
 #include <sma/ns3/publishcontentaction.hpp>
+#include <sma/utility.hpp>
 
 #include <ns3/core-module.h>
 #include <ns3/wifi-module.h>
@@ -27,8 +28,6 @@ _INITIALIZE_EASYLOGGINGPP    // Call only once per application
 #include <cstring>
 #include <iostream>
 #include <chrono>
-
-    using namespace std::literals::chrono_literals;
 
 
 void configure_logs(int& argc, char** argv);
@@ -174,7 +173,7 @@ int main(int argc, char** argv)
     if (i == (nnodes - 1)) {
       std::vector<sma::ContentType> interests;
       interests.emplace_back("cats");
-      app->act_emplace_front<sma::CreateInterestAction>(1s,
+      app->act_emplace_front<sma::CreateInterestAction>(std::chrono::seconds(1),
                                                         std::move(interests));
     }
     if (i == 0) {
@@ -183,7 +182,7 @@ int main(int argc, char** argv)
       // app->act_emplace_front<sma::CreateInterestAction>(3s,
       //                                                  std::move(interests));
       app->act_emplace_front<sma::PublishContentAction>(
-          3s, "cats", "my cool cat");
+          std::chrono::seconds(3), "cats", "my cool cat");
     }
 
     auto apps = ns3::ApplicationContainer(app);

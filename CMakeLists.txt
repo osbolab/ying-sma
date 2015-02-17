@@ -8,7 +8,7 @@ if(APPLE)
   set(LIBSTD "c++1y" CACHE STRING "C++ Standard Library")
 # For Ubuntu Platform
 else(APPLE)
-  set(LIBSTD "c++14" CACHE STRING "C++ Standard Library [nothing/c++11/c++14]")
+  set(LIBSTD "c++11" CACHE STRING "C++ Standard Library [nothing/c++11/c++14]")
 endif()
 
 if(LIBSTD)
