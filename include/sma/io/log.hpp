@@ -5,6 +5,7 @@
 #include <string>
 #include <sstream>
 #include <utility>
+#include <cassert>
 
 
 namespace sma
@@ -88,6 +89,7 @@ void log_v(int priority, std::string id, char const(&fmat)[N], Args&&... args) {
 template <typename... Args>
 Logger const& Logger::t(Args&&... args) const
 {
+  assert(false && "Trace logging not implemented!");
   return *this;
 }
 template <std::size_t N, typename... Args>
@@ -117,6 +119,7 @@ Logger const& Logger::e(char const(&fmat)[N], Args&&... args) const
 template <typename... Args>
 Logger const& Logger::f(Args&&... args) const
 {
+  assert(false && "Failure logging not implemented!");
   return *this;
 }
 }
