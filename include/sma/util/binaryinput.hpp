@@ -1,4 +1,5 @@
 #pragma once
+#pragma GCC diagnostic ignored "-Wextern-c-compat"
 
 #include <string>
 #include <cstdint>
