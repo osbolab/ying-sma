@@ -1,6 +1,6 @@
 LOCAL_PATH := $(call my-dir)
 
-SMA_ROOT := $(abspath ../../../..)
+SMA_ROOT := $(abspath ../../../../..)
 SMA_SRC := $(SMA_ROOT)/src
 SMA_INC := $(SMA_ROOT)/include
 
