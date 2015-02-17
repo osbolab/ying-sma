@@ -1,4 +1,4 @@
-package edu.asu.sma.client;
+package edu.asu.sma;
 
 
 import android.app.Activity;
@@ -21,6 +21,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import edu.asu.sma.client.R;
 
 /**
  * Fragment used for managing interactions for and presentation of a navigation drawer.

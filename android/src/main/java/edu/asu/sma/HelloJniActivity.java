@@ -1,10 +1,8 @@
-package edu.asu.sma.client;
+package edu.asu.sma;
 
 import android.app.Activity;
 import android.os.Bundle;
 import android.widget.TextView;
-
-import edu.asu.sma.NodeContainer;
 
 
 public class HelloJniActivity extends Activity {
