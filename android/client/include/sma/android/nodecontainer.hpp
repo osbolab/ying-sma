@@ -10,8 +10,6 @@
 #include <sma/ccn/contenthelperimpl.hpp>
 #include <sma/ccn/behaviorhelperimpl.hpp>
 
-#include <sma/schedule/forwardschedulerimpl.hpp>
-
 #include <sma/ccn/ccnnode.hpp>
 
 #include <jni.h>
@@ -41,7 +39,6 @@ private:
   std::unique_ptr<NeighborHelperImpl> neighbor_helper;
   std::unique_ptr<InterestHelperImpl> interest_helper;
   std::unique_ptr<BehaviorHelperImpl> behavior_helper;
-  std::unique_ptr<ForwardSchedulerImpl> scheduler_helper;
 
   std::unique_ptr<ContentHelperImpl> content_helper;
 
