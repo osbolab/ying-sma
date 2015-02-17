@@ -7,6 +7,14 @@
 #include <utility>
 #include <cassert>
 
+#define LOG(level) noop_logger()
+
+struct noop_logger {
+  template <typename T>
+  noop_logger& operator<<(T const& t) {
+    return *this;
+  }
+};
 
 namespace sma
 {
