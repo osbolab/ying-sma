@@ -1711,10 +1711,10 @@ AnimationInterface::CheckMaxPktsPerTraceFile ()
 {
   // Start a new trace file if the current packet count exceeded nax packets per file
   ++m_currentPktCount;
-  if (m_currentPktCount <= m_maxPktsPerFile)
-    {
+//  if (m_currentPktCount <= m_maxPktsPerFile)
+//    {
       return;
-    }
+//    }
   NS_LOG_UNCOND ("Max Packets per trace file exceeded");
   StopAnimation (true);
 }

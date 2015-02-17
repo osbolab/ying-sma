@@ -148,8 +148,6 @@ namespace sma
 
       log.i("| scheduling delay: %v", delay);
 
-      std::cout << "| scheduling delay " << delay << std::endl;
-
       //// async task
       asynctask (&ForwardSchedulerImpl::sched, this).do_in (
               std::chrono::milliseconds (ForwardScheduler::get_sched_interval()));
@@ -275,18 +273,18 @@ namespace sma
         }
       }
 
-      sched_ptr->get_logger()->d("sending freeze/unfreeze commands...");
+//      sched_ptr->get_logger()->d("sending freeze/unfreeze commands...");
 	  sched_ptr->freeze_blocks (blocks_to_freeze);
 	  sched_ptr->unfreeze_blocks (blocks_to_unfreeze);
 
-      sched_ptr->get_logger()->d("done.");
+//      sched_ptr->get_logger()->d("done.");
 	  for (std::size_t c=0; c!=blocks_to_broadcast.size(); c++)
 	  {
 		sched_ptr->broadcast_block (blocks_to_broadcast[c].hash,
                                     blocks_to_broadcast[c].index);
 	  }
 
-      sched_ptr->get_logger()->d("sending %v broadcast command...", blocks_to_broadcast.size());
+//      sched_ptr->get_logger()->d("sending %v broadcast command...", blocks_to_broadcast.size());
       return blocks_to_broadcast.size(); // update the num_of_blocks to broadcast
     }
 

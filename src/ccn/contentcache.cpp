@@ -34,9 +34,9 @@ constexpr std::size_t ContentCache::block_size;
 
 void ContentCache::log_utilization()
 {
-  if (capacity != 0)
-    log.i("cache utilization, %v",
-          1.0 - double(free_idxs.size() * block_size) / capacity);
+  log.i("cache capacity, %v", capacity);
+  log.i("cache utilization, %v",
+        1.0 - double(free_idxs.size() * block_size) / capacity);
 }
 
 
@@ -60,13 +60,15 @@ void ContentCache::grow_to_fit(std::size_t count)
   if (count <= free_idxs.size())
     return;
 
-  auto slots_to_add = count - free_idxs.size();
-  auto new_idxs = slots.size();
-  // Add the new slots
-  slots.resize(slots.size() + slots_to_add);
-  // and add their indices to the free list
-  for (std::size_t i = 0; i < slots_to_add; ++i)
-    free_idxs.push_back(new_idxs++);
+  // Mark the starting point for inserting new indices
+  std::size_t free_i = free_idxs.size();
+  free_idxs.resize(count);
+  // Mark the beginning of the new range of indices
+  std::size_t new_i = slots.size();
+  for (; free_i != free_idxs.size(); ++free_i)
+    free_idxs[free_i] = new_i++;
+
+  slots.resize(count);
 }
 
 
@@ -75,17 +77,28 @@ void ContentCache::free_slots(std::size_t count)
   if (count == 0)
     return;
 
-  auto rit = occupied_idxs.rbegin();
-  while (count-- != 0 && rit != occupied_idxs.rend()) {
-    auto const idx = *rit;
+  count = std::min(count, occupied_idxs.size());
+
+  auto begin = occupied_idxs.begin();
+//  auto it = --occupied_idxs.end();
+  auto it = occupied_idxs.end();
+  while (it != begin && count != 0) {
+    it--;
+    auto const idx = *it;
     auto& slot = slots[idx];
     if (not slot.frozen) {
       slot.size = slot.expected_size = 0;
       slot.block_index = 0;
-      auto temp_it = occupied_idxs.erase(--rit.base());
-      rit = decltype(occupied_idxs)::reverse_iterator(temp_it);
-    } else
-      ++rit;
+//      it = --occupied_idxs.erase(it);
+      it = occupied_idxs.erase(it);
+      free_idxs.push_back(idx);
+      count--;
+    } 
+    // else {
+//      --it;
+ //   }
+//    if (it == begin)
+//      count = 1;
   }
 }
 
@@ -143,8 +156,6 @@ void ContentCache::promote(std::size_t idx)
       occupied_idxs.erase(it);
       occupied_idxs.push_front(idx);
       return;
-    } else {
-      ++it;
     }
     it++;
   }
@@ -224,7 +235,8 @@ BlockData ContentCache::find(BlockRef ref)
   auto it = content.find(ref.hash);
   if (it != content.end()) {
     auto const& slot_idxs = it->second;
-    for (auto const idx : slot_idxs) {
+    for (auto const idx : slot_idxs)
+    { 
       if (slots[idx].block_index == ref.index)
         return BlockData(this, idx);
     }

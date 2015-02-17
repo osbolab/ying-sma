@@ -135,6 +135,7 @@ std::size_t ContentHelperImpl::announce_metadata()
     asynctask(&ContentHelperImpl::announce_metadata, this)
         .do_in(min_announce_interval);
 
+
   return announced;
 }
 

@@ -53,7 +53,7 @@ int main(int argc, char** argv)
   configure_logs(argc, argv);
 
   std::size_t nnodes = 10;
-  long duration = 200;
+  long duration = 100;
 
   std::string baseIp("10.1.0.0");
   std::string subnet("255.255.0.0");
@@ -62,7 +62,7 @@ int main(int argc, char** argv)
   std::string phyMode("DsssRate1Mbps");
   double rss = -80.0;        // -dBm
   double distance = 100;    // m
-  std::string fragmentThreshold = "2200";
+  std::string fragmentThreshold = "500";
   std::uint16_t packet_size = 64;
 
   bool arq = true;
@@ -74,7 +74,7 @@ int main(int argc, char** argv)
   std::string strategy ("friis model");
   std::string input;
   std::string runID;
-  std::string traceFile = "input-trace";
+  std::string traceFile = "../../traces/trace_10_100";
   std::string logFile = "ns2traceoutput.txt";
 
   ns3::CommandLine cmd;

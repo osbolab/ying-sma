@@ -8,15 +8,19 @@
 #include <sma/ccn/contenttype.hpp>
 #include <sma/ccn/interesthelper.hpp>
 #include <sma/ccn/contenthelper.hpp>
+#include <unordered_set>
 
 namespace sma
 {	
     static const char const_alphanum[] =
-       { "0123456789"
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghipqrstuvwxyz"};
+       { "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghipqrstuvwxyz"};
+	
+    static const std::vector<std::string> const_categories = 
+      {"type1", "type2", "type3", "type4", "type5"};
 	
 	const char* BehaviorHelperImpl::alphanum = const_alphanum;
+	
+	const std::vector<std::string> BehaviorHelperImpl::categories = const_categories;
 
     BehaviorHelperImpl::BehaviorHelperImpl (CcnNode& node,
            std::chrono::milliseconds post_interest_freq,
@@ -47,10 +51,32 @@ namespace sma
       node.interests->clear_local();
       // random create_new interest.
 
-      std::vector<ContentType> types;
-      ContentType type ("alsotwo");
+	  std::vector<ContentType> types;
+	  ContentType type ("type1");;
       types.push_back (type);
+	  
 
+/*      int num_of_types = 1; //rand() % categories.size() + 1;
+      std::unordered_set <std::string> type_strs;
+
+      while (num_of_types > 0)
+      {
+         int type_index = rand() % categories.size();
+         type_strs.insert (categories[type_index]);
+         num_of_types--;
+      }
+
+      auto it = type_strs.begin();
+      std::vector<ContentType> types;
+
+      while (it != type_strs.end())
+      {
+        ContentType type (*it);
+        types.push_back (type);
+        it++;
+      }
+*/	  
+	  
       node.interests->create_local(types);
 
       // schedule next interest behavior
@@ -66,10 +92,29 @@ namespace sma
       std::string rand_str = get_rand_str_n (sizeof data).c_str();
       std::strncpy (data, rand_str.c_str(), rand_str.size());
       std::istringstream content_stream (std::string(data, sizeof data));
-      ContentType type ("onlyone");
+	  
+      int num_of_types = rand() % categories.size() + 1;
+      std::unordered_set <std::string> type_strs;
 
+      while (num_of_types > 0)
+      {
+         int type_index = rand() % categories.size();
+         type_strs.insert (categories[type_index]);
+         num_of_types--;
+      }
+
+      auto it = type_strs.begin();
+      std::vector<ContentType> types;
+
+      while (it != type_strs.end())
+      {
+        ContentType type (*it);
+        types.push_back (type);
+        it++;
+      }
+	  
       auto metadata = node.content->create_new(
-              {type},
+              types,
               get_rand_str_n(16),
               data,
               sizeof data);
