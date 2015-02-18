@@ -35,8 +35,19 @@ constexpr std::size_t ContentCache::block_size;
 void ContentCache::log_utilization()
 {
   log.i("cache capacity, %v", capacity);
-  log.i("cache utilization, %v",
-        1.0 - double(free_idxs.size() * block_size) / capacity);
+  int frozen_slots = 0;
+  int unfrozen_slots = 0;
+  auto it = occupied_idxs.begin();
+  while (it != occupied_idxs.end()) {
+    if (slots[*it].frozen)
+        frozen_slots++;
+    else
+        unfrozen_slots++;
+    it++;
+  }
+  log.i("cache utilization, %v, %v",
+        double(frozen_slots * block_size) / capacity,
+        double(unfrozen_slots * block_size) / capacity);
 }
 
 

@@ -51,7 +51,7 @@ namespace sma
       node.interests->clear_local();
       // random create_new interest.
 
-/*      int num_of_types = 1; //rand() % categories.size() + 1;
+      int num_of_types = 1; //rand() % categories.size() + 1;
       std::unordered_set <std::string> type_strs;
 
       while (num_of_types > 0)
@@ -70,10 +70,12 @@ namespace sma
         types.push_back (type);
         it++;
       }
-*/
 
-      std::vector<ContentType> types;
-      types.push_back (ContentType("type1"));
+
+//      std::vector<ContentType> types;
+//      types.push_back (ContentType("type1"));
+//      types.push_back (ContentType("type2"));
+//      types.push_back (ContentType("type4"));
 	  
       node.interests->create_local(types);
 

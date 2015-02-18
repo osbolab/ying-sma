@@ -154,7 +154,7 @@ private:
   // Pending Request Table
   std::unordered_map<BlockRef, PendingRequest> prt;
 
-  bool auto_announce = true;
+  bool auto_announce = false;
   bool auto_fetch = false;
   bool auto_forward_requests = false;
   bool auto_respond = false;

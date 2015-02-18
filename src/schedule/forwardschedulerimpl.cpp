@@ -124,7 +124,7 @@ namespace sma
 
 	std::size_t ForwardSchedulerImpl::get_storage() const
 	{
-		return 5;
+		return 16;
 	}
 
 	std::size_t ForwardSchedulerImpl::get_bandwidth() const
