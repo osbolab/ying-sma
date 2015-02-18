@@ -17,7 +17,7 @@ class CcnNode;
 class LinkLayerImpl : public LinkLayer
 {
 public:
-  static constexpr std::size_t BUFFER_SIZE = 2000000;
+  static constexpr std::size_t BUFFER_SIZE = 20000;
   //! Construct a link layer composed of the given links.
   /*! The link layer owns its links and they should not be mutated by any other
    * object during its lifetime.
