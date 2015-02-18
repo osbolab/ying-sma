@@ -124,12 +124,12 @@ namespace sma
 
 	std::size_t ForwardSchedulerImpl::get_storage() const
 	{
-		return 256;
+		return 5;
 	}
 
 	std::size_t ForwardSchedulerImpl::get_bandwidth() const
 	{
-		return 20;
+		return 1;
 	}
 
     void ForwardSchedulerImpl::sched() // which will be called regularly
@@ -139,6 +139,7 @@ namespace sma
 
       int num_of_requests = blockrequest_sched_ptr->sched();
       int num_of_blocks = blockresponse_sched_ptr->sched();
+
       int num_of_meta = meta_sched_ptr->sched();
       int num_of_interests = interest_sched_ptr->sched();
 
@@ -147,8 +148,6 @@ namespace sma
       auto delay = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
 
       log.i("| scheduling delay: %v", delay);
-
-      std::cout << "| scheduling delay " << delay << std::endl;
 
       //// async task
       asynctask (&ForwardSchedulerImpl::sched, this).do_in (
@@ -275,18 +274,18 @@ namespace sma
         }
       }
 
-      sched_ptr->get_logger()->d("sending freeze/unfreeze commands...");
+//      sched_ptr->get_logger()->d("sending freeze/unfreeze commands...");
 	  sched_ptr->freeze_blocks (blocks_to_freeze);
 	  sched_ptr->unfreeze_blocks (blocks_to_unfreeze);
 
-      sched_ptr->get_logger()->d("done.");
+//      sched_ptr->get_logger()->d("done.");
 	  for (std::size_t c=0; c!=blocks_to_broadcast.size(); c++)
 	  {
 		sched_ptr->broadcast_block (blocks_to_broadcast[c].hash,
                                     blocks_to_broadcast[c].index);
 	  }
 
-      sched_ptr->get_logger()->d("sending %v broadcast command...", blocks_to_broadcast.size());
+//      sched_ptr->get_logger()->d("sending %v broadcast command...", blocks_to_broadcast.size());
       return blocks_to_broadcast.size(); // update the num_of_blocks to broadcast
     }
 
@@ -317,7 +316,7 @@ namespace sma
 
 	std::size_t BlockRequestScheduler::sched()
 	{
-	  return fwd_requests(10); // 10 is the magic number. needs adjusting
+	  return fwd_requests(5); // 10 is the magic number. needs adjusting
 	}
 
     int BlockRequestScheduler::get_ttl (NodeId id, Hash content_name, BlockIndex block_index)

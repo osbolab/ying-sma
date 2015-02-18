@@ -7,6 +7,7 @@
 #include <chrono>
 #include <string>
 #include <sma/ccn/ccnnode.hpp>
+#include <vector>
 
 
 namespace sma
@@ -27,6 +28,8 @@ public:
 
 private:
   static const char * alphanum;
+
+  static const std::vector<std::string> categories;
 
   std::chrono::milliseconds interest_freq;
   std::chrono::milliseconds publish_freq;
