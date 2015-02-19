@@ -124,12 +124,12 @@ namespace sma
 
 	std::size_t ForwardSchedulerImpl::get_storage() const
 	{
-		return 16;
+		return 64;
 	}
 
 	std::size_t ForwardSchedulerImpl::get_bandwidth() const
 	{
-		return 10;
+		return 30;
 	}
 
     void ForwardSchedulerImpl::sched() // which will be called regularly
@@ -188,8 +188,6 @@ namespace sma
 
       std::size_t num_of_blocks = block_to_schedule.size();
 
-      sched_ptr->get_logger()->d("scheduling %v blocks...", num_of_blocks);
-
       if (num_of_blocks == 0)
           return 0;
 
@@ -222,6 +220,7 @@ namespace sma
           utils[i][seq] = sched_ptr->get_utility (node_id,
                                                  it->hash,
                                                  it->index);
+
           ttls[i][seq] = sched_ptr->get_ttl (node_id,
                                              it->hash,
                                              it->index);
@@ -234,6 +233,8 @@ namespace sma
       std::vector<std::vector<std::size_t>> sched_result (num_of_blocks,
               std::vector<std::size_t>(max_ttl+2));
 
+
+      sched_ptr->get_logger()->d("scheduling %v blocks...", num_of_blocks);
 
       double max_util = LPSolver::solve (max_ttl,
                        num_of_blocks,
@@ -323,7 +324,7 @@ namespace sma
 
 	std::size_t BlockRequestScheduler::sched()
 	{
-	  return fwd_requests(5); // 10 is the magic number. needs adjusting
+	  return fwd_requests(sched_ptr->get_bandwidth()); 
 	}
 
     int BlockRequestScheduler::get_ttl (NodeId id, Hash content_name, BlockIndex block_index)
@@ -343,7 +344,7 @@ namespace sma
             auto deadline = it->expire_time;
             if (deadline > current_time)
             {
-  			int time_span = std::chrono::duration_cast<std::chrono::microseconds>(deadline
+  			int time_span = std::chrono::duration_cast<std::chrono::milliseconds>(deadline
   				- current_time).count();
               return time_span / sched_ptr->get_sched_interval();
             }
@@ -372,6 +373,10 @@ namespace sma
           {
             if (requestIt->expire_time < current_time)
             {
+              sched_ptr->get_logger()->i (
+                      "expired! current_time >  expire_time: %v",
+                      std::chrono::duration_cast<std::chrono::milliseconds>(
+                                       (current_time - requestIt->expire_time)).count());
               (requests_per_node->second).erase(requestIt);
               return 0;
             }
@@ -381,7 +386,7 @@ namespace sma
           total_utility += requestIt->utility;
           requestIt++;
         }
-        return target_utility / total_utility;
+        return total_utility == 0 ? 0 :  (target_utility / total_utility);
       }
       else
         return 0;
@@ -398,7 +403,7 @@ namespace sma
         auto current_time = sma::chrono::system_clock::now();
         if (desc.expire_time >= current_time)
         {
-  	      auto ttl = std::chrono::duration_cast<std::chrono::microseconds>
+  	      auto ttl = std::chrono::duration_cast<std::chrono::milliseconds>
               (desc.expire_time - current_time);
           auto arg
               = BlockRequestArgs (BlockRef (desc.content_name,desc.block_index),
@@ -426,7 +431,7 @@ namespace sma
       auto current_time = sma::chrono::system_clock::now();
 
   	// change from relative ttl to absolute ttl locally
-      auto expire_time = current_time + request.ttl<std::chrono::microseconds>();
+      auto expire_time = current_time + request.ttl<std::chrono::milliseconds>();
 
       BlockRequestDesc desc (request.block.hash,
                              request.block.index,

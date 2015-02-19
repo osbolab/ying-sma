@@ -133,7 +133,7 @@ int main(int argc, char** argv)
   wifiPhy.Set("RxGain", ns3::DoubleValue(0));
   LOG(DEBUG) << "  - Rx gain: 0 dBm";
   // Something about RadioTap and Prism tracing
-  wifiPhy.SetPcapDataLinkType(ns3::YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
+//  wifiPhy.SetPcapDataLinkType(ns3::YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
 
   ns3::YansWifiChannelHelper wifiChannel;
   wifiChannel.SetPropagationDelay("ns3::ConstantSpeedPropagationDelayModel");
@@ -239,8 +239,8 @@ int main(int argc, char** argv)
   // ^^^^^^^^^^^^^^^^^^^^^^^^^ SMA STUFF ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
   ns3::AsciiTraceHelper ascii;
-  wifiPhy.EnableAsciiAll(ascii.CreateFileStream("log/random-walk.tr"));
-  wifiPhy.EnablePcap("log/random-walk", devices);
+//  wifiPhy.EnableAsciiAll(ascii.CreateFileStream("log/random-walk.tr"));
+//  wifiPhy.EnablePcap("log/random-walk", devices);
 
   if (enable_olsr) {
     auto routeStream = ns3::Create<ns3::OutputStreamWrapper>(

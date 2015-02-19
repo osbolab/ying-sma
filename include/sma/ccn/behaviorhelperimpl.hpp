@@ -35,6 +35,10 @@ private:
   std::chrono::milliseconds publish_freq;
   std::chrono::milliseconds request_freq;
 
+  using clock = sma::chrono::system_clock;
+  using time_point = clock::time_point;
+  using millis = std::chrono::milliseconds;
+
   void behave_interest ();
   void behave_publish ();
   void behave_request ();

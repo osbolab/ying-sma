@@ -9,6 +9,7 @@
 #include <sma/ccn/interesthelper.hpp>
 #include <sma/ccn/contenthelper.hpp>
 #include <unordered_set>
+#include <algorithm>
 
 namespace sma
 {	
@@ -87,11 +88,21 @@ namespace sma
 
     void BehaviorHelperImpl::behave_publish()
     {
+      float min_blocks = 1.0;
+      float max_blocks = 8.0;
 
-      char data[4 * 1024];
-      std::string rand_str = get_rand_str_n (sizeof data).c_str();
+      std::size_t n_blocks  = min_blocks 
+            + static_cast <float> (rand()) 
+            / (static_cast <float> (RAND_MAX)/(max_blocks-min_blocks));
+
+
+      char* data = new char [1024 * n_blocks];
+
+
+
+      std::string rand_str = get_rand_str_n (1024 * n_blocks ).c_str();
       std::strncpy (data, rand_str.c_str(), rand_str.size());
-      std::istringstream content_stream (std::string(data, sizeof data));
+      std::istringstream content_stream (std::string(n_blocks, 1024 * n_blocks));
 	  
       int num_of_types = rand() % categories.size() + 1;
       std::unordered_set <std::string> type_strs;
@@ -118,7 +129,9 @@ namespace sma
               types,
               get_rand_str_n(16),
               data,
-              sizeof data);
+              sizeof n_blocks * 1024);
+
+      delete[] data;
 
       node.content->announce_metadata();
 
@@ -148,15 +161,45 @@ namespace sma
       {
         std::size_t rand_index = rand() % total_metas;
         Hash content_name = meta_vec[rand_index].hash;
-        float utility_per_block = 1.0f;
+
+        node.log.i("Request content %v at %v", 
+                   content_name,
+                   std::chrono::duration_cast<millis>(
+                       clock::now().time_since_epoch()).count()); 
+
+        float min_util = 0.1f;
+        float max_util = 1.0f;
+
+        float utility_per_block = min_util 
+            + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX)/(max_util-min_util));
+
         int num_of_blocks = 1+((meta_vec[rand_index].size-1)/meta_vec[rand_index].block_size);
 
         std::vector<BlockRequestArgs> requests;
-        std::chrono::milliseconds ttl (5000);
+
+        float min_ttl = 10000.0;
+        float max_ttl = 18000.0;
+        float ttl_per_block = min_ttl
+            + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX)/(max_ttl - min_ttl));
+
+
+        
+        std::chrono::milliseconds ttl (static_cast<int>(ttl_per_block));
+
+        int* shuffle_idx_arr = new int [num_of_blocks];
+
+        //shuffle
+        for (std::size_t i=0; i<num_of_blocks; i++)
+        {
+          shuffle_idx_arr[i] = i;
+        }
+
+        std::random_shuffle (shuffle_idx_arr, shuffle_idx_arr + num_of_blocks);
+
         for (std::size_t i=0; i<num_of_blocks; i++)
         {
 
-          requests.push_back (BlockRequestArgs(BlockRef(content_name,i),
+          requests.push_back (BlockRequestArgs(BlockRef(content_name, shuffle_idx_arr[i]),
                      utility_per_block,
                      ttl,
                      node.id,
@@ -164,6 +207,8 @@ namespace sma
                      0,
                      true));
         }
+
+        delete[] shuffle_idx_arr;
 
         node.content->request (requests);
       }

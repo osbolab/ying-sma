@@ -31,7 +31,7 @@ constexpr std::chrono::milliseconds ContentHelperImpl::default_initial_ttl;
 
 ContentHelperImpl::ContentHelperImpl(CcnNode& node)
   : ContentHelper(node)
-  , cache(new ContentCache(node, 1024 * 1024))
+  , cache(new ContentCache(node, 64 * 1024))
   , store(new ContentCache(node))
   , to_announce(0)
 {
@@ -97,7 +97,6 @@ std::size_t ContentHelperImpl::announce_metadata()
       it = rmt.erase(it);
     else {
       if (node.interests->contains_any(it->data.types)) {
-        log.d("Announcing remote metadata about %v", it->data.types[0]);
         will_announce.push_back(it->data);
         it->announced();
       }
@@ -238,7 +237,6 @@ void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
       pending.keep_on_arrival |= req->keep_on_arrival;
     } else {
       // Add a new pending request to facilitate timeout and block storage.
-      node.log.d ("add pending request for %v %v %v", req->block.hash, req->block.index, req->keep_on_arrival);
       prt.emplace(
           req->block,
           PendingRequest{clock::now(), new_expiry, req->keep_on_arrival});
