@@ -29,18 +29,23 @@ public class NetworkFragment extends BaseFragment implements NativeConsumer {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-
-    neighbors_adapter = new ArrayAdapter<>(activity,
-                                           android.R.layout.simple_list_item_1,
-                                           neighbors);
-    ListView neighbors_list = (ListView) activity.findViewById(R.id.neighbors_list);
-    neighbors_list.setAdapter(neighbors_adapter);
   }
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
                            Bundle savedInstanceState) {
     return inflater.inflate(R.layout.fragment_network, container, false);
+  }
+
+  @Override
+  public void onActivityCreated(Bundle savedInstanceState) {
+    super.onActivityCreated(savedInstanceState);
+
+    neighbors_adapter = new ArrayAdapter<>(activity,
+                                           android.R.layout.simple_list_item_1,
+                                           neighbors);
+    ListView neighbors_list = (ListView) activity.findViewById(R.id.neighbors_list);
+    neighbors_list.setAdapter(neighbors_adapter);
   }
 
   @Override

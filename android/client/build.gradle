@@ -23,7 +23,7 @@ android {
   buildToolsVersion "19.1.0"
 
   defaultConfig {
-    applicationId "edu.asu.sma"
+    applicationId "edu.asu.sma.client"
     minSdkVersion 18
     targetSdkVersion 21
     versionCode 1
@@ -73,13 +73,12 @@ android {
     def outDir = file(ndkIntermediate).absolutePath
     def libsDir = file(ndkOutput).absolutePath
     commandLine "$ndkDir/ndk-build.cmd",
+                'NDK_DEBUG=1',
                 "NDK_APP_OUT=$outDir",
                 "NDK_LIBS_OUT=$libsDir",
-                "NDK_TARGET_ABIS=x86",
                 '-C', file('src/main/jni').absolutePath,
                 '-j', Runtime.runtime.availableProcessors(),
-                'all',
-                'NDK_DEBUG=1'
+                'all'
   }
 
   //noinspection GroovyAssignabilityCheck
@@ -89,6 +88,7 @@ android {
     def outDir = file(ndkIntermediate).absolutePath
     def libsDir = file(ndkOutput).absolutePath
     commandLine "$ndkDir/ndk-build.cmd",
+                'NDK_DEBUG=1',
                 "NDK_APP_OUT=$outDir",
                 "NDK_LIBS_OUT=$libsDir",
                 "NDK_TARGET_ABIS=all",
