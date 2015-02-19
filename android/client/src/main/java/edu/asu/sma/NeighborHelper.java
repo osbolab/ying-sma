@@ -1,12 +1,12 @@
 package edu.asu.sma;
 
+import java.util.ArrayList;
+
 /**
  * @author matt@osbolab.com (Matt Barnard)
  */
-public class NodeContainer {
-  public static native boolean create();
-
-  public static native void dispose();
+public final class NeighborHelper {
+  public static native ArrayList<String> all();
 
   static {
     System.loadLibrary(Sma.LIBRARY_NAME);
