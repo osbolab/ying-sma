@@ -152,7 +152,7 @@ namespace sma
         int num_of_blocks = 1+((meta_vec[rand_index].size-1)/meta_vec[rand_index].block_size);
 
         std::vector<BlockRequestArgs> requests;
-        std::chrono::milliseconds ttl (20000);
+        std::chrono::milliseconds ttl (5000);
         for (std::size_t i=0; i<num_of_blocks; i++)
         {
 
@@ -161,6 +161,7 @@ namespace sma
                      ttl,
                      node.id,
                      node.position(),
+                     0,
                      true));
         }
 

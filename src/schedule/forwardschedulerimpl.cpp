@@ -129,7 +129,7 @@ namespace sma
 
 	std::size_t ForwardSchedulerImpl::get_bandwidth() const
 	{
-		return 1;
+		return 10;
 	}
 
     void ForwardSchedulerImpl::sched() // which will be called regularly
@@ -285,7 +285,14 @@ namespace sma
                                     blocks_to_broadcast[c].index);
 	  }
 
-//      sched_ptr->get_logger()->d("sending %v broadcast command...", blocks_to_broadcast.size());
+      sched_ptr->get_logger()->d("sending %v broadcast command...", blocks_to_broadcast.size());
+
+	  for (std::size_t c=0; c!=blocks_to_broadcast.size(); c++)
+	  {
+		sched_ptr->get_logger()->d("block: %v %v", blocks_to_broadcast[c].hash,
+                                    blocks_to_broadcast[c].index);
+	  }
+
       return blocks_to_broadcast.size(); // update the num_of_blocks to broadcast
     }
 

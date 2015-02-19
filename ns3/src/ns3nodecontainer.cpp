@@ -100,7 +100,7 @@ void Ns3NodeContainer::StartApplication()
   behavior_helper = std::make_unique<BehaviorHelperImpl>(*node, 
            std::chrono::milliseconds(60000), 
            std::chrono::milliseconds(30000),
-           std::chrono::milliseconds(15000));
+           std::chrono::milliseconds(60000));
   content_helper = std::make_unique<ContentHelperImpl>(*node);
   scheduler_helper = std::make_unique<ForwardSchedulerImpl>(*node, 1000);
 

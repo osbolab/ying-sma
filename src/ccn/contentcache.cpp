@@ -71,15 +71,11 @@ void ContentCache::grow_to_fit(std::size_t count)
   if (count <= free_idxs.size())
     return;
 
-  // Mark the starting point for inserting new indices
-  std::size_t free_i = free_idxs.size();
-  free_idxs.resize(count);
-  // Mark the beginning of the new range of indices
-  std::size_t new_i = slots.size();
-  for (; free_i != free_idxs.size(); ++free_i)
-    free_idxs[free_i] = new_i++;
-
-  slots.resize(count);
+  auto slots_to_add = count - free_idxs.size();
+  auto new_idx = slots.size();
+  slots.resize(new_idx + slots_to_add);
+  for (std::size_t i = 0; i < slots_to_add; ++i)
+      free_idxs.push_back(new_idx++);
 }
 
 
@@ -230,6 +226,7 @@ BlockData ContentCache::store(BlockRef ref,
   auto idx = reserve_slot();
   idxs.push_back(idx);
 
+  assert (idx < slots.size()); 
   auto& slot = slots[idx];
   std::memcpy(slot.data, src, size);
   slot.expected_size = expected_size;

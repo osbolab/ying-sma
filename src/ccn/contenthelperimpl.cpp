@@ -238,6 +238,7 @@ void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
       pending.keep_on_arrival |= req->keep_on_arrival;
     } else {
       // Add a new pending request to facilitate timeout and block storage.
+      node.log.d ("add pending request for %v %v %v", req->block.hash, req->block.index, req->keep_on_arrival);
       prt.emplace(
           req->block,
           PendingRequest{clock::now(), new_expiry, req->keep_on_arrival});

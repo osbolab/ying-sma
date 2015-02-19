@@ -236,6 +236,7 @@ public:
       sched_result[c][t] = result[it];
     }
 
+    glp_delete_prob(mip);
     return max_utility;
   }
 };
