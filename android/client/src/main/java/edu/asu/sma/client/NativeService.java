@@ -41,7 +41,7 @@ public class NativeService extends Service {
     looper = thread.getLooper();
     handler = new Handler(looper);
 
-    if (NodeContainer.create()) {
+    if (NodeContainer.create(0)) {
       Log.d(TAG, "Created native node on background thread");
       tick();
     } else {

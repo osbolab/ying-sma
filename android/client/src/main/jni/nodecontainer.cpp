@@ -15,31 +15,49 @@
 #include <sma/io/log.hpp>
 #include <sma/utility.hpp>
 
-#include <cstring>
 #include <vector>
+#include <cstring>
+#include <cstdint>
 
 
-JNIEXPORT void JNICALL
-Java_edu_asu_sma_NodeContainer_create(JNIEnv* env, jobject thiz)
+JNIEXPORT jboolean JNICALL
+Java_edu_asu_sma_NodeContainer_create(JNIEnv* env, jobject thiz, jint id)
 {
+  if (sma::node != nullptr)
+    return false;
+
   auto log = sma::Logger("NodeContainer");
-  log.d("Hello, world!");
 
   std::vector<std::unique_ptr<sma::Link>> links;
   auto inet = static_cast<sma::Link*>(new sma::BsdInetLink(env));
-  char buf[1024];
-  std::memset(buf, 0, 1024);
-
-  assert(inet->write(buf, 1024) == 1024);
-  log.d("Wrote 1024 bytes to the broadcast socket");
-
   links.emplace_back(inet);
   sma::linklayer = std::make_unique<sma::LinkLayerImpl>(std::move(links));
+
+  auto node_id = sma::NodeId(std::uint16_t(id));
+
+  sma::ctx = std::make_unique<sma::Context>(std::string(node_id),
+                                            static_cast<sma::LinkLayer&>(*sma::linklayer));
+  sma::node = std::make_unique<sma::CcnNode>(node_id, *sma::ctx);
+
+  sma::neighbor_helper = std::make_unique<sma::NeighborHelperImpl>(*sma::node);
+  sma::interest_helper = std::make_unique<sma::InterestHelperImpl>(*sma::node);
+  sma::content_helper = std::make_unique<sma::ContentHelperImpl>(*sma::node);
+
+  sma::linklayer->receive_to(*sma::node);
+
+  log.d("Hello, world!");
+
+  return true;
 }
 
 JNIEXPORT void JNICALL
 Java_edu_asu_sma_NodeContainer_dispose(JNIEnv* env, jobject thiz)
 {
+  sma::node->stop();
+  sma::linklayer->stop();
+  sma::node = nullptr;
+  sma::linklayer = nullptr;
+
   sma::Logger("NodeContainer").d("Goodbye, cruel world!");
 }
 
