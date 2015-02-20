@@ -21,9 +21,10 @@ template <typename F, typename... A>
 struct AsyncTask {
   using result_type = typename std::result_of<F(A...)>::type;
 
-  AsyncTask(F&& f, A&&... args)
+  template <typename U, typename... B>
+  AsyncTask(U&& f, B&&... args)
     : task(std::make_shared<std::packaged_task<result_type()>>(
-          std::bind(std::forward<F>(f), std::forward<A>(args)...)))
+          std::bind(std::forward<U>(f), std::forward<B>(args)...)))
   {
   }
 
