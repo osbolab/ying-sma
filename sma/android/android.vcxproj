@@ -92,6 +92,7 @@
       <PreprocessorDefinitions>
       </PreprocessorDefinitions>
       <UndefinePreprocessorDefinitions>NDEBUG</UndefinePreprocessorDefinitions>
+      <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
       <LibraryDependencies>log;android;m</LibraryDependencies>
@@ -104,6 +105,7 @@
       <PreprocessorDefinitions>
       </PreprocessorDefinitions>
       <UndefinePreprocessorDefinitions>NDEBUG</UndefinePreprocessorDefinitions>
+      <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
       <LibraryDependencies>log;android;m</LibraryDependencies>
@@ -114,6 +116,7 @@
       <ObjectFileName>$(IntDir)/%(RelativeDir)/%(filename).o</ObjectFileName>
       <TreatWarningAsError>true</TreatWarningAsError>
       <UndefinePreprocessorDefinitions>NDEBUG</UndefinePreprocessorDefinitions>
+      <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
       <LibraryDependencies>log;android;m</LibraryDependencies>
@@ -124,6 +127,7 @@
       <ObjectFileName>$(IntDir)/%(RelativeDir)/%(filename).o</ObjectFileName>
       <TreatWarningAsError>true</TreatWarningAsError>
       <UndefinePreprocessorDefinitions>NDEBUG</UndefinePreprocessorDefinitions>
+      <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
       <LibraryDependencies>log;android;m</LibraryDependencies>
