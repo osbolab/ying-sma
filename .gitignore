@@ -4,6 +4,7 @@ local.properties
 
 # Object directories
 build/
+out/
 
 # Compiled Object files
 *.slo
@@ -30,6 +31,11 @@ build/
 *.exe
 *.out
 *.app
+
+# Visual Studio
+*.sdf
+*.opensdf
+*.so.recipe
 
 # CMake
 CMakeCache.txt

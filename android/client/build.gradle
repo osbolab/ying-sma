@@ -65,7 +65,7 @@ android {
     // Use existing native libraries generated with ndk-build
     jniLibs.srcDir ndkOutput
   }
-
+/*
   //noinspection GroovyAssignabilityCheck
   task buildNative(type: Exec, description: 'Compile JNI source with ndk-build') {
     println('executing buildNative')
@@ -101,4 +101,5 @@ android {
     compileTask -> compileTask.dependsOn buildNative
   }
   clean.dependsOn cleanNative
+*/
 }

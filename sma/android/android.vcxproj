@@ -1,0 +1,252 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x86">
+      <Configuration>Debug</Configuration>
+      <Platform>x86</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM">
+      <Configuration>Release</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x86">
+      <Configuration>Release</Configuration>
+      <Platform>x86</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{d161a90b-dcfa-4699-ab2d-98bb25af9e2c}</ProjectGuid>
+    <Keyword>Android</Keyword>
+    <ApplicationType>Android</ApplicationType>
+    <ApplicationTypeRevision>1.0</ApplicationTypeRevision>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>Clang_3_4</PlatformToolset>
+    <UseOfStl>c++_static</UseOfStl>
+    <AndroidAPILevel>android-18</AndroidAPILevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>Clang_3_4</PlatformToolset>
+    <UseOfStl>c++_static</UseOfStl>
+    <AndroidAPILevel>android-18</AndroidAPILevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>Clang_3_4</PlatformToolset>
+    <UseOfStl>c++_static</UseOfStl>
+    <AndroidAPILevel>android-18</AndroidAPILevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>Clang_3_4</PlatformToolset>
+    <UseOfStl>c++_static</UseOfStl>
+    <AndroidAPILevel>android-18</AndroidAPILevel>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <ReferencePath>
+    </ReferencePath>
+    <IncludePath>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Apps\android-ndk-r10\sources\android\support\include;C:\Users\msbarnar\Projects\sma\sma\android\client\include;C:\Users\msbarnar\Projects\sma\sma\android\include;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)\build\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>out\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <ReferencePath>
+    </ReferencePath>
+    <IncludePath>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Apps\android-ndk-r10\sources\android\support\include;C:\Users\msbarnar\Projects\sma\sma\android\client\include;C:\Users\msbarnar\Projects\sma\sma\android\include;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)\build\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\out\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <ReferencePath>
+    </ReferencePath>
+    <IncludePath>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Apps\android-ndk-r10\sources\android\support\include;C:\Users\msbarnar\Projects\sma\sma\android\client\include;C:\Users\msbarnar\Projects\sma\sma\android\include;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)\build\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\out\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <ReferencePath>
+    </ReferencePath>
+    <IncludePath>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Apps\android-ndk-r10\sources\android\support\include;C:\Users\msbarnar\Projects\sma\sma\android\client\include;C:\Users\msbarnar\Projects\sma\sma\android\include;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)\build\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\out\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <ClCompile>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/%(filename).o</ObjectFileName>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <PreprocessorDefinitions>
+      </PreprocessorDefinitions>
+      <UndefinePreprocessorDefinitions>NDEBUG</UndefinePreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <LibraryDependencies>log;android;m</LibraryDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <ClCompile>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/%(filename).o</ObjectFileName>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <PreprocessorDefinitions>
+      </PreprocessorDefinitions>
+      <UndefinePreprocessorDefinitions>NDEBUG</UndefinePreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <LibraryDependencies>log;android;m</LibraryDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <ClCompile>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/%(filename).o</ObjectFileName>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <UndefinePreprocessorDefinitions>NDEBUG</UndefinePreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <LibraryDependencies>log;android;m</LibraryDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <ClCompile>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/%(filename).o</ObjectFileName>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <UndefinePreprocessorDefinitions>NDEBUG</UndefinePreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <LibraryDependencies>log;android;m</LibraryDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="android.cpp" />
+    <ClCompile Include="client\src\async.cpp" />
+    <ClCompile Include="client\src\bsdinetlink.cpp" />
+    <ClCompile Include="client\src\chrono.cpp" />
+    <ClCompile Include="client\src\neighborhelper.cpp" />
+    <ClCompile Include="client\src\node.cpp" />
+    <ClCompile Include="client\src\nodecontainer.cpp" />
+    <ClCompile Include="src\ccn\behaviorhelper.cpp" />
+    <ClCompile Include="src\ccn\behaviorhelperimpl.cpp" />
+    <ClCompile Include="src\ccn\blockdata.cpp" />
+    <ClCompile Include="src\ccn\ccnnode.cpp" />
+    <ClCompile Include="src\ccn\contentcache.cpp" />
+    <ClCompile Include="src\ccn\contenthelper.cpp" />
+    <ClCompile Include="src\ccn\contenthelperimpl.cpp" />
+    <ClCompile Include="src\ccn\interesthelper.cpp" />
+    <ClCompile Include="src\ccn\interesthelperimpl.cpp" />
+    <ClCompile Include="src\ccn\remoteinterest.cpp" />
+    <ClCompile Include="src\chrono.cpp" />
+    <ClCompile Include="src\context.cpp" />
+    <ClCompile Include="src\gps.cpp" />
+    <ClCompile Include="src\helper.cpp" />
+    <ClCompile Include="src\link.cpp" />
+    <ClCompile Include="src\linklayerimpl.cpp" />
+    <ClCompile Include="src\neighborhelper.cpp" />
+    <ClCompile Include="src\neighborhelperimpl.cpp" />
+    <ClCompile Include="src\stats.cpp" />
+    <ClCompile Include="src\util\binaryinput.cpp" />
+    <ClCompile Include="src\util\binaryoutput.cpp" />
+    <ClCompile Include="src\util\detail\sha256.cpp" />
+    <ClCompile Include="src\util\hash.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="android.h" />
+    <ClInclude Include="client\include\sma\android\bsdinetlink.hpp" />
+    <ClInclude Include="client\include\sma\android\neighborhelper.hpp" />
+    <ClInclude Include="client\include\sma\android\node.hpp" />
+    <ClInclude Include="client\include\sma\android\nodecontainer.hpp" />
+    <ClInclude Include="client\include\sma\utility.hpp" />
+    <ClInclude Include="include\sma\async.hpp" />
+    <ClInclude Include="include\sma\beacon.hpp" />
+    <ClInclude Include="include\sma\ccn\behaviorhelper.hpp" />
+    <ClInclude Include="include\sma\ccn\behaviorhelperimpl.hpp" />
+    <ClInclude Include="include\sma\ccn\blockdata.hpp" />
+    <ClInclude Include="include\sma\ccn\blockref.hpp" />
+    <ClInclude Include="include\sma\ccn\blockrequest.hpp" />
+    <ClInclude Include="include\sma\ccn\blockrequestargs.hpp" />
+    <ClInclude Include="include\sma\ccn\blockresponse.hpp" />
+    <ClInclude Include="include\sma\ccn\ccnfwd.hpp" />
+    <ClInclude Include="include\sma\ccn\ccnnode.hpp" />
+    <ClInclude Include="include\sma\ccn\contentann.hpp" />
+    <ClInclude Include="include\sma\ccn\contentcache.hpp" />
+    <ClInclude Include="include\sma\ccn\contenthelper.hpp" />
+    <ClInclude Include="include\sma\ccn\contenthelperimpl.hpp" />
+    <ClInclude Include="include\sma\ccn\contentmetadata.hpp" />
+    <ClInclude Include="include\sma\ccn\contentname.hpp" />
+    <ClInclude Include="include\sma\ccn\contenttype.hpp" />
+    <ClInclude Include="include\sma\ccn\interest.hpp" />
+    <ClInclude Include="include\sma\ccn\interestann.hpp" />
+    <ClInclude Include="include\sma\ccn\interesthelper.hpp" />
+    <ClInclude Include="include\sma\ccn\interesthelperimpl.hpp" />
+    <ClInclude Include="include\sma\ccn\interestrank.hpp" />
+    <ClInclude Include="include\sma\ccn\remoteinterest.hpp" />
+    <ClInclude Include="include\sma\ccn\storedblock.hpp" />
+    <ClInclude Include="include\sma\ccn\storedcontent.hpp" />
+    <ClInclude Include="include\sma\chrono.hpp" />
+    <ClInclude Include="include\sma\collect\delay_queue.hpp" />
+    <ClInclude Include="include\sma\collect\priority_queue.hpp" />
+    <ClInclude Include="include\sma\component.hpp" />
+    <ClInclude Include="include\sma\concurrent\cyclic_barrier.hpp" />
+    <ClInclude Include="include\sma\concurrent\rwsmutex.hpp" />
+    <ClInclude Include="include\sma\concurrent\threadpool.hpp" />
+    <ClInclude Include="include\sma\concurrent\thread_interrupted.hpp" />
+    <ClInclude Include="include\sma\context.hpp" />
+    <ClInclude Include="include\sma\dummygps.hpp" />
+    <ClInclude Include="include\sma\forwardstrategy.hpp" />
+    <ClInclude Include="include\sma\gps.hpp" />
+    <ClInclude Include="include\sma\gpscomponent.hpp" />
+    <ClInclude Include="include\sma\helper.hpp" />
+    <ClInclude Include="include\sma\io\log.hpp" />
+    <ClInclude Include="include\sma\link.hpp" />
+    <ClInclude Include="include\sma\linklayer.hpp" />
+    <ClInclude Include="include\sma\linklayerimpl.hpp" />
+    <ClInclude Include="include\sma\messagebuffer.hpp" />
+    <ClInclude Include="include\sma\messageheader.hpp" />
+    <ClInclude Include="include\sma\messagetypes.hpp" />
+    <ClInclude Include="include\sma\neighbor.hpp" />
+    <ClInclude Include="include\sma\neighborhelper.hpp" />
+    <ClInclude Include="include\sma\neighborhelperimpl.hpp" />
+    <ClInclude Include="include\sma\neighborrecord.hpp" />
+    <ClInclude Include="include\sma\nodeid.hpp" />
+    <ClInclude Include="include\sma\prforwardstrategy.hpp" />
+    <ClInclude Include="include\sma\smafwd.hpp" />
+    <ClInclude Include="include\sma\stats.hpp" />
+    <ClInclude Include="include\sma\thread_scheduler.hpp" />
+    <ClInclude Include="include\sma\util\binaryformat.hpp" />
+    <ClInclude Include="include\sma\util\binaryinput.hpp" />
+    <ClInclude Include="include\sma\util\binaryoutput.hpp" />
+    <ClInclude Include="include\sma\util\buffer.hpp" />
+    <ClInclude Include="include\sma\util\bytes.hpp" />
+    <ClInclude Include="include\sma\util\circularbuffer.hpp" />
+    <ClInclude Include="include\sma\util\detail\sha256.hpp" />
+    <ClInclude Include="include\sma\util\detail\uint_with_size.hpp" />
+    <ClInclude Include="include\sma\util\event.hpp" />
+    <ClInclude Include="include\sma\util\floating.hpp" />
+    <ClInclude Include="include\sma\util\hash.hpp" />
+    <ClInclude Include="include\sma\util\reader.hpp" />
+    <ClInclude Include="include\sma\util\ringbuffer.hpp" />
+    <ClInclude Include="include\sma\util\serial.hpp" />
+    <ClInclude Include="include\sma\util\sink.hpp" />
+    <ClInclude Include="include\sma\util\typecode.hpp" />
+    <ClInclude Include="include\sma\util\typesieve.hpp" />
+    <ClInclude Include="include\sma\util\unique_cast.hpp" />
+    <ClInclude Include="include\sma\util\vec2d.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="sources.props" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>
