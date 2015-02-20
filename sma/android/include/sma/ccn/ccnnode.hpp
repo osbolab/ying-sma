@@ -1,5 +1,4 @@
 #pragma once
-#pragma GCC diagnostic ignored "-Wextern-c-compat"
 
 #include <sma/nodeid.hpp>
 #include <sma/util/vec2d.hpp>

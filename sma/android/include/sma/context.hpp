@@ -1,6 +1,4 @@
 #pragma once
-// Suppress "empty struct has size 0 in C, size 1 in C++"
-#pragma GCC diagnostic ignored "-Wextern-c-compat"
 
 #include <sma/linklayer.hpp>
 
