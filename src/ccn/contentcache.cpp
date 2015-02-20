@@ -47,7 +47,7 @@ void ContentCache::log_utilization()
   }
   log.i("cache utilization, %v, %v",
         double(frozen_slots * block_size) / capacity,
-        double(unfrozen_slots * block_size) / capacity);
+        double(occupied_idxs.size() * block_size) / capacity);
 }
 
 

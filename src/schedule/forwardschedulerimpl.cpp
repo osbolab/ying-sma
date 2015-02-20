@@ -129,7 +129,7 @@ namespace sma
 
 	std::size_t ForwardSchedulerImpl::get_bandwidth() const
 	{
-		return 30;
+		return 64;
 	}
 
     void ForwardSchedulerImpl::sched() // which will be called regularly
@@ -252,6 +252,7 @@ namespace sma
 	  std::vector<BlockRef> blocks_to_unfreeze;
 	  std::vector<BlockRef> blocks_to_broadcast;
 
+      int bandwidth_reserved = 0;
       for (std::size_t c=0; c<sched_result.size();c++)
       {
 
@@ -265,6 +266,7 @@ namespace sma
           {
 			blocks_to_broadcast.push_back (block_id);
   		    block_to_schedule.erase (block_id);
+            bandwidth_reserved++;
           }
         }
         else
@@ -275,11 +277,19 @@ namespace sma
         }
       }
 
-//      sched_ptr->get_logger()->d("sending freeze/unfreeze commands...");
+      auto freeze_block_it = blocks_to_freeze.begin();
+      while (bandwidth_reserved < sched_ptr->get_bandwidth()
+              && freeze_block_it != blocks_to_freeze.end())
+      {
+        blocks_to_broadcast.push_back (*freeze_block_it);
+        block_to_schedule.erase (*freeze_block_it);
+        bandwidth_reserved++;
+        freeze_block_it++;
+      }
+
 	  sched_ptr->freeze_blocks (blocks_to_freeze);
 	  sched_ptr->unfreeze_blocks (blocks_to_unfreeze);
 
-//      sched_ptr->get_logger()->d("done.");
 	  for (std::size_t c=0; c!=blocks_to_broadcast.size(); c++)
 	  {
 		sched_ptr->broadcast_block (blocks_to_broadcast[c].hash,
@@ -346,7 +356,7 @@ namespace sma
             {
   			int time_span = std::chrono::duration_cast<std::chrono::milliseconds>(deadline
   				- current_time).count();
-              return time_span / sched_ptr->get_sched_interval();
+              return time_span / sched_ptr->get_sched_interval()-1;
             }
             else
               return -1;

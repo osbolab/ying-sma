@@ -52,7 +52,7 @@ namespace sma
       node.interests->clear_local();
       // random create_new interest.
 
-      int num_of_types = 1; //rand() % categories.size() + 1;
+      int num_of_types = 0; //rand() % categories.size() + 1;
       std::unordered_set <std::string> type_strs;
 
       while (num_of_types > 0)
@@ -78,7 +78,8 @@ namespace sma
 //      types.push_back (ContentType("type2"));
 //      types.push_back (ContentType("type4"));
 	  
-      node.interests->create_local(types);
+      if (types.size() > 0)
+        node.interests->create_local(types);
 
       // schedule next interest behavior
       float ratio = (rand()%60-30) / 100.0;  // alpha = 30%
@@ -129,7 +130,7 @@ namespace sma
               types,
               get_rand_str_n(16),
               data,
-              sizeof n_blocks * 1024);
+              n_blocks * 1024);
 
       delete[] data;
 
@@ -162,11 +163,6 @@ namespace sma
         std::size_t rand_index = rand() % total_metas;
         Hash content_name = meta_vec[rand_index].hash;
 
-        node.log.i("Request content %v at %v", 
-                   content_name,
-                   std::chrono::duration_cast<millis>(
-                       clock::now().time_since_epoch()).count()); 
-
         float min_util = 0.1f;
         float max_util = 1.0f;
 
@@ -182,10 +178,15 @@ namespace sma
         float ttl_per_block = min_ttl
             + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX)/(max_ttl - min_ttl));
 
-
-        
         std::chrono::milliseconds ttl (static_cast<int>(ttl_per_block));
 
+        node.log.i("Request content %v at %v with utility %v with ttl %v(ms)", 
+                   content_name,
+                   std::chrono::duration_cast<millis>(
+                       clock::now().time_since_epoch()).count(),
+                   utility_per_block,
+                   ttl_per_block); 
+ 
         int* shuffle_idx_arr = new int [num_of_blocks];
 
         //shuffle
