@@ -1,4 +1,4 @@
-APP_ABI := x86
+APP_ABI := $(TARGET_ABI)
 NDK_TOOLCHAIN_VERSION := clang
 APP_CPPFLAGS += -std=c++11
 APP_STL := c++_static
