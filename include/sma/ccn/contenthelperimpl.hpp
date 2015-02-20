@@ -23,6 +23,7 @@
 #include <cstdlib>
 #include <utility>
 #include <memory>
+#include <cstdint>
 
 
 namespace sma
@@ -67,6 +68,7 @@ public:
   // For example, calling this while iterating a collection that is modified
   // by the caller may cause the caller's iterator to be invalidated.
   void request(std::vector<BlockRequestArgs> requests) override;
+  void request_content(Hash hash, float utility, std::uint32_t ttl) override;
   bool broadcast(BlockRef block) override;
 
   std::size_t frozen(std::vector<BlockRef> const& blocks,

@@ -8,6 +8,7 @@
 #include <string>
 #include <sma/ccn/ccnnode.hpp>
 #include <vector>
+#include <sma/util/hash.hpp>
 
 
 namespace sma
@@ -25,6 +26,7 @@ public:
           std::chrono::milliseconds download_content_freq);
 
   void behave ();
+  bool on_content (Hash hash);
 
 private:
   static const char * alphanum;

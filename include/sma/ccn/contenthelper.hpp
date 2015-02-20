@@ -6,6 +6,7 @@
 
 #include <cstdlib>
 #include <utility>
+#include <cstdint>
 
 
 namespace sma
@@ -56,6 +57,9 @@ public:
   //! Send one message to the network containing all of the given block
   //! requests.
   virtual void request(std::vector<BlockRequestArgs> requests) = 0;
+
+  //! Send one message to the network the content request
+  virtual void request_content(Hash hash, float utility, std::uint32_t ttl) = 0;
 
   //! Broadcast completely the data for the specified block.
   // \return An interface that can be used to keep or mark as free the cache

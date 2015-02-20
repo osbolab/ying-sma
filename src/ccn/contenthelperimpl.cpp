@@ -217,6 +217,7 @@ void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
 
     if (cached_block != cache->end() && cached_block != store->end()
         && cached_block.complete()) {
+      assert ("shouldn't happen");
       prt.erase(req->block);
       already_have.push_back(std::move(req->block));
       req = requests.erase(req);
@@ -262,6 +263,64 @@ void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
   already_in_request = false;
 }
 
+void ContentHelperImpl::request_content (Hash content_name, 
+                                         float utility_per_block, 
+                                         std::uint32_t ttl)
+{
+  // check local meta
+  for (auto const & local_meta : lmt) {
+    if (local_meta.data.hash == content_name) {
+      node.log.i ("content %v is locally cached", content_name);
+      content_complete_event(content_name);
+      return; // more complicated function can be added, e.g., return data
+    }
+  }
+
+  // check remote meta
+  int num_of_blocks = 0;
+  for (auto const & remote_meta : rmt) {
+    if (remote_meta.data.hash == content_name) {
+      num_of_blocks = 1 + (remote_meta.data.size-1)/(remote_meta.data.block_size);
+    }
+  }
+
+  assert (num_of_blocks != 0); // disable for real implementation
+  if (num_of_blocks == 0)
+    return;
+
+  int* shuffle_idx_arr = new int [num_of_blocks];
+  //shuffle
+  for (std::size_t i=0; i<num_of_blocks; i++)
+    shuffle_idx_arr[i] = i;
+
+  std::random_shuffle (shuffle_idx_arr, shuffle_idx_arr + num_of_blocks);
+  std::vector<BlockRequestArgs> requests;
+  for (std::size_t i=0; i<num_of_blocks; i++) {
+    BlockRef block (content_name, shuffle_idx_arr[i]);
+    auto cached_block = cache->find(block);
+
+    if (cached_block == cache->end())
+      cached_block = store->find(block);
+
+    if (cached_block != cache->end() && cached_block != store->end()
+        && cached_block.complete())
+      continue;
+
+    requests.push_back (BlockRequestArgs(BlockRef(content_name, shuffle_idx_arr[i]),
+                                         utility_per_block,
+                                         std::chrono::milliseconds(ttl),
+                                         node.id,
+                                         node.position(),
+                                         0,
+                                         true));
+  }
+
+  delete[] shuffle_idx_arr;
+  if (requests.size() > 0)
+    this->request (requests); 
+  else
+    content_complete_event(content_name);
+}
 
 void ContentHelperImpl::receive(MessageHeader header, BlockRequest msg)
 {

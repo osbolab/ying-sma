@@ -10,6 +10,9 @@
 #include <sma/ccn/contenthelper.hpp>
 #include <unordered_set>
 #include <algorithm>
+#include <sma/util/event.hpp>
+#include <sma/io/log>
+#include <sma/util/hash.hpp>
 
 namespace sma
 {	
@@ -23,15 +26,28 @@ namespace sma
 	
 	const std::vector<std::string> BehaviorHelperImpl::categories = const_categories;
 
-    BehaviorHelperImpl::BehaviorHelperImpl (CcnNode& node,
+    BehaviorHelperImpl::BehaviorHelperImpl (CcnNode& host_node,
            std::chrono::milliseconds post_interest_freq,
            std::chrono::milliseconds post_content_freq,
            std::chrono::milliseconds download_content_freq)
-        : BehaviorHelper (node)
+        : BehaviorHelper (host_node)
         , interest_freq (post_interest_freq)
         , publish_freq (post_content_freq)
         , request_freq (download_content_freq)
-    {}
+    {
+      node.content->on_content_complete() += std::bind(&BehaviorHelperImpl::on_content, 
+              this, 
+              std::placeholders::_1);
+    }
+    
+    bool BehaviorHelperImpl::on_content (Hash hash)
+    {
+      node.log.i ("complete download content %v at %v", 
+              hash,
+              clock::now().time_since_epoch().count());
+
+      return true; 
+    }
 
     void BehaviorHelperImpl::behave ()
     {
@@ -169,49 +185,24 @@ namespace sma
         float utility_per_block = min_util 
             + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX)/(max_util-min_util));
 
-        int num_of_blocks = 1+((meta_vec[rand_index].size-1)/meta_vec[rand_index].block_size);
-
-        std::vector<BlockRequestArgs> requests;
-
         float min_ttl = 10000.0;
         float max_ttl = 18000.0;
         float ttl_per_block = min_ttl
             + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX)/(max_ttl - min_ttl));
 
-        std::chrono::milliseconds ttl (static_cast<int>(ttl_per_block));
+//        std::chrono::milliseconds ttl (static_cast<int>(ttl_per_block));
 
         node.log.i("Request content %v at %v with utility %v with ttl %v(ms)", 
                    content_name,
                    std::chrono::duration_cast<millis>(
                        clock::now().time_since_epoch()).count(),
                    utility_per_block,
-                   ttl_per_block); 
+                   ttl_per_block);
+				   
+        node.content->request_content (content_name,
+		                               utility_per_block,
+		                               static_cast<std::uint32_t> (ttl_per_block));
  
-        int* shuffle_idx_arr = new int [num_of_blocks];
-
-        //shuffle
-        for (std::size_t i=0; i<num_of_blocks; i++)
-        {
-          shuffle_idx_arr[i] = i;
-        }
-
-        std::random_shuffle (shuffle_idx_arr, shuffle_idx_arr + num_of_blocks);
-
-        for (std::size_t i=0; i<num_of_blocks; i++)
-        {
-
-          requests.push_back (BlockRequestArgs(BlockRef(content_name, shuffle_idx_arr[i]),
-                     utility_per_block,
-                     ttl,
-                     node.id,
-                     node.position(),
-                     0,
-                     true));
-        }
-
-        delete[] shuffle_idx_arr;
-
-        node.content->request (requests);
       }
       // schedule next request behavior
       float ratio = (rand()%60 - 30) / 100.0;
