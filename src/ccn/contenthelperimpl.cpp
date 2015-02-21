@@ -232,7 +232,6 @@ void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
 
     if (cached_block != cache->end() && cached_block != store->end()
         && cached_block.complete()) {
-      assert ("shouldn't happen");
       prt.erase(req->block);
       already_have.push_back(std::move(req->block));
       req = requests.erase(req);
@@ -243,6 +242,8 @@ void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
 
     auto it = prt.find(req->block);
     if (it != prt.end()) {
+      // Avoid redudant request forwarding.
+      requests.erase(req);
       auto& pending = it->second;
       // Update existing pending requests to have a longer TTL or keep the
       // requested block.
@@ -257,9 +258,8 @@ void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
           req->block,
           PendingRequest{clock::now(), new_expiry, req->keep_on_arrival});
       check_pending_requests(new_expiry);
+      ++req;
     }
-
-    ++req;
   }
 
   if (not requests.empty()) {
@@ -272,8 +272,9 @@ void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
   // collection that it modifies. If the block arrived handler reenters that
   // caller, the inner execution will modify the collection while the outer
   // execution is still iterating, invalidating its iterators.
-  for (auto& block : already_have)
+  for (auto& block : already_have) {
     block_arrived_event(block);
+  }
 
   already_in_request = false;
 }

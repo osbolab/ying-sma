@@ -69,7 +69,7 @@ namespace sma
       node.interests->clear_local();
       // random create_new interest.
 
-      int num_of_types = 0; //rand() % categories.size() + 1;
+      int num_of_types = 1; //rand() % categories.size() + 1;
       std::unordered_set <std::string> type_strs;
 
       while (num_of_types > 0)
@@ -186,7 +186,7 @@ namespace sma
         float utility_per_block = min_util 
             + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX)/(max_util-min_util));
 
-        float min_ttl = 5 * node.sched->get_sched_interval();
+        float min_ttl = 10 * node.sched->get_sched_interval();
         float max_ttl = 20 * node.sched->get_sched_interval();
         float ttl_per_block = min_ttl
             + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX)/(max_ttl - min_ttl));

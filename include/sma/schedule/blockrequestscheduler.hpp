@@ -30,15 +30,21 @@ public:
   int get_ttl (NodeId id, Hash content_name, BlockIndex block_index);
   float get_utility(NodeId id, Hash content_name, BlockIndex block_index);
   int get_num_of_nodes () const;
+  void clear_request (Hash hash, BlockIndex index);
 
 private:
+
+  using clock = std::chrono::system_clock;
+  using Ms = std::chrono::milliseconds;
 
   std::unordered_map<NodeId, std::vector<BlockRequestDesc>> request_desc_table; 
   std::queue<BlockRequestDesc> request_queue;
   ForwardSchedulerImpl* sched_ptr;
+//  std::unordered_map<BlockRef, clock::time_point> forwarded_requests; 
 
   std::size_t fwd_requests (std::size_t max_num_of_requests);
   void insert_request (NodeId id, BlockRequestArgs request);
+//  void refresh_forwarded_requests();
   
 };
 

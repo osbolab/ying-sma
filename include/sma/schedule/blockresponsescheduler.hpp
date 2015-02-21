@@ -28,6 +28,7 @@ public:
 
 private:
   std::unordered_set<BlockRef> block_to_schedule;
+  std::unordered_set<BlockRef> stored_block_to_schedule;
   std::unordered_set<BlockRef> block_arrived_buf;
   ForwardSchedulerImpl* sched_ptr;
   std::unordered_map<BlockRef, std::size_t> block_to_seq;

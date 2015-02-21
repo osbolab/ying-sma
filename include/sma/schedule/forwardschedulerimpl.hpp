@@ -47,6 +47,7 @@ public:
   float get_utility (NodeId id, Hash content_name, BlockIndex block_index); 
   const Logger* get_logger() const;
   NodeId get_node_id() const;
+  void clear_request (Hash hash, BlockIndex index);
 
 
 private:

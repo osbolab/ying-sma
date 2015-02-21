@@ -18,6 +18,7 @@
 #include <chrono>
 #include <sma/util/event.hpp>
 #include <sma/io/log>
+#include <utility>
 
 namespace sma
 {
@@ -146,6 +147,11 @@ namespace sma
     void ForwardSchedulerImpl::reset_bandwidth()
     {
         used_bandwidth = 0; 
+    }
+
+    void ForwardSchedulerImpl::clear_request (Hash hash, BlockIndex index)
+    {
+      blockrequest_sched_ptr->clear_request (hash, index); 
     }
 
     void ForwardSchedulerImpl::sched() // which will be called regularly
@@ -291,9 +297,7 @@ namespace sma
         }
         else
         {
-          //// unfreeze cache
-          //
-          blocks_to_unfreeze.push_back (block_id);
+         blocks_to_unfreeze.push_back (block_id);
         }
       }
 
@@ -329,6 +333,8 @@ namespace sma
                                     blocks_to_broadcast[c].index);
 		sched_ptr->get_logger()->d("block: %v %v", blocks_to_broadcast[c].hash,
                                     blocks_to_broadcast[c].index);
+        sched_ptr->clear_request(blocks_to_broadcast[c].hash,
+                                 blocks_to_broadcast[c].index);
 	  }
 
       return blocks_to_broadcast.size(); // update the num_of_blocks to broadcast
@@ -356,6 +362,44 @@ namespace sma
       for (auto it = requests.begin(); it != requests.end(); ++it)
       {
         insert_request (id, *it);
+      }
+      
+//      asynctask (&BlockRequestScheduler::refresh_forwarded_requests, this).do_in (
+//              std::chrono::milliseconds (50 * sched_ptr->get_sched_interval()));
+
+    }
+
+/*    void BlockRequestScheduler::refresh_forwarded_requests()
+    {
+      auto current_time = sma::chrono::system_clock::now();
+      auto fwd_request_it = forwarded_requests.begin();
+      while (fwd_request_it != forwarded_requests.end()) {
+        if (fwd_request_it->second < current_time)
+          fwd_request_it = forwarded_requests.erase(fwd_request_it);
+        else
+          fwd_request_it++;
+      }
+    }
+*/
+
+    void BlockRequestScheduler::clear_request (Hash hash, BlockIndex index)
+    {
+      auto reqIt = request_desc_table.begin();
+      while (reqIt != request_desc_table.end())
+      {
+        auto descIt = (reqIt->second).begin();
+        while (descIt != (reqIt->second).end())
+        {
+          if (descIt->content_name == hash
+                  && descIt->block_index == index)
+            (reqIt->second).erase (descIt);
+          else
+            descIt++;
+        }
+        if ( (reqIt->second).size() == 0 )
+          reqIt = request_desc_table.erase (reqIt);
+        else
+          reqIt++; 
       }
     }
 
@@ -389,6 +433,8 @@ namespace sma
             else
             {
               (requests_per_node->second).erase(it);
+              sched_ptr->get_logger()->d ("clearing request for %v %v due to ttl",
+                      it->content_name, it->block_index);
               if ( (requests_per_node->second).size() == 0)
                   request_desc_table.erase(requests_per_node);
               return -1;
@@ -450,8 +496,9 @@ namespace sma
         {
   	      auto ttl = std::chrono::duration_cast<std::chrono::milliseconds>
               (desc.expire_time - current_time);
+          BlockRef block (desc.content_name, desc.block_index);
           auto arg
-              = BlockRequestArgs (BlockRef (desc.content_name,desc.block_index),
+              = BlockRequestArgs (block,
                               desc.utility,
                               ttl,
 //  							  desc.requester,
@@ -460,6 +507,9 @@ namespace sma
                               false);
 
           request_to_fwd.push_back(arg);
+
+//          forwarded_requests.insert (std::make_pair(block, 
+//                      std::chrono::time_point_cast<Ms>(desc.expire_time)));
         }
         request_queue.pop();
         max_num_of_requests--;
@@ -473,6 +523,7 @@ namespace sma
 
     void BlockRequestScheduler::insert_request (NodeId nodeID, BlockRequestArgs request)
     {
+
       auto requests_per_node = request_desc_table.find(nodeID);
       auto current_time = sma::chrono::system_clock::now();
 
@@ -489,6 +540,21 @@ namespace sma
 
       assert (nodeID == request.requester);
 
+/*      // do not forward the request if it has been broadcast
+      // but the request info should be still updated, e.g.,
+      // ttl, utility
+      auto fwd_request_it = forwarded_requests.find (BlockRef (desc.content_name, desc.block_index));
+      if (fwd_request_it  == forwarded_requests.end()
+              || fwd_request_it->second < current_time) {
+      {
+        request_queue.push(desc);
+        if (fwd_request_it != forwarded_requests.end())
+          forwarded_requests.erase (fwd_request_it);
+      }
+      else
+        sched_ptr->get_logger()->d ("request discarded %v %v", desc.content_name, desc.block_index);
+*/
+      
       request_queue.push(desc);
 
       if (requests_per_node == request_desc_table.end())
