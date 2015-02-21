@@ -58,7 +58,7 @@ int main(int argc, char** argv)
   configure_logs(argc, argv);
 
   std::size_t nnodes = 60;
-  long duration = 600;
+  long duration = 100;
 
   std::string baseIp("10.1.0.0");
   std::string subnet("255.255.0.0");
@@ -67,11 +67,11 @@ int main(int argc, char** argv)
   std::string phyMode("DsssRate1Mbps");
   double rss = -80.0;       // -dBm
   double distance = 100;    // m
-  std::string fragmentThreshold = "500";
-  std::uint16_t packet_size = 64;
+  std::string fragmentThreshold = "1";
+//  std::uint16_t packet_size = 64;
 
   bool arq = true;
-  bool enableFlowMonitor = true;
+  bool enableFlowMonitor = false;
   std::string animFile
       = "trace-based-mobility-sim.xml";    // Name of file for animation output
 
@@ -80,7 +80,7 @@ int main(int argc, char** argv)
   std::string strategy("friis model");
   std::string input;
   std::string runID;
-  std::string traceFile = "../../traces/trace_60_600";
+  std::string traceFile = "../../traces/trace_60_600_1_0_5000_5000";
   std::string logFile = "ns2traceoutput.txt";
 
   ns3::CommandLine cmd;
@@ -88,12 +88,12 @@ int main(int argc, char** argv)
   cmd.AddValue("rss", "Received Signal Strength", rss);
   cmd.AddValue("distance", "distance (m)", distance);
   cmd.AddValue("nodes", "number of nodes", nnodes);
-  cmd.AddValue("packet", "packet size", packet_size);
+//  cmd.AddValue("packet", "packet size", packet_size);
   cmd.AddValue("olsr", "enable optimized link state routing", enable_olsr);
   cmd.AddValue("animFile", "File Name for Animation Output", animFile);
   cmd.AddValue("arq", "whether to use arq", arq);
-  //  cmd.AddValue("EnableFlowMonitor", "Enable Flow Monitor",
-  //  enableFlowMonitor);
+  cmd.AddValue("EnableFlowMonitor", "Enable Flow Monitor",
+    enableFlowMonitor);
   // Add parameters related to statistics framework.
   cmd.AddValue("format", "Format to use for data output.", format);
   cmd.AddValue("experiment", "Identifier for experiment.", experiment);
@@ -255,11 +255,11 @@ int main(int argc, char** argv)
   //  olsr.PrintNeighborCacheAllEvery(ns3::Seconds(2), neighborStream);
 
   // Flow monitor
-  //  ns3::FlowMonitorHelper flowmon;
-  //  ns3::Ptr<ns3::FlowMonitor> monitor = flowmon.InstallAll();
-  //  monitor->SetAttribute("DelayBinWidth", ns3::DoubleValue(0.001));
-  //  monitor->SetAttribute("JitterBinWidth", ns3::DoubleValue(0.001));
-  //  monitor->SetAttribute("PacketSizeBinWidth", ns3::DoubleValue(1000));
+  ns3::FlowMonitorHelper flowmon;
+  ns3::Ptr<ns3::FlowMonitor> monitor = flowmon.InstallAll();
+  monitor->SetAttribute("DelayBinWidth", ns3::DoubleValue(0.001));
+  monitor->SetAttribute("JitterBinWidth", ns3::DoubleValue(0.001));
+  monitor->SetAttribute("PacketSizeBinWidth", ns3::DoubleValue(1000));
 
   LOG(WARNING) << "Simulating " << duration << " seconds";
   ns3::Simulator::Stop(ns3::Seconds(duration + 5));
@@ -277,19 +277,21 @@ int main(int argc, char** argv)
 
 
 
-  //  std::stringstream sstr ("");
-  //  sstr << nnodes
-  //	   << "-"
-  //	   << "distance";
-  //  input = sstr.str();
+    std::stringstream sstr ("");
+    sstr << nnodes
+  	   << "-"
+  	   << "distance";
+    input = sstr.str();
 
-  //  ns3::DataCollector data;
-  //  data.DescribeRun (experiment,
-  //                    strategy,
-  //					input,
-  //					runID);
+    ns3::DataCollector data;
+    data.DescribeRun (experiment,
+                      strategy,
+					  input,
+  					  runID);
 
 
+  for (std::size_t i=0; i<nnodes; i++)
+      add_stats_on_node (data, i);
   //  add_stats_on_node(data, 0);
   //  add_stats_on_node(data, 1);
   //  add_stats_on_node(data, 2);
@@ -305,7 +307,7 @@ int main(int argc, char** argv)
 
   ns3::Simulator::Run();
 
-  /*
+  
     // Print per flow statistics
     monitor->CheckForLostPackets ();
     ns3::Ptr<ns3::Ipv4FlowClassifier> classifier =
@@ -346,7 +348,7 @@ int main(int argc, char** argv)
     monitor->SerializeToXmlFile("FlowMonitor.xml", true, true);
 
 
-  */
+  
 
 
 
@@ -439,10 +441,10 @@ void add_stats_on_node(ns3::DataCollector& data, uint16_t node_id)
 
   ns3::Config::Connect(sstr.str(),
                        ns3::MakeBoundCallback(&TxCallback, totalTx));
-  //  ns3::Config::Connect
-  //  ("/NodeList/0/DeviceList/*/$ns3::WifiNetDevice/Mac/MacTx",
-  //				   ns3::MakeBoundCallback (&TxCallback,
-  //totalTx));
+  ns3::Config::Connect
+  ("/NodeList/0/DeviceList/*/$ns3::WifiNetDevice/Mac/MacTx",
+				   ns3::MakeBoundCallback (&TxCallback,
+  totalTx));
   data.AddDataCalculator(totalTx);
 
   ns3::Ptr<ns3::CounterCalculator<uint32_t>> totalRx

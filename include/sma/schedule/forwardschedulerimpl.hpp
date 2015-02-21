@@ -46,6 +46,7 @@ public:
   int get_ttl (NodeId id, Hash content_name, BlockIndex block_index);                                                                     
   float get_utility (NodeId id, Hash content_name, BlockIndex block_index); 
   const Logger* get_logger() const;
+  NodeId get_node_id() const;
 
 
 private:
@@ -54,9 +55,17 @@ private:
   BlockRequestScheduler* blockrequest_sched_ptr;
   BlockResponseScheduler* blockresponse_sched_ptr;
 
+  static std::size_t total_bandwidth;
+  std::size_t used_bandwidth;
+
+  static std::size_t meta_cycles;
+  std::size_t cycles;
+
   void schedule_interest_fwd ();
   void schedule_metadata_fwd ();
   void schedule_blockrequest_fwd ();
   void schedule_blockresponse_fwd ();
+
+  void reset_bandwidth();
 };
 }

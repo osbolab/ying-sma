@@ -107,8 +107,23 @@ std::size_t ContentHelperImpl::announce_metadata()
 
   auto const announced = will_announce.size();
 
-  if (not will_announce.empty())
-    node.post(ContentAnn(std::move(will_announce)));
+  std::size_t max_announce = 1;
+
+  if (not will_announce.empty()) {
+    if (will_announce.size() > max_announce) {
+      std::vector<ContentMetadata> actual_announce;
+      while (max_announce > 0) {
+        int ix = rand() % will_announce.size();
+        auto meta = will_announce[ix];
+        will_announce.erase (will_announce.begin() + ix);
+        actual_announce.push_back (meta);
+        max_announce--;
+      }
+      node.post(ContentAnn(std::move(actual_announce)));
+    } else {
+      node.post(ContentAnn(std::move(will_announce)));
+    }
+  }
 
   if (auto_announce)
     asynctask(&ContentHelperImpl::announce_metadata, this)

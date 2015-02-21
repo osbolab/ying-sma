@@ -108,7 +108,7 @@ public:
           float total_utilities = 0;
           for (std::size_t k=0; k<num_of_neighbor; k++)
           {
-            if (ttl_per_block[k][c] == -1)
+            if (ttl_per_block[k][c] <= -1)
               continue;
             if (ttl_per_block[k][c] + 1 == t)
             {

@@ -29,6 +29,7 @@ public:
   std::size_t sched();
   int get_ttl (NodeId id, Hash content_name, BlockIndex block_index);
   float get_utility(NodeId id, Hash content_name, BlockIndex block_index);
+  int get_num_of_nodes () const;
 
 private:
 

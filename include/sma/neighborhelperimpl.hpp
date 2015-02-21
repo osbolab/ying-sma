@@ -53,7 +53,7 @@ private:
   static constexpr unsigned int INITIAL_REFRESH_MS = 5000;
 
   //! The time to wait for an expired neighbor to respond to a beacon.
-  millis query_response_delay{100};
+  millis query_response_delay{5000};
 
   void schedule_beacon(millis delay);
   //! Broadcast a beacon message to all neighbors.

@@ -8,6 +8,7 @@
 #include <sma/ccn/contenttype.hpp>
 #include <sma/ccn/interesthelper.hpp>
 #include <sma/ccn/contenthelper.hpp>
+#include <sma/schedule/forwardscheduler.hpp>
 #include <unordered_set>
 #include <algorithm>
 #include <sma/util/event.hpp>
@@ -185,12 +186,10 @@ namespace sma
         float utility_per_block = min_util 
             + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX)/(max_util-min_util));
 
-        float min_ttl = 10000.0;
-        float max_ttl = 18000.0;
+        float min_ttl = 5 * node.sched->get_sched_interval();
+        float max_ttl = 20 * node.sched->get_sched_interval();
         float ttl_per_block = min_ttl
             + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX)/(max_ttl - min_ttl));
-
-//        std::chrono::milliseconds ttl (static_cast<int>(ttl_per_block));
 
         node.log.i("Request content %v at %v with utility %v with ttl %v(ms)", 
                    content_name,

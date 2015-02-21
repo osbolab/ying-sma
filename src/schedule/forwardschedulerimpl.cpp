@@ -22,10 +22,16 @@
 namespace sma
 {
 
+    std::size_t ForwardSchedulerImpl::total_bandwidth = 16;
+
+    std::size_t ForwardSchedulerImpl::meta_cycles = 100;
+
     using namespace std::placeholders;
 
     ForwardSchedulerImpl::ForwardSchedulerImpl(CcnNode& host_node, std::uint32_t interval)
         : ForwardScheduler (host_node, interval)
+        , used_bandwidth (0)
+        , cycles (0)
     {
       interest_sched_ptr = new InterestScheduler(this);
       meta_sched_ptr = new MetaScheduler(this);
@@ -92,6 +98,11 @@ namespace sma
       return node.neighbors->get();
     }
 
+    NodeId ForwardSchedulerImpl::get_node_id() const
+    {
+      return node.id; 
+    }
+
     std::size_t ForwardSchedulerImpl::get_num_of_neighbor() const
     {
       return (node.neighbors->get()).size();
@@ -129,19 +140,27 @@ namespace sma
 
 	std::size_t ForwardSchedulerImpl::get_bandwidth() const
 	{
-		return 64;
+		return total_bandwidth - used_bandwidth;
 	}
+
+    void ForwardSchedulerImpl::reset_bandwidth()
+    {
+        used_bandwidth = 0; 
+    }
 
     void ForwardSchedulerImpl::sched() // which will be called regularly
     {
       // all the nums will be used later for piroritized broadcast
       auto start = std::chrono::system_clock::now();
 
-      int num_of_requests = blockrequest_sched_ptr->sched();
-      int num_of_blocks = blockresponse_sched_ptr->sched();
+      std::size_t num_of_requests = blockrequest_sched_ptr->sched();
+      std::size_t num_of_blocks = blockresponse_sched_ptr->sched();
 
-      int num_of_meta = meta_sched_ptr->sched();
-      int num_of_interests = interest_sched_ptr->sched();
+      if (cycles % meta_cycles == 0) {
+        int num_of_interests = interest_sched_ptr->sched();
+        int num_of_metas = meta_sched_ptr->sched();
+        cycles = (cycles+1) % meta_cycles;
+      }
 
       auto end = std::chrono::system_clock::now();
 
@@ -178,6 +197,7 @@ namespace sma
 
     std::size_t BlockResponseScheduler::sched()
     {
+      sched_ptr->get_logger()->i ("scheduling responses"); 
       for (auto it=block_arrived_buf.begin();
               it != block_arrived_buf.end(); it++)
       {
@@ -287,19 +307,26 @@ namespace sma
         freeze_block_it++;
       }
 
+
+/*      auto unfrozen_block_it = blocks_to_unfreeze.begin();
+      while (bandwidth_reserved < sched_ptr->get_bandwidth()
+              && unfrozen_block_it != blocks_to_unfreeze.end())
+      {
+        blocks_to_broadcast.push_back (*unfrozen_block_it);
+        block_to_schedule.erase (*unfrozen_block_it);
+        bandwidth_reserved++;
+        unfrozen_block_it++;
+      }
+*/
+
 	  sched_ptr->freeze_blocks (blocks_to_freeze);
 	  sched_ptr->unfreeze_blocks (blocks_to_unfreeze);
 
+      sched_ptr->get_logger()->d("sending %v broadcast command...", blocks_to_broadcast.size());
 	  for (std::size_t c=0; c!=blocks_to_broadcast.size(); c++)
 	  {
 		sched_ptr->broadcast_block (blocks_to_broadcast[c].hash,
                                     blocks_to_broadcast[c].index);
-	  }
-
-      sched_ptr->get_logger()->d("sending %v broadcast command...", blocks_to_broadcast.size());
-
-	  for (std::size_t c=0; c!=blocks_to_broadcast.size(); c++)
-	  {
 		sched_ptr->get_logger()->d("block: %v %v", blocks_to_broadcast[c].hash,
                                     blocks_to_broadcast[c].index);
 	  }
@@ -356,10 +383,16 @@ namespace sma
             {
   			int time_span = std::chrono::duration_cast<std::chrono::milliseconds>(deadline
   				- current_time).count();
+//              return (time_span / sched_ptr->get_sched_interval())/2-1;
               return time_span / sched_ptr->get_sched_interval()-1;
             }
             else
+            {
+              (requests_per_node->second).erase(it);
+              if ( (requests_per_node->second).size() == 0)
+                  request_desc_table.erase(requests_per_node);
               return -1;
+            }
           }
           it++;
         }
@@ -399,7 +432,9 @@ namespace sma
         return total_utility == 0 ? 0 :  (target_utility / total_utility);
       }
       else
+      {
         return 0;
+      }
     }
 
     std::size_t BlockRequestScheduler::fwd_requests (std::size_t max_num_of_requests)
@@ -419,7 +454,8 @@ namespace sma
               = BlockRequestArgs (BlockRef (desc.content_name,desc.block_index),
                               desc.utility,
                               ttl,
-  							  desc.requester,
+//  							  desc.requester,
+                              sched_ptr->get_node_id(),
                               desc.origin_location,
                               false);
 
@@ -450,6 +486,8 @@ namespace sma
                              nodeID,
                              request.requester,
                              request.requester_position);
+
+      assert (nodeID == request.requester);
 
       request_queue.push(desc);
 
