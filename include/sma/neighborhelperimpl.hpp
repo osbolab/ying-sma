@@ -45,6 +45,8 @@ public:
   //! Fired when known neighbors are dropped due to inactivity.
   Event<std::vector<NodeId>> on_departure;
 
+  Vec2d get_position(NodeId id) const override;
+
 private:
   using clock = sma::chrono::system_clock;
   using time_point = clock::time_point;

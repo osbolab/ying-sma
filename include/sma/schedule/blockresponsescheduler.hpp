@@ -23,7 +23,7 @@ public:
       : sched_ptr (ptr) 
   {}
     
-  void add_response(BlockRef blockid);
+  void add_response(NodeId id, BlockRef blockid);
   std::size_t sched();
 
 private:

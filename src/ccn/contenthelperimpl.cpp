@@ -273,7 +273,7 @@ void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
   // caller, the inner execution will modify the collection while the outer
   // execution is still iterating, invalidating its iterators.
   for (auto& block : already_have) {
-    block_arrived_event(block);
+    block_arrived_event(node.id, block);
   }
 
   already_in_request = false;
@@ -428,7 +428,7 @@ void ContentHelperImpl::receive(MessageHeader header, BlockResponse msg)
   if (not is_stored and (cache->find(msg.block) == cache->end()))
     cache->store(msg.block, msg.size, msg.data, msg.size);
 
-  block_arrived_event(msg.block);
+  block_arrived_event(header.sender, msg.block);
 
   if (will_rebroadcast) {
     log.d("| I'll rebroadcast it, too");
@@ -531,7 +531,7 @@ Event<BlockRef>& ContentHelperImpl::on_request_timeout()
   return request_timedout_event;
 }
 
-Event<BlockRef>& ContentHelperImpl::on_block_arrived()
+Event<NodeId, BlockRef>& ContentHelperImpl::on_block_arrived()
 {
   return block_arrived_event;
 }

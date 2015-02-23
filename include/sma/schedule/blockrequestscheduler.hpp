@@ -11,6 +11,7 @@
 #include <sma/ccn/ccnnode.hpp>
 #include <unordered_map>
 #include <sma/ccn/blockref.hpp> 
+#include <unordered_set>
 
 namespace sma
 {
@@ -29,8 +30,11 @@ public:
   std::size_t sched();
   int get_ttl (NodeId id, Hash content_name, BlockIndex block_index);
   float get_utility(NodeId id, Hash content_name, BlockIndex block_index);
-  int get_num_of_nodes () const;
   void clear_request (Hash hash, BlockIndex index);
+  void delete_request_from_node (NodeId id, Hash hash, BlockIndex index);
+  std::unordered_set<NodeId> get_request_nodes() const;
+  bool has_request_for_block (BlockRef block) const;
+  std::vector<BlockRequestDesc> get_requests_for_block (BlockRef block) const;
 
 private:
 

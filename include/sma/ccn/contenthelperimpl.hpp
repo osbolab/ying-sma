@@ -77,7 +77,7 @@ public:
   Event<ContentMetadata>& on_interesting_content() override;
   Event<NodeId, std::vector<BlockRequestArgs>>& on_blocks_requested() override;
   Event<BlockRef>& on_request_timeout() override;
-  Event<BlockRef>& on_block_arrived() override;
+  Event<NodeId, BlockRef>& on_block_arrived() override;
   Event<Hash>& on_content_complete() override;
 
 private:
@@ -135,7 +135,7 @@ private:
   Event<ContentMetadata> interesting_content_event;
   Event<NodeId, std::vector<BlockRequestArgs>> blocks_requested_event;
   Event<BlockRef> request_timedout_event;
-  Event<BlockRef> block_arrived_event;
+  Event<NodeId,BlockRef> block_arrived_event;
   Event<Hash> content_complete_event;
 
   std::unique_ptr<ContentCache> cache;

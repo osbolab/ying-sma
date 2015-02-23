@@ -27,5 +27,7 @@ public:
   virtual void receive(MessageHeader header, Beacon msg) = 0;
 
   virtual std::vector<Neighbor> get() const = 0;
+
+  virtual Vec2d get_position (NodeId id) const = 0;
 };
 }

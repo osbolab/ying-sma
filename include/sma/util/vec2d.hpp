@@ -26,6 +26,11 @@ struct Vec2d {
     return Vec2d(dividend / divisor.x, dividend / divisor.y);
   }
 
+  static double distance(Vec2d const& a, Vec2d const& b)
+  {
+    return std::sqrt((a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y));  
+  }
+
 
   TRIVIALLY_SERIALIZABLE(Vec2d, x, y)
 

@@ -44,6 +44,15 @@ void NeighborHelperImpl::saw(NodeId const& node, Vec2d const& position)
   }
 }
 
+Vec2d NeighborHelperImpl::get_position (NodeId id) const
+{
+  auto neighbor_it = neighbors.begin();
+  if (neighbor_it != neighbors.end())
+    return (neighbor_it->second).position();
+  else
+    return node.position();
+}
+
 void NeighborHelperImpl::receive(MessageHeader header, Beacon msg)
 {
   saw(header.sender, msg.position);

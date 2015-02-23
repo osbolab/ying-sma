@@ -15,6 +15,8 @@
 #include <utility>
 #include <sma/ccn/blockref.hpp>
 #include <sma/io/log>
+#include <unordered_set>
+#include <sma/schedule/blockrequestdesc.hpp>
 
 namespace sma
 {
@@ -26,7 +28,7 @@ public:
   ~ForwardSchedulerImpl();
   
   bool on_blockrequest (NodeId id, std::vector<BlockRequestArgs>  requests) override;
-  bool on_block (BlockRef block) override;
+  bool on_block (NodeId id, BlockRef block) override;
   void sched () override;
 
   std::size_t freeze_blocks (std::vector<BlockRef> blocks);
@@ -48,7 +50,13 @@ public:
   const Logger* get_logger() const;
   NodeId get_node_id() const;
   void clear_request (Hash hash, BlockIndex index);
-
+  void delete_request_from_node (NodeId id, Hash hash, BlockIndex index);
+  std::unordered_set<NodeId> get_request_nodes () const;
+  std::vector<BlockRequestDesc> get_requests_for_block (BlockRef block) const;
+  Vec2d get_self_position() const;
+  Vec2d get_node_position(NodeId id) const;
+  bool has_request_for_block(BlockRef block) const;
+  double get_transmission_range() const;
 
 private:
   InterestScheduler* interest_sched_ptr;

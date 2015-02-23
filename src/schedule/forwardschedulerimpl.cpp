@@ -19,11 +19,12 @@
 #include <sma/util/event.hpp>
 #include <sma/io/log>
 #include <utility>
+#include <unordered_set>
 
 namespace sma
 {
 
-    std::size_t ForwardSchedulerImpl::total_bandwidth = 16;
+    std::size_t ForwardSchedulerImpl::total_bandwidth = 8;
 
     std::size_t ForwardSchedulerImpl::meta_cycles = 100;
 
@@ -39,7 +40,7 @@ namespace sma
       blockrequest_sched_ptr = new BlockRequestScheduler(this);
       blockresponse_sched_ptr = new BlockResponseScheduler(this);
 
-      node.content->on_block_arrived() += std::bind(&ForwardSchedulerImpl::on_block, this, _1);
+      node.content->on_block_arrived() += std::bind(&ForwardSchedulerImpl::on_block, this, _1, _2);
       node.content->on_blocks_requested() += std::bind(&ForwardSchedulerImpl::on_blockrequest, this, _1, _2);
 
       // add time_out async callback later
@@ -63,9 +64,9 @@ namespace sma
       return true;
     }
 
-    bool ForwardSchedulerImpl::on_block (BlockRef block)
+    bool ForwardSchedulerImpl::on_block (NodeId id, BlockRef block)
     {
-      blockresponse_sched_ptr->add_response (block);
+      blockresponse_sched_ptr->add_response (id, block);
       return true;
     }
 
@@ -97,6 +98,11 @@ namespace sma
     std::vector<Neighbor> ForwardSchedulerImpl::get_neighbors() const
     {
       return node.neighbors->get();
+    }
+
+    std::unordered_set<NodeId> ForwardSchedulerImpl::get_request_nodes() const
+    {
+      return blockrequest_sched_ptr->get_request_nodes(); 
     }
 
     NodeId ForwardSchedulerImpl::get_node_id() const
@@ -154,6 +160,36 @@ namespace sma
       blockrequest_sched_ptr->clear_request (hash, index); 
     }
 
+    void ForwardSchedulerImpl::delete_request_from_node (NodeId id, Hash hash, BlockIndex index)
+    {
+      blockrequest_sched_ptr->delete_request_from_node (id, hash, index); 
+    }
+
+    std::vector<BlockRequestDesc> ForwardSchedulerImpl::get_requests_for_block (BlockRef block) const
+    {
+      return blockrequest_sched_ptr->get_requests_for_block (block); 
+    }
+    
+    double ForwardSchedulerImpl::get_transmission_range() const
+    {
+      return 500; 
+    }
+
+    Vec2d ForwardSchedulerImpl::get_self_position() const
+    {
+      return node.position();  
+    }
+
+    Vec2d ForwardSchedulerImpl::get_node_position(NodeId id) const
+    {
+      return node.neighbors->get_position (id);
+    }
+
+    bool ForwardSchedulerImpl::has_request_for_block (BlockRef block) const
+    {
+      return blockrequest_sched_ptr->has_request_for_block (block);   
+    }
+
     void ForwardSchedulerImpl::sched() // which will be called regularly
     {
       // all the nums will be used later for piroritized broadcast
@@ -196,9 +232,39 @@ namespace sma
 
 	////// blockresponsescheduler.cpp
 
-    void BlockResponseScheduler::add_response(BlockRef blockid)
-    {
-        block_arrived_buf.insert(blockid);
+    void BlockResponseScheduler::add_response(NodeId id, BlockRef blockid)
+    {      
+        //avoid resending the block to the requeste
+        //Todo: delete_from_position of from_node?
+        sched_ptr->delete_request_from_node (id, blockid.hash, blockid.index); 
+
+        // fist hop in the respond chain
+        // block is not from the network,but from the cache/store.
+        if (id == sched_ptr->get_node_id()) {
+          block_arrived_buf.insert (blockid);
+          return;
+        }
+
+        std::vector<BlockRequestDesc> requests = 
+            sched_ptr->get_requests_for_block (blockid);
+        
+        auto reqIt = requests.begin();
+        while (reqIt != requests.end()) {
+          Vec2d requester_location = sched_ptr->get_node_position(reqIt->requester);
+          Vec2d broadcaster_location = sched_ptr->get_node_position(id);
+
+          double distance = Vec2d::distance (requester_location, broadcaster_location);
+          sched_ptr->get_logger()->d ("distance is %v", distance);
+          if ( distance >  sched_ptr->get_transmission_range()) {
+            
+            block_arrived_buf.insert(blockid);
+            return;
+          }
+          reqIt++; 
+        }
+
+        sched_ptr->get_logger()->d ("block not scheduled: %v %v", blockid.hash, blockid.index);
+
     }
 
     std::size_t BlockResponseScheduler::sched()
@@ -207,7 +273,15 @@ namespace sma
       for (auto it=block_arrived_buf.begin();
               it != block_arrived_buf.end(); it++)
       {
-        block_to_schedule.insert (*it);
+        // cancel broadcast if overhearing the block
+        //Todo: also depends on the distance
+        if (block_to_schedule.find(*it) != block_to_schedule.end()) {
+          sched_ptr->clear_request(it->hash, it->index);
+          block_to_schedule.erase(*it);
+        }
+        else
+          if (sched_ptr->has_request_for_block (*it))
+            block_to_schedule.insert (*it);
       }
       block_arrived_buf.clear();
 
@@ -220,12 +294,14 @@ namespace sma
       std::size_t max_ttl = sched_ptr->get_max_ttl();
       std::size_t storage = sched_ptr->get_storage();
       std::size_t bandwidth = sched_ptr->get_bandwidth();
-      std::size_t num_of_neighbor = sched_ptr->get_num_of_neighbor();
+ //     std::size_t num_of_neighbor = sched_ptr->get_num_of_neighbor();
+      auto nodeset = sched_ptr->get_request_nodes();
+      std::size_t num_of_nodes = nodeset.size();
 
-      std::vector<std::vector<int>> ttls (num_of_neighbor,
+      std::vector<std::vector<int>> ttls (num_of_nodes,
               std::vector<int>(num_of_blocks, -1));
 
-      std::vector<std::vector<float>> utils (num_of_neighbor,
+      std::vector<std::vector<float>> utils (num_of_nodes,
               std::vector<float>(num_of_blocks, 0));
 
 
@@ -239,10 +315,14 @@ namespace sma
       {
         block_to_seq.insert(std::make_pair(*it, seq));
 
-        std::vector<Neighbor> neighbors = sched_ptr->get_neighbors();
-        for (std::size_t i=0; i<neighbors.size(); i++)
+//        std::vector<Neighbor> neighbors = sched_ptr->get_neighbors();
+//        for (std::size_t i=0; i<neighbors.size(); i++) 
+        auto nodesetIt = nodeset.begin();
+        std::size_t i=0;
+        while (nodesetIt != nodeset.end())
         {
-          NodeId node_id = neighbors[i].id;
+//          NodeId node_id = neighbors[i].id;
+          NodeId node_id = *nodesetIt;
           utils[i][seq] = sched_ptr->get_utility (node_id,
                                                  it->hash,
                                                  it->index);
@@ -250,6 +330,8 @@ namespace sma
           ttls[i][seq] = sched_ptr->get_ttl (node_id,
                                              it->hash,
                                              it->index);
+          nodesetIt++;
+          i++;
         }
         seq++;
         it++;
@@ -266,7 +348,7 @@ namespace sma
                        num_of_blocks,
                        storage,
                        bandwidth,
-                       num_of_neighbor,
+                       num_of_nodes,
                        ttls,
                        utils,
                        sched_result
@@ -281,8 +363,12 @@ namespace sma
       int bandwidth_reserved = 0;
       for (std::size_t c=0; c<sched_result.size();c++)
       {
-
+        
         BlockRef block_id = get_blockid (c);
+//        if (sched_ptr->has_request_for_block(block_id))
+//          sched_ptr->get_logger()->d ("having request for block %v %v", block_id.hash, block_id.index);
+//        else
+//          sched_ptr->get_logger()->d ("no request for block %v %v", block_id.hash, block_id.index);
         if (sched_result[c][0] == 1)
         {
           //// freeze cache
@@ -297,7 +383,12 @@ namespace sma
         }
         else
         {
+         //// unfreeze cache
          blocks_to_unfreeze.push_back (block_id);
+         // should erase rejected blocks
+         block_to_schedule.erase(block_id);
+         if (sched_ptr->has_request_for_block(block_id))
+           sched_ptr->get_logger()->d ("block %v %v is rejected", block_id.hash, block_id.index);
         }
       }
 
@@ -359,9 +450,15 @@ namespace sma
     void BlockRequestScheduler::add_requests (NodeId id, std::vector<BlockRequestArgs> requests)
     {
       // nodeID is neighbor's node, not origin node's ID.
+//      Vec2d self_position = sched_ptr->get_self_position();
       for (auto it = requests.begin(); it != requests.end(); ++it)
       {
-        insert_request (id, *it);
+        //CAUTION: requester_location is the origin location
+//        Vec2d origin_position = it->requester_position; 
+//        Vec2d requester_position = sched_ptr->get_node_position(id);
+//        if (Vec2d::distance (self_position, origin_position)
+//                < 2 * Vec2d::distance (requester_position, origin_position))
+          insert_request (id, *it);
       }
       
 //      asynctask (&BlockRequestScheduler::refresh_forwarded_requests, this).do_in (
@@ -382,6 +479,25 @@ namespace sma
     }
 */
 
+    std::vector<BlockRequestDesc> BlockRequestScheduler::get_requests_for_block (BlockRef block) const
+    {
+      std::vector<BlockRequestDesc> result;
+      auto req_tb_it = request_desc_table.begin();
+      while (req_tb_it != request_desc_table.end()) {
+        auto req_it = (req_tb_it->second).begin();
+        while (req_it != (req_tb_it->second).end()) {
+          if (block.hash == req_it->content_name
+                  && block.index == req_it->block_index)
+            result.push_back (*req_it);
+          req_it++;
+        }
+        req_tb_it++; 
+      }
+
+      return std::move(result);
+    }
+
+
     void BlockRequestScheduler::clear_request (Hash hash, BlockIndex index)
     {
       auto reqIt = request_desc_table.begin();
@@ -400,6 +516,26 @@ namespace sma
           reqIt = request_desc_table.erase (reqIt);
         else
           reqIt++; 
+      }
+    }
+
+    void BlockRequestScheduler::delete_request_from_node (NodeId id, Hash hash, BlockIndex index)
+    {
+      auto reqIt = request_desc_table.find (id);
+      if (reqIt != request_desc_table.end()) {
+        // Todo: remove expired requests
+        auto descIt = (reqIt->second).begin();
+        while (descIt != (reqIt->second).end())
+        {
+          if (descIt->content_name == hash
+                  && descIt->block_index == index)
+            (reqIt->second).erase(descIt);
+          else
+            descIt++;
+        }
+
+        if ( (reqIt->second).size() == 0)
+          request_desc_table.erase(reqIt);
       }
     }
 
@@ -481,6 +617,26 @@ namespace sma
       {
         return 0;
       }
+    }
+
+    bool BlockRequestScheduler::has_request_for_block(BlockRef block) const
+    {
+      auto req_tb_it = request_desc_table.begin();
+      while (req_tb_it != request_desc_table.end())
+      {
+        auto req_it = (req_tb_it->second).begin();
+        auto current_time = sma::chrono::system_clock::now();
+        while (req_it != (req_tb_it->second).end())
+        {
+          if (req_it->content_name == block.hash
+                  && req_it->block_index == block.index
+                  && req_it->expire_time > current_time)
+            return true;
+          req_it++; 
+        }
+        req_tb_it++; 
+      }
+      return false;
     }
 
     std::size_t BlockRequestScheduler::fwd_requests (std::size_t max_num_of_requests)
@@ -587,6 +743,19 @@ namespace sma
           (requests_per_node->second).push_back(desc);
       }
     }
+
+    std::unordered_set<NodeId> BlockRequestScheduler::get_request_nodes () const
+    {
+        std::unordered_set<NodeId> nodeid_set;
+        auto reqIt = request_desc_table.begin();
+        while (reqIt != request_desc_table.end())
+        {
+          nodeid_set.insert (reqIt->first);
+          reqIt++;
+        }
+
+        return std::move(nodeid_set);
+    }   
 
 	//// interestscheduler.cpp
 
