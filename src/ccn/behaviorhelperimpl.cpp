@@ -53,9 +53,9 @@ namespace sma
     void BehaviorHelperImpl::behave ()
     {
       // wait for random time
-      std::chrono::milliseconds rand_delay1(std::rand() % 10000); 
-      std::chrono::milliseconds rand_delay2(std::rand() % 10000); 
-      std::chrono::milliseconds rand_delay3(std::rand() % 10000); 
+      std::chrono::milliseconds rand_delay1(std::rand() % 1000); 
+      std::chrono::milliseconds rand_delay2(std::rand() % 1000); 
+      std::chrono::milliseconds rand_delay3(std::rand() % 1000); 
 
       asynctask (&BehaviorHelperImpl::behave_interest,this).do_in(rand_delay1);
       asynctask (&BehaviorHelperImpl::behave_publish, this).do_in(rand_delay2);
@@ -186,7 +186,7 @@ namespace sma
         float utility_per_block = min_util 
             + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX)/(max_util-min_util));
 
-        float min_ttl = 20 * node.sched->get_sched_interval();
+        float min_ttl = 2 * node.sched->get_sched_interval();
         float max_ttl = 20 * node.sched->get_sched_interval();
         float ttl_per_block = min_ttl
             + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX)/(max_ttl - min_ttl));

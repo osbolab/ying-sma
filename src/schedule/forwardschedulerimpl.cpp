@@ -20,13 +20,14 @@
 #include <sma/io/log>
 #include <utility>
 #include <unordered_set>
+#include <algorithm>
 
 namespace sma
 {
 
-    std::size_t ForwardSchedulerImpl::total_bandwidth = 8;
+    std::size_t ForwardSchedulerImpl::total_bandwidth = 4;
 
-    std::size_t ForwardSchedulerImpl::meta_cycles = 100;
+    std::size_t ForwardSchedulerImpl::meta_cycles = 10;
 
     using namespace std::placeholders;
 
@@ -269,7 +270,6 @@ namespace sma
 
     std::size_t BlockResponseScheduler::sched()
     {
-      sched_ptr->get_logger()->i ("scheduling responses"); 
       for (auto it=block_arrived_buf.begin();
               it != block_arrived_buf.end(); it++)
       {
@@ -342,7 +342,7 @@ namespace sma
               std::vector<std::size_t>(max_ttl+2));
 
 
-      sched_ptr->get_logger()->d("scheduling %v blocks...", num_of_blocks);
+      sched_ptr->get_logger()->d("%v blocks to schedule...", num_of_blocks);
 
       double max_util = LPSolver::solve (max_ttl,
                        num_of_blocks,
@@ -394,10 +394,10 @@ namespace sma
       {
         blocks_to_broadcast.insert (*freeze_block_it);
         block_to_schedule.erase (*freeze_block_it);
-//        blocks_to_unfreeze.insert (*freeze_block_it);
-//        freeze_block_it = blocks_to_freeze.erase (freeze_block_it);
+        blocks_to_unfreeze.insert (*freeze_block_it);
+        freeze_block_it = blocks_to_freeze.erase (freeze_block_it);
         bandwidth_reserved++;
-        freeze_block_it++;
+//        freeze_block_it++;
       }
 
 
@@ -414,10 +414,11 @@ namespace sma
 
 
       sched_ptr->get_logger()->d("sending %v broadcast command...", blocks_to_broadcast.size());
-//	  for (std::size_t c=0; c!=blocks_to_broadcast.size(); c++)
       for (auto br_block_it = blocks_to_broadcast.begin();
               br_block_it != blocks_to_broadcast.end(); br_block_it++)
 	  {
+        /// BUG: should broadcast each block twice.
+		sched_ptr->broadcast_block (br_block_it->hash, br_block_it->index);
 		sched_ptr->broadcast_block (br_block_it->hash, br_block_it->index);
         sched_ptr->clear_request (br_block_it->hash, br_block_it->index);
 	  }
@@ -538,7 +539,7 @@ namespace sma
 
 	std::size_t BlockRequestScheduler::sched()
 	{
-	  return fwd_requests(sched_ptr->get_bandwidth()); 
+	  return fwd_requests(std::max<std::size_t>(100,sched_ptr->get_bandwidth())); 
 	}
 
     int BlockRequestScheduler::get_ttl (NodeId id, Hash content_name, BlockIndex block_index)

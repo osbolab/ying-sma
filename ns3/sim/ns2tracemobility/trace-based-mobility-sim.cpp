@@ -36,10 +36,48 @@ _INITIALIZE_EASYLOGGINGPP    // Call only once per application
 #include <sstream>
 #include <ctime>
 
-    static void
-    CourseChange(std::ostream* os,
-                 std::string foo,
-                 ns3::Ptr<const ns3::MobilityModel> mobility);
+
+
+uint32_t MacTxDropCount, MacRxDropCount, PhyTxDropCount, PhyRxDropCount;
+
+void MacTxDrop(ns3::Ptr<const ns3::Packet> p)
+{
+  LOG(INFO) << "MacTx Packet Drop";
+  MacTxDropCount++;
+}
+
+void MacRxDrop(ns3::Ptr<const ns3::Packet> p)
+{
+	LOG(INFO) << "MacRx Packet Drop";
+	MacRxDropCount++;
+}
+
+void PrintDrop()
+{
+  std::cout << ns3::Simulator::Now().GetSeconds() << "\n" 
+	  << "MacTxDropCount: " << MacTxDropCount << "\t"
+	  << "macRxDropCount: " << MacRxDropCount << "\t"
+	  << "PhyTxDropCount: " << PhyTxDropCount << "\t" 
+	  << "PhyRxDropCount: " << PhyRxDropCount << "\n";
+  ns3::Simulator::Schedule(ns3::Seconds(5.0), &PrintDrop);
+}
+
+void PhyTxDrop(ns3::Ptr<const ns3::Packet> p)
+{
+  LOG(INFO) << "PhyTx Packet Drop";
+  PhyTxDropCount++;
+}
+void PhyRxDrop(ns3::Ptr<const ns3::Packet> p)
+{
+  LOG(INFO) << "PhyRx Packet Drop";
+  PhyRxDropCount++;
+}
+
+
+//    static void
+//    CourseChange(std::ostream* os,
+//                 std::string foo,
+//                 ns3::Ptr<const ns3::MobilityModel> mobility);
 
 void configure_logs(int& argc, char** argv);
 
@@ -50,7 +88,7 @@ void TxCallback(ns3::Ptr<ns3::CounterCalculator<uint32_t>> datac,
                 ns3::Ptr<const ns3::Packet> packet);
 
 void RxCallback(ns3::Ptr<ns3::CounterCalculator<uint32_t>> datac,
-                std::string path,
+               std::string path,
                 ns3::Ptr<const ns3::Packet> packet);
 
 int main(int argc, char** argv)
@@ -58,7 +96,7 @@ int main(int argc, char** argv)
   configure_logs(argc, argv);
 
   std::size_t nnodes = 60;
-  long duration = 100;
+  long duration = 600;
 
   std::string baseIp("10.1.0.0");
   std::string subnet("255.255.0.0");
@@ -71,7 +109,7 @@ int main(int argc, char** argv)
 //  std::uint16_t packet_size = 64;
 
   bool arq = true;
-  bool enableFlowMonitor = false;
+  bool enableFlowMonitor = true;
   std::string animFile
       = "trace-based-mobility-sim.xml";    // Name of file for animation output
 
@@ -175,8 +213,8 @@ int main(int argc, char** argv)
 
   ns2mobility.Install();
 
-  ns3::Config::Connect("/NodeList/*/$ns3::MobilityModel/CourseChange",
-                       MakeBoundCallback(&CourseChange, &os));
+//  ns3::Config::Connect("/NodeList/*/$ns3::MobilityModel/CourseChange",
+//                       MakeBoundCallback(&CourseChange, &os));
 
   ns3::OlsrHelper olsr;
   ns3::Ipv4ListRoutingHelper list;
@@ -257,12 +295,12 @@ int main(int argc, char** argv)
   // Flow monitor
   ns3::FlowMonitorHelper flowmon;
   ns3::Ptr<ns3::FlowMonitor> monitor = flowmon.InstallAll();
-  monitor->SetAttribute("DelayBinWidth", ns3::DoubleValue(0.001));
-  monitor->SetAttribute("JitterBinWidth", ns3::DoubleValue(0.001));
-  monitor->SetAttribute("PacketSizeBinWidth", ns3::DoubleValue(1000));
+//  monitor->SetAttribute("DelayBinWidth", ns3::DoubleValue(0.001));
+//  monitor->SetAttribute("JitterBinWidth", ns3::DoubleValue(0.001));
+//  monitor->SetAttribute("PacketSizeBinWidth", ns3::DoubleValue(1000));
 
   LOG(WARNING) << "Simulating " << duration << " seconds";
-  ns3::Simulator::Stop(ns3::Seconds(duration + 5));
+  ns3::Simulator::Stop(ns3::Seconds(duration + 60));
 
   // Create the animation object and configure for specified output
   ns3::AnimationInterface anim(animFile);
@@ -277,75 +315,90 @@ int main(int argc, char** argv)
 
 
 
-    std::stringstream sstr ("");
-    sstr << nnodes
-  	   << "-"
-  	   << "distance";
-    input = sstr.str();
+      std::stringstream sstr ("");
+	      sstr << nnodes
+			   << "-"
+		  	   << "distance";
+      input = sstr.str();
 
-    ns3::DataCollector data;
-    data.DescribeRun (experiment,
+      ns3::DataCollector data;
+      data.DescribeRun (experiment,
                       strategy,
 					  input,
-  					  runID);
+ 					  runID);
 
 
-  for (std::size_t i=0; i<nnodes; i++)
-      add_stats_on_node (data, i);
-  //  add_stats_on_node(data, 0);
-  //  add_stats_on_node(data, 1);
-  //  add_stats_on_node(data, 2);
-  //  add_stats_on_node(data, 3);
-  //  add_stats_on_node(data, 4);
-  //  add_stats_on_node(data, 5);
-  //  add_stats_on_node(data, 6);
-  //  add_stats_on_node(data, 7);
-  //  add_stats_on_node(data, 8);
+	 for (std::size_t i=0; i<nnodes; i++)
+	    add_stats_on_node (data, i);
+//    add_stats_on_node(data, 0);
+//    add_stats_on_node(data, 1);
+//    add_stats_on_node(data, 2);
+//    add_stats_on_node(data, 3);
+//    add_stats_on_node(data, 4);
+//    add_stats_on_node(data, 5);
+//    add_stats_on_node(data, 6);
+//    add_stats_on_node(data, 7);
+//    add_stats_on_node(data, 8);
+
+
+  //---------------------------------------------------------------------------
+  //-- Get drop rate
+  //---------------------------------------------------------------------------
+  
+  // Trace Collisions
+  ns3::Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/MacTxDrop", MakeCallback(&MacTxDrop));
+  ns3::Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyRxDrop", MakeCallback(&PhyRxDrop));
+  ns3::Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyTxDrop", MakeCallback(&PhyTxDrop));
+
+
+
   //---------------------------------------------------------------------------
   //-- Run the simulation
   //---------------------------------------------------------------------------
 
   ns3::Simulator::Run();
+  
+  PrintDrop();
 
   
     // Print per flow statistics
-    monitor->CheckForLostPackets ();
-    ns3::Ptr<ns3::Ipv4FlowClassifier> classifier =
-    ns3::DynamicCast<ns3::Ipv4FlowClassifier> (flowmon.GetClassifier ());
-    std::map<ns3::FlowId, ns3::FlowMonitor::FlowStats> stats =
-    monitor->GetFlowStats ();
-    LOG(DEBUG) << stats.size();
-    uint32_t totalRx =0;
-    uint32_t totalTx =0;
-    uint32_t totalDrop =0;
-    double delay = 0;
-    double count =0;
-    double hopCount = 0;
-    for (std::map<ns3::FlowId, ns3::FlowMonitor::FlowStats>::const_iterator i =
-    stats.begin (); i != stats.end (); ++i)
-    {
-        ns3::Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
-        if (i->second.rxPackets != 0){
-           totalRx +=  i->second.rxPackets;
-           totalTx +=  i->second.txPackets;
-           hopCount += (i->second.timesForwarded / i->second.rxPackets +1);
-           delay += (i->second.delaySum.GetSeconds() / i->second.rxPackets);
-           count++;
-           for (uint32_t j=0; j < i->second.packetsDropped.size() ; j++){
-             totalDrop += i->second.packetsDropped[j];
-           }
-         }
-    }
-    LOG(INFO) << "  total Rx = " << (double)totalRx;
-    LOG(INFO) << "  total Tx = " << (double)totalTx;
-    LOG(INFO) << "  PDR = " << ((double)totalRx / (double)totalTx)*100.0;
-    LOG(INFO) << "  hopCount = " << hopCount;
-    LOG(INFO) << "  count = " << count;
-    LOG(INFO) << "  Mean HOP count = " << hopCount / count;
-    LOG(INFO) << "  Mean Delay = " << delay / count;
-    LOG(INFO) << "  L3 Drop Packets = " << totalDrop;
+ //   monitor->CheckForLostPackets ();
+//    ns3::Ptr<ns3::Ipv4FlowClassifier> classifier =
+//    ns3::DynamicCast<ns3::Ipv4FlowClassifier> (flowmon.GetClassifier ());
+//    std::map<ns3::FlowId, ns3::FlowMonitor::FlowStats> stats =
+//    monitor->GetFlowStats ();
+ //   LOG(DEBUG) << stats.size();
+//    uint32_t totalRx =0;
+//    uint32_t totalTx =0;
+//    uint32_t totalDrop =0;
+//    double delay = 0;
+//    double count =0;
+//    double hopCount = 0;
+//    for (std::map<ns3::FlowId, ns3::FlowMonitor::FlowStats>::const_iterator i =
+ //   stats.begin (); i != stats.end (); ++i)
+//    {
+ //       ns3::Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
+//        if (i->second.rxPackets != 0){
+//           totalRx +=  i->second.rxPackets;
+//           totalTx +=  i->second.txPackets;
+//           hopCount += (i->second.timesForwarded / i->second.rxPackets +1);
+ //          delay += (i->second.delaySum.GetSeconds() / i->second.rxPackets);
+//           count++;
+//           for (uint32_t j=0; j < i->second.packetsDropped.size() ; j++){
+//             totalDrop += i->second.packetsDropped[j];
+//           }
+//         }
+//    }
+//    LOG(INFO) << "  total Rx = " << (double)totalRx;
+//    LOG(INFO) << "  total Tx = " << (double)totalTx;
+//    LOG(INFO) << "  PDR = " << ((double)totalRx / (double)totalTx)*100.0;
+//    LOG(INFO) << "  hopCount = " << hopCount;
+//    LOG(INFO) << "  count = " << count;
+//    LOG(INFO) << "  Mean HOP count = " << hopCount / count;
+//    LOG(INFO) << "  Mean Delay = " << delay / count;
+//    LOG(INFO) << "  L3 Drop Packets = " << totalDrop;
 
-    monitor->SerializeToXmlFile("FlowMonitor.xml", true, true);
+//    monitor->SerializeToXmlFile("FlowMonitor.xml", true, true);
 
 
   
@@ -386,18 +439,18 @@ int main(int argc, char** argv)
   LOG(INFO) << "done.";
 }
 
-static void CourseChange(std::ostream* os,
-                         std::string foo,
-                         ns3::Ptr<const ns3::MobilityModel> mobility)
-{
-  ns3::Vector pos = mobility->GetPosition();
-  ns3::Vector vel = mobility->GetVelocity();
+//static void CourseChange(std::ostream* os,
+//                         std::string foo,
+//                         ns3::Ptr<const ns3::MobilityModel> mobility)
+//{
+//  ns3::Vector pos = mobility->GetPosition();
+//  ns3::Vector vel = mobility->GetVelocity();
 
-  // Prints position and velocities
-  *os << ns3::Simulator::Now() << " POS: x=" << pos.x << ", y=" << pos.y
-      << ", z=" << pos.z << "; VEL:" << vel.x << ", y=" << vel.y
-      << ", z=" << vel.z << std::endl;
-}
+//  // Prints position and velocities
+//  *os << ns3::Simulator::Now() << " POS: x=" << pos.x << ", y=" << pos.y
+//      << ", z=" << pos.z << "; VEL:" << vel.x << ", y=" << vel.y
+//      << ", z=" << vel.z << std::endl;
+//{}
 
 void configure_logs(int& argc, char** argv)
 {
@@ -425,64 +478,57 @@ void add_stats_on_node(ns3::DataCollector& data, uint16_t node_id)
 {
 
 
-  ns3::Ptr<ns3::CounterCalculator<uint32_t>> totalTx
+    ns3::Ptr<ns3::CounterCalculator<uint32_t>> totalTx
       = ns3::CreateObject<ns3::CounterCalculator<uint32_t>>();
 
 
-  totalTx->SetKey("random-walk-tx-frame");
-  std::stringstream sstr("");
-  sstr << node_id;
-  totalTx->SetContext(sstr.str());
-  sstr.str("");
+    totalTx->SetKey("trace-based tx frame");
+    std::stringstream sstr("");
+    sstr << node_id;
+    totalTx->SetContext(sstr.str());
+    sstr.str("");
 
-  sstr << "/NodeList/" << node_id
-       << "/DeviceList/*/$ns3::WifiNetDevice/Mac/MacTx";
-  LOG(INFO) << "NODELIST: " << sstr.str();
+    sstr << "/NodeList/" << node_id
+         << "/DeviceList/*/$ns3::WifiNetDevice/Mac/MacTxDrop";
+    LOG(INFO) << "NODELIST: " << sstr.str();
 
-  ns3::Config::Connect(sstr.str(),
-                       ns3::MakeBoundCallback(&TxCallback, totalTx));
-  ns3::Config::Connect
-  ("/NodeList/0/DeviceList/*/$ns3::WifiNetDevice/Mac/MacTx",
-				   ns3::MakeBoundCallback (&TxCallback,
-  totalTx));
-  data.AddDataCalculator(totalTx);
+    ns3::Config::Connect(sstr.str(),
+                   ns3::MakeBoundCallback(&TxCallback, totalTx));
+    ns3::Config::Connect("/NodeList/0/DeviceList/*/$ns3::WifiNetDevice/Mac/MacTxDrop",
+				   ns3::MakeBoundCallback (&TxCallback,totalTx));
+    data.AddDataCalculator(totalTx);
 
-  ns3::Ptr<ns3::CounterCalculator<uint32_t>> totalRx
-      = ns3::CreateObject<ns3::CounterCalculator<uint32_t>>();
-  totalRx->SetKey("random-walk-rx-frame");
-  sstr.str("");
-  sstr << node_id;
-  totalRx->SetContext(sstr.str());
-  sstr.str("");
+	ns3::Ptr<ns3::CounterCalculator<uint32_t>> totalRx
+		= ns3::CreateObject<ns3::CounterCalculator<uint32_t>>();
+	totalRx->SetKey("trace-based rx frame");
+	sstr.str("");
+	sstr << node_id;
+	totalRx->SetContext(sstr.str());
+	sstr.str("");
 
-  sstr << "/NodeList/" << node_id
-       << "/DeviceList/*/$ns3::WifiNetDevice/Mac/MacRx",
-      ns3::Config::Connect(sstr.str(),
-                           ns3::MakeBoundCallback(&RxCallback, totalRx));
-  data.AddDataCalculator(totalRx);
-  // Calculate the number of frames received by at least one node
-  //  auto node = nodes.Get(id_to_check);
-  //  auto app_installed = ns3::DynamicCast<sma::Ns3NodeContainer>
-  //  (node->GetApplication(0)); // only one app is installed
-  //  std::vector<sma::NodeId> neighbor_ids = app_installed->get_neighbor_ids();
-  //  LOG(INFO) << "The # of neighbors of node " << id_to_check << " is " <<
-  //  neighbor_ids.size();
+	sstr << "/NodeList/" << node_id
+         << "/DeviceList/*/$ns3::WifiNetDevice/Mac/MacRxDrop",
+    ns3::Config::Connect(sstr.str(),
+                   ns3::MakeBoundCallback(&RxCallback, totalRx));
+	ns3::Config::Connect("/NodeList/0/DeviceList/*/$ns3::WifiNetDevice/Mac/MacRxDrop",
+					ns3::MakeBoundCallback (&RxCallback,totalRx));
+    data.AddDataCalculator(totalRx);
 }
 
 void TxCallback(ns3::Ptr<ns3::CounterCalculator<uint32_t>> datac,
-                std::string path,
-                ns3::Ptr<const ns3::Packet> packet)
+                 std::string path,
+                 ns3::Ptr<const ns3::Packet> packet)
 {
-  LOG(INFO) << "Frame transmitted";
-  LOG(INFO) << "Sent frame counted in " << datac->GetKey();
-  datac->Update();
+	LOG(INFO) << "Frame transmitted";
+	LOG(INFO) << "Sent frame counted in " << datac->GetKey();
+	datac->Update();
 }
 
 void RxCallback(ns3::Ptr<ns3::CounterCalculator<uint32_t>> datac,
-                std::string path,
-                ns3::Ptr<const ns3::Packet> packet)
+               std::string path,
+               ns3::Ptr<const ns3::Packet> packet)
 {
-  LOG(INFO) << "Frame recieved";
-  LOG(INFO) << "Received frame counted in " << datac->GetKey();
-  datac->Update();
+	LOG(INFO) << "Frame recieved";
+	LOG(INFO) << "Received frame counted in " << datac->GetKey();
+	datac->Update();
 }

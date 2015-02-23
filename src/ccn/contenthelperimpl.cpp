@@ -107,7 +107,7 @@ std::size_t ContentHelperImpl::announce_metadata()
 
   auto const announced = will_announce.size();
 
-  std::size_t max_announce = 1;
+  std::size_t max_announce = 10;
 
   if (not will_announce.empty()) {
     if (will_announce.size() > max_announce) {
