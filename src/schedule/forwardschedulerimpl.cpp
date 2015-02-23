@@ -80,14 +80,14 @@ namespace sma
       return blockrequest_sched_ptr->get_utility (id, content_name, block_index);
     }
 
-    std::size_t ForwardSchedulerImpl::freeze_blocks (std::vector<BlockRef> blocks)
+    std::size_t ForwardSchedulerImpl::freeze_blocks (std::unordered_set<BlockRef> blocks)
     {
-      return node.content->frozen(std::move(blocks), true);
+      return node.content->frozen(std::vector<BlockRef>(blocks.begin(), blocks.end()), true);
     }
 
-    std::size_t ForwardSchedulerImpl::unfreeze_blocks (std::vector<BlockRef> blocks)
+    std::size_t ForwardSchedulerImpl::unfreeze_blocks (std::unordered_set<BlockRef> blocks)
     {
-      return node.content->frozen(std::move(blocks), false);
+      return node.content->frozen(std::vector<BlockRef>(blocks.begin(), blocks.end()), false);
     }
 
     bool ForwardSchedulerImpl::broadcast_block (Hash name, BlockIndex index)
@@ -356,27 +356,23 @@ namespace sma
 
       sched_ptr->get_logger()->i ("| overall utility: %v", max_util);
 
-	  std::vector<BlockRef> blocks_to_freeze;
-	  std::vector<BlockRef> blocks_to_unfreeze;
-	  std::vector<BlockRef> blocks_to_broadcast;
+	  std::unordered_set<BlockRef> blocks_to_freeze;
+	  std::unordered_set<BlockRef> blocks_to_unfreeze;
+	  std::unordered_set<BlockRef> blocks_to_broadcast;
 
       int bandwidth_reserved = 0;
       for (std::size_t c=0; c<sched_result.size();c++)
       {
         
         BlockRef block_id = get_blockid (c);
-//        if (sched_ptr->has_request_for_block(block_id))
-//          sched_ptr->get_logger()->d ("having request for block %v %v", block_id.hash, block_id.index);
-//        else
-//          sched_ptr->get_logger()->d ("no request for block %v %v", block_id.hash, block_id.index);
         if (sched_result[c][0] == 1)
         {
           //// freeze cache
-		  blocks_to_freeze.push_back (block_id);
+		  blocks_to_freeze.insert (block_id);
 
           if (sched_result[c][1] == 0)
           {
-			blocks_to_broadcast.push_back (block_id);
+			blocks_to_broadcast.insert (block_id);
   		    block_to_schedule.erase (block_id);
             bandwidth_reserved++;
           }
@@ -384,7 +380,7 @@ namespace sma
         else
         {
          //// unfreeze cache
-         blocks_to_unfreeze.push_back (block_id);
+         blocks_to_unfreeze.insert (block_id);
          // should erase rejected blocks
          block_to_schedule.erase(block_id);
          if (sched_ptr->has_request_for_block(block_id))
@@ -396,8 +392,10 @@ namespace sma
       while (bandwidth_reserved < sched_ptr->get_bandwidth()
               && freeze_block_it != blocks_to_freeze.end())
       {
-        blocks_to_broadcast.push_back (*freeze_block_it);
+        blocks_to_broadcast.insert (*freeze_block_it);
         block_to_schedule.erase (*freeze_block_it);
+//        blocks_to_unfreeze.insert (*freeze_block_it);
+//        freeze_block_it = blocks_to_freeze.erase (freeze_block_it);
         bandwidth_reserved++;
         freeze_block_it++;
       }
@@ -414,19 +412,18 @@ namespace sma
       }
 */
 
-	  sched_ptr->freeze_blocks (blocks_to_freeze);
-	  sched_ptr->unfreeze_blocks (blocks_to_unfreeze);
 
       sched_ptr->get_logger()->d("sending %v broadcast command...", blocks_to_broadcast.size());
-	  for (std::size_t c=0; c!=blocks_to_broadcast.size(); c++)
+//	  for (std::size_t c=0; c!=blocks_to_broadcast.size(); c++)
+      for (auto br_block_it = blocks_to_broadcast.begin();
+              br_block_it != blocks_to_broadcast.end(); br_block_it++)
 	  {
-		sched_ptr->broadcast_block (blocks_to_broadcast[c].hash,
-                                    blocks_to_broadcast[c].index);
-		sched_ptr->get_logger()->d("block: %v %v", blocks_to_broadcast[c].hash,
-                                    blocks_to_broadcast[c].index);
-        sched_ptr->clear_request(blocks_to_broadcast[c].hash,
-                                 blocks_to_broadcast[c].index);
+		sched_ptr->broadcast_block (br_block_it->hash, br_block_it->index);
+        sched_ptr->clear_request (br_block_it->hash, br_block_it->index);
 	  }
+
+	  sched_ptr->freeze_blocks (blocks_to_freeze);
+	  sched_ptr->unfreeze_blocks (blocks_to_unfreeze);
 
       return blocks_to_broadcast.size(); // update the num_of_blocks to broadcast
     }

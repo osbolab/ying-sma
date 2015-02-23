@@ -31,8 +31,8 @@ public:
   bool on_block (NodeId id, BlockRef block) override;
   void sched () override;
 
-  std::size_t freeze_blocks (std::vector<BlockRef> blocks);
-  std::size_t unfreeze_blocks (std::vector<BlockRef> blocks);
+  std::size_t freeze_blocks (std::unordered_set<BlockRef> blocks);
+  std::size_t unfreeze_blocks (std::unordered_set<BlockRef> blocks);
   bool broadcast_block (Hash name, BlockIndex index); 
   void request_blocks (std::vector<BlockRequestArgs> requests);
   std::size_t fwd_interests ();
