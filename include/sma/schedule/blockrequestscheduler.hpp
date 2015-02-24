@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include <sma/ccn/blockref.hpp> 
 #include <unordered_set>
+#include <cstdint>
 
 namespace sma
 {
@@ -27,7 +28,7 @@ public:
   {}
 
   void add_requests (NodeId id, std::vector<BlockRequestArgs> requests);
-  std::size_t sched();
+  std::uint16_t sched();
   int get_ttl (NodeId id, Hash content_name, BlockIndex block_index);
   float get_utility(NodeId id, Hash content_name, BlockIndex block_index);
   void clear_request (Hash hash, BlockIndex index);
@@ -46,7 +47,7 @@ private:
   ForwardSchedulerImpl* sched_ptr;
 //  std::unordered_map<BlockRef, clock::time_point> forwarded_requests; 
 
-  std::size_t fwd_requests (std::size_t max_num_of_requests);
+  std::uint16_t fwd_requests (std::size_t max_num_of_requests);
   void insert_request (NodeId id, BlockRequestArgs request);
 //  void refresh_forwarded_requests();
   

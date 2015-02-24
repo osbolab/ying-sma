@@ -9,6 +9,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <sma/ccn/contenthelper.hpp>
+#include <cstdint>
 
 namespace sma
 {
@@ -24,7 +25,7 @@ public:
   {}
     
   void add_response(NodeId id, BlockRef blockid);
-  std::size_t sched();
+  std::uint16_t sched();
 
 private:
   std::unordered_set<BlockRef> block_to_schedule;

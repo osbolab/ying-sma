@@ -60,16 +60,16 @@ public:
                              std::size_t size) override;
 
   std::vector<ContentMetadata> metadata() override;
-  std::size_t announce_metadata() override;
+  std::uint16_t announce_metadata() override;
 
   // WARNING: the on_block_arrived event is fired from this function.
   // If the handler for that event calls this function's caller the caller MUST
   // be reentrant!
   // For example, calling this while iterating a collection that is modified
   // by the caller may cause the caller's iterator to be invalidated.
-  void request(std::vector<BlockRequestArgs> requests) override;
+  std::uint16_t request(std::vector<BlockRequestArgs> requests) override;
   void request_content(Hash hash, float utility, std::uint32_t ttl) override;
-  bool broadcast(BlockRef block) override;
+  bool broadcast(BlockRef block, std::uint16_t & bytes_sent) override;
 
   std::size_t frozen(std::vector<BlockRef> const& blocks,
                      bool enabled) override;

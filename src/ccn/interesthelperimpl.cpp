@@ -167,7 +167,7 @@ bool InterestHelperImpl::contains_any(
   return false;
 }
 
-std::size_t InterestHelperImpl::announce()
+std::uint16_t InterestHelperImpl::announce()
 {
   if (auto_announce)
     asynctask(&InterestHelperImpl::announce, this).do_in(min_announce_interval);
@@ -225,14 +225,16 @@ std::size_t InterestHelperImpl::announce()
                          + std::chrono::milliseconds(dist(rng));
   }
 
+  std::uint16_t bytes_sent = 0;
   if (count != 0) {
     // The Interest Announcement message just dumps the buffer into the
     // message data and reads it back out at the other end.
     InterestAnn msg(count, data_buf, size);
-    node.post(msg);
+    bytes_sent = node.post(msg);
   }
 
-  return count;
+//  return count;
+  return bytes_sent;
 }
 
 void InterestHelperImpl::log_dump()

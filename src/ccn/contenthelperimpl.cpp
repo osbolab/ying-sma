@@ -70,7 +70,7 @@ ContentMetadata ContentHelperImpl::create_new(std::vector<ContentType> types,
 }
 
 
-std::size_t ContentHelperImpl::announce_metadata()
+std::uint16_t ContentHelperImpl::announce_metadata()
 {
   if ((lmt.empty() && rmt.empty()))
     return 0;
@@ -106,9 +106,11 @@ std::size_t ContentHelperImpl::announce_metadata()
 
   will_announce.shrink_to_fit();
 
-  auto const announced = will_announce.size();
+//  auto const announced = will_announce.size();
 
   std::size_t max_announce = 10;
+
+  std::uint16_t bytes_sent = 0;
 
   if (not will_announce.empty()) {
     if (will_announce.size() > max_announce) {
@@ -120,18 +122,19 @@ std::size_t ContentHelperImpl::announce_metadata()
         actual_announce.push_back (meta);
         max_announce--;
       }
-      node.post(ContentAnn(std::move(actual_announce)));
+      bytes_sent = node.post(ContentAnn(std::move(actual_announce)));
     } else {
-      node.post(ContentAnn(std::move(will_announce)));
+      bytes_sent = node.post(ContentAnn(std::move(will_announce)));
     }
   }
 
-  if (auto_announce)
-    asynctask(&ContentHelperImpl::announce_metadata, this)
-        .do_in(min_announce_interval);
+//  if (auto_announce)
+//    asynctask(&ContentHelperImpl::announce_metadata, this)
+//        .do_in(min_announce_interval);
 
+  return bytes_sent;
 
-  return announced;
+//  return announced;
 }
 
 
@@ -214,7 +217,7 @@ void ContentHelperImpl::do_auto_fetch()
 }
 
 
-void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
+std::uint16_t ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
 {
   // Detect reentrance
   if (already_in_request)
@@ -263,9 +266,14 @@ void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
     }
   }
 
+  std::uint16_t bytes_sent = 0;
   if (not requests.empty()) {
     log.d("Sending %v requests", requests.size());
-    node.post(BlockRequest(std::move(requests)));
+    for (auto& req : requests) {
+      log.d("| request block");
+      log.d("| %v %v", req.block.hash, req.block.index);
+    }
+    bytes_sent = node.post(BlockRequest(std::move(requests)));
   }
 
   // WARNING: caller must be reentrant if the callback invokes it!
@@ -278,6 +286,8 @@ void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
   }
 
   already_in_request = false;
+  
+  return bytes_sent;
 }
 
 void ContentHelperImpl::request_content (Hash content_name, 
@@ -351,7 +361,7 @@ void ContentHelperImpl::receive(MessageHeader header, BlockRequest msg)
   if (not auto_respond and not auto_forward_requests)
     return;
 
-  for (auto const& req : msg.requests) {
+/*  for (auto const& req : msg.requests) {
     if (auto_respond) {
       broadcast(req.block);
 
@@ -368,16 +378,18 @@ void ContentHelperImpl::receive(MessageHeader header, BlockRequest msg)
       }
     }
   }
+  */
 }
 
 
-bool ContentHelperImpl::broadcast(BlockRef ref)
+bool ContentHelperImpl::broadcast(BlockRef ref, std::uint16_t & bytes_sent)
 {
   ContentCache* source = nullptr;
   auto block = cache->find(ref);
   if (block == cache->end()) {
     block = store->find(ref);
     if (block == store->end()) {
+      bytes_sent = 0;
       return false;
     }
   }
@@ -387,7 +399,7 @@ bool ContentHelperImpl::broadcast(BlockRef ref)
   log.d("| size: %v bytes", block.size());
   log.d("");
 
-  node.post(BlockResponse(ref, block.data(), block.size()));
+  bytes_sent += node.post(BlockResponse(ref, block.data(), block.size()));
 
   return true;
 }
@@ -422,7 +434,7 @@ void ContentHelperImpl::receive(MessageHeader header, BlockResponse msg)
       is_stored = true;
     }
 
-    will_rebroadcast = auto_respond and not pending->second.local_only;
+//    will_rebroadcast = auto_respond and not pending->second.local_only;
   }
 
   // Cache all blocks we come across
@@ -431,10 +443,10 @@ void ContentHelperImpl::receive(MessageHeader header, BlockResponse msg)
 
   block_arrived_event(header.sender, msg.block);
 
-  if (will_rebroadcast) {
-    log.d("| I'll rebroadcast it, too");
-    broadcast(msg.block);
-  }
+//  if (will_rebroadcast) {
+//    log.d("| I'll rebroadcast it, too");
+//    broadcast(msg.block);
+//  }
 }
 
 

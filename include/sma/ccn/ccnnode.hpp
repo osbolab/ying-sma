@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <vector>
 #include <atomic>
+#include <cstdint>
 
 
 namespace sma
@@ -35,7 +36,7 @@ public:
   void post(void const* src, std::size_t size);
   //! Serialize the given message and enqueue it to be broadcast.
   template <typename M>
-  void post(M const& msg,
+  std::uint16_t post(M const& msg,
             std::vector<NodeId> recipients = std::vector<NodeId>());
 
   /* Neighbor discovery */
@@ -79,10 +80,11 @@ private:
 };
 
 template <typename M>
-void CcnNode::post(M const& msg, std::vector<NodeId> recipients)
+std::uint16_t CcnNode::post(M const& msg, std::vector<NodeId> recipients)
 {
   // Serialize the message (and its network header) into a memory buffer
   MessageBuffer<20000> buf(MessageHeader(id, std::move(recipients)), msg);
   post(buf.cdata(), buf.size());
+  return buf.size();
 }
 }

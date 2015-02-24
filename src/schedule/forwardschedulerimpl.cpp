@@ -25,9 +25,9 @@
 namespace sma
 {
 
-    std::size_t ForwardSchedulerImpl::total_bandwidth =1 ;
+    std::size_t ForwardSchedulerImpl::total_bandwidth =8 ;
 
-    std::size_t ForwardSchedulerImpl::meta_cycles = 100;
+    std::size_t ForwardSchedulerImpl::sample_cycles = 10;
 
     using namespace std::placeholders;
 
@@ -91,9 +91,9 @@ namespace sma
       return node.content->frozen(std::vector<BlockRef>(blocks.begin(), blocks.end()), false);
     }
 
-    bool ForwardSchedulerImpl::broadcast_block (Hash name, BlockIndex index)
+    bool ForwardSchedulerImpl::broadcast_block (Hash name, BlockIndex index, std::uint16_t & bytes_sent)
     {
-      return node.content->broadcast (BlockRef(name, index));
+      return node.content->broadcast (BlockRef(name, index), bytes_sent);
     }
 
     std::vector<Neighbor> ForwardSchedulerImpl::get_neighbors() const
@@ -116,17 +116,17 @@ namespace sma
       return (node.neighbors->get()).size();
     }
 
-    void ForwardSchedulerImpl::request_blocks (std::vector<BlockRequestArgs> requests)
+    std::uint16_t ForwardSchedulerImpl::request_blocks (std::vector<BlockRequestArgs> requests)
     {
-      node.content->request (requests);
+      return node.content->request (requests);
     }
 
-	std::size_t ForwardSchedulerImpl::fwd_interests()
+	std::uint16_t ForwardSchedulerImpl::fwd_interests()
 	{
 	  return node.interests->announce();
 	}
 
-	std::size_t ForwardSchedulerImpl::fwd_metas()
+	std::uint16_t ForwardSchedulerImpl::fwd_metas()
 	{
 	  return node.content->announce_metadata();
 	}
@@ -196,20 +196,34 @@ namespace sma
       // all the nums will be used later for piroritized broadcast
       auto start = std::chrono::system_clock::now();
 
-      std::size_t num_of_requests = blockrequest_sched_ptr->sched();
-      std::size_t num_of_blocks = blockresponse_sched_ptr->sched();
-
-      if (cycles % meta_cycles == 0) {
-        int num_of_interests = interest_sched_ptr->sched();
-        int num_of_metas = meta_sched_ptr->sched();
-        cycles = (cycles+1) % meta_cycles;
+      std::uint16_t bytes_sent = 0;
+      std::uint16_t bytes_sent_on_request = 0; 
+      std::uint16_t bytes_sent_on_block = 0;
+      std::uint16_t bytes_sent_on_interest = 0;
+      std::uint16_t bytes_sent_on_meta = 0;
+          
+      bytes_sent_on_request = schedule_blockrequest_fwd();
+      bytes_sent_on_block = schedule_blockresponse_fwd();
+      if (cycles % sample_cycles == 0) {
+        bytes_sent_on_interest = schedule_interest_fwd();
+        bytes_sent_on_meta= schedule_metadata_fwd();
+        cycles = (cycles+1) % sample_cycles;
       }
+
+      bytes_sent = bytes_sent_on_request + bytes_sent_on_block
+          + bytes_sent_on_interest + bytes_sent_on_meta;
 
       auto end = std::chrono::system_clock::now();
 
       auto delay = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
 
-      log.i("| scheduling delay: %v", delay);
+      log.i(" scheduling delay: %v", delay);
+      log.i(" total bytes sent: %v", bytes_sent);
+      log.i(" bytes sent on request: %v", bytes_sent_on_request);
+      log.i(" bytes sent on block: %v", bytes_sent_on_block);
+      log.i(" bytes sent on interest: %v", bytes_sent_on_interest);
+      log.i(" bytes sent on meta: %v", bytes_sent_on_meta);
+      log.i("");
 
       //// async task
       asynctask (&ForwardSchedulerImpl::sched, this).do_in (
@@ -217,13 +231,25 @@ namespace sma
 
     }
 
-    void ForwardSchedulerImpl::schedule_interest_fwd () { interest_sched_ptr->sched(); }
+    std::uint16_t ForwardSchedulerImpl::schedule_interest_fwd () 
+    { 
+        return interest_sched_ptr->sched(); 
+    }
 
-    void ForwardSchedulerImpl::schedule_metadata_fwd () { meta_sched_ptr->sched(); }
+    std::uint16_t ForwardSchedulerImpl::schedule_metadata_fwd () 
+    { 
+        return meta_sched_ptr->sched(); 
+    }
 
-    void ForwardSchedulerImpl::schedule_blockrequest_fwd () {  blockrequest_sched_ptr->sched(); }
+    std::uint16_t ForwardSchedulerImpl::schedule_blockrequest_fwd () 
+    { 
+        return  blockrequest_sched_ptr->sched(); 
+    }
 
-    void ForwardSchedulerImpl::schedule_blockresponse_fwd () {blockresponse_sched_ptr->sched(); }
+    std::uint16_t ForwardSchedulerImpl::schedule_blockresponse_fwd () 
+    { 
+        return blockresponse_sched_ptr->sched(); 
+    }
 
     const Logger* ForwardSchedulerImpl::get_logger() const
     {
@@ -272,7 +298,7 @@ namespace sma
 
     }
 
-    std::size_t BlockResponseScheduler::sched()
+    std::uint16_t BlockResponseScheduler::sched()
     {
       for (auto it=block_arrived_buf.begin();
               it != block_arrived_buf.end(); it++)
@@ -417,20 +443,23 @@ namespace sma
 */
 
 
+      std::uint16_t bytes_sent = 0;
+
       sched_ptr->get_logger()->d("sending %v broadcast command...", blocks_to_broadcast.size());
       for (auto br_block_it = blocks_to_broadcast.begin();
               br_block_it != blocks_to_broadcast.end(); br_block_it++)
 	  {
         /// BUG: should broadcast each block twice.
-		sched_ptr->broadcast_block (br_block_it->hash, br_block_it->index);
-		sched_ptr->broadcast_block (br_block_it->hash, br_block_it->index);
+		sched_ptr->broadcast_block (br_block_it->hash, br_block_it->index, bytes_sent);
+		sched_ptr->broadcast_block (br_block_it->hash, br_block_it->index, bytes_sent);
         sched_ptr->clear_request (br_block_it->hash, br_block_it->index);
 	  }
 
 	  sched_ptr->freeze_blocks (blocks_to_freeze);
 	  sched_ptr->unfreeze_blocks (blocks_to_unfreeze);
 
-      return blocks_to_broadcast.size(); // update the num_of_blocks to broadcast
+//      return blocks_to_broadcast.size(); // update the num_of_blocks to broadcast
+      return bytes_sent;
     }
 
     BlockRef BlockResponseScheduler::get_blockid (std::size_t seq)
@@ -541,7 +570,7 @@ namespace sma
       }
     }
 
-	std::size_t BlockRequestScheduler::sched()
+	std::uint16_t BlockRequestScheduler::sched()
 	{
 	  return fwd_requests(std::max<std::size_t>(100,sched_ptr->get_bandwidth())); 
 	}
@@ -641,7 +670,7 @@ namespace sma
       return false;
     }
 
-    std::size_t BlockRequestScheduler::fwd_requests (std::size_t max_num_of_requests)
+    std::uint16_t BlockRequestScheduler::fwd_requests (std::size_t max_num_of_requests)
     {
       std::vector<BlockRequestArgs> request_to_fwd;
       while (!request_queue.empty() && max_num_of_requests > 0)
@@ -673,10 +702,12 @@ namespace sma
         max_num_of_requests--;
       }
 
+      std::uint16_t bytes_sent = 0;
       if (request_to_fwd.size() > 0)
-        sched_ptr->request_blocks (request_to_fwd);
+        bytes_sent = sched_ptr->request_blocks (request_to_fwd);
 
-      return request_to_fwd.size();
+//      return request_to_fwd.size();
+      return bytes_sent;
     }
 
     void BlockRequestScheduler::insert_request (NodeId nodeID, BlockRequestArgs request)
@@ -761,14 +792,14 @@ namespace sma
 
 	//// interestscheduler.cpp
 
-    std::size_t InterestScheduler::sched()
+    std::uint16_t InterestScheduler::sched()
     {
-  	  return sched_ptr->fwd_metas();
+  	  return sched_ptr->fwd_interests();
     }
 
 
 	///// metascheduler.cpp
-    std::size_t MetaScheduler::sched()
+    std::uint16_t MetaScheduler::sched()
     {
   	  return sched_ptr->fwd_metas();
     }

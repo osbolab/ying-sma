@@ -54,7 +54,7 @@ public:
   bool know_remote(ContentType const& type) const override;
   bool contains_any(std::vector<ContentType> const& types) const override;
 
-  std::size_t announce() override;
+  std::uint16_t announce() override;
 
 private:
   using clock = sma::chrono::system_clock;

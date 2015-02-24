@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <sma/schedule/forwardschedulerimpl.hpp>
+#include <cstdint>
 
 namespace sma
 {
@@ -16,7 +17,7 @@ public:
 		: sched_ptr (ptr)
   {}
 	  
-  std::size_t sched();
+  std::uint16_t sched();
   
 private:
 	ForwardSchedulerImpl* sched_ptr;

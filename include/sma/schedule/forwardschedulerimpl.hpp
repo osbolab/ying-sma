@@ -33,10 +33,10 @@ public:
 
   std::size_t freeze_blocks (std::unordered_set<BlockRef> blocks);
   std::size_t unfreeze_blocks (std::unordered_set<BlockRef> blocks);
-  bool broadcast_block (Hash name, BlockIndex index); 
-  void request_blocks (std::vector<BlockRequestArgs> requests);
-  std::size_t fwd_interests ();
-  std::size_t fwd_metas ();
+  bool broadcast_block (Hash name, BlockIndex index, std::uint16_t & bytes_sent); 
+  std::uint16_t request_blocks (std::vector<BlockRequestArgs> requests);
+  std::uint16_t fwd_interests ();
+  std::uint16_t fwd_metas ();
 
   
   std::vector<Neighbor> get_neighbors() const;
@@ -67,13 +67,13 @@ private:
   static std::size_t total_bandwidth;
   std::size_t used_bandwidth;
 
-  static std::size_t meta_cycles;
+  static std::size_t sample_cycles;
   std::size_t cycles;
 
-  void schedule_interest_fwd ();
-  void schedule_metadata_fwd ();
-  void schedule_blockrequest_fwd ();
-  void schedule_blockresponse_fwd ();
+  std::uint16_t schedule_interest_fwd ();
+  std::uint16_t schedule_metadata_fwd ();
+  std::uint16_t schedule_blockrequest_fwd ();
+  std::uint16_t schedule_blockresponse_fwd ();
 
   void reset_bandwidth();
 };

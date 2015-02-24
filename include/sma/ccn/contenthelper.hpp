@@ -52,11 +52,11 @@ public:
                                      std::size_t size) = 0;
 
   virtual std::vector<ContentMetadata> metadata() = 0;
-  virtual std::size_t announce_metadata() = 0;
+  virtual std::uint16_t announce_metadata() = 0;
 
   //! Send one message to the network containing all of the given block
   //! requests.
-  virtual void request(std::vector<BlockRequestArgs> requests) = 0;
+  virtual std::uint16_t request(std::vector<BlockRequestArgs> requests) = 0;
 
   //! Send one message to the network the content request
   virtual void request_content(Hash hash, float utility, std::uint32_t ttl) = 0;
@@ -64,7 +64,7 @@ public:
   //! Broadcast completely the data for the specified block.
   // \return An interface that can be used to keep or mark as free the cache
   //         entry for the block data that were broadcast.
-  virtual bool broadcast(BlockRef block) = 0;
+  virtual bool broadcast(BlockRef block, std::uint16_t & bytes_sent) = 0;
 
   virtual std::size_t frozen(std::vector<BlockRef> const& blocks, bool enabled)
       = 0;

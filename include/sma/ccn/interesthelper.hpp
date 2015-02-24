@@ -5,6 +5,7 @@
 #include <sma/ccn/ccnfwd.hpp>
 
 #include <vector>
+#include <cstdint>
 
 
 namespace sma
@@ -30,6 +31,6 @@ public:
   virtual bool know_remote(ContentType const& type) const = 0;
   virtual bool contains_any(std::vector<ContentType> const& types) const = 0;
 
-  virtual std::size_t announce() = 0;
+  virtual std::uint16_t announce() = 0;
 };
 }
