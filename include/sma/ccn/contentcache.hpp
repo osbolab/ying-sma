@@ -35,7 +35,7 @@ public:
   // Construct a cache with the given capacity in bytes.
   // If capacity is zero this cache is unbounded and dynamic with no initial
   // size; otherwise it is a bounded LRU allocated at construction.
-  ContentCache(CcnNode& node, std::size_t capacity = 0);
+  ContentCache(CcnNode& node, std::size_t capacity = 0, bool expandable = true);
 
   BlockData end() const;
 
@@ -85,6 +85,7 @@ private:
 
   void promote(std::size_t idx);
 
+  bool expandable;
   void log_utilization();
 
   Logger log;

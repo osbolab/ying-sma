@@ -31,7 +31,7 @@ constexpr std::chrono::milliseconds ContentHelperImpl::default_initial_ttl;
 
 ContentHelperImpl::ContentHelperImpl(CcnNode& node)
   : ContentHelper(node)
-  , cache(new ContentCache(node, 64 * 1024))
+  , cache(new ContentCache(node, 64 * 1024, false))
   , store(new ContentCache(node))
   , to_announce(0)
 {
@@ -46,7 +46,8 @@ ContentMetadata ContentHelperImpl::create_new(std::vector<ContentType> types,
                                               void const* src,
                                               std::size_t size)
 {
-  auto hash = cache->store(src, size);
+//  auto hash = cache->store(src, size);
+  auto hash = store->store(src, size);
 
   auto publish_time_ms = std::chrono::duration_cast<millis>(
                              clock::now().time_since_epoch()).count();

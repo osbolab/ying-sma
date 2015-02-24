@@ -328,17 +328,8 @@ int main(int argc, char** argv)
  					  runID);
 
 
-	 for (std::size_t i=0; i<nnodes; i++)
-	    add_stats_on_node (data, i);
-//    add_stats_on_node(data, 0);
-//    add_stats_on_node(data, 1);
-//    add_stats_on_node(data, 2);
-//    add_stats_on_node(data, 3);
-//    add_stats_on_node(data, 4);
-//    add_stats_on_node(data, 5);
-//    add_stats_on_node(data, 6);
-//    add_stats_on_node(data, 7);
-//    add_stats_on_node(data, 8);
+//	 for (std::size_t i=0; i<nnodes; i++)
+//	    add_stats_on_node (data, i);
 
 
   //---------------------------------------------------------------------------
@@ -346,9 +337,9 @@ int main(int argc, char** argv)
   //---------------------------------------------------------------------------
   
   // Trace Collisions
-  ns3::Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/MacTxDrop", MakeCallback(&MacTxDrop));
-  ns3::Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyRxDrop", MakeCallback(&PhyRxDrop));
-  ns3::Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyTxDrop", MakeCallback(&PhyTxDrop));
+//  ns3::Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Mac/MacTxDrop", MakeCallback(&MacTxDrop));
+//  ns3::Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyRxDrop", MakeCallback(&PhyRxDrop));
+//  ns3::Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::WifiNetDevice/Phy/PhyTxDrop", MakeCallback(&PhyTxDrop));
 
 
 

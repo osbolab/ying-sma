@@ -186,7 +186,7 @@ namespace sma
         float utility_per_block = min_util 
             + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX)/(max_util-min_util));
 
-        float min_ttl = 2 * node.sched->get_sched_interval();
+        float min_ttl = 20 * node.sched->get_sched_interval();
         float max_ttl = 20 * node.sched->get_sched_interval();
         float ttl_per_block = min_ttl
             + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX)/(max_ttl - min_ttl));

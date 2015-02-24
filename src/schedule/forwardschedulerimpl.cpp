@@ -25,9 +25,9 @@
 namespace sma
 {
 
-    std::size_t ForwardSchedulerImpl::total_bandwidth = 4;
+    std::size_t ForwardSchedulerImpl::total_bandwidth =1 ;
 
-    std::size_t ForwardSchedulerImpl::meta_cycles = 10;
+    std::size_t ForwardSchedulerImpl::meta_cycles = 100;
 
     using namespace std::placeholders;
 
@@ -261,7 +261,11 @@ namespace sma
             block_arrived_buf.insert(blockid);
             return;
           }
-          reqIt++; 
+          else
+          {
+            sched_ptr->clear_request(blockid.hash, blockid.index);
+            reqIt++; 
+          }
         }
 
         sched_ptr->get_logger()->d ("block not scheduled: %v %v", blockid.hash, blockid.index);
@@ -275,11 +279,11 @@ namespace sma
       {
         // cancel broadcast if overhearing the block
         //Todo: also depends on the distance
-        if (block_to_schedule.find(*it) != block_to_schedule.end()) {
-          sched_ptr->clear_request(it->hash, it->index);
-          block_to_schedule.erase(*it);
-        }
-        else
+//        if (block_to_schedule.find(*it) != block_to_schedule.end()) {
+//          sched_ptr->clear_request(it->hash, it->index);
+//          block_to_schedule.erase(*it);
+//        }
+//        else
           if (sched_ptr->has_request_for_block (*it))
             block_to_schedule.insert (*it);
       }

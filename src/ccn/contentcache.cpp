@@ -51,11 +51,12 @@ void ContentCache::log_utilization()
 }
 
 
-ContentCache::ContentCache(CcnNode& node, std::size_t capacity)
+ContentCache::ContentCache(CcnNode& node, std::size_t capacity, bool expandable)
   : log(node.log)
   , capacity(capacity == 0 ? 0 : detail::next_power_of_two(capacity))
   , slots(capacity / block_size)
   , free_idxs(capacity / block_size)
+  , expandable(expandable)
 {
   std::size_t i = 0;
   for (auto& idx : free_idxs)
@@ -113,7 +114,8 @@ void ContentCache::free_slots(std::size_t count)
 std::size_t ContentCache::ensure_capacity(std::size_t count)
 {
   if (free_idxs.size() < count) {
-    if (capacity == 0)
+//    if (capacity == 0)
+    if (expandable)
       grow_to_fit(count);
     else
       free_slots(count - free_idxs.size());
@@ -126,8 +128,14 @@ std::size_t ContentCache::ensure_capacity(std::size_t count)
 std::size_t ContentCache::reserve_slot()
 {
   auto const min_capacity = ensure_capacity(1);
-  assert(min_capacity == 1
-         && "Can't reserve slot; cache is full and no slots can be freed.");
+//  assert(min_capacity == 1
+//         && "Can't reserve slot; cache is full and no slots can be freed.");
+  if (min_capacity <= 0) {
+    auto const idx = occupied_idxs.back();
+    occupied_idxs.pop_back();
+    occupied_idxs.push_front(idx);
+    return idx;
+  }
 
   auto const idx = free_idxs.back();
   free_idxs.pop_back();
