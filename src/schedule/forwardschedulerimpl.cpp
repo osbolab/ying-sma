@@ -123,11 +123,13 @@ namespace sma
 
 	std::uint16_t ForwardSchedulerImpl::fwd_interests()
 	{
+      node.log.d ("forwarding interests");
 	  return node.interests->announce();
 	}
 
 	std::uint16_t ForwardSchedulerImpl::fwd_metas()
 	{
+      node.log.d ("forwarding meta data");
 	  return node.content->announce_metadata();
 	}
 

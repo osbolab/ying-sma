@@ -108,7 +108,7 @@ std::uint16_t ContentHelperImpl::announce_metadata()
 
 //  auto const announced = will_announce.size();
 
-  std::size_t max_announce = 10;
+  std::size_t max_announce = 5;
 
   std::uint16_t bytes_sent = 0;
 
