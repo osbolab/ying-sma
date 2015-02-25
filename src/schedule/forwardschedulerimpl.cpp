@@ -21,13 +21,14 @@
 #include <utility>
 #include <unordered_set>
 #include <algorithm>
+#include <queue>
 
 namespace sma
 {
 
-    std::size_t ForwardSchedulerImpl::total_bandwidth =8 ;
-
-    std::size_t ForwardSchedulerImpl::sample_cycles = 10;
+//    std::size_t ForwardSchedulerImpl::total_bandwidth =5 ;
+    std::uint32_t ForwardSchedulerImpl::interval_per_packet = 25;
+    std::size_t ForwardSchedulerImpl::sample_cycles = 100;
 
     using namespace std::placeholders;
 
@@ -35,6 +36,7 @@ namespace sma
         : ForwardScheduler (host_node, interval)
         , used_bandwidth (0)
         , cycles (0)
+        , bytes_sent_block_o_fifo (0)
     {
       interest_sched_ptr = new InterestScheduler(this);
       meta_sched_ptr = new MetaScheduler(this);
@@ -46,7 +48,8 @@ namespace sma
 
       // add time_out async callback later
 
-
+      asynctask (&ForwardSchedulerImpl::broadcast_block_fifo, this).do_in (
+              std::chrono::milliseconds (interval_per_packet));
       asynctask (&ForwardSchedulerImpl::sched, this).do_in (
               std::chrono::milliseconds (ForwardScheduler::get_sched_interval()));
     }
@@ -57,6 +60,18 @@ namespace sma
       if (meta_sched_ptr != NULL)  delete meta_sched_ptr;
       if (blockrequest_sched_ptr != NULL)  delete blockrequest_sched_ptr;
       if (blockresponse_sched_ptr != NULL)  delete blockresponse_sched_ptr;
+    }
+
+    void ForwardSchedulerImpl::broadcast_block_fifo()
+    {
+      if (block_o_fifo.size() > 0) {
+        BlockRef block = block_o_fifo.front();
+        broadcast_block (block.hash, block.index, bytes_sent_block_o_fifo);
+//        broadcast_block (block.hash, block.index, bytes_sent_block_o_fifo);
+        block_o_fifo.pop_front();
+      }
+      asynctask (&ForwardSchedulerImpl::broadcast_block_fifo, this).do_in (
+              std::chrono::milliseconds (interval_per_packet));
     }
 
     bool ForwardSchedulerImpl::on_blockrequest (NodeId id, std::vector<BlockRequestArgs> requests)
@@ -150,7 +165,7 @@ namespace sma
 
 	std::size_t ForwardSchedulerImpl::get_bandwidth() const
 	{
-		return total_bandwidth - used_bandwidth;
+		return get_sched_interval()/interval_per_packet/2 - used_bandwidth;
 	}
 
     void ForwardSchedulerImpl::reset_bandwidth()
@@ -193,9 +208,13 @@ namespace sma
       return blockrequest_sched_ptr->has_request_for_block (block);   
     }
 
+    void ForwardSchedulerImpl::write_o_block (BlockRef block)
+    {
+      block_o_fifo.push_back (std::move(block));
+    }
+
     void ForwardSchedulerImpl::sched() // which will be called regularly
     {
-      // all the nums will be used later for piroritized broadcast
       auto start = std::chrono::system_clock::now();
 
       std::uint16_t bytes_sent = 0;
@@ -205,12 +224,19 @@ namespace sma
       std::uint16_t bytes_sent_on_meta = 0;
           
       bytes_sent_on_request = schedule_blockrequest_fwd();
-      bytes_sent_on_block = schedule_blockresponse_fwd();
+      
+      // OTHERWISE: the bitrate is set too large.
+      assert (block_o_fifo.empty());
+      schedule_blockresponse_fwd();
+
       if (cycles % sample_cycles == 0) {
         bytes_sent_on_interest = schedule_interest_fwd();
-        bytes_sent_on_meta= schedule_metadata_fwd();
-        cycles = (cycles+1) % sample_cycles;
+        bytes_sent_on_meta = schedule_metadata_fwd();
       }
+      cycles = (cycles+1) % sample_cycles;
+
+      bytes_sent_on_block = bytes_sent_block_o_fifo;
+      bytes_sent_block_o_fifo = 0; // reset the counter
 
       bytes_sent = bytes_sent_on_request + bytes_sent_on_block
           + bytes_sent_on_interest + bytes_sent_on_meta;
@@ -443,6 +469,8 @@ namespace sma
         unfrozen_block_it++;
       }
 */
+	  sched_ptr->freeze_blocks (blocks_to_freeze);
+	  sched_ptr->unfreeze_blocks (blocks_to_unfreeze);
 
 
       std::uint16_t bytes_sent = 0;
@@ -452,13 +480,13 @@ namespace sma
               br_block_it != blocks_to_broadcast.end(); br_block_it++)
 	  {
         /// BUG: should broadcast each block twice.
-		sched_ptr->broadcast_block (br_block_it->hash, br_block_it->index, bytes_sent);
-		sched_ptr->broadcast_block (br_block_it->hash, br_block_it->index, bytes_sent);
+//		sched_ptr->broadcast_block (br_block_it->hash, br_block_it->index, bytes_sent);
+        sched_ptr->write_o_block (BlockRef(br_block_it->hash, br_block_it->index));
+        sched_ptr->write_o_block (BlockRef(br_block_it->hash, br_block_it->index));
+//		sched_ptr->broadcast_block (br_block_it->hash, br_block_it->index, bytes_sent);
         sched_ptr->clear_request (br_block_it->hash, br_block_it->index);
 	  }
 
-	  sched_ptr->freeze_blocks (blocks_to_freeze);
-	  sched_ptr->unfreeze_blocks (blocks_to_unfreeze);
 
 //      return blocks_to_broadcast.size(); // update the num_of_blocks to broadcast
       return bytes_sent;
@@ -574,7 +602,7 @@ namespace sma
 
 	std::uint16_t BlockRequestScheduler::sched()
 	{
-	  return fwd_requests(std::max<std::size_t>(100,sched_ptr->get_bandwidth())); 
+	  return fwd_requests(std::max<std::size_t>(5,sched_ptr->get_bandwidth())); 
 	}
 
     int BlockRequestScheduler::get_ttl (NodeId id, Hash content_name, BlockIndex block_index)

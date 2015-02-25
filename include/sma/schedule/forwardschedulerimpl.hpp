@@ -17,6 +17,7 @@
 #include <sma/io/log>
 #include <unordered_set>
 #include <sma/schedule/blockrequestdesc.hpp>
+#include <list>
 
 namespace sma
 {
@@ -33,7 +34,6 @@ public:
 
   std::size_t freeze_blocks (std::unordered_set<BlockRef> blocks);
   std::size_t unfreeze_blocks (std::unordered_set<BlockRef> blocks);
-  bool broadcast_block (Hash name, BlockIndex index, std::uint16_t & bytes_sent); 
   std::uint16_t request_blocks (std::vector<BlockRequestArgs> requests);
   std::uint16_t fwd_interests ();
   std::uint16_t fwd_metas ();
@@ -57,18 +57,26 @@ public:
   Vec2d get_node_position(NodeId id) const;
   bool has_request_for_block(BlockRef block) const;
   double get_transmission_range() const;
+  void write_o_block(BlockRef block);
+  void broadcast_block_fifo();
 
 private:
+  std::list<BlockRef> block_o_fifo;
+  std::uint16_t bytes_sent_block_o_fifo;
+
   InterestScheduler* interest_sched_ptr;
   MetaScheduler* meta_sched_ptr;
   BlockRequestScheduler* blockrequest_sched_ptr;
   BlockResponseScheduler* blockresponse_sched_ptr;
 
-  static std::size_t total_bandwidth;
+//  static std::size_t total_bandwidth;
   std::size_t used_bandwidth;
-
   static std::size_t sample_cycles;
   std::size_t cycles;
+  static std::uint32_t interval_per_packet;
+
+
+  bool broadcast_block (Hash name, BlockIndex index, std::uint16_t & bytes_sent); 
 
   std::uint16_t schedule_interest_fwd ();
   std::uint16_t schedule_metadata_fwd ();

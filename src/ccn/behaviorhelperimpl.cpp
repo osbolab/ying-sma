@@ -21,7 +21,7 @@ namespace sma
        { "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghipqrstuvwxyz"};
 	
     static const std::vector<std::string> const_categories = 
-      {"type1", "type2", "type3", "type4", "type5"};
+      {"type1", "type2"};
 	
 	const char* BehaviorHelperImpl::alphanum = const_alphanum;
 	
@@ -107,7 +107,7 @@ namespace sma
     void BehaviorHelperImpl::behave_publish()
     {
       float min_blocks = 1.0;
-      float max_blocks = 6.0;
+      float max_blocks = 1.0;
 
       std::size_t n_blocks  = min_blocks 
             + static_cast <float> (rand()) 
@@ -151,7 +151,7 @@ namespace sma
 
       delete[] data;
 
-      node.content->announce_metadata();
+//      node.content->announce_metadata();
 
       // schedule next publish behavior
       float ratio = (rand()%60-30) / 100.0; 
@@ -174,7 +174,6 @@ namespace sma
 
       std::size_t total_metas = meta_vec.size();
      
-
       if (total_metas != 0)
       {
         std::size_t rand_index = rand() % total_metas;
