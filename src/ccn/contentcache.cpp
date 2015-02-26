@@ -34,7 +34,7 @@ constexpr std::size_t ContentCache::block_size;
 
 void ContentCache::log_utilization()
 {
-  if (expandable) {
+  if (not expandable) {
     log.i("cache capacity, %v", capacity);
     int frozen_slots = 0;
     int unfrozen_slots = 0;

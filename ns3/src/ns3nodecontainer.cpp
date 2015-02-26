@@ -100,9 +100,9 @@ void Ns3NodeContainer::StartApplication()
   content_helper = std::make_unique<ContentHelperImpl>(*node);
   scheduler_helper = std::make_unique<ForwardSchedulerImpl>(*node, 100);
   behavior_helper = std::make_unique<BehaviorHelperImpl>(*node, 
-           std::chrono::milliseconds(60000), 
+           std::chrono::milliseconds(20000), 
            std::chrono::milliseconds(10000),
-           std::chrono::milliseconds(1000));
+           std::chrono::milliseconds(2000));
 
   // Send received messages to the node
   linklayer->receive_to(*node);

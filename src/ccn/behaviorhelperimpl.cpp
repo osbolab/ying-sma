@@ -107,7 +107,7 @@ namespace sma
     void BehaviorHelperImpl::behave_publish()
     {
       float min_blocks = 1.0;
-      float max_blocks = 1.0;
+      float max_blocks = 4.0;
 
       std::size_t n_blocks  = min_blocks 
             + static_cast <float> (rand()) 

@@ -30,6 +30,7 @@ public:
   
   bool on_blockrequest (NodeId id, std::vector<BlockRequestArgs>  requests) override;
   bool on_block (NodeId id, BlockRef block) override;
+  bool on_block_timeout (BlockRef block) override;
   void sched () override;
 
   std::size_t freeze_blocks (std::unordered_set<BlockRef> blocks);
@@ -74,6 +75,7 @@ private:
   static std::size_t sample_cycles;
   std::size_t cycles;
   static std::uint32_t interval_per_packet;
+  std::uint32_t next_interval;
 
 
   bool broadcast_block (Hash name, BlockIndex index, std::uint16_t & bytes_sent); 

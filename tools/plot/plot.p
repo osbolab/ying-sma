@@ -48,7 +48,7 @@ set size 1,1
 set xlabel 'time (seconds)'
 set ylabel 'cache utilization'
 set key left
-plot './utilization_output' u 0:1 w l ls 6 t 'cache utilization'#, \
+plot './utilization_output' u 0:0 w l ls 6 t 'cache utilization'#, \
 #'./utilization_output' u  0:2 w l ls 5 t 'store utilization'
 
 set output 'blockevent.eps'
@@ -70,10 +70,24 @@ set ytics nomirror
 set size 1, 1
 set xlabel 'time (seconds)'
 set ylabel 'bytes per second'
-set key left
-plot './bandwidth.txt' u 1:2 w l ls 1 t 'total packets', \
-     './bandwidth.txt' u 1:3 w l ls 2 t 'request packets', \
-     './bandwidth.txt' u 1:4 w l ls 3 t 'block packets', \
-     './bandwidth.txt' u 1:5 w l ls 4 t 'interest packets', \
-     './bandwidth.txt' u 1:6 w l ls 5 t 'meta bytes'
+set key right
+
+stats './bandwidth.txt' every ::1 using 2 nooutput
+total = int(STATS_sum)
+stats './bandwidth.txt' every ::1 using 3 nooutput
+total_r = int(STATS_sum)
+stats './bandwidth.txt' every ::1 using 4 nooutput
+total_b = int(STATS_sum)
+stats './bandwidth.txt' every ::1 using 5 nooutput
+total_i = int(STATS_sum)
+stats './bandwidth.txt' every ::1 using 6 nooutput
+total_m = int(STATS_sum)
+
+
+plot './bandwidth.txt' u 1:2 with filledcurve x1 t sprintf('total packets: %d', total), \
+     './bandwidth.txt' u 1:3 w l ls 2 t sprintf('request packets: %d', total_r), \
+     './bandwidth.txt' u 1:4 w l ls 3 t sprintf('block packets: %d', total_b), \
+     './bandwidth.txt' u 1:5 w l ls 4 t sprintf('interest packets: %d', total_i), \
+     './bandwidth.txt' u 1:6 w l ls 5 t sprintf('meta bytes: %d', total_m)
+
 

@@ -104,7 +104,7 @@ int main(int argc, char** argv)
   bool enable_olsr = false;
   std::string phyMode("DsssRate1Mbps");
   double rss = -80.0;       // -dBm
-  double distance = 100;    // m
+  double distance = 600;    // m
   std::string fragmentThreshold = "1";
 //  std::uint16_t packet_size = 64;
 
@@ -118,7 +118,7 @@ int main(int argc, char** argv)
   std::string strategy("friis model");
   std::string input;
   std::string runID;
-  std::string traceFile = "../../traces/trace_60_600_1_0_5000_5000";
+  std::string traceFile = "../../traces/trace_60_600";
   std::string logFile = "ns2traceoutput.txt";
 
   ns3::CommandLine cmd;
@@ -171,7 +171,7 @@ int main(int argc, char** argv)
   wifiPhy.Set("RxGain", ns3::DoubleValue(0));
   LOG(DEBUG) << "  - Rx gain: 0 dBm";
   // Something about RadioTap and Prism tracing
-//  wifiPhy.SetPcapDataLinkType(ns3::YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
+  wifiPhy.SetPcapDataLinkType(ns3::YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
 
   ns3::YansWifiChannelHelper wifiChannel;
   wifiChannel.SetPropagationDelay("ns3::ConstantSpeedPropagationDelayModel");
@@ -205,17 +205,31 @@ int main(int argc, char** argv)
   nodes.Create(nnodes);
   auto devices = wifi.Install(wifiPhy, wifiMac, nodes);
 
-  ns3::Ns2MobilityHelper ns2mobility = ns3::Ns2MobilityHelper(traceFile);
-
   // open log file for output
   std::ofstream os;
   os.open(logFile.c_str());
 
+  ns3::Ns2MobilityHelper ns2mobility = ns3::Ns2MobilityHelper(traceFile);
   ns2mobility.Install();
 
-//  ns3::Config::Connect("/NodeList/*/$ns3::MobilityModel/CourseChange",
-//                       MakeBoundCallback(&CourseChange, &os));
+/*  ns3::MobilityHelper mobility;                                                                                                                                       
+  mobility.SetPositionAllocator("ns3::GridPositionAllocator",                                                                                                         
+                                "MinX",                                                                                                                               
+                                ns3::DoubleValue(0.0),                                                                                                                
+                                "MinY",                                                                                                                               
+                                ns3::DoubleValue(0.0),                                                                                                                
+                                "DeltaX",                                                                                                                             
+                                ns3::DoubleValue(distance),                                                                                                           
+                                "DeltaY",                                                                                                                             
+                                ns3::DoubleValue(distance),                                                                                                           
+                                "GridWidth",                                                                                                                          
+                                ns3::UintegerValue(8),                                                                                                                
+                                "LayoutType",                                                                                                                         
+                                ns3::StringValue("RowFirst")); 
 
+  mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");                                                                                                    
+  mobility.Install(nodes);
+*/ 
   ns3::OlsrHelper olsr;
   ns3::Ipv4ListRoutingHelper list;
   if (enable_olsr) {
@@ -278,7 +292,7 @@ int main(int argc, char** argv)
 
   ns3::AsciiTraceHelper ascii;
 //  wifiPhy.EnableAsciiAll(ascii.CreateFileStream("log/random-walk.tr"));
-//  wifiPhy.EnablePcap("log/random-walk", devices);
+  wifiPhy.EnablePcap("/Volumes/FreeAgent/exp_result/log/random-walk", devices);
 
   if (enable_olsr) {
     auto routeStream = ns3::Create<ns3::OutputStreamWrapper>(

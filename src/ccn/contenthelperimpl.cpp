@@ -282,6 +282,7 @@ std::uint16_t ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
   // caller, the inner execution will modify the collection while the outer
   // execution is still iterating, invalidating its iterators.
   for (auto& block : already_have) {
+    log.d("block %v %v is locally stored/cached", block.hash, block.index);
     block_arrived_event(node.id, block);
   }
 
@@ -389,7 +390,7 @@ bool ContentHelperImpl::broadcast(BlockRef ref, std::uint16_t & bytes_sent)
   if (block == cache->end()) {
     block = store->find(ref);
     if (block == store->end()) {
-      bytes_sent = 0;
+//      bytes_sent = 0;
       return false;
     }
   }

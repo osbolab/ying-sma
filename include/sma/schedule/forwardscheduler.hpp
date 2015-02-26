@@ -19,6 +19,7 @@ public:
 
   virtual bool on_blockrequest (NodeId id, std::vector<BlockRequestArgs> requests) = 0;
   virtual bool on_block (NodeId id, BlockRef block)= 0;
+  virtual bool on_block_timeout (BlockRef block) = 0;
   virtual void sched() = 0;
 
   virtual ~ForwardScheduler() {}
