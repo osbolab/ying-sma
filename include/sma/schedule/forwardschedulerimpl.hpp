@@ -18,6 +18,7 @@
 #include <unordered_set>
 #include <sma/schedule/blockrequestdesc.hpp>
 #include <list>
+#include <sma/ccn/blockresponse.hpp>
 
 namespace sma
 {

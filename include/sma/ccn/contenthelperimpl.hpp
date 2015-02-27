@@ -70,6 +70,7 @@ public:
   std::uint16_t request(std::vector<BlockRequestArgs> requests) override;
   void request_content(Hash hash, float utility, std::uint32_t ttl) override;
   bool broadcast(BlockRef block, std::uint16_t & bytes_sent) override;
+  void handle_arrived_block (BlockRef block);
 
   std::size_t frozen(std::vector<BlockRef> const& blocks,
                      bool enabled) override;
@@ -131,6 +132,7 @@ private:
   void do_auto_fetch();
 
   void log_metadata(NodeId sender, ContentMetadata const& meta);
+
 
   Event<ContentMetadata> interesting_content_event;
   Event<NodeId, std::vector<BlockRequestArgs>> blocks_requested_event;

@@ -5,7 +5,7 @@
 #include <sma/ccn/ccnnode.hpp>
 #include <sma/ccn/blockrequestargs.hpp>
 #include <sma/helper.hpp>
-
+#include <sma/ccn/blockresponse.hpp>
 #include <utility>
 
 namespace sma

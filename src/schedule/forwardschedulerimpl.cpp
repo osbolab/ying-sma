@@ -26,10 +26,11 @@
 namespace sma
 {
 
-//    std::size_t ForwardSchedulerImpl::total_bandwidth =5 ;
-//  no larger in this setting
+//    std::size_t ForwardSchedulerImpl::total_bandwidth =5 ; 
+    // 20 is a good choice
     std::uint32_t ForwardSchedulerImpl::interval_per_packet = 20; 
-    std::size_t ForwardSchedulerImpl::sample_cycles = 10;
+    // 100 is a good choice
+    std::size_t ForwardSchedulerImpl::sample_cycles = 100;
 
     using namespace std::placeholders;
 

@@ -43,7 +43,7 @@ namespace sma
     
     bool BehaviorHelperImpl::on_content (Hash hash)
     {
-      node.log.i ("complete download content %v at %v", 
+      node.log.i ("Complete download content %v at %v", 
               hash,
               clock::now().time_since_epoch().count());
 
@@ -107,7 +107,7 @@ namespace sma
     void BehaviorHelperImpl::behave_publish()
     {
       float min_blocks = 1.0;
-      float max_blocks = 4.0;
+      float max_blocks = 1.0;
 
       std::size_t n_blocks  = min_blocks 
             + static_cast <float> (rand()) 

@@ -95,8 +95,8 @@ int main(int argc, char** argv)
 {
   configure_logs(argc, argv);
 
-  std::size_t nnodes = 60;
-  long duration = 600;
+  std::size_t nnodes = 4;
+  long duration = 100;
 
   std::string baseIp("10.1.0.0");
   std::string subnet("255.255.0.0");
@@ -118,7 +118,7 @@ int main(int argc, char** argv)
   std::string strategy("friis model");
   std::string input;
   std::string runID;
-  std::string traceFile = "../../traces/trace_60_600";
+  std::string traceFile = "../../traces/trace_4_600_1_0_1000_1000.txt";
   std::string logFile = "ns2traceoutput.txt";
 
   ns3::CommandLine cmd;

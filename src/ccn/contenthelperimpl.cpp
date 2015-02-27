@@ -234,15 +234,27 @@ std::uint16_t ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
     if (cached_block == cache->end())
       cached_block = store->find(req->block);
 
-    if (cached_block != cache->end() && cached_block != store->end()
+    auto const new_expiry = clock::now() + req->ttl<millis>();
+
+    if (cached_block != cache->end() || cached_block != store->end()
         && cached_block.complete()) {
       prt.erase(req->block);
-      already_have.push_back(std::move(req->block));
+     //Add a pending request to facilitate content complete
+      //Otherwise, the content complete event will not be poped up.
+      prt.emplace(
+          req->block,
+          PendingRequest{clock::now(), new_expiry, req->keep_on_arrival});
+      check_pending_requests(new_expiry);
+
+//      already_have.push_back(std::move(req->block));
+
+      // WARNING: don not use move copy
+      already_have.push_back(req->block);
       req = requests.erase(req);
+ 
       continue;
     }
 
-    auto const new_expiry = clock::now() + req->ttl<millis>();
 
     auto it = prt.find(req->block);
     if (it != prt.end()) {
@@ -283,6 +295,16 @@ std::uint16_t ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
   // execution is still iterating, invalidating its iterators.
   for (auto& block : already_have) {
     log.d("block %v %v is locally stored/cached", block.hash, block.index);
+    // check the pending request table to facilitate content complete.
+    auto pending = prt.find(block);
+    // There should be one pending request from the node itself.
+    assert (pending != prt.end());
+    for (auto const& meta : rmt)
+      if (meta.data.hash == block.hash) {
+        if (store->validate_data(meta.data)) {
+          content_complete_event(block.hash); 
+        } 
+      }
     block_arrived_event(node.id, block);
   }
 
@@ -298,7 +320,7 @@ void ContentHelperImpl::request_content (Hash content_name,
   // check local meta
   for (auto const & local_meta : lmt) {
     if (local_meta.data.hash == content_name) {
-      node.log.i ("content %v is locally cached", content_name);
+      node.log.i ("Content %v is self published.", content_name);
       content_complete_event(content_name);
       return; // more complicated function can be added, e.g., return data
     }
@@ -330,9 +352,10 @@ void ContentHelperImpl::request_content (Hash content_name,
     if (cached_block == cache->end())
       cached_block = store->find(block);
 
-    if (cached_block != cache->end() && cached_block != store->end()
-        && cached_block.complete())
-      continue;
+//    if (cached_block != cache->end() || cached_block != store->end()
+//        && cached_block.complete()){
+//      continue;
+//    }
 
     requests.push_back (BlockRequestArgs(BlockRef(content_name, shuffle_idx_arr[i]),
                                          utility_per_block,
@@ -424,10 +447,10 @@ void ContentHelperImpl::receive(MessageHeader header, BlockResponse msg)
       for (auto const& meta : rmt)
         if (meta.data.hash == msg.block.hash) {
           if (store->validate_data(meta.data)) {
-            log.i("Content %v complete at %v",
-                  msg.block.hash,
-                  std::chrono::duration_cast<millis>(
-                      clock::now().time_since_epoch()).count());
+//            log.i("Content %v complete at %v",
+//                  msg.block.hash,
+//                  std::chrono::duration_cast<millis>(
+//                      clock::now().time_since_epoch()).count());
             content_complete_event(msg.block.hash);
           }
           break;
@@ -439,8 +462,10 @@ void ContentHelperImpl::receive(MessageHeader header, BlockResponse msg)
   }
 
   // Cache all blocks we come across
-  if (not is_stored and (cache->find(msg.block) == cache->end()))
+  if (not is_stored and (cache->find(msg.block) == cache->end())) {
     cache->store(msg.block, msg.size, msg.data, msg.size);
+    log.i ("cached block %v %v opportunistically", msg.block.hash, msg.block.index);
+  }
 
   block_arrived_event(header.sender, msg.block);
 
