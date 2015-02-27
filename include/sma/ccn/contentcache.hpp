@@ -28,6 +28,14 @@ public:
   // divided.
   static constexpr std::size_t block_size = 1024;
 
+  // Copy slot from cache to store.
+  // Return true when copy succeeds
+  // Return false when fail: (1) src or dst are unavailable
+  //                         (2) dst already has the copy.
+  static bool copy_block_from_to (ContentCache& src,
+                                  ContentCache& dst, 
+                                  BlockRef block);
+
   static_assert(!(block_size == 0) && !(block_size & (block_size - 1)),
                 "Block size must be a power of 2.");
 

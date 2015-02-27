@@ -247,6 +247,27 @@ BlockData ContentCache::store(BlockRef ref,
   return BlockData(this, idx);
 }
 
+bool ContentCache::copy_block_from_to (ContentCache& src,
+                                       ContentCache& dst,
+                                       BlockRef block)
+{
+//  assert (src != nullptr && dst != nullptr);
+  auto const& src_data = src.find(block);
+  assert (src_data.exists());
+  auto const& dst_data = dst.find(block);
+  if (dst_data.exists()) {
+    // ToDo: should verify the data in both slots match.
+    return false;
+  } else {
+    assert(src_data.complete());
+    auto new_block = dst.store (block,
+                                src_data.size(), 
+                                src_data.data(),
+                                src_data.size());
+    assert (new_block.exists());
+    return true;
+  }
+}
 
 BlockData ContentCache::find(BlockRef ref)
 {

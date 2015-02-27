@@ -140,9 +140,10 @@ private:
   Event<NodeId,BlockRef> block_arrived_event;
   Event<Hash> content_complete_event;
 
-  std::unique_ptr<ContentCache> cache;
-  std::unique_ptr<ContentCache> store;
-
+//  std::unique_ptr<ContentCache> cache;
+  std::shared_ptr<ContentCache> cache;
+//  std::unique_ptr<ContentCache> store;
+  std::shared_ptr<ContentCache> store;
   std::deque<Hash> ann_queue;
   std::size_t to_announce;
 

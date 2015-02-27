@@ -9,6 +9,7 @@
 #include <sma/ccn/ccnnode.hpp>
 #include <vector>
 #include <sma/util/hash.hpp>
+#include <unordered_map>
 
 
 namespace sma
@@ -36,6 +37,8 @@ private:
   std::chrono::milliseconds interest_freq;
   std::chrono::milliseconds publish_freq;
   std::chrono::milliseconds request_freq;
+
+  std::unordered_map<Hash, bool> content_req_record;
 
   using clock = sma::chrono::system_clock;
   using time_point = clock::time_point;

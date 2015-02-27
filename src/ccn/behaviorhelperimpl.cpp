@@ -43,9 +43,18 @@ namespace sma
     
     bool BehaviorHelperImpl::on_content (Hash hash)
     {
-      node.log.i ("Complete download content %v at %v", 
-              hash,
-              clock::now().time_since_epoch().count());
+      auto content_req = content_req_record.find(hash);
+      assert(content_req != content_req_record.end());
+      node.log.d ("Inside on_content");
+
+      // Print complete log if not do that yet.
+      if (content_req->second == false) {
+        node.log.i ("Complete download content %v at %v", 
+                hash,
+                clock::now().time_since_epoch().count());
+        // Don't print the log for other block_arrived_event
+        content_req->second = true;
+      }
 
       return true; 
     }
@@ -161,6 +170,7 @@ namespace sma
 
     void BehaviorHelperImpl::behave_request()
     {
+
       std::vector<ContentMetadata> meta_vec = node.content->metadata();
 
       // need rank
@@ -178,6 +188,14 @@ namespace sma
       {
         std::size_t rand_index = rand() % total_metas;
         Hash content_name = meta_vec[rand_index].hash;
+
+        // reset the content_req_record, as it will deemed
+        // as a new request. a local hit will be expected.
+        auto content_req = content_req_record.find(content_name);
+        if (content_req != content_req_record.end())
+          content_req->second = false;
+        else
+          content_req_record.insert({content_name, false});
 
         float min_util = 0.1f;
         float max_util = 1.0f;

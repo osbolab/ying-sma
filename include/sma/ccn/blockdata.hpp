@@ -16,7 +16,7 @@ public:
 
   bool complete() const;
 
-  std::uint8_t* data();
+  std::uint8_t* data() const;
   std::uint8_t const* cdata() const;
 
   std::size_t size() const;

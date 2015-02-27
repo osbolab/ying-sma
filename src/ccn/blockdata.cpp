@@ -36,7 +36,7 @@ bool BlockData::complete() const
 }
 
 
-std::uint8_t* BlockData::data()
+std::uint8_t* BlockData::data() const
 {
   assert(exists());
   return cache->slots[idx].data;

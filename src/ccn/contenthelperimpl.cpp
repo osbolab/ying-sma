@@ -236,7 +236,7 @@ std::uint16_t ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
 
     auto const new_expiry = clock::now() + req->ttl<millis>();
 
-    if (cached_block != cache->end() || cached_block != store->end()
+    if ((cached_block != cache->end() || cached_block != store->end())
         && cached_block.complete()) {
       prt.erase(req->block);
      //Add a pending request to facilitate content complete
@@ -299,6 +299,16 @@ std::uint16_t ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
     auto pending = prt.find(block);
     // There should be one pending request from the node itself.
     assert (pending != prt.end());
+
+    // the block may exist only in the cache.
+    // copy it from cache to store if keep_on_arrival = true
+    // otherwise, store->validate will fail
+    if (pending->second.keep_on_arrival
+       and (store->find(block) == store->end())) {
+      log.d("copying block %v %v from cache to store", block.hash, block.index); 
+      ContentCache::copy_block_from_to(*cache, *store, block);
+    }
+
     for (auto const& meta : rmt)
       if (meta.data.hash == block.hash) {
         if (store->validate_data(meta.data)) {
