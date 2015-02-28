@@ -71,6 +71,7 @@ public:
   void request_content(Hash hash, float utility, std::uint32_t ttl) override;
   bool broadcast(BlockRef block, std::uint16_t & bytes_sent) override;
   void handle_arrived_block (BlockRef block);
+  void log_cache_utilization() const;
 
   std::size_t frozen(std::vector<BlockRef> const& blocks,
                      bool enabled) override;
@@ -167,6 +168,7 @@ private:
   std::deque<BlockRef> auto_fetch_queue;
 
   static constexpr auto min_announce_interval = millis(1000);
+  static constexpr auto cache_log_interval = millis(1000);
   static constexpr std::size_t fuzz_announce_min_ms = 0;
   static constexpr std::size_t fuzz_announce_max_ms = 500;
 

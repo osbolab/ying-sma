@@ -32,7 +32,7 @@ namespace detail
 constexpr std::size_t ContentCache::block_size;
 
 
-void ContentCache::log_utilization()
+void ContentCache::log_utilization() const
 {
   if (not expandable) {
     log.i("cache capacity, %v", capacity);
@@ -217,7 +217,7 @@ Hash ContentCache::store(void const* src, std::size_t size)
 
   content.emplace(hash, std::move(taken_idxs));
 
-  log_utilization();
+//  log_utilization();
 
   return hash;
 }
@@ -241,8 +241,9 @@ BlockData ContentCache::store(BlockRef ref,
   std::memcpy(slot.data, src, size);
   slot.expected_size = expected_size;
   slot.size = size;
+  slot.block_index = ref.index;
 
-  log_utilization();
+//  log_utilization();
 
   return BlockData(this, idx);
 }

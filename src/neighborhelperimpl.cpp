@@ -46,7 +46,7 @@ void NeighborHelperImpl::saw(NodeId const& node, Vec2d const& position)
 
 Vec2d NeighborHelperImpl::get_position (NodeId id) const
 {
-  auto neighbor_it = neighbors.begin();
+  auto neighbor_it = neighbors.find(id);
   if (neighbor_it != neighbors.end())
     return (neighbor_it->second).position();
   else

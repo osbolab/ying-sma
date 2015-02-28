@@ -23,6 +23,7 @@
 namespace sma
 {
 constexpr std::chrono::milliseconds ContentHelperImpl::min_announce_interval;
+constexpr std::chrono::milliseconds ContentHelperImpl::cache_log_interval;
 constexpr std::size_t ContentHelperImpl::fuzz_announce_min_ms;
 constexpr std::size_t ContentHelperImpl::fuzz_announce_max_ms;
 
@@ -35,6 +36,10 @@ ContentHelperImpl::ContentHelperImpl(CcnNode& node)
   , store(new ContentCache(node))
   , to_announce(0)
 {
+
+  asynctask(&ContentHelperImpl::log_cache_utilization,this)
+      .do_in(cache_log_interval);
+
   if (auto_announce)
     asynctask(&ContentHelperImpl::announce_metadata, this)
         .do_in(min_announce_interval);
@@ -69,6 +74,12 @@ ContentMetadata ContentHelperImpl::create_new(std::vector<ContentType> types,
   return metadata;
 }
 
+void ContentHelperImpl::log_cache_utilization() const
+{
+  cache->log_utilization();
+  asynctask(&ContentHelperImpl::log_cache_utilization,this)
+      .do_in(cache_log_interval);
+}
 
 std::uint16_t ContentHelperImpl::announce_metadata()
 {
@@ -474,6 +485,7 @@ void ContentHelperImpl::receive(MessageHeader header, BlockResponse msg)
   // Cache all blocks we come across
   if (not is_stored and (cache->find(msg.block) == cache->end())) {
     cache->store(msg.block, msg.size, msg.data, msg.size);
+    cache->log_utilization();
     log.i ("cached block %v %v opportunistically", msg.block.hash, msg.block.index);
   }
 

@@ -20,6 +20,7 @@ struct BlockRequestDesc
   NodeId from;
   NodeId requester;
   Vec2d origin_location;
+  std::uint8_t hops_from_origin;
 
   BlockRequestDesc (Hash name,
                     BlockIndex index,
@@ -27,7 +28,8 @@ struct BlockRequestDesc
                     timestamp expire,
                     NodeId neighbor_id,
                     NodeId requester_node,
-                    Vec2d location)
+                    Vec2d location,
+                    std::uint8_t hops_from_origin)
       : content_name (name)
       , block_index (index)
       , utility (util)
@@ -35,6 +37,7 @@ struct BlockRequestDesc
       , from (neighbor_id)
       , requester (requester_node)
       , origin_location (location)
+      , hops_from_origin (hops_from_origin)
   {}
 };
 

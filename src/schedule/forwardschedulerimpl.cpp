@@ -200,7 +200,7 @@ namespace sma
     
     double ForwardSchedulerImpl::get_transmission_range() const
     {
-      return 500; 
+      return 1000; 
     }
 
     Vec2d ForwardSchedulerImpl::get_self_position() const
@@ -306,6 +306,7 @@ namespace sma
     {      
         //avoid resending the block to the requeste
         //Todo: delete_from_position of from_node?
+        sched_ptr->get_logger()->d ("Block response from NodeId: %v", id);
         sched_ptr->delete_request_from_node (id, blockid.hash, blockid.index); 
 
         // fist hop in the respond chain
@@ -320,7 +321,7 @@ namespace sma
         
         auto reqIt = requests.begin();
         while (reqIt != requests.end()) {
-          Vec2d requester_location = sched_ptr->get_node_position(reqIt->requester);
+          Vec2d requester_location = sched_ptr->get_node_position(reqIt->from);
           Vec2d broadcaster_location = sched_ptr->get_node_position(id);
 
           double distance = Vec2d::distance (requester_location, broadcaster_location);
@@ -332,13 +333,11 @@ namespace sma
           }
           else
           {
+            sched_ptr->get_logger()->d ("block not scheduled: %v %v", blockid.hash, blockid.index);
             sched_ptr->clear_request(blockid.hash, blockid.index);
             reqIt++; 
           }
         }
-
-        sched_ptr->get_logger()->d ("block not scheduled: %v %v", blockid.hash, blockid.index);
-
     }
 
     std::uint16_t BlockResponseScheduler::sched()
@@ -736,6 +735,7 @@ namespace sma
 //  							  desc.requester,
                               sched_ptr->get_node_id(),
                               desc.origin_location,
+                              desc.hops_from_origin+1,
                               false);
 
           request_to_fwd.push_back(arg);
@@ -770,7 +770,8 @@ namespace sma
                              expire_time,
                              nodeID,
                              request.requester,
-                             request.requester_position);
+                             request.requester_position,
+                             request.hops_from_block);
 
       assert (nodeID == request.requester);
 

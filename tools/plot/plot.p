@@ -48,7 +48,7 @@ set size 1,1
 set xlabel 'time (seconds)'
 set ylabel 'cache utilization'
 set key left
-plot './utilization_output' u 0:0 w l ls 6 t 'cache utilization'#, \
+plot './utilization_output' u 0:1 w l ls 6 t 'cache utilization'#, \
 #'./utilization_output' u  0:2 w l ls 5 t 'store utilization'
 
 set output 'blockevent.eps'

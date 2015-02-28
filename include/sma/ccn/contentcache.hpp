@@ -68,6 +68,7 @@ public:
   // Get the indices of all blocks that are either missing or incomplete
   // for the given content.
   std::vector<BlockIndex> missing_blocks(ContentMetadata const& metadata) const;
+  void log_utilization() const;
 
 private:
   friend class BlockData;
@@ -94,7 +95,6 @@ private:
   void promote(std::size_t idx);
 
   bool expandable;
-  void log_utilization();
 
   Logger log;
 
