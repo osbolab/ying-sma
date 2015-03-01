@@ -32,7 +32,7 @@ constexpr std::chrono::milliseconds ContentHelperImpl::default_initial_ttl;
 
 ContentHelperImpl::ContentHelperImpl(CcnNode& node)
   : ContentHelper(node)
-  , cache(new ContentCache(node, 64 * 1024, false))
+  , cache(new ContentCache(node, 960 * 1024, false))
   , store(new ContentCache(node))
   , to_announce(0)
 {
@@ -398,10 +398,22 @@ void ContentHelperImpl::receive(MessageHeader header, BlockRequest msg)
 {
   log.d("Got %v requests", msg.requests.size());
 
-  if (msg.requests.empty())
+  auto reqs = std::move(msg.requests);
+  auto reqIt = reqs.begin();
+  while (reqIt != reqs.end()) {
+    auto it = prt.find(reqIt->block);
+    if (it != prt.end())
+      reqs.erase(reqIt);
+    else
+      reqIt++;
+  }
+
+//  if (msg.requests.empty())
+  if (reqs.empty())
     return;
 
-  blocks_requested_event(header.sender, std::move(msg.requests));
+//  blocks_requested_event(header.sender, std::move(msg.requests));
+  blocks_requested_event(header.sender, std::move(reqs));
 
   if (not auto_respond and not auto_forward_requests)
     return;
@@ -481,6 +493,8 @@ void ContentHelperImpl::receive(MessageHeader header, BlockResponse msg)
 
 //    will_rebroadcast = auto_respond and not pending->second.local_only;
   }
+
+  is_stored |= (store->find(msg.block) != store->end());
 
   // Cache all blocks we come across
   if (not is_stored and (cache->find(msg.block) == cache->end())) {

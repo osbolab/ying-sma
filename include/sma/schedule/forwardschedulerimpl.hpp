@@ -61,6 +61,7 @@ public:
   double get_transmission_range() const;
   void write_o_block(BlockRef block);
   void broadcast_block_fifo();
+  bool broadcast_block (Hash name, BlockIndex index, std::uint16_t & bytes_sent); 
 
 private:
   std::list<BlockRef> block_o_fifo;
@@ -79,7 +80,6 @@ private:
   std::uint32_t next_interval;
 
 
-  bool broadcast_block (Hash name, BlockIndex index, std::uint16_t & bytes_sent); 
 
   std::uint16_t schedule_interest_fwd ();
   std::uint16_t schedule_metadata_fwd ();

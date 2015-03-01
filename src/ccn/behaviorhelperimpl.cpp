@@ -27,6 +27,8 @@ namespace sma
 	
 	const std::vector<std::string> BehaviorHelperImpl::categories = const_categories;
 
+    constexpr std::size_t BehaviorHelperImpl::max_requests;
+
     BehaviorHelperImpl::BehaviorHelperImpl (CcnNode& host_node,
            std::chrono::milliseconds post_interest_freq,
            std::chrono::milliseconds post_content_freq,
@@ -35,6 +37,7 @@ namespace sma
         , interest_freq (post_interest_freq)
         , publish_freq (post_content_freq)
         , request_freq (download_content_freq)
+        , request_times (0)
     {
       node.content->on_content_complete() += std::bind(&BehaviorHelperImpl::on_content, 
               this, 
@@ -73,7 +76,6 @@ namespace sma
 
     void BehaviorHelperImpl::behave_interest()
     {
- 
       // clear local interest
       node.interests->clear_local();
       // random create_new interest.
@@ -220,10 +222,13 @@ namespace sma
 		                               static_cast<std::uint32_t> (ttl_per_block));
  
       }
-      // schedule next request behavior
-      float ratio = (rand()%60 - 30) / 100.0;
-      auto new_delay = request_freq * (1 + ratio);
-      asynctask (&BehaviorHelperImpl::behave_request, this).do_in (new_delay);
+
+      if (request_times++ < max_requests) {
+        // schedule next request behavior
+        float ratio = (rand()%60 - 30) / 100.0;
+        auto new_delay = request_freq * (1 + ratio);
+        asynctask (&BehaviorHelperImpl::behave_request, this).do_in (new_delay);
+      }
     }
 
     std::string BehaviorHelperImpl::get_rand_str_n (std::size_t length)

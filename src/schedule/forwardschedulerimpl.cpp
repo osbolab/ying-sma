@@ -28,7 +28,7 @@ namespace sma
 
 //    std::size_t ForwardSchedulerImpl::total_bandwidth =5 ; 
     // 20 is a good choice
-    std::uint32_t ForwardSchedulerImpl::interval_per_packet = 20; 
+    std::uint32_t ForwardSchedulerImpl::interval_per_packet = 10; 
     // 100 is a good choice
     std::size_t ForwardSchedulerImpl::sample_cycles = 100;
 
@@ -51,8 +51,8 @@ namespace sma
 
       // add time_out async callback later
 
-      asynctask (&ForwardSchedulerImpl::broadcast_block_fifo, this).do_in (
-              std::chrono::milliseconds (interval_per_packet));
+//      asynctask (&ForwardSchedulerImpl::broadcast_block_fifo, this).do_in (
+//              std::chrono::milliseconds (interval_per_packet));
       asynctask (&ForwardSchedulerImpl::sched, this).do_in (
               std::chrono::milliseconds (ForwardScheduler::get_sched_interval()));
     }
@@ -70,7 +70,6 @@ namespace sma
       if (block_o_fifo.size() > 0) {
         BlockRef block = block_o_fifo.front();
         broadcast_block (block.hash, block.index, bytes_sent_block_o_fifo);
-//        broadcast_block (block.hash, block.index, bytes_sent_block_o_fifo);
         block_o_fifo.pop_front();
       }
       asynctask (&ForwardSchedulerImpl::broadcast_block_fifo, this).do_in (
@@ -170,7 +169,8 @@ namespace sma
 
 	std::size_t ForwardSchedulerImpl::get_storage() const
 	{
-		return 64;
+        // The value should be consistent with size of cache in contenthelperimpl.cpp
+		return 960;
 	}
 
 	std::size_t ForwardSchedulerImpl::get_bandwidth() const
@@ -233,8 +233,8 @@ namespace sma
       std::uint16_t bytes_sent_on_interest = 0;
       std::uint16_t bytes_sent_on_meta = 0;
           
-      bytes_sent_on_block = bytes_sent_block_o_fifo;
-      bytes_sent_block_o_fifo = 0; // reset the counter
+//      bytes_sent_on_block = bytes_sent_block_o_fifo;
+//      bytes_sent_block_o_fifo = 0; // reset the counter
 
       bytes_sent_on_request = schedule_blockrequest_fwd();
       
@@ -242,13 +242,13 @@ namespace sma
 
       //// async task
       // based on which, calculate the bandwidth in this time sched interval.
-      float ratio = (rand()%80 - 40) / 100.0;
+      float ratio = (rand()%1000 - 500) / 1000.0;
       next_interval = ForwardScheduler::get_sched_interval() * (1 + ratio);
       asynctask (&ForwardSchedulerImpl::sched, this).do_in (
               std::chrono::milliseconds (next_interval));
 
-      assert (block_o_fifo.empty());
-      schedule_blockresponse_fwd();
+//      assert (block_o_fifo.empty());
+      bytes_sent_on_block = schedule_blockresponse_fwd();
 
       if (cycles % sample_cycles == 0) {
         bytes_sent_on_interest = schedule_interest_fwd();
@@ -333,11 +333,14 @@ namespace sma
           }
           else
           {
-            sched_ptr->get_logger()->d ("block not scheduled: %v %v", blockid.hash, blockid.index);
-            sched_ptr->clear_request(blockid.hash, blockid.index);
-            reqIt++; 
+           reqIt++; 
           }
         }
+
+        sched_ptr->get_logger()->d ("block not scheduled: %v %v", blockid.hash, blockid.index);
+        sched_ptr->clear_request(blockid.hash, blockid.index);
+        // ToDo: should also remove the fwd_request queue?
+ 
     }
 
     std::uint16_t BlockResponseScheduler::sched()
@@ -439,14 +442,16 @@ namespace sma
         BlockRef block_id = get_blockid (c);
         if (sched_result[c][0] == 1)
         {
-          //// freeze cache
-		  blocks_to_freeze.insert (block_id);
-
           if (sched_result[c][1] == 0)
           {
 			blocks_to_broadcast.insert (block_id);
   		    block_to_schedule.erase (block_id);
             bandwidth_reserved++;
+          }
+          else
+          {
+            //// freeze cache
+		    blocks_to_freeze.insert (block_id);
           }
         }
         else
@@ -494,10 +499,8 @@ namespace sma
               br_block_it != blocks_to_broadcast.end(); br_block_it++)
 	  {
         /// BUG: should broadcast each block twice.
-//		sched_ptr->broadcast_block (br_block_it->hash, br_block_it->index, bytes_sent);
-        sched_ptr->write_o_block (BlockRef(br_block_it->hash, br_block_it->index));
+		sched_ptr->broadcast_block (br_block_it->hash, br_block_it->index, bytes_sent);
 //        sched_ptr->write_o_block (BlockRef(br_block_it->hash, br_block_it->index));
-//		sched_ptr->broadcast_block (br_block_it->hash, br_block_it->index, bytes_sent);
         sched_ptr->clear_request (br_block_it->hash, br_block_it->index);
 	  }
 
@@ -757,6 +760,9 @@ namespace sma
 
     void BlockRequestScheduler::insert_request (NodeId nodeID, BlockRequestArgs request)
     {
+
+      // CAUTION: Do not insert the loop-back requests.
+      // Now the issue is handled in contenthelperimpl
 
       auto requests_per_node = request_desc_table.find(nodeID);
       auto current_time = sma::chrono::system_clock::now();

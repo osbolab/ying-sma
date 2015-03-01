@@ -69,7 +69,8 @@ bool BlockData::frozen(bool enable)
   auto& slot = cache->slots[idx];
   auto previous = slot.frozen;
   slot.frozen = enable;
-  if (slot.frozen)
+  //CAUTION: only promote the unfrozen slot
+  if (not slot.frozen)
     cache->promote(idx);
   return previous;
 }
