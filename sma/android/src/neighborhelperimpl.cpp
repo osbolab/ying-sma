@@ -22,9 +22,7 @@ constexpr unsigned int NeighborHelperImpl::INITIAL_REFRESH_MS;
 NeighborHelperImpl::NeighborHelperImpl(CcnNode& node)
   : NeighborHelper(node)
 {
-  log.d("before schedule");
   schedule_beacon(std::chrono::milliseconds(100));
-  log.d("After schedule");
 }
 
 std::vector<Neighbor> NeighborHelperImpl::get() const
@@ -69,7 +67,6 @@ void NeighborHelperImpl::schedule_beacon(millis delay)
   unit min = delay.count() / 2;
   delay = millis(min + rand() % delay.count());
   asynctask(&NeighborHelperImpl::beacon, this).do_in(delay);
-  log.d("after asynctask");
 }
 
 void NeighborHelperImpl::beacon()

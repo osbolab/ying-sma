@@ -65,41 +65,4 @@ android {
     // Use existing native libraries generated with ndk-build
     jniLibs.srcDir ndkOutput
   }
-/*
-  //noinspection GroovyAssignabilityCheck
-  task buildNative(type: Exec, description: 'Compile JNI source with ndk-build') {
-    println('executing buildNative')
-    def ndkDir = android.plugin.ndkFolder
-    def outDir = file(ndkIntermediate).absolutePath
-    def libsDir = file(ndkOutput).absolutePath
-    commandLine "$ndkDir/ndk-build.cmd",
-                'NDK_DEBUG=1',
-                "NDK_APP_OUT=$outDir",
-                "NDK_LIBS_OUT=$libsDir",
-                '-C', file('src/main/jni').absolutePath,
-                '-j', Runtime.runtime.availableProcessors(),
-                'all'
-  }
-
-  //noinspection GroovyAssignabilityCheck
-  task cleanNative(type: Exec, description: 'Clean JNI object files') {
-    println('executing cleanNative')
-    def ndkDir = android.plugin.ndkFolder
-    def outDir = file(ndkIntermediate).absolutePath
-    def libsDir = file(ndkOutput).absolutePath
-    commandLine "$ndkDir/ndk-build.cmd",
-                'NDK_DEBUG=1',
-                "NDK_APP_OUT=$outDir",
-                "NDK_LIBS_OUT=$libsDir",
-                "NDK_TARGET_ABIS=all",
-                '-C', file('src/main/jni').absolutePath,
-                'clean'
-  }
-
-  // Use custom NDK build phase
-  tasks.withType(JavaCompile) {
-    compileTask -> compileTask.dependsOn buildNative
-  }
-  clean.dependsOn cleanNative
-*/
 }

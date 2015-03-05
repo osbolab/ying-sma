@@ -1,5 +1,5 @@
-#include <sma/android/neighborhelper.hpp>
-#include <sma/android/nodecontainer.hpp>
+#include <sma/android/jnineighborhelper.hpp>
+#include <sma/android/jninodecontainer.hpp>
 
 #include <sma/neighborhelperimpl.hpp>
 

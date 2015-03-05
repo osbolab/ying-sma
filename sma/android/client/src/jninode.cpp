@@ -1,6 +1,6 @@
-#include <sma/android/node.hpp>
+#include <sma/android/jninode.hpp>
 
-#include <sma/android/nodecontainer.hpp>
+#include <sma/android/jninodecontainer.hpp>
 #include <sma/ccn/ccnnode.hpp>
 
 #include <memory>

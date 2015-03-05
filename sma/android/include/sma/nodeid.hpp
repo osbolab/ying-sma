@@ -14,11 +14,7 @@ struct NodeId {
 
   using value_type = std::uint16_t;
 
-  template <typename T,
-            typename std::enable_if<std::is_integral<T>::value
-                                    && sizeof(T)
-                                       >= sizeof(value_type)>::type* = nullptr>
-  NodeId(T value)
+  NodeId(value_type value)
     : value{value}
   {
   }

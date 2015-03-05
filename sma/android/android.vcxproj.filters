@@ -14,9 +14,6 @@
     <ClCompile Include="client\src\async.cpp" />
     <ClCompile Include="client\src\bsdinetlink.cpp" />
     <ClCompile Include="client\src\chrono.cpp" />
-    <ClCompile Include="client\src\neighborhelper.cpp" />
-    <ClCompile Include="client\src\node.cpp" />
-    <ClCompile Include="client\src\nodecontainer.cpp" />
     <ClCompile Include="src\ccn\behaviorhelper.cpp" />
     <ClCompile Include="src\ccn\behaviorhelperimpl.cpp" />
     <ClCompile Include="src\ccn\blockdata.cpp" />
@@ -31,13 +28,14 @@
     <ClCompile Include="src\util\binaryinput.cpp" />
     <ClCompile Include="src\util\binaryoutput.cpp" />
     <ClCompile Include="src\util\hash.cpp" />
+    <ClCompile Include="client\src\jnineighborhelper.cpp" />
+    <ClCompile Include="client\src\jninode.cpp" />
+    <ClCompile Include="client\src\jninodecontainer.cpp" />
+    <ClCompile Include="client\src\jniasynchelper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="android.h" />
     <ClInclude Include="client\include\sma\android\bsdinetlink.hpp" />
-    <ClInclude Include="client\include\sma\android\neighborhelper.hpp" />
-    <ClInclude Include="client\include\sma\android\node.hpp" />
-    <ClInclude Include="client\include\sma\android\nodecontainer.hpp" />
     <ClInclude Include="client\include\sma\utility.hpp" />
     <ClInclude Include="include\sma\ccn\behaviorhelper.hpp" />
     <ClInclude Include="include\sma\ccn\behaviorhelperimpl.hpp" />
@@ -114,6 +112,10 @@
     <ClInclude Include="include\sma\smafwd.hpp" />
     <ClInclude Include="include\sma\stats.hpp" />
     <ClInclude Include="include\sma\thread_scheduler.hpp" />
+    <ClInclude Include="client\include\sma\android\jnineighborhelper.hpp" />
+    <ClInclude Include="client\include\sma\android\jninode.hpp" />
+    <ClInclude Include="client\include\sma\android\jninodecontainer.hpp" />
+    <ClInclude Include="client\include\sma\android\jniasynchelper.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="sources.props" />

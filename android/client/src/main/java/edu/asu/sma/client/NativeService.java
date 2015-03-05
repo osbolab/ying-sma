@@ -10,8 +10,12 @@ import android.os.Looper;
 import android.os.Process;
 import android.util.Log;
 
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import edu.asu.sma.Node;
 import edu.asu.sma.NodeContainer;
+import edu.asu.sma.Sma;
 
 public class NativeService extends Service {
   private final class BinderWrapper extends Binder implements NativeHandlerBinder {
@@ -28,8 +32,42 @@ public class NativeService extends Service {
   private Looper looper;
   private Handler handler;
 
+  // Continuously invoke native code in the service thread without blocking the UI thread from
+  // doing the same.
+  private Runnable repeatingTickTask = new Runnable() {
+    @Override
+    public void run() {
+      if (looper == null)
+        return;
+
+      if (Thread.currentThread() == looper.getThread()) {
+        Node.tick();
+        try {
+          Thread.sleep(TICK_PERIOD_MS, 0);
+        } catch (InterruptedException ignored) {
+        }
+      }
+
+      handler.post(this);
+    }
+  };
+
+  // Manages the delayed execution of native async tasks
+  private ScheduledExecutorService asyncExecutor;
+  // Runs the next native task (if any) on the service thread
+  private Runnable nativeTaskRunner = new Runnable() {
+    @Override
+    public void run() {
+      if (Thread.currentThread() == looper.getThread())
+        runNativeAsyncTask();
+      else
+        handler.post(this);
+    }
+  };
+
 
   public NativeService() {
+    captureServicePointer();
   }
 
   @Override
@@ -43,7 +81,7 @@ public class NativeService extends Service {
 
     if (NodeContainer.create(0)) {
       Log.d(TAG, "Created native node on background thread");
-      tick();
+      repeatingTickTask.run();
     } else {
       Log.d(TAG, "Native node already created");
     }
@@ -70,21 +108,17 @@ public class NativeService extends Service {
     return new BinderWrapper();
   }
 
-  private void tick() {
-    if (Thread.currentThread() == looper.getThread()) {
-      Node.tick();
-      try {
-        Thread.sleep(TICK_PERIOD_MS, 0);
-      } catch (InterruptedException ignored) {
-      }
-    }
+  // Called by native code to schedule an async task on the service thread
+  public void scheduleNativeAsync(long delay_nanos) {
+    Log.d(TAG, "Scheduling native async task in " + delay_nanos + " ns");
+    asyncExecutor.schedule(nativeTaskRunner, delay_nanos, TimeUnit.NANOSECONDS);
+  }
 
-    if (looper != null)
-      handler.post(new Runnable() {
-        @Override
-        public void run() {
-          tick();
-        }
-      });
+  private native void captureServicePointer();
+
+  private native void runNativeAsyncTask();
+
+  static {
+    System.loadLibrary(Sma.LIBRARY_NAME);
   }
 }

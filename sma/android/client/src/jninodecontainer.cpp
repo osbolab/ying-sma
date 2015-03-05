@@ -1,4 +1,4 @@
-#include <sma/android/nodecontainer.hpp>
+#include <sma/android/jninodecontainer.hpp>
 
 #include <sma/context.hpp>
 
@@ -26,8 +26,6 @@ Java_edu_asu_sma_NodeContainer_create(JNIEnv* env, jobject thiz, jint id)
   if (sma::node != nullptr)
     return false;
 
-  auto log = sma::Logger("NodeContainer");
-
   std::vector<std::unique_ptr<sma::Link>> links;
   auto inet = static_cast<sma::Link*>(new sma::BsdInetLink(env));
   links.emplace_back(inet);
@@ -39,13 +37,14 @@ Java_edu_asu_sma_NodeContainer_create(JNIEnv* env, jobject thiz, jint id)
                                             static_cast<sma::LinkLayer&>(*sma::linklayer));
   sma::node = std::make_unique<sma::CcnNode>(node_id, *sma::ctx);
 
-  sma::neighbor_helper = std::make_unique<sma::NeighborHelperImpl>(*sma::node);
-  sma::interest_helper = std::make_unique<sma::InterestHelperImpl>(*sma::node);
-  sma::content_helper = std::make_unique<sma::ContentHelperImpl>(*sma::node);
+  auto& node = *sma::node;
+  sma::neighbor_helper = std::make_unique<sma::NeighborHelperImpl>(node);
+  sma::interest_helper = std::make_unique<sma::InterestHelperImpl>(node);
+  sma::content_helper = std::make_unique<sma::ContentHelperImpl>(node);
 
-  sma::linklayer->receive_to(*sma::node);
+  sma::linklayer->receive_to(node);
 
-  log.d("Hello, world!");
+  sma::Logger("NodeContainer").d("Hello, world!");
 
   return true;
 }
