@@ -23,6 +23,7 @@
     <Keyword>Android</Keyword>
     <ApplicationType>Android</ApplicationType>
     <ApplicationTypeRevision>1.0</ApplicationTypeRevision>
+    <ProjectName>android-native</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="Configuration">
@@ -134,7 +135,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="android.cpp" />
     <ClCompile Include="client\src\async.cpp" />
     <ClCompile Include="client\src\bsdinetlink.cpp" />
     <ClCompile Include="client\src\chrono.cpp" />
@@ -167,7 +167,6 @@
     <ClCompile Include="src\util\hash.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="android.h" />
     <ClInclude Include="client\include\sma\android\bsdinetlink.hpp" />
     <ClInclude Include="client\include\sma\android\jniasynchelper.hpp" />
     <ClInclude Include="client\include\sma\android\jnineighborhelper.hpp" />
@@ -249,9 +248,6 @@
     <ClInclude Include="include\sma\util\typesieve.hpp" />
     <ClInclude Include="include\sma\util\unique_cast.hpp" />
     <ClInclude Include="include\sma\util\vec2d.hpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="sources.props" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
