@@ -3,7 +3,6 @@ package edu.asu.sma.client;
 
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -72,8 +71,6 @@ public class NetworkFragment extends BaseFragment implements NativeConsumer {
             neighbors_adapter.notifyDataSetChanged();
           }
         });
-
-        Log.d("NetworkFragment", "Updated neighbors list: " + Integer.toString(neighbors.size()));
       }
     });
 

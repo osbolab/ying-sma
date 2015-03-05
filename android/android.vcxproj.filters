@@ -31,6 +31,7 @@
     <ClCompile Include="src\neighborhelper.cpp" />
     <ClCompile Include="src\neighborhelperimpl.cpp" />
     <ClCompile Include="src\stats.cpp" />
+    <ClCompile Include="client\src\main\jni\jnimain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="client\include\sma\android\bsdinetlink.hpp" />
@@ -114,5 +115,6 @@
     <ClInclude Include="include\sma\smafwd.hpp" />
     <ClInclude Include="include\sma\stats.hpp" />
     <ClInclude Include="include\sma\thread_scheduler.hpp" />
+    <ClInclude Include="client\include\sma\android\jvm.hpp" />
   </ItemGroup>
 </Project>

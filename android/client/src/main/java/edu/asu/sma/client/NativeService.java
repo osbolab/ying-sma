@@ -112,7 +112,6 @@ public class NativeService extends Service {
 
   // Called by native code to schedule an async task on the service thread
   public void scheduleNativeAsync(long delay_nanos) {
-    Log.d(TAG, "Scheduling native async task in " + delay_nanos + " ns");
     asyncExecutor.schedule(nativeTaskRunner, delay_nanos, TimeUnit.NANOSECONDS);
   }
 

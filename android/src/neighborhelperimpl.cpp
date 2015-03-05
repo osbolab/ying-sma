@@ -67,6 +67,7 @@ void NeighborHelperImpl::schedule_beacon(millis delay)
   unit min = delay.count() / 2;
   delay = millis(min + rand() % delay.count());
   asynctask(&NeighborHelperImpl::beacon, this).do_in(delay);
+  log.d("beacon scheduled in %v ms", delay.count());
 }
 
 void NeighborHelperImpl::beacon()

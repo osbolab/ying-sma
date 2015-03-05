@@ -28,9 +28,11 @@ CcnNode::CcnNode(NodeId id, Context& context)
 Vec2d CcnNode::position() const
 {
   auto const* gps = context->template try_get_component<GpsComponent>();
-  assert(gps);
-  auto pos = gps->position();
-  return Vec2d(pos.lon, pos.lat);
+  if (gps != nullptr) {
+    auto pos = gps->position();
+    return Vec2d(pos.lon, pos.lat);
+  } else
+    return Vec2d(0.0, 0.0);
 }
 
 void CcnNode::post(void const* src, std::size_t size)

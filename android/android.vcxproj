@@ -26,6 +26,7 @@
     <ClCompile Include="client\src\main\jni\jnineighborhelper.cpp" />
     <ClCompile Include="client\src\main\jni\jninode.cpp" />
     <ClCompile Include="client\src\main\jni\jninodecontainer.cpp" />
+    <ClCompile Include="client\src\main\jni\jnimain.cpp" />
     <ClCompile Include="src\ccn\behaviorhelper.cpp" />
     <ClCompile Include="src\ccn\behaviorhelperimpl.cpp" />
     <ClCompile Include="src\ccn\blockdata.cpp" />
@@ -56,6 +57,7 @@
     <ClInclude Include="client\include\sma\android\jnineighborhelper.hpp" />
     <ClInclude Include="client\include\sma\android\jninode.hpp" />
     <ClInclude Include="client\include\sma\android\jninodecontainer.hpp" />
+    <ClInclude Include="client\include\sma\android\jvm.hpp" />
     <ClInclude Include="client\include\sma\utility.hpp" />
     <ClInclude Include="include\sma\async.hpp" />
     <ClInclude Include="include\sma\beacon.hpp" />

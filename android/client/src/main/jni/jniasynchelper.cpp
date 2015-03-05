@@ -6,8 +6,7 @@
 namespace sma
 {
 jobject android_service = nullptr;
-JNIEnv* android_service_env = nullptr;
-std::multimap<std::chrono::nanoseconds, std::function<void()>> asynctaskqueue;
+std::multimap<std::chrono::system_clock::time_point, std::function<void()>> asynctaskqueue;
 
 static Logger log("NativeService");
 }
@@ -16,8 +15,6 @@ static Logger log("NativeService");
 JNIEXPORT void JNICALL Java_edu_asu_sma_client_NativeService_captureServicePointer(JNIEnv* env, jobject thiz)
 {
   sma::android_service = env->NewGlobalRef(thiz);
-  sma::android_service_env = env;
-
   sma::log.d("Captured NativeService*");
 }
 
@@ -32,8 +29,6 @@ JNIEXPORT void JNICALL Java_edu_asu_sma_client_NativeService_runNativeAsyncTask(
     return;
 
   auto it = sma::asynctaskqueue.begin();
-
-  sma::log.d("Popped native async task... running");
 
   it->second();
   sma::asynctaskqueue.erase(it);
