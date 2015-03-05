@@ -10,6 +10,7 @@ import android.os.Looper;
 import android.os.Process;
 import android.util.Log;
 
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -53,7 +54,7 @@ public class NativeService extends Service {
   };
 
   // Manages the delayed execution of native async tasks
-  private ScheduledExecutorService asyncExecutor;
+  private ScheduledExecutorService asyncExecutor = Executors.newScheduledThreadPool(1);
   // Runs the next native task (if any) on the service thread
   private Runnable nativeTaskRunner = new Runnable() {
     @Override
@@ -101,6 +102,7 @@ public class NativeService extends Service {
 
     Log.d(TAG, "Destroying native node");
     NodeContainer.dispose();
+    deleteServicePointer();
   }
 
   @Override
@@ -115,6 +117,8 @@ public class NativeService extends Service {
   }
 
   private native void captureServicePointer();
+
+  private native void deleteServicePointer();
 
   private native void runNativeAsyncTask();
 

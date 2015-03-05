@@ -56,13 +56,10 @@ android {
     }
   }
 
-  def ndkIntermediate = 'build/intermediates/ndk'
-  def ndkOutput = 'build/generated/libs'
-
   sourceSets.main {
     // Disable Android Studio's default NDK phase and automatic makefile generation
     jni.srcDirs = []
     // Use existing native libraries generated with ndk-build
-    jniLibs.srcDir ndkOutput
+    jniLibs.srcDir '../build/generated/libs'
   }
 }

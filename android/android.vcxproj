@@ -18,130 +18,14 @@
       <Platform>x86</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <PropertyGroup Label="Globals">
-    <ProjectGuid>{d161a90b-dcfa-4699-ab2d-98bb25af9e2c}</ProjectGuid>
-    <Keyword>Android</Keyword>
-    <ApplicationType>Android</ApplicationType>
-    <ApplicationTypeRevision>1.0</ApplicationTypeRevision>
-    <ProjectName>android-native</ProjectName>
-  </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>Clang_3_4</PlatformToolset>
-    <UseOfStl>c++_static</UseOfStl>
-    <AndroidAPILevel>android-18</AndroidAPILevel>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>Clang_3_4</PlatformToolset>
-    <UseOfStl>c++_static</UseOfStl>
-    <AndroidAPILevel>android-18</AndroidAPILevel>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>Clang_3_4</PlatformToolset>
-    <UseOfStl>c++_static</UseOfStl>
-    <AndroidAPILevel>android-18</AndroidAPILevel>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>Clang_3_4</PlatformToolset>
-    <UseOfStl>c++_static</UseOfStl>
-    <AndroidAPILevel>android-18</AndroidAPILevel>
-  </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings" />
-  <ImportGroup Label="PropertySheets" />
-  <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
-    <ReferencePath>
-    </ReferencePath>
-    <IncludePath>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Apps\android-ndk-r10\sources\android\support\include;C:\Users\msbarnar\Projects\sma\sma\android\client\include;C:\Users\msbarnar\Projects\sma\sma\android\include;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)\build\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>out\$(Platform)\$(Configuration)\</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
-    <ReferencePath>
-    </ReferencePath>
-    <IncludePath>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Apps\android-ndk-r10\sources\android\support\include;C:\Users\msbarnar\Projects\sma\sma\android\client\include;C:\Users\msbarnar\Projects\sma\sma\android\include;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)\build\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(Platform)\out\$(Configuration)\</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
-    <ReferencePath>
-    </ReferencePath>
-    <IncludePath>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Apps\android-ndk-r10\sources\android\support\include;C:\Users\msbarnar\Projects\sma\sma\android\client\include;C:\Users\msbarnar\Projects\sma\sma\android\include;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)\build\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(Platform)\out\$(Configuration)\</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
-    <ReferencePath>
-    </ReferencePath>
-    <IncludePath>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Apps\android-ndk-r10\sources\android\support\include;C:\Users\msbarnar\Projects\sma\sma\android\client\include;C:\Users\msbarnar\Projects\sma\sma\android\include;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)\build\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(Platform)\out\$(Configuration)\</IntDir>
-  </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
-    <ClCompile>
-      <ObjectFileName>$(IntDir)/%(RelativeDir)/%(filename).o</ObjectFileName>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <PreprocessorDefinitions>
-      </PreprocessorDefinitions>
-      <UndefinePreprocessorDefinitions>NDEBUG</UndefinePreprocessorDefinitions>
-      <CompileAs>CompileAsCpp</CompileAs>
-    </ClCompile>
-    <Link>
-      <LibraryDependencies>log;android;m</LibraryDependencies>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
-    <ClCompile>
-      <ObjectFileName>$(IntDir)/%(RelativeDir)/%(filename).o</ObjectFileName>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <PreprocessorDefinitions>
-      </PreprocessorDefinitions>
-      <UndefinePreprocessorDefinitions>NDEBUG</UndefinePreprocessorDefinitions>
-      <CompileAs>CompileAsCpp</CompileAs>
-    </ClCompile>
-    <Link>
-      <LibraryDependencies>log;android;m</LibraryDependencies>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
-    <ClCompile>
-      <ObjectFileName>$(IntDir)/%(RelativeDir)/%(filename).o</ObjectFileName>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <UndefinePreprocessorDefinitions>NDEBUG</UndefinePreprocessorDefinitions>
-      <CompileAs>CompileAsCpp</CompileAs>
-    </ClCompile>
-    <Link>
-      <LibraryDependencies>log;android;m</LibraryDependencies>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
-    <ClCompile>
-      <ObjectFileName>$(IntDir)/%(RelativeDir)/%(filename).o</ObjectFileName>
-      <TreatWarningAsError>true</TreatWarningAsError>
-      <UndefinePreprocessorDefinitions>NDEBUG</UndefinePreprocessorDefinitions>
-      <CompileAs>CompileAsCpp</CompileAs>
-    </ClCompile>
-    <Link>
-      <LibraryDependencies>log;android;m</LibraryDependencies>
-    </Link>
-  </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="client\src\async.cpp" />
-    <ClCompile Include="client\src\bsdinetlink.cpp" />
-    <ClCompile Include="client\src\chrono.cpp" />
-    <ClCompile Include="client\src\jniasynchelper.cpp" />
-    <ClCompile Include="client\src\jnineighborhelper.cpp" />
-    <ClCompile Include="client\src\jninode.cpp" />
-    <ClCompile Include="client\src\jninodecontainer.cpp" />
+    <ClCompile Include="client\src\main\jni\async.cpp" />
+    <ClCompile Include="client\src\main\jni\bsdinetlink.cpp" />
+    <ClCompile Include="client\src\main\jni\chrono.cpp" />
+    <ClCompile Include="client\src\main\jni\jniasynchelper.cpp" />
+    <ClCompile Include="client\src\main\jni\jnineighborhelper.cpp" />
+    <ClCompile Include="client\src\main\jni\jninode.cpp" />
+    <ClCompile Include="client\src\main\jni\jninodecontainer.cpp" />
     <ClCompile Include="src\ccn\behaviorhelper.cpp" />
     <ClCompile Include="src\ccn\behaviorhelperimpl.cpp" />
     <ClCompile Include="src\ccn\blockdata.cpp" />
@@ -249,6 +133,126 @@
     <ClInclude Include="include\sma\util\unique_cast.hpp" />
     <ClInclude Include="include\sma\util\vec2d.hpp" />
   </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{d161a90b-dcfa-4699-ab2d-98bb25af9e2c}</ProjectGuid>
+    <Keyword>Android</Keyword>
+    <ApplicationType>Android</ApplicationType>
+    <ApplicationTypeRevision>1.0</ApplicationTypeRevision>
+    <ProjectName>android-native</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>Clang_3_4</PlatformToolset>
+    <UseOfStl>c++_static</UseOfStl>
+    <AndroidAPILevel>android-18</AndroidAPILevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>Clang_3_4</PlatformToolset>
+    <UseOfStl>c++_static</UseOfStl>
+    <AndroidAPILevel>android-18</AndroidAPILevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>Clang_3_4</PlatformToolset>
+    <UseOfStl>c++_static</UseOfStl>
+    <AndroidAPILevel>android-18</AndroidAPILevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>Clang_3_4</PlatformToolset>
+    <UseOfStl>c++_static</UseOfStl>
+    <AndroidAPILevel>android-18</AndroidAPILevel>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <ReferencePath>
+    </ReferencePath>
+    <IncludePath>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Apps\android-ndk-r10\sources\android\support\include;C:\Users\msbarnar\Projects\sma\android\client\include;C:\Users\msbarnar\Projects\sma\android\include;C:\Users\msbarnar\Projects\sma\include;$(IncludePath)</IncludePath>
+    <OutDir>$(ProjectDir)\build\generated\libs\$(Platform)\</OutDir>
+    <IntDir>$(ProjectDir)\build\intermediate\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>libsmanative</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <ReferencePath>
+    </ReferencePath>
+    <IncludePath>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Apps\android-ndk-r10\sources\android\support\include;C:\Users\msbarnar\Projects\sma\android\client\include;C:\Users\msbarnar\Projects\sma\android\include;C:\Users\msbarnar\Projects\sma\include;$(IncludePath)</IncludePath>
+    <OutDir>$(ProjectDir)\build\generated\libs\$(Platform)\</OutDir>
+    <IntDir>$(ProjectDir)\build\intermediate\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>libsmanative</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <ReferencePath>
+    </ReferencePath>
+    <IncludePath>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Apps\android-ndk-r10\sources\android\support\include;C:\Users\msbarnar\Projects\sma\android\client\include;C:\Users\msbarnar\Projects\sma\android\include;C:\Users\msbarnar\Projects\sma\include;$(IncludePath)</IncludePath>
+    <OutDir>$(ProjectDir)\build\generated\libs\$(Platform)\</OutDir>
+    <IntDir>$(ProjectDir)\build\intermediate\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>libsmanative</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <ReferencePath>
+    </ReferencePath>
+    <IncludePath>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Apps\android-ndk-r10\sources\android\support\include;C:\Users\msbarnar\Projects\sma\android\client\include;C:\Users\msbarnar\Projects\sma\android\include;C:\Users\msbarnar\Projects\sma\include;$(IncludePath)</IncludePath>
+    <OutDir>$(ProjectDir)\build\generated\libs\$(Platform)\</OutDir>
+    <IntDir>$(ProjectDir)\build\intermediate\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>libsmanative</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <ClCompile>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/%(filename).o</ObjectFileName>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <PreprocessorDefinitions>
+      </PreprocessorDefinitions>
+      <UndefinePreprocessorDefinitions>NDEBUG</UndefinePreprocessorDefinitions>
+      <CompileAs>CompileAsCpp</CompileAs>
+    </ClCompile>
+    <Link>
+      <LibraryDependencies>log;android;m</LibraryDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <ClCompile>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/%(filename).o</ObjectFileName>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <PreprocessorDefinitions>
+      </PreprocessorDefinitions>
+      <UndefinePreprocessorDefinitions>NDEBUG</UndefinePreprocessorDefinitions>
+      <CompileAs>CompileAsCpp</CompileAs>
+    </ClCompile>
+    <Link>
+      <LibraryDependencies>log;android;m</LibraryDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <ClCompile>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/%(filename).o</ObjectFileName>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <UndefinePreprocessorDefinitions>NDEBUG</UndefinePreprocessorDefinitions>
+      <CompileAs>CompileAsCpp</CompileAs>
+    </ClCompile>
+    <Link>
+      <LibraryDependencies>log;android;m</LibraryDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <ClCompile>
+      <ObjectFileName>$(IntDir)/%(RelativeDir)/%(filename).o</ObjectFileName>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <UndefinePreprocessorDefinitions>NDEBUG</UndefinePreprocessorDefinitions>
+      <CompileAs>CompileAsCpp</CompileAs>
+    </ClCompile>
+    <Link>
+      <LibraryDependencies>log;android;m</LibraryDependencies>
+    </Link>
+  </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>

@@ -15,10 +15,15 @@ static Logger log("NativeService");
 
 JNIEXPORT void JNICALL Java_edu_asu_sma_client_NativeService_captureServicePointer(JNIEnv* env, jobject thiz)
 {
-  sma::android_service = thiz;
+  sma::android_service = env->NewGlobalRef(thiz);
   sma::android_service_env = env;
 
   sma::log.d("Captured NativeService*");
+}
+
+JNIEXPORT void JNICALL Java_edu_asu_sma_client_NativeService_deleteServicePointer(JNIEnv* env, jobject thiz)
+{
+  env->DeleteGlobalRef(sma::android_service);
 }
 
 JNIEXPORT void JNICALL Java_edu_asu_sma_client_NativeService_runNativeAsyncTask(JNIEnv* env, jobject thiz)
