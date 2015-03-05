@@ -72,7 +72,6 @@ void NeighborHelperImpl::schedule_beacon(millis delay)
 
 void NeighborHelperImpl::beacon()
 {
-  log.d("beacon()");
   node.post(Beacon(node.position()));
   schedule_beacon(std::chrono::seconds(2));
 }

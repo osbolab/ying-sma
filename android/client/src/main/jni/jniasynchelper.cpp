@@ -1,4 +1,5 @@
 #include <sma/android/jniasynchelper.hpp>
+#include <sma/async.hpp>
 
 #include <sma/io/log.hpp>
 
@@ -20,6 +21,7 @@ JNIEXPORT void JNICALL Java_edu_asu_sma_client_NativeService_captureServicePoint
 
 JNIEXPORT void JNICALL Java_edu_asu_sma_client_NativeService_deleteServicePointer(JNIEnv* env, jobject thiz)
 {
+  sma::Async::purge();
   env->DeleteGlobalRef(sma::android_service);
 }
 

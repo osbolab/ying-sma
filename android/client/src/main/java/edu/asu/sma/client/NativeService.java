@@ -38,10 +38,7 @@ public class NativeService extends Service {
   private Runnable repeatingTickTask = new Runnable() {
     @Override
     public void run() {
-      if (looper == null)
-        return;
-
-      if (Thread.currentThread() == looper.getThread()) {
+      if (looper != null && Thread.currentThread() == looper.getThread()) {
         Node.tick();
         try {
           Thread.sleep(TICK_PERIOD_MS, 0);
@@ -49,7 +46,8 @@ public class NativeService extends Service {
         }
       }
 
-      handler.post(this);
+      if (looper != null)
+        handler.post(this);
     }
   };
 
@@ -97,12 +95,13 @@ public class NativeService extends Service {
   public synchronized void onDestroy() {
     super.onDestroy();
 
+    deleteServicePointer();
+    
     looper.quit();
     looper = null;
 
     Log.d(TAG, "Destroying native node");
     NodeContainer.dispose();
-    deleteServicePointer();
   }
 
   @Override
