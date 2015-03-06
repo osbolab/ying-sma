@@ -10,7 +10,8 @@
 #include <sma/context.hpp>
 #include <sma/chrono.hpp>
 
-#include <sma/utility.hpp>
+//#include <sma/utility.hpp>
+#include <utility>
 
 #include <ns3/ptr.h>
 #include <ns3/uinteger.h>
@@ -96,10 +97,10 @@ void Ns3NodeContainer::StartApplication()
 
   neighbor_helper = std::make_unique<NeighborHelperImpl>(*node);
   interest_helper = std::make_unique<InterestHelperImpl>(*node);
-  behavior_helper = std::make_unique<BehaviorHelperImpl>(*node,
-           std::chrono::milliseconds(10000),
+  behavior_helper = std::make_unique<BehaviorHelperImpl>(*node, 
+           std::chrono::milliseconds(60000), 
            std::chrono::milliseconds(30000),
-            std::chrono::milliseconds(15000));
+           std::chrono::milliseconds(60000));
   content_helper = std::make_unique<ContentHelperImpl>(*node);
   scheduler_helper = std::make_unique<ForwardSchedulerImpl>(*node, 1000);
 

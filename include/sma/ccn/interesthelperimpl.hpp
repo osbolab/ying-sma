@@ -73,7 +73,7 @@ private:
   time_point next_announce_time;
   std::size_t to_announce;
 
-  bool auto_announce = true;
+  bool auto_announce = false;
 
   static constexpr auto min_announce_interval = std::chrono::milliseconds(500);
   static constexpr std::size_t fuzz_announce_min_ms = 0;
