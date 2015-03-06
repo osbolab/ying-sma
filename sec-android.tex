@@ -5,57 +5,33 @@
 
 \begin{document}
 
-\begin{figure}[!b]
-  \begin{center}
-    \includegraphics[width=0.5\textwidth]{android-platform-wrapper.pdf}
-  \end{center}
-
-  \caption{\small Figure caption. To get a figure to span two
-      columns, use the environment figure* rather than figure.}
-  \label{fig:android-platform-wrapper}
-\end{figure}
-
 \section{Implementation}
 
 Moving from simulation to implementation on physical devices can reveal unforeseen challenges to the design, protocols, or experimental conditions around which a system is developed. We therefore see the real implementation, in addition to the simulation, as a necessary step to demonstrating our system's usefulness and effectiveness; for that reason we have implemented our system both on the NS3 simulation platform and on real Android mobile devices.
 
-The Android platform represented 80\% of the mobile device market in 2014 and is expected to maintain three quarters of the global market share during the following four years cite{International Data Corporation http://www.idc.com/getdoc.jsp?containerId=prUS24857114}. We feel that targeting Android gives the most realistic view of what capabilities are available, now or in the future, for novel mobile systems.
+The Android platform represented 80\% of the mobile device market in 2014 and is expected to maintain three quarters of the global market share during the following four years cite International Data Corporation http://www.idc.com/getdoc.jsp?containerId=prUS24857114. We feel that targeting Android gives the most realistic view of what capabilities are available, now or in the future, for novel mobile systems.
 
 The core system functionality is implemented as a standalone C++ module that can be built as an external library or into an application. The core library contains all of the platform-agnostic functionality and accesses platform resources via abstract interfaces.
 
-Cross-platform support is fundamental to our software design: we can support NS3, Android, POSIX, and WinNT platforms with no modifications to the core module. A thin platform-specific wrapper abstracts the system logic from platform resources, as seen in figure \ref{fig:android-platform-wrapper}.
+Cross-platform support is fundamental to our software design: we can support NS3, Android, POSIX, and WinNT with no modifications to the core module. A thin platform-specific wrapper provides access to the environment, as seen in Figure \ref{fig:android-platform-wrapper}.
 
-The NS3 and Android environments differ in important ways. For one, the NS3 simulator uses only a single thread of execution for numerous application instances while Android offers many threads of execution for a single application instance. 
+\begin{figure}[!b]
+  \begin{center}
+    \includegraphics[width=0.45\textwidth]{android-platform-wrapper.pdf}
+  \end{center}
 
+  \caption{\small The implementation architecture abstracts platform resources away from the core functionality for platform independence.}
+  \label{fig:android-platform-wrapper}
+\end{figure}
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque pellentesque facilisis finibus. Sed tincidunt hendrerit blandit. Nullam luctus dui eu facilisis posuere. Morbi et porta orci. Ut vel suscipit odio. Donec vulputate neque libero, sit amet placerat elit congue in. Pellentesque eu mauris augue.
-\noindent
-To create a PDF file, execute the following commands:
-\begin{enumerate}
-\item pdflatex templatePDF
-\item bibtex templatePDF
-\item pdflatex templatePDF
-\item pdflatex templatePDF
-\end{enumerate}
-\noindent
-Donec ut tempor mi. Cras ut ante ac justo egestas condimentum. Sed convallis lectus id orci porta, ut viverra nulla sollicitudin. Pellentesque ac ipsum malesuada risus lobortis dictum id a magna. Maecenas facilisis dictum turpis, in suscipit sem tincidunt sed. Pellentesque non tincidunt dui. Vestibulum vel dignissim sem.
+NS3 and Android differ in important ways; for one, the NS3 simulator uses only a single thread of execution for numerous application instances while Android offers many threads of execution for a single application instance. To be maximally flexible to different test environments or deployments, the core system logic is implemented in terms of the following abstractions:
 
-\section{Fusce eu dui massa}
+\paragraph{Clock} gives access to the current time and date. In NS3 this reflects the simulation time, but in all other implementations it reflects the system clock.
 
-Etiam non volutpat mi. Morbi eros risus, consequat \ref{et} arcu vel, varius fermentum lectus. Sed vitae porta nunc. Aliquam erat volutpat. In tortor nulla, convallis nec commodo nec, pharetra congue arcu. Nunc ultrices vel augue sit amet semper. Maecenas ``luctus'' arcu et $viverra$ iaculis. Sed diam ligula, ornare et arcu nec, elementum \cite{convallis} mi.
+\paragraph{Async} provides a mechanism for the core module to create tasks that may be run in the background, in the future, or periodically. Task scheduling and parallelism, if any, is defined by the implementation. The core functionality is thus scalable across many threads of execution as it operates in terms of decoupled tasks.
 
-Donec sit amet placerat nulla, eget condimentum urna. Sed vehicula magna varius lacus fermentum, at finibus risus lobortis. Nam ut metus eu nisi hendrerit aliquam. In hac habitasse platea dictumst. Nam enim diam, lacinia non porttitor hendrerit, aliquam quis metus. Vivamus at blandit massa. Aenean accumsan dictum nisi, at lobortis nisi facilisis non. Nunc congue neque lacinia, ornare eros ac, condimentum odio.
+\paragraph{Cache} is how the core module stores and loads data, in lieu of files or databases. Caches of varying persistence are provided that may be implemented in volatile memory, on a hard disk, or in flash memory on a mobile device. The caching policies may vary given the storage medium and expected persistence of cached data.
 
-Mauris aliquet eros ipsum, ac facilisis nisl vulputate eu. Etiam at rhoncus dui. Mauris interdum fermentum enim, et dictum dui volutpat ac. Sed pharetra viverra enim, ut fringilla tellus commodo non. Donec congue lectus lacus, quis blandit ligula aliquet id. Praesent risus massa, mattis in semper sit amet, malesuada in risus. Praesent orci magna, elementum id lectus et, euismod vulputate erat.
-
-Interdum et malesuada fames ac ante ipsum primis in faucibus. Praesent hendrerit nec quam eget rutrum. Curabitur pulvinar neque in neque molestie, eu rhoncus metus fringilla. Nam sit amet ultricies nulla. Ut ullamcorper, nunc nec consequat luctus, eros purus sodales mauris, ut congue lacus libero eget sem. Aliquam vel leo neque. Aliquam a feugiat ex.
-
-Cras consectetur metus ac suscipit egestas. Aliquam viverra turpis non purus consequat, sed sagittis mauris interdum. Fusce fermentum faucibus neque, nec blandit urna accumsan eu. Vestibulum vitae lectus massa. Maecenas ut leo ut nunc dictum pretium. Donec euismod ante lectus, eu pellentesque justo rhoncus a. Phasellus elementum congue enim, id maximus risus interdum sed.
-
-Ut lobortis, arcu sed dictum faucibus, urna ex auctor nisl, eget bibendum dolor nulla vel enim. Integer mauris sem, finibus ut interdum id, viverra ut turpis. Donec id metus lorem. Integer sit amet justo sollicitudin, porttitor massa sed, laoreet diam. Phasellus in magna ac felis pretium lobortis. Quisque venenatis vestibulum lectus, egestas porttitor quam rhoncus at. Ut molestie leo leo, eget facilisis quam tempor imperdiet. Curabitur sollicitudin blandit ultricies. Cras eleifend porta eros, ut placerat augue. Nunc semper justo massa, ut accumsan nisi porta at. Suspendisse egestas facilisis congue. Donec blandit orci est, vitae mattis turpis porttitor faucibus. Nulla ac enim in lectus gravida congue eget ut odio. Praesent vel interdum purus, ut eleifend velit.
-
-Proin bibendum nulla ante, vel iaculis dui posuere pulvinar. Proin egestas nisl quis hendrerit ullamcorper. Sed nec purus id justo tempor vulputate. Aliquam condimentum massa non magna sagittis venenatis. Morbi egestas finibus elit, eu rhoncus ante congue eget. Maecenas vestibulum feugiat magna, vitae ornare diam sagittis id. Aliquam et venenatis erat. Curabitur condimentum scelerisque dapibus. Sed malesuada rutrum justo eu finibus. In scelerisque risus vel tristique pharetra. Pellentesque tincidunt varius risus et faucibus. Vestibulum ornare dapibus turpis, suscipit semper nulla. Proin mauris elit, placerat eget mauris in, sollicitudin fermentum nisi.
-
-Nullam quis ante non turpis sollicitudin gravida nec sed diam. Pellentesque sit amet placerat lacus. Mauris rutrum ligula ex, quis gravida erat sollicitudin quis. Vivamus tristique egestas magna, nec convallis felis malesuada eu. Aenean sem purus, laoreet non mattis vel, facilisis non ipsum. Curabitur hendrerit ut nulla sit amet convallis. Integer tempus nunc sed scelerisque lacinia. Donec sed magna maximus, semper risus quis, venenatis nisi. Ut sed elementum risus. Integer elit leo, posuere id congue a, porta vitae quam. Suspendisse vitae turpis non ex cursus pretium. Duis vestibulum ac nisi sed vestibulum. Integer ultricies eleifend orci in semper. In hac habitasse platea dictumst.
+\paragraph{Links} represent logical network connections and are abstracted as message queues. The implementation defines the network device and access mode of a particular link. The link layer aggregates one or more links into the logical network view held by the core logic.
 
 \end{document}
