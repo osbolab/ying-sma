@@ -34,7 +34,7 @@ private:
 
   static const std::vector<std::string> categories;
 
-  static constexpr std::size_t max_requests = 100;
+  static constexpr std::size_t max_requests = 30;
   std::size_t request_times;
 
   std::chrono::milliseconds interest_freq;

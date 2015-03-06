@@ -32,7 +32,7 @@ constexpr std::chrono::milliseconds ContentHelperImpl::default_initial_ttl;
 
 ContentHelperImpl::ContentHelperImpl(CcnNode& node)
   : ContentHelper(node)
-  , cache(new ContentCache(node, 960 * 1024, false))
+  , cache(new ContentCache(node, 128 * 1024, false))
   , store(new ContentCache(node))
   , to_announce(0)
 {
@@ -499,7 +499,6 @@ void ContentHelperImpl::receive(MessageHeader header, BlockResponse msg)
   // Cache all blocks we come across
   if (not is_stored and (cache->find(msg.block) == cache->end())) {
     cache->store(msg.block, msg.size, msg.data, msg.size);
-    cache->log_utilization();
     log.i ("cached block %v %v opportunistically", msg.block.hash, msg.block.index);
   }
 

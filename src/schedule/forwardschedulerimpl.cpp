@@ -28,7 +28,7 @@ namespace sma
 
 //    std::size_t ForwardSchedulerImpl::total_bandwidth =5 ; 
     // 20 is a good choice
-    std::uint32_t ForwardSchedulerImpl::interval_per_packet = 10; 
+    std::uint32_t ForwardSchedulerImpl::interval_per_packet = 20; 
     // 100 is a good choice
     std::size_t ForwardSchedulerImpl::sample_cycles = 100;
 
@@ -170,7 +170,7 @@ namespace sma
 	std::size_t ForwardSchedulerImpl::get_storage() const
 	{
         // The value should be consistent with size of cache in contenthelperimpl.cpp
-		return 960;
+		return 128;
 	}
 
 	std::size_t ForwardSchedulerImpl::get_bandwidth() const
@@ -488,9 +488,6 @@ namespace sma
         unfrozen_block_it++;
       }
 */
-	  sched_ptr->freeze_blocks (blocks_to_freeze);
-	  sched_ptr->unfreeze_blocks (blocks_to_unfreeze);
-
 
       std::uint16_t bytes_sent = 0;
 
@@ -504,6 +501,8 @@ namespace sma
         sched_ptr->clear_request (br_block_it->hash, br_block_it->index);
 	  }
 
+	  sched_ptr->freeze_blocks (blocks_to_freeze);
+	  sched_ptr->unfreeze_blocks (blocks_to_unfreeze);
 
 //      return blocks_to_broadcast.size(); // update the num_of_blocks to broadcast
       return bytes_sent;
