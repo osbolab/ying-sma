@@ -1,4 +1,4 @@
-\documentclass[10pt,twocolumn]{article} 
+\documentclass[10pt]{sig-alternate} 
 \usepackage{graphicx}
 \usepackage{amssymb}
 \usepackage{url,hyperref}
@@ -15,23 +15,59 @@ The core system functionality is implemented as a standalone C++ module that can
 
 Cross-platform support is fundamental to our software design: we can support NS3, Android, POSIX, and WinNT with no modifications to the core module. A thin platform-specific wrapper provides access to the environment, as seen in Figure \ref{fig:android-platform-wrapper}.
 
-\begin{figure}[!b]
+NS3 and Android differ in important ways; for one, the NS3 simulator uses only a single thread of execution for numerous application instances while Android offers many threads of execution for a single application instance. To be maximally flexible to different test environments or deployments, the core system logic is implemented in terms of the following abstractions:
+
+\noindent
+\begin{description}
+\item[Clock] gives access to the current time and date. In NS3 this reflects the simulation time, but in all other implementations it reflects the system clock.
+\item[Async] provides a mechanism for the core module to create tasks that may be run in the background, in the future, or periodically. Task scheduling and parallelism, if any, is defined by the implementation. The core functionality is thus scalable across many threads of execution as it operates in terms of decoupled tasks.
+\item[Cache] is how the core module stores and loads data, in lieu of files or databases. Caches of varying persistence are provided that may be implemented in volatile memory, on a hard disk, or in flash memory on a mobile device. The caching policies may vary given the storage medium and expected persistence of cached data.
+\item[Links] represent logical network connections and are abstracted as message queues. The implementation defines the network device and access mode of a particular link. The link layer aggregates one or more links into the logical network view held by the core logic.
+\end{description}
+\noindent
+
+\begin{figure}[h]
   \begin{center}
-    \includegraphics[width=0.45\textwidth]{android-platform-wrapper.pdf}
+    \includegraphics[width=0.35\textwidth]{android-platform-wrapper.pdf}
   \end{center}
 
   \caption{\small The implementation architecture abstracts platform resources away from the core functionality for platform independence.}
   \label{fig:android-platform-wrapper}
 \end{figure}
 
-NS3 and Android differ in important ways; for one, the NS3 simulator uses only a single thread of execution for numerous application instances while Android offers many threads of execution for a single application instance. To be maximally flexible to different test environments or deployments, the core system logic is implemented in terms of the following abstractions:
+\section{NS3 Simulation}
 
-\paragraph{Clock} gives access to the current time and date. In NS3 this reflects the simulation time, but in all other implementations it reflects the system clock.
+Developing against the NS3 simulation environment involves writing ``scripts'' that construct a network topology and insert into it network devices bearing applications. The scripts in our implementation are standalone C++ applications that link to a static library containing the core functionality, a wrapper module that implements the abstract facilities using NS3, and a set of shared libraries containing the NS3 platform (Fig. \ref{fig:ns3-impl}).
 
-\paragraph{Async} provides a mechanism for the core module to create tasks that may be run in the background, in the future, or periodically. Task scheduling and parallelism, if any, is defined by the implementation. The core functionality is thus scalable across many threads of execution as it operates in terms of decoupled tasks.
+The simulation begins when each node schedules some event in the future. NS3 processes the events for the current time, potentially generating more events, before incrementing the time. The nodes are unaware that they are in a simulation and behave identically to if they were physical devices whose system clock reflected the simulation time.
 
-\paragraph{Cache} is how the core module stores and loads data, in lieu of files or databases. Caches of varying persistence are provided that may be implemented in volatile memory, on a hard disk, or in flash memory on a mobile device. The caching policies may vary given the storage medium and expected persistence of cached data.
+\begin{figure}[h]
+  \begin{center}
+    \includegraphics[width=0.30\textwidth]{ns3-impl.pdf}
+  \end{center}
 
-\paragraph{Links} represent logical network connections and are abstracted as message queues. The implementation defines the network device and access mode of a particular link. The link layer aggregates one or more links into the logical network view held by the core logic.
+  \caption{\small NS3 simulation scripts are standalone applications that link to the core module, the NS3 platform implementations, and NS3 itself.}
+  \label{fig:ns3-impl}
+\end{figure}
+
+\section{Android Implementation}
+
+Android applications are bytecode programs executed on the Dalvik virtual machine (VM), which compiles them to architecture-appropriate machine code at run time. The Android Native Development Kit (NDK) enables C and C++ code to be compiled to target specific processor architectures, packaged as shared libraries, and deployed with Android applications. These libraries can be loaded by the Dalvik VM and integrated into Android applications using a thin layer of glue to translate between the VM and native code.
+
+Using cross compilers provided with the NDK we are able to compile the core module to target x86 and ARM Android devices. An additional wrapper module implements the core abstractions in terms of the Android platform, e.g. by automatically configuring WiFi interfaces. 
+
+A small Java-language application serves two roles: first, it loads the native modules in a long-running background service so that the core functionality can operate while the user is multitasking; second, it provides the user interface for creating and viewing content.
+
+\begin{figure}[h]
+  \begin{center}
+    \includegraphics[width=0.45\textwidth]{android-impl.pdf}
+  \end{center}
+
+  \caption{\small The Android application communicates with a constantly-running background service that hosts the native code.}
+  \label{fig:ns3-impl}
+\end{figure}
+
+
+We deployed the application across five ASUS Nexus 7 tablets with ARMv7 processors and one LG Nexus 5 smartphone with an ARMv7 processor. All devices were running the CyanogenMod build of the Android operating system, as this project contains non-standard 802.11 firmware to support IBSS mode for ad-hoc networking.
 
 \end{document}
