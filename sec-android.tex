@@ -7,26 +7,28 @@
 
 \begin{figure}[!b]
   \begin{center}
-    % \includegraphics[width=3.5in]{figure.pdf}
+    \includegraphics[width=0.5\textwidth]{android-platform-wrapper.pdf}
   \end{center}
 
   \caption{\small Figure caption. To get a figure to span two
       columns, use the environment figure* rather than figure.}
-  \label{fig-label}
+  \label{fig:android-platform-wrapper}
 \end{figure}
 
-\section{Android Implementation}
+\section{Implementation}
 
-This is a sample document for use with pdflatex, which is
-a program that is included with the Miktex distribution
-that directly produces PDF files from \LaTeX sources.
-To run \LaTeX on this file, you need the following files:
-\begin{enumerate}
-\item templatePDF.tex (this file)
-\item figure.pdf (the figure file)
-\item simpleConference.sty (style file)
-\item refs.bib (bibiliography file)
-\end{enumerate}
+Moving from simulation to implementation on physical devices can reveal unforeseen challenges to the design, protocols, or experimental conditions around which a system is developed. We therefore see the real implementation, in addition to the simulation, as a necessary step to demonstrating our system's usefulness and effectiveness; for that reason we have implemented our system both on the NS3 simulation platform and on real Android mobile devices.
+
+The Android platform represented 80\% of the mobile device market in 2014 and is expected to maintain three quarters of the global market share during the following four years cite{International Data Corporation http://www.idc.com/getdoc.jsp?containerId=prUS24857114}. We feel that targeting Android gives the most realistic view of what capabilities are available, now or in the future, for novel mobile systems.
+
+The core system functionality is implemented as a standalone C++ module that can be built as an external library or into an application. The core library contains all of the platform-agnostic functionality and accesses platform resources via abstract interfaces.
+
+Cross-platform support is fundamental to our software design: we can support NS3, Android, POSIX, and WinNT platforms with no modifications to the core module. A thin platform-specific wrapper abstracts the system logic from platform resources, as seen in figure \ref{fig:android-platform-wrapper}.
+
+The NS3 and Android environments differ in important ways. For one, the NS3 simulator uses only a single thread of execution for numerous application instances while Android offers many threads of execution for a single application instance. 
+
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque pellentesque facilisis finibus. Sed tincidunt hendrerit blandit. Nullam luctus dui eu facilisis posuere. Morbi et porta orci. Ut vel suscipit odio. Donec vulputate neque libero, sit amet placerat elit congue in. Pellentesque eu mauris augue.
 \noindent
 To create a PDF file, execute the following commands:
 \begin{enumerate}
@@ -36,33 +38,24 @@ To create a PDF file, execute the following commands:
 \item pdflatex templatePDF
 \end{enumerate}
 \noindent
-Yes (strangely) it is necessary to run pdflatex three times.
-The result will be a PDF file (plus several other files that \LaTeX
-produces).  You will need a mechanism, of course, for executing
-commands on the command line. If you are using Windows, I recommend
-installing Cygwin and using its bash shell.
+Donec ut tempor mi. Cras ut ante ac justo egestas condimentum. Sed convallis lectus id orci porta, ut viverra nulla sollicitudin. Pellentesque ac ipsum malesuada risus lobortis dictum id a magna. Maecenas facilisis dictum turpis, in suscipit sem tincidunt sed. Pellentesque non tincidunt dui. Vestibulum vel dignissim sem.
 
-\section{How to Include Vergil Diagrams as Figures}
+\section{Fusce eu dui massa}
 
-Suppose you wish to include a figure, like that in figure \ref{fig-label}.
-The simplest mechanism is to install Adobe Acrobat, which includes
-a ``printer'' called ``Acrobat Distiller.'' Printing to this printer
-creates a PDF file, which can be included in a document as shown
-here.  To include Ptolemy II models \cite{PtolemyVol1:04},
-just print to the distiller from within Vergil and reference
-the PDF file in your \LaTeX document.
+Etiam non volutpat mi. Morbi eros risus, consequat \ref{et} arcu vel, varius fermentum lectus. Sed vitae porta nunc. Aliquam erat volutpat. In tortor nulla, convallis nec commodo nec, pharetra congue arcu. Nunc ultrices vel augue sit amet semper. Maecenas ``luctus'' arcu et $viverra$ iaculis. Sed diam ligula, ornare et arcu nec, elementum \cite{convallis} mi.
 
-There is a bit more work to do, however.
-The file that is produced by the distiller represents
-a complete page, not the individual figure.
-You can open it in using Acrobat (version 5.0 or later),
-and select Document $\rightarrow$ Crop Pages from the menu.
-In the resulting dialog, check ``Remove White Margins.''
-Save the modified PDF file in a file and then reference
-it in the \LaTeX file as shown in this example.
+Donec sit amet placerat nulla, eget condimentum urna. Sed vehicula magna varius lacus fermentum, at finibus risus lobortis. Nam ut metus eu nisi hendrerit aliquam. In hac habitasse platea dictumst. Nam enim diam, lacinia non porttitor hendrerit, aliquam quis metus. Vivamus at blandit massa. Aenean accumsan dictum nisi, at lobortis nisi facilisis non. Nunc congue neque lacinia, ornare eros ac, condimentum odio.
 
-An alternative is to generate EPS (encapsulated postscript),
-but the process is much more complex and fragile.
-I recommend using pdflatex and Adobe Acrobat.
+Mauris aliquet eros ipsum, ac facilisis nisl vulputate eu. Etiam at rhoncus dui. Mauris interdum fermentum enim, et dictum dui volutpat ac. Sed pharetra viverra enim, ut fringilla tellus commodo non. Donec congue lectus lacus, quis blandit ligula aliquet id. Praesent risus massa, mattis in semper sit amet, malesuada in risus. Praesent orci magna, elementum id lectus et, euismod vulputate erat.
+
+Interdum et malesuada fames ac ante ipsum primis in faucibus. Praesent hendrerit nec quam eget rutrum. Curabitur pulvinar neque in neque molestie, eu rhoncus metus fringilla. Nam sit amet ultricies nulla. Ut ullamcorper, nunc nec consequat luctus, eros purus sodales mauris, ut congue lacus libero eget sem. Aliquam vel leo neque. Aliquam a feugiat ex.
+
+Cras consectetur metus ac suscipit egestas. Aliquam viverra turpis non purus consequat, sed sagittis mauris interdum. Fusce fermentum faucibus neque, nec blandit urna accumsan eu. Vestibulum vitae lectus massa. Maecenas ut leo ut nunc dictum pretium. Donec euismod ante lectus, eu pellentesque justo rhoncus a. Phasellus elementum congue enim, id maximus risus interdum sed.
+
+Ut lobortis, arcu sed dictum faucibus, urna ex auctor nisl, eget bibendum dolor nulla vel enim. Integer mauris sem, finibus ut interdum id, viverra ut turpis. Donec id metus lorem. Integer sit amet justo sollicitudin, porttitor massa sed, laoreet diam. Phasellus in magna ac felis pretium lobortis. Quisque venenatis vestibulum lectus, egestas porttitor quam rhoncus at. Ut molestie leo leo, eget facilisis quam tempor imperdiet. Curabitur sollicitudin blandit ultricies. Cras eleifend porta eros, ut placerat augue. Nunc semper justo massa, ut accumsan nisi porta at. Suspendisse egestas facilisis congue. Donec blandit orci est, vitae mattis turpis porttitor faucibus. Nulla ac enim in lectus gravida congue eget ut odio. Praesent vel interdum purus, ut eleifend velit.
+
+Proin bibendum nulla ante, vel iaculis dui posuere pulvinar. Proin egestas nisl quis hendrerit ullamcorper. Sed nec purus id justo tempor vulputate. Aliquam condimentum massa non magna sagittis venenatis. Morbi egestas finibus elit, eu rhoncus ante congue eget. Maecenas vestibulum feugiat magna, vitae ornare diam sagittis id. Aliquam et venenatis erat. Curabitur condimentum scelerisque dapibus. Sed malesuada rutrum justo eu finibus. In scelerisque risus vel tristique pharetra. Pellentesque tincidunt varius risus et faucibus. Vestibulum ornare dapibus turpis, suscipit semper nulla. Proin mauris elit, placerat eget mauris in, sollicitudin fermentum nisi.
+
+Nullam quis ante non turpis sollicitudin gravida nec sed diam. Pellentesque sit amet placerat lacus. Mauris rutrum ligula ex, quis gravida erat sollicitudin quis. Vivamus tristique egestas magna, nec convallis felis malesuada eu. Aenean sem purus, laoreet non mattis vel, facilisis non ipsum. Curabitur hendrerit ut nulla sit amet convallis. Integer tempus nunc sed scelerisque lacinia. Donec sed magna maximus, semper risus quis, venenatis nisi. Ut sed elementum risus. Integer elit leo, posuere id congue a, porta vitae quam. Suspendisse vitae turpis non ex cursus pretium. Duis vestibulum ac nisi sed vestibulum. Integer ultricies eleifend orci in semper. In hac habitasse platea dictumst.
 
 \end{document}
