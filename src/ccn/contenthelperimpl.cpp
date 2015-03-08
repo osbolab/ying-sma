@@ -37,8 +37,8 @@ ContentHelperImpl::ContentHelperImpl(CcnNode& node)
   , to_announce(0)
 {
 
-  asynctask(&ContentHelperImpl::log_cache_utilization,this)
-      .do_in(cache_log_interval);
+//  asynctask(&ContentHelperImpl::log_cache_utilization,this)
+//      .do_in(cache_log_interval);
 
   if (auto_announce)
     asynctask(&ContentHelperImpl::announce_metadata, this)
@@ -157,6 +157,7 @@ void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
       continue;
 
     // Count the link this came over
+
     ++metadata.hops;
 
     discover(metadata);
@@ -173,6 +174,11 @@ bool ContentHelperImpl::discover(ContentMetadata meta)
         return true;
       } else
         return false;
+    }
+ 
+  for (auto& existing : lmt)
+    if (existing.data.hash == meta.hash) {
+      return false;
     }
 
   rmt.emplace_back(meta);
@@ -318,6 +324,12 @@ std::uint16_t ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
        and (store->find(block) == store->end())) {
       log.d("copying block %v %v from cache to store", block.hash, block.index); 
       ContentCache::copy_block_from_to(*cache, *store, block);
+      // unfreeze the cache if frozen
+      frozen({block}, false);
+    } else if ((store->find(block) != store->end())
+            and (cache->find(block) == cache->end())) {
+      log.d("copying block %v %v from store to cache", block.hash, block.index);
+      ContentCache::copy_block_from_to(*store, *cache, block);
     }
 
     for (auto const& meta : rmt)
@@ -548,6 +560,9 @@ std::size_t ContentHelperImpl::frozen(std::vector<BlockRef> const& blocks,
       ++count;
     }
   }
+  
+  if( count > 0)
+    log_cache_utilization();
 
   return count;
 }
@@ -560,6 +575,22 @@ std::vector<ContentMetadata> ContentHelperImpl::metadata()
 
   for (auto const& local : lmt)
     v.push_back(local.data);
+
+  auto it = rmt.begin();
+  while (it != rmt.end())
+    if (it->data.expired())
+      it = rmt.erase(it);
+    else
+      v.push_back((it++)->data);
+
+  v.shrink_to_fit();
+  return v;
+}
+
+std::vector<ContentMetadata> ContentHelperImpl::remote_metadata()
+{
+  std::vector<ContentMetadata> v;
+  v.reserve(rmt.size());
 
   auto it = rmt.begin();
   while (it != rmt.end())

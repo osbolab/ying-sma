@@ -200,7 +200,7 @@ namespace sma
     
     double ForwardSchedulerImpl::get_transmission_range() const
     {
-      return 1000; 
+      return 800; 
     }
 
     Vec2d ForwardSchedulerImpl::get_self_position() const
@@ -348,13 +348,6 @@ namespace sma
       for (auto it=block_arrived_buf.begin();
               it != block_arrived_buf.end(); it++)
       {
-        // cancel broadcast if overhearing the block
-        //Todo: also depends on the distance
-//        if (block_to_schedule.find(*it) != block_to_schedule.end()) {
-//          sched_ptr->clear_request(it->hash, it->index);
-//          block_to_schedule.erase(*it);
-//        }
-//        else
           if (sched_ptr->has_request_for_block (*it))
             block_to_schedule.insert (*it);
       }
@@ -369,7 +362,6 @@ namespace sma
       std::size_t max_ttl = sched_ptr->get_max_ttl();
       std::size_t storage = sched_ptr->get_storage();
       std::size_t bandwidth = sched_ptr->get_bandwidth();
- //     std::size_t num_of_neighbor = sched_ptr->get_num_of_neighbor();
       auto nodeset = sched_ptr->get_request_nodes();
       std::size_t num_of_nodes = nodeset.size();
 
@@ -447,6 +439,7 @@ namespace sma
 			blocks_to_broadcast.insert (block_id);
   		    block_to_schedule.erase (block_id);
             bandwidth_reserved++;
+            blocks_to_unfreeze.insert (block_id);
           }
           else
           {
@@ -474,7 +467,6 @@ namespace sma
         blocks_to_unfreeze.insert (*freeze_block_it);
         freeze_block_it = blocks_to_freeze.erase (freeze_block_it);
         bandwidth_reserved++;
-//        freeze_block_it++;
       }
 
 
@@ -482,7 +474,7 @@ namespace sma
       while (bandwidth_reserved < sched_ptr->get_bandwidth()
               && unfrozen_block_it != blocks_to_unfreeze.end())
       {
-        blocks_to_broadcast.push_back (*unfrozen_block_it);
+        blocks_to_broadcast.insert (*unfrozen_block_it);
         block_to_schedule.erase (*unfrozen_block_it);
         bandwidth_reserved++;
         unfrozen_block_it++;
@@ -495,16 +487,16 @@ namespace sma
       for (auto br_block_it = blocks_to_broadcast.begin();
               br_block_it != blocks_to_broadcast.end(); br_block_it++)
 	  {
-        /// BUG: should broadcast each block twice.
 		sched_ptr->broadcast_block (br_block_it->hash, br_block_it->index, bytes_sent);
-//        sched_ptr->write_o_block (BlockRef(br_block_it->hash, br_block_it->index));
         sched_ptr->clear_request (br_block_it->hash, br_block_it->index);
 	  }
 
-	  sched_ptr->freeze_blocks (blocks_to_freeze);
-	  sched_ptr->unfreeze_blocks (blocks_to_unfreeze);
+      std::size_t num_of_freezed = sched_ptr->freeze_blocks (blocks_to_freeze);
+      std::size_t num_of_unfreezed = sched_ptr->unfreeze_blocks (blocks_to_unfreeze);
 
-//      return blocks_to_broadcast.size(); // update the num_of_blocks to broadcast
+      sched_ptr->get_logger()->d ("| total freezed %v blocks", num_of_freezed);
+      sched_ptr->get_logger()->d ("| total unfreezed %v blocks", num_of_unfreezed);
+
       return bytes_sent;
     }
 
@@ -640,7 +632,6 @@ namespace sma
             {
   			int time_span = std::chrono::duration_cast<std::chrono::milliseconds>(deadline
   				- current_time).count();
-//              return (time_span / sched_ptr->get_sched_interval())/2-1;
               return time_span / sched_ptr->get_sched_interval()-1;
             }
             else
@@ -728,7 +719,8 @@ namespace sma
         if (desc.expire_time >= current_time)
         {
   	      auto ttl = std::chrono::duration_cast<std::chrono::milliseconds>
-              (desc.expire_time - current_time);
+              (desc.expire_time - current_time 
+               - std::chrono::milliseconds(sched_ptr->get_sched_interval()));
           BlockRef block (desc.content_name, desc.block_index);
           auto arg
               = BlockRequestArgs (block,

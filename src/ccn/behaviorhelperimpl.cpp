@@ -48,14 +48,28 @@ namespace sma
     {
       auto content_req = content_req_record.find(hash);
       assert(content_req != content_req_record.end());
-      node.log.d ("Inside on_content");
-
       // Print complete log if not do that yet.
       if (content_req->second == false) {
-        node.log.i ("Complete download content %v at %v", 
+        std::vector<ContentMetadata> meta_vec = node.content->metadata();
+        auto metaIt = meta_vec.begin();
+        while (metaIt != meta_vec.end()) {
+          if (metaIt->hash == hash)
+            break;
+          metaIt++;
+        }
+//        assert (metaIt != meta_vec.end());
+      if (metaIt != meta_vec.end()) {
+        auto from_id = metaIt->publisher;
+        int hops = metaIt->hops;
+
+        node.log.i ("Complete download content %v (published by %v, %v hops away)", 
                 hash,
-                clock::now().time_since_epoch().count());
+                from_id,
+                hops);
         // Don't print the log for other block_arrived_event
+      } else {
+        node.log.i ("Complete download content %v ", hash); 
+      }
         content_req->second = true;
       }
 
@@ -118,7 +132,7 @@ namespace sma
     void BehaviorHelperImpl::behave_publish()
     {
       float min_blocks = 1.0;
-      float max_blocks = 10.0;
+      float max_blocks = 12.0;
 
       std::size_t n_blocks  = min_blocks 
             + static_cast <float> (rand()) 
@@ -173,7 +187,7 @@ namespace sma
     void BehaviorHelperImpl::behave_request()
     {
 
-      std::vector<ContentMetadata> meta_vec = node.content->metadata();
+      std::vector<ContentMetadata> meta_vec = node.content->remote_metadata();
 
       // need rank
       for (auto it=meta_vec.begin(); it!=meta_vec.end();)
@@ -190,6 +204,8 @@ namespace sma
       {
         std::size_t rand_index = rand() % total_metas;
         Hash content_name = meta_vec[rand_index].hash;
+        NodeId from_id = meta_vec[rand_index].publisher;
+        int hops = meta_vec[rand_index].hops;
 
         // reset the content_req_record, as it will deemed
         // as a new request. a local hit will be expected.
@@ -205,15 +221,15 @@ namespace sma
         float utility_per_block = min_util 
             + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX)/(max_util-min_util));
 
-        float min_ttl = 20 * node.sched->get_sched_interval();
+        float min_ttl = 4 * node.sched->get_sched_interval();
         float max_ttl = 20 * node.sched->get_sched_interval();
         float ttl_per_block = min_ttl
             + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX)/(max_ttl - min_ttl));
 
-        node.log.i("Request content %v at %v with utility %v with ttl %v(ms)", 
+        node.log.d("Request content %v (published by %v, %v hops away) with utility %v with ttl %v(ms)", 
                    content_name,
-                   std::chrono::duration_cast<millis>(
-                       clock::now().time_since_epoch()).count(),
+                   from_id,
+                   hops,
                    utility_per_block,
                    ttl_per_block);
 				   

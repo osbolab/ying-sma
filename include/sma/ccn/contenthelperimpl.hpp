@@ -60,6 +60,7 @@ public:
                              std::size_t size) override;
 
   std::vector<ContentMetadata> metadata() override;
+  std::vector<ContentMetadata> remote_metadata() override;
   std::uint16_t announce_metadata() override;
 
   // WARNING: the on_block_arrived event is fired from this function.

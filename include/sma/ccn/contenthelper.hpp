@@ -52,6 +52,7 @@ public:
                                      std::size_t size) = 0;
 
   virtual std::vector<ContentMetadata> metadata() = 0;
+  virtual std::vector<ContentMetadata> remote_metadata() = 0;
   virtual std::uint16_t announce_metadata() = 0;
 
   //! Send one message to the network containing all of the given block
