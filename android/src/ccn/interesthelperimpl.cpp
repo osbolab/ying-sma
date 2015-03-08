@@ -36,6 +36,75 @@ InterestHelperImpl::InterestHelperImpl(CcnNode& node)
     asynctask(&InterestHelperImpl::announce, this).do_in(min_announce_interval);
 }
 
+std::size_t InterestHelperImpl::announce()
+{
+  if (auto_announce)
+    asynctask(&InterestHelperImpl::announce, this).do_in(min_announce_interval);
+
+  if (clock::now() < next_announce_time)
+    return 0;
+
+  // Max size of one announcement message to be filled with interests
+  std::size_t const max_size = 1024;
+  // Serialize the interests into a contiguous block of stack to
+  // a) avoid fragmenting allocations and b) provide a ready structure to
+  // write the serialized interests into a message.
+  std::uint8_t data_buf[max_size * 2];
+  // Mark the start of the current interest's buffer space
+  std::uint8_t* data = data_buf;
+  // Total serialized length
+  std::size_t size = 0;
+  std::size_t count = 0;
+
+  while (count != interests.size()) {
+    auto& i = interests.front();
+    i.elapse_ttl();
+    if (i.expired()) {
+      interests.pop_front();
+      --to_announce;
+      continue;
+    }
+
+    stats::Ints::on_sent(node.id, i);
+
+    BinaryOutput out(data, sizeof(data_buf) - size);
+    out << i;
+    auto const wrote = out.size();
+    assert(wrote != 0 && "Serialized interest for announcement, but wrote zero bytes?");
+    // Don't overrun the message
+    if (size + wrote > max_size)
+      break;
+
+    size += wrote;
+    data += wrote;
+    ++count;
+    // Swap the interest to the end of the deque so others might be sent.
+    interests.push_back(std::move(i));
+    interests.pop_front();
+    --to_announce;
+
+    if (size == max_size)
+      break;
+  }
+
+  if (to_announce == 0) {
+    to_announce = interests.size();
+    auto dist = std::uniform_int_distribution<>(fuzz_announce_min_ms,
+                                                fuzz_announce_max_ms);
+    next_announce_time = clock::now() + min_announce_interval
+      + std::chrono::milliseconds(dist(rng));
+  }
+
+  if (count != 0) {
+    // The Interest Announcement message just dumps the buffer into the
+    // message data and reads it back out at the other end.
+    InterestAnn msg(count, data_buf, size);
+    node.post(msg);
+  }
+
+  return count;
+}
+
 void InterestHelperImpl::receive(MessageHeader header, InterestAnn msg)
 {
   std::vector<Interest> interests;
@@ -165,74 +234,6 @@ bool InterestHelperImpl::contains_any(
       if (i.type == type)
         return true;
   return false;
-}
-
-std::size_t InterestHelperImpl::announce()
-{
-  if (auto_announce)
-    asynctask(&InterestHelperImpl::announce, this).do_in(min_announce_interval);
-
-  if (clock::now() < next_announce_time)
-    return 0;
-
-  // Max size of one announcement message to be filled with interests
-  std::size_t const max_size = 1024;
-  // Serialize the interests into a contiguous block of stack to
-  // a) avoid fragmenting allocations and b) provide a ready structure to
-  // write the serialized interests into a message.
-  std::uint8_t data_buf[max_size * 2];
-  // Mark the start of the current interest's buffer space
-  std::uint8_t* data = data_buf;
-  // Total serialized length
-  std::size_t size = 0;
-  std::size_t count = 0;
-
-  while (count < interests.size()) {
-    auto& i = interests.front();
-    i.elapse_ttl();
-    if (i.expired()) {
-      interests.pop_front();
-      --to_announce;
-      continue;
-    }
-
-    stats::Ints::on_sent(node.id, i);
-
-    BinaryOutput out(data, sizeof(data_buf) - size);
-    out << i;
-    auto const wrote = out.size();
-    // Don't overrun the message
-    if (size + wrote > max_size)
-      break;
-
-    size += wrote;
-    data += size;
-    ++count;
-    // Swap the interest to the end of the deque so others might be sent.
-    interests.push_back(std::move(i));
-    interests.pop_front();
-    --to_announce;
-
-    if (size == max_size)
-      break;
-  }
-
-  if (to_announce == 0) {
-    to_announce = interests.size();
-    auto dist = std::uniform_int_distribution<>(fuzz_announce_min_ms,
-                                                fuzz_announce_max_ms);
-    next_announce_time = clock::now() + min_announce_interval
-                         + std::chrono::milliseconds(dist(rng));
-  }
-
-  if (count != 0) {
-    // The Interest Announcement message just dumps the buffer into the
-    // message data and reads it back out at the other end.
-    InterestAnn msg(count, data_buf, size);
-    node.post(msg);
-  }
-
-  return count;
 }
 
 void InterestHelperImpl::log_dump()

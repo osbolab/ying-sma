@@ -147,6 +147,7 @@ void LinkLayerImpl::on_link_readable(Link& link)
 
     // Read the actual message from the packet
     MessageHeader header(reader);
+
     // Reject broadcast loopbacks
     if (header.sender == node->id)
       continue;

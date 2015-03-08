@@ -32,6 +32,9 @@
     <ClCompile Include="src\neighborhelperimpl.cpp" />
     <ClCompile Include="src\stats.cpp" />
     <ClCompile Include="client\src\main\jni\jnimain.cpp" />
+    <ClCompile Include="client\src\main\jni\jnilinklayer.cpp" />
+    <ClCompile Include="client\src\main\jni\jninativeservice.cpp" />
+    <ClCompile Include="client\src\main\jni\jniinteresthelper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="client\include\sma\android\bsdinetlink.hpp" />
@@ -116,5 +119,8 @@
     <ClInclude Include="include\sma\stats.hpp" />
     <ClInclude Include="include\sma\thread_scheduler.hpp" />
     <ClInclude Include="client\include\sma\android\jvm.hpp" />
+    <ClInclude Include="client\include\sma\android\jnilinklayer.hpp" />
+    <ClInclude Include="client\include\sma\android\jninativeservice.hpp" />
+    <ClInclude Include="client\include\sma\android\jniinteresthelper.hpp" />
   </ItemGroup>
 </Project>

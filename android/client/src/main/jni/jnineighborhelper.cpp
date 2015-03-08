@@ -11,20 +11,16 @@ JNIEXPORT jobject JNICALL Java_edu_asu_sma_NeighborHelper_all(JNIEnv* env, jobje
 {
   assert(sma::neighbor_helper != nullptr);
 
-  auto neighbors = sma::neighbor_helper->get();
-
-  std::vector<std::string> ids;
-  ids.reserve(neighbors.size());
-  for (auto const& neighbor : neighbors)
-    ids.emplace_back(neighbor.id);
-
   jclass list_class = env->FindClass("java/util/ArrayList");
   jobject list_obj = env->NewObject(list_class, env->GetMethodID(list_class, "<init>", "()V"));
 
-  for (auto str : ids)
+  auto neighbors = sma::neighbor_helper->get();
+  for (auto const& neighbor : neighbors)
     env->CallVoidMethod(list_obj,
-                        env->GetMethodID(list_class, "add", "(java/lang/Object)V"),
-                        env->NewStringUTF(str.c_str()));
+                        env->GetMethodID(list_class, "add", "(Ljava/lang/Object;)Z"),
+                        env->NewStringUTF(std::string(neighbor.id).c_str()));
+
+  env->DeleteLocalRef(list_class);
 
   return list_obj;
 }

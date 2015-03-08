@@ -4,6 +4,8 @@
 
 #include <sma/android/jvm.hpp>
 
+#include <sma/android/jninativeservice.hpp>
+
 #include <cassert>
 #include <chrono>
 
@@ -12,16 +14,8 @@
 #include <functional>
 
 
-extern "C" {
-JNIEXPORT void JNICALL Java_edu_asu_sma_client_NativeService_captureServicePointer(JNIEnv*, jobject);
-JNIEXPORT void JNICALL Java_edu_asu_sma_client_NativeService_deleteServicePointer(JNIEnv*, jobject);
-JNIEXPORT void JNICALL Java_edu_asu_sma_client_NativeService_runNativeAsyncTask(JNIEnv*, jobject);
-}
-
 namespace sma
 {
-extern jobject android_service;
-
 extern std::multimap<std::chrono::system_clock::time_point, std::function<void()>> asynctaskqueue;
 
 template <typename D>

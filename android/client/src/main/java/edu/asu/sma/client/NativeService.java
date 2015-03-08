@@ -1,7 +1,10 @@
 package edu.asu.sma.client;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -14,7 +17,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import edu.asu.sma.Node;
 import edu.asu.sma.NodeContainer;
 import edu.asu.sma.Sma;
 
@@ -26,30 +28,44 @@ public class NativeService extends Service {
     }
   }
 
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+  // Native Interface
+  static {
+    System.loadLibrary(Sma.LIBRARY_NAME);
+  }
+
+  // Give the native code a pointer to this object
+  private native void captureServicePointer();
+
+  // Invalidate the native code's pointer to this object
+  private native void deleteServicePointer();
+
+  // Run the next queued native task in the service thread
+  private native void runNativeAsyncTask();
+
+  private native void startLinkThread();
+
+  private native void stopLinkThread();
+
+  // Handle the next queued packet in the service thread
+  private native void handlePacket();
+
+  // Called by native code (in any thread) to schedule an async task on the service thread
+  public void scheduleNativeAsync(long delay_nanos) {
+    asyncExecutor.schedule(nativeTaskRunner, delay_nanos, TimeUnit.NANOSECONDS);
+  }
+
+  // Called by native link-reading thread to schedule a packet on the service thread
+  public void packetAvailable() {
+    packetHandler.run();
+  }
+  // Native Interface
+  //////////////////////////////////////////////////////////////////////////////////////////////////
+
   private static final String TAG = NativeService.class.getSimpleName();
-  private static final double TICK_FREQ_HZ = 100.0;
-  private static final long TICK_PERIOD_MS = (long) (1000.0 / TICK_FREQ_HZ);
 
   private Looper looper;
   private Handler handler;
-
-  // Continuously invoke native code in the service thread without blocking the UI thread from
-  // doing the same.
-  private Runnable repeatingTickTask = new Runnable() {
-    @Override
-    public void run() {
-      if (looper != null && Thread.currentThread() == looper.getThread()) {
-        Node.tick();
-        try {
-          Thread.sleep(TICK_PERIOD_MS, 0);
-        } catch (InterruptedException ignored) {
-        }
-      }
-
-      if (looper != null)
-        handler.post(this);
-    }
-  };
 
   // Manages the delayed execution of native async tasks
   private ScheduledExecutorService asyncExecutor = Executors.newScheduledThreadPool(1);
@@ -59,6 +75,17 @@ public class NativeService extends Service {
     public void run() {
       if (Thread.currentThread() == looper.getThread())
         runNativeAsyncTask();
+      else
+        handler.post(this);
+    }
+  };
+
+  // Handles the next packet on the service thread (in native code)
+  private Runnable packetHandler = new Runnable() {
+    @Override
+    public void run() {
+      if (Thread.currentThread() == looper.getThread())
+        handlePacket();
       else
         handler.post(this);
     }
@@ -78,11 +105,15 @@ public class NativeService extends Service {
     looper = thread.getLooper();
     handler = new Handler(looper);
 
-    if (NodeContainer.create(0)) {
+    WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+    WifiInfo info = wifi.getConnectionInfo();
+    String macAddr = info.getMacAddress();
+
+    if (NodeContainer.create(macAddr.hashCode())) {
       Log.d(TAG, "Created native node on background thread");
-      repeatingTickTask.run();
+      startLinkThread();
     } else {
-      Log.d(TAG, "Native node already created");
+      Log.d(TAG, "Native node already running");
     }
   }
 
@@ -95,8 +126,10 @@ public class NativeService extends Service {
   public synchronized void onDestroy() {
     super.onDestroy();
 
+    stopLinkThread();
+
     deleteServicePointer();
-    
+
     looper.quit();
     looper = null;
 
@@ -107,20 +140,5 @@ public class NativeService extends Service {
   @Override
   public IBinder onBind(Intent intent) {
     return new BinderWrapper();
-  }
-
-  // Called by native code to schedule an async task on the service thread
-  public void scheduleNativeAsync(long delay_nanos) {
-    asyncExecutor.schedule(nativeTaskRunner, delay_nanos, TimeUnit.NANOSECONDS);
-  }
-
-  private native void captureServicePointer();
-
-  private native void deleteServicePointer();
-
-  private native void runNativeAsyncTask();
-
-  static {
-    System.loadLibrary(Sma.LIBRARY_NAME);
   }
 }

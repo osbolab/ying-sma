@@ -23,6 +23,7 @@ NeighborHelperImpl::NeighborHelperImpl(CcnNode& node)
   : NeighborHelper(node)
 {
   schedule_beacon(std::chrono::milliseconds(100));
+  schedule_refresh();
 }
 
 std::vector<Neighbor> NeighborHelperImpl::get() const
@@ -46,15 +47,18 @@ void NeighborHelperImpl::saw(NodeId const& node, Vec2d const& position)
 
 void NeighborHelperImpl::receive(MessageHeader header, Beacon msg)
 {
+  auto const pre_count = neighbors.size();
   saw(header.sender, msg.position);
   std::ostringstream ss;
-  std::size_t count = neighbors.size();
-  for (auto& pair : neighbors) {
-    ss << pair.first;
-    if (--count != 0)
-      ss << ", ";
+  auto count = neighbors.size();
+  if (count != pre_count) {
+    for (auto& pair : neighbors) {
+      ss << pair.first;
+      if (--count != 0)
+        ss << ", ";
+    }
+    log.t("neighbors: %v", ss.str());
   }
-  log.t("neighbors: %v", ss.str());
 
   if (!msg.is_response)
     node.post(Beacon(node.position(), true));
@@ -67,7 +71,6 @@ void NeighborHelperImpl::schedule_beacon(millis delay)
   unit min = delay.count() / 2;
   delay = millis(min + rand() % delay.count());
   asynctask(&NeighborHelperImpl::beacon, this).do_in(delay);
-  log.d("beacon scheduled in %v ms", delay.count());
 }
 
 void NeighborHelperImpl::beacon()
@@ -78,8 +81,12 @@ void NeighborHelperImpl::beacon()
 
 void NeighborHelperImpl::refresh_neighbors()
 {
-  if (neighbors.empty())
+  if (neighbors.empty()) {
+    schedule_refresh();
     return;
+  }
+
+  log.t("refreshing %v neighbors", neighbors.size());
 
   bool will_beacon = false;
   std::vector<NodeId> dropped;
@@ -97,12 +104,19 @@ void NeighborHelperImpl::refresh_neighbors()
     }
     ++it;
   }
+  auto refresh_delay = std::chrono::milliseconds(INITIAL_REFRESH_MS);
+
   if (will_beacon) {
     beacon();
-    schedule_refresh(query_response_delay);
+    refresh_delay = query_response_delay;
   }
 
-  on_departure(std::move(dropped));
+  schedule_refresh(refresh_delay);
+
+  if (not dropped.empty()) {
+    log.t("dropping %v neighbors", dropped.size());
+    on_departure(std::move(dropped));
+  }
 }
 
 void NeighborHelperImpl::schedule_refresh(millis const& delay)

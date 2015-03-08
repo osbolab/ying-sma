@@ -23,6 +23,9 @@
     <ClCompile Include="client\src\main\jni\bsdinetlink.cpp" />
     <ClCompile Include="client\src\main\jni\chrono.cpp" />
     <ClCompile Include="client\src\main\jni\jniasynchelper.cpp" />
+    <ClCompile Include="client\src\main\jni\jniinteresthelper.cpp" />
+    <ClCompile Include="client\src\main\jni\jnilinklayer.cpp" />
+    <ClCompile Include="client\src\main\jni\jninativeservice.cpp" />
     <ClCompile Include="client\src\main\jni\jnineighborhelper.cpp" />
     <ClCompile Include="client\src\main\jni\jninode.cpp" />
     <ClCompile Include="client\src\main\jni\jninodecontainer.cpp" />
@@ -54,6 +57,9 @@
   <ItemGroup>
     <ClInclude Include="client\include\sma\android\bsdinetlink.hpp" />
     <ClInclude Include="client\include\sma\android\jniasynchelper.hpp" />
+    <ClInclude Include="client\include\sma\android\jniinteresthelper.hpp" />
+    <ClInclude Include="client\include\sma\android\jnilinklayer.hpp" />
+    <ClInclude Include="client\include\sma\android\jninativeservice.hpp" />
     <ClInclude Include="client\include\sma\android\jnineighborhelper.hpp" />
     <ClInclude Include="client\include\sma\android\jninode.hpp" />
     <ClInclude Include="client\include\sma\android\jninodecontainer.hpp" />
@@ -179,32 +185,32 @@
     <ReferencePath>
     </ReferencePath>
     <IncludePath>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Apps\android-ndk-r10\sources\android\support\include;C:\Users\msbarnar\Projects\sma\android\client\include;C:\Users\msbarnar\Projects\sma\android\include;C:\Users\msbarnar\Projects\sma\include;$(IncludePath)</IncludePath>
-    <OutDir>$(ProjectDir)\build\generated\libs\$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)\build\intermediate\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(ProjectDir)\build\generated\libs\x86\</OutDir>
+    <IntDir>$(ProjectDir)\build\intermediate\x86\$(Configuration)\</IntDir>
     <TargetName>libsmanative</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <ReferencePath>
     </ReferencePath>
     <IncludePath>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Apps\android-ndk-r10\sources\android\support\include;C:\Users\msbarnar\Projects\sma\android\client\include;C:\Users\msbarnar\Projects\sma\android\include;C:\Users\msbarnar\Projects\sma\include;$(IncludePath)</IncludePath>
-    <OutDir>$(ProjectDir)\build\generated\libs\$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)\build\intermediate\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(ProjectDir)\build\generated\libs\armeabi-v7a\</OutDir>
+    <IntDir>$(ProjectDir)\build\intermediate\armeabi-v7a\$(Configuration)\</IntDir>
     <TargetName>libsmanative</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <ReferencePath>
     </ReferencePath>
     <IncludePath>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Apps\android-ndk-r10\sources\android\support\include;C:\Users\msbarnar\Projects\sma\android\client\include;C:\Users\msbarnar\Projects\sma\android\include;C:\Users\msbarnar\Projects\sma\include;$(IncludePath)</IncludePath>
-    <OutDir>$(ProjectDir)\build\generated\libs\$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)\build\intermediate\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(ProjectDir)\build\generated\libs\armeabi-v7a\</OutDir>
+    <IntDir>$(ProjectDir)\build\intermediate\armeabi-v7a\$(Configuration)\</IntDir>
     <TargetName>libsmanative</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <ReferencePath>
     </ReferencePath>
     <IncludePath>C:\Program Files (x86)\Microsoft Visual Studio 14.0\Apps\android-ndk-r10\sources\android\support\include;C:\Users\msbarnar\Projects\sma\android\client\include;C:\Users\msbarnar\Projects\sma\android\include;C:\Users\msbarnar\Projects\sma\include;$(IncludePath)</IncludePath>
-    <OutDir>$(ProjectDir)\build\generated\libs\$(Platform)\</OutDir>
-    <IntDir>$(ProjectDir)\build\intermediate\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(ProjectDir)\build\generated\libs\x86\</OutDir>
+    <IntDir>$(ProjectDir)\build\intermediate\x86\$(Configuration)\</IntDir>
     <TargetName>libsmanative</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">

@@ -44,7 +44,7 @@ Java_edu_asu_sma_NodeContainer_create(JNIEnv* env, jobject thiz, jint id)
 
   sma::linklayer->receive_to(node);
 
-  sma::Logger("NodeContainer").d("Hello, world!");
+  sma::Logger("NodeContainer").i("Hello from node %v", std::uint32_t(node_id));
 
   return true;
 }
@@ -57,7 +57,7 @@ Java_edu_asu_sma_NodeContainer_dispose(JNIEnv* env, jobject thiz)
   sma::node = nullptr;
   sma::linklayer = nullptr;
 
-  sma::Logger("NodeContainer").d("Goodbye, cruel world!");
+  sma::Logger("NodeContainer").i("Goodbye, cruel world!");
 }
 
 

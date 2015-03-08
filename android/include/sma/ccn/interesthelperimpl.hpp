@@ -79,7 +79,7 @@ private:
   static constexpr std::size_t fuzz_announce_min_ms = 0;
   static constexpr std::size_t fuzz_announce_max_ms = 500;
 
-  static constexpr auto default_initial_ttl = std::chrono::seconds(60);
+  static constexpr auto default_initial_ttl = std::chrono::seconds(10);
 
   std::default_random_engine rng;
 };

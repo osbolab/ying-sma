@@ -23,7 +23,8 @@ namespace sma
 // horrible. Probably not though.
 struct Logger {
   Logger(std::string id) : id(id) {}
-  template <typename... Args> Logger const& t(Args&&... args) const;
+  template <std::size_t N, typename... Args>
+    Logger const& t(char const(&fmat)[N], Args&&... args) const;
   template <std::size_t N, typename... Args>
     Logger const& d(char const(&fmat)[N], Args&&... args) const;
   template <std::size_t N, typename... Args>
@@ -94,10 +95,10 @@ void log_v(int priority, std::string id, char const(&fmat)[N], Args&&... args) {
 /******************************************************************************
  * This is where things need to change if you switch loggers.
  */
-template <typename... Args>
-Logger const& Logger::t(Args&&... args) const
+template <std::size_t N, typename... Args>
+Logger const& Logger::t(char const(&fmat)[N], Args&&... args) const
 {
-  assert(false && "Trace logging not implemented!");
+  detail::log_v(ANDROID_LOG_VERBOSE, id, fmat, std::forward<Args>(args)...);
   return *this;
 }
 template <std::size_t N, typename... Args>

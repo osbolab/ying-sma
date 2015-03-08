@@ -1,5 +1,7 @@
 #include <sma/android/bsdinetlink.hpp>
 
+#include <sma/android/jnilinklayer.hpp>
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -12,6 +14,8 @@
 
 namespace sma
 {
+BsdInetLink* link_instance = nullptr;
+
 static int jni_throw(JNIEnv* env, char const* class_name, char const* msg)
 {
   jclass ex_class = env->FindClass(class_name);
@@ -63,17 +67,35 @@ BsdInetLink::BsdInetLink(JNIEnv* env)
     throw_runtime_exception(env, "Error setting SO_BROADCAST");
 
   log.d("Using broadcast address %v", BCAST_IP_ADDR);
+
+  link_instance = this;
 }
 
 BsdInetLink::~BsdInetLink()
 {
+  link_instance = nullptr;
   close();
+}
+
+void BsdInetLink::receive_packet()
+{
+  assert(sock != -1);
+
+  char buf[8192];
+  std::size_t size = ::recv(sock, buf, sizeof(buf), 0);
+  push_packet(buf, size);
 }
 
 std::size_t BsdInetLink::read(void* dst, std::size_t size)
 {
-  assert(sock != -1);
-  return 0;
+  auto packet = pop_packet();
+  if (packet.first == nullptr)
+    return 0;
+
+  assert(size >= packet.second && "Destination buffer smaller than packet data");
+
+  std::memcpy(dst, reinterpret_cast<void const*>(packet.first.get()), packet.second);
+  return packet.second;
 }
 
 std::size_t BsdInetLink::write(void const* src, std::size_t size)
@@ -81,8 +103,8 @@ std::size_t BsdInetLink::write(void const* src, std::size_t size)
   assert(sock != -1);
 
   if (size) {
-    auto wrote = sendto(sock, src, size, 0,
-                        reinterpret_cast<sockaddr*>(&bcastaddr), sizeof(bcastaddr));
+    auto wrote = ::sendto(sock, src, size, 0,
+                          reinterpret_cast<sockaddr*>(&bcastaddr), sizeof(bcastaddr));
     if (wrote < 0) {
       log.e("Error writing to socket");
       return 0;
