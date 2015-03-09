@@ -30,7 +30,7 @@ namespace sma
     // 20 is a good choice
     std::uint32_t ForwardSchedulerImpl::interval_per_packet = 20; 
     // 100 is a good choice
-    std::size_t ForwardSchedulerImpl::sample_cycles = 100;
+    std::size_t ForwardSchedulerImpl::sample_cycles = 50;
 
     using namespace std::placeholders;
 
@@ -170,12 +170,16 @@ namespace sma
 	std::size_t ForwardSchedulerImpl::get_storage() const
 	{
         // The value should be consistent with size of cache in contenthelperimpl.cpp
-		return 128;
+		return 32;
 	}
 
 	std::size_t ForwardSchedulerImpl::get_bandwidth() const
 	{
-		return next_interval/interval_per_packet - used_bandwidth;
+        std::size_t num_of_neighbors = get_neighbors().size();
+        std::size_t interval = interval_per_packet 
+            * (num_of_neighbors==0? 1:num_of_neighbors);
+//		return std::max<std::size_t>(1, next_interval/interval - used_bandwidth);
+		return std::max<std::size_t>(1, next_interval/interval_per_packet - used_bandwidth);
 	}
 
     void ForwardSchedulerImpl::reset_bandwidth()
@@ -200,7 +204,7 @@ namespace sma
     
     double ForwardSchedulerImpl::get_transmission_range() const
     {
-      return 800; 
+      return 1000; 
     }
 
     Vec2d ForwardSchedulerImpl::get_self_position() const
@@ -243,6 +247,7 @@ namespace sma
       //// async task
       // based on which, calculate the bandwidth in this time sched interval.
       float ratio = (rand()%1000 - 500) / 1000.0;
+//      float ratio = 0;
       next_interval = ForwardScheduler::get_sched_interval() * (1 + ratio);
       asynctask (&ForwardSchedulerImpl::sched, this).do_in (
               std::chrono::milliseconds (next_interval));
@@ -722,12 +727,15 @@ namespace sma
               (desc.expire_time - current_time 
                - std::chrono::milliseconds(sched_ptr->get_sched_interval()));
           BlockRef block (desc.content_name, desc.block_index);
+
+          //IMPORTANT: requester changed to the node itself
+          //this should happen in the lower contenthelperimpl
           auto arg
               = BlockRequestArgs (block,
                               desc.utility,
                               ttl,
-//  							  desc.requester,
-                              sched_ptr->get_node_id(),
+  							  desc.requester,
+//                              sched_ptr->get_node_id(),
                               desc.origin_location,
                               desc.hops_from_origin+1,
                               false);
@@ -736,9 +744,10 @@ namespace sma
 
 //          forwarded_requests.insert (std::make_pair(block, 
 //                      std::chrono::time_point_cast<Ms>(desc.expire_time)));
+
+          max_num_of_requests--;
         }
         request_queue.pop();
-        max_num_of_requests--;
       }
 
       std::uint16_t bytes_sent = 0;

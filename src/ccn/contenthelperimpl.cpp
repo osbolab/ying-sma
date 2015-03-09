@@ -1,5 +1,6 @@
 #include <sma/ccn/contenthelperimpl.hpp>
 
+#include <sma/neighbor.hpp>
 #include <sma/ccn/ccnnode.hpp>
 
 #include <sma/ccn/contenttype.hpp>
@@ -32,7 +33,7 @@ constexpr std::chrono::milliseconds ContentHelperImpl::default_initial_ttl;
 
 ContentHelperImpl::ContentHelperImpl(CcnNode& node)
   : ContentHelper(node)
-  , cache(new ContentCache(node, 128 * 1024, false))
+  , cache(new ContentCache(node, 32 * 1024, false))
   , store(new ContentCache(node))
   , to_announce(0)
 {
@@ -119,7 +120,7 @@ std::uint16_t ContentHelperImpl::announce_metadata()
 
 //  auto const announced = will_announce.size();
 
-  std::size_t max_announce = 1;
+  std::size_t max_announce = 5;
 
   std::uint16_t bytes_sent = 0;
 
@@ -182,10 +183,15 @@ bool ContentHelperImpl::discover(ContentMetadata meta)
     }
 
   rmt.emplace_back(meta);
+  auto current_time = sma::chrono::system_clock::now();
+  auto after_publish = std::chrono::duration_cast<std::chrono::milliseconds>(current_time.time_since_epoch()).count() 
+        - meta.publish_time_ms;
+  int hops = meta.hops;
+  log.d ("Receive meta:  publisher %v hops %v after %v (ms): %v", meta.publisher, hops, after_publish);
+
 
   if (node.interests->contains_any(meta.types)) {
     interesting_content_event(meta);
-
     if (auto_fetch) {
       for (std::size_t i = 0; i < meta.block_count(); ++i)
         auto_fetch_queue.emplace_back(meta.hash, i);
@@ -272,6 +278,26 @@ std::uint16_t ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
       continue;
     }
 
+    // directional forward
+    // if from self, angle = nan
+    
+    Vec2d self_location = node.position();
+    log.d("self_location: %v %v", self_location.x, self_location.y);
+    Vec2d neighbor_location 
+        = node.neighbors->get_position (req->requester);
+    log.d("neighbor_location: %v %v", neighbor_location.x, neighbor_location.y);
+    //CAUTION: requester_position is dest location
+    Vec2d dst_location = req->requester_position; 
+    log.d("dst_location: %v %v", dst_location.x, dst_location.y);
+
+    double angle_value = Vec2d::angle (dst_location - neighbor_location, 
+                self_location - neighbor_location); 
+    log.d ("angle_value: %v", angle_value);
+    if (angle_value > 3.14/4) {
+      log.d (" not in the same direction: %v ", angle_value);
+      requests.erase(req);
+      continue;
+    }
 
     auto it = prt.find(req->block);
     if (it != prt.end()) {
@@ -291,8 +317,12 @@ std::uint16_t ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
           req->block,
           PendingRequest{clock::now(), new_expiry, req->keep_on_arrival});
       check_pending_requests(new_expiry);
+      // IMPORTANT:
+      // change requester to itself before transmitting out to next hop
+      req->requester = node.id;
+ 
       ++req;
-    }
+   }
   }
 
   std::uint16_t bytes_sent = 0;
@@ -322,10 +352,12 @@ std::uint16_t ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
     // otherwise, store->validate will fail
     if (pending->second.keep_on_arrival
        and (store->find(block) == store->end())) {
-      log.d("copying block %v %v from cache to store", block.hash, block.index); 
-      ContentCache::copy_block_from_to(*cache, *store, block);
-      // unfreeze the cache if frozen
-      frozen({block}, false);
+      if (cache->find(block) != cache->end()) {
+        log.d("copying block %v %v from cache to store", block.hash, block.index); 
+        ContentCache::copy_block_from_to(*cache, *store, block);
+        // unfreeze the cache if frozen
+        frozen({block}, false);
+      }
     } else if ((store->find(block) != store->end())
             and (cache->find(block) == cache->end())) {
       log.d("copying block %v %v from store to cache", block.hash, block.index);
@@ -358,12 +390,14 @@ void ContentHelperImpl::request_content (Hash content_name,
       return; // more complicated function can be added, e.g., return data
     }
   }
-
+  
+  Vec2d dest_position; // will be updated;
   // check remote meta
   int num_of_blocks = 0;
   for (auto const & remote_meta : rmt) {
     if (remote_meta.data.hash == content_name) {
       num_of_blocks = 1 + (remote_meta.data.size-1)/(remote_meta.data.block_size);
+      dest_position = remote_meta.data.origin;
     }
   }
 
@@ -394,7 +428,8 @@ void ContentHelperImpl::request_content (Hash content_name,
                                          utility_per_block,
                                          std::chrono::milliseconds(ttl),
                                          node.id,
-                                         node.position(),
+                               //          node.position(),
+                                         dest_position,
                                          0,
                                          true));
   }

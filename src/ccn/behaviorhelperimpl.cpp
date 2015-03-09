@@ -49,15 +49,15 @@ namespace sma
       auto content_req = content_req_record.find(hash);
       assert(content_req != content_req_record.end());
       // Print complete log if not do that yet.
-      if (content_req->second == false) {
-        std::vector<ContentMetadata> meta_vec = node.content->metadata();
+      if ((content_req->second).accessed == false) {
+/*        std::vector<ContentMetadata> meta_vec = node.content->metadata();
         auto metaIt = meta_vec.begin();
         while (metaIt != meta_vec.end()) {
           if (metaIt->hash == hash)
             break;
           metaIt++;
         }
-//        assert (metaIt != meta_vec.end());
+
       if (metaIt != meta_vec.end()) {
         auto from_id = metaIt->publisher;
         int hops = metaIt->hops;
@@ -70,7 +70,18 @@ namespace sma
       } else {
         node.log.i ("Complete download content %v ", hash); 
       }
-        content_req->second = true;
+*/
+        auto current_time = sma::chrono::system_clock::now();
+        auto before_deadline 
+            = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - (content_req->second).requested_time).count();
+        node.log.i ("Complete download content %v, published by %v, %v hops away,utility %v, %v later",
+                hash, 
+                (content_req->second).from_id,
+                (content_req->second).hops,
+                (content_req->second).utility,
+                before_deadline
+                ); 
+        (content_req->second).accessed = true;
       }
 
       return true; 
@@ -79,9 +90,10 @@ namespace sma
     void BehaviorHelperImpl::behave ()
     {
       // wait for random time
-      std::chrono::milliseconds rand_delay1(std::rand() % 1000); 
-      std::chrono::milliseconds rand_delay2(std::rand() % 1000); 
-      std::chrono::milliseconds rand_delay3(std::rand() % 1000); 
+      std::chrono::milliseconds rand_delay1(interest_freq); 
+      std::chrono::milliseconds rand_delay2(publish_freq);
+      std::chrono::milliseconds rand_delay3(request_freq); 
+
 
       asynctask (&BehaviorHelperImpl::behave_interest,this).do_in(rand_delay1);
       asynctask (&BehaviorHelperImpl::behave_publish, this).do_in(rand_delay2);
@@ -132,7 +144,7 @@ namespace sma
     void BehaviorHelperImpl::behave_publish()
     {
       float min_blocks = 1.0;
-      float max_blocks = 12.0;
+      float max_blocks = 20.0;
 
       std::size_t n_blocks  = min_blocks 
             + static_cast <float> (rand()) 
@@ -207,24 +219,30 @@ namespace sma
         NodeId from_id = meta_vec[rand_index].publisher;
         int hops = meta_vec[rand_index].hops;
 
-        // reset the content_req_record, as it will deemed
-        // as a new request. a local hit will be expected.
-        auto content_req = content_req_record.find(content_name);
-        if (content_req != content_req_record.end())
-          content_req->second = false;
-        else
-          content_req_record.insert({content_name, false});
-
         float min_util = 0.1f;
         float max_util = 1.0f;
 
         float utility_per_block = min_util 
             + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX)/(max_util-min_util));
 
-        float min_ttl = 4 * node.sched->get_sched_interval();
-        float max_ttl = 20 * node.sched->get_sched_interval();
+        float min_ttl = 10 * node.sched->get_sched_interval();
+        float max_ttl = 10 * node.sched->get_sched_interval();
         float ttl_per_block = min_ttl
             + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX)/(max_ttl - min_ttl));
+
+        auto current_time = sma::chrono::system_clock::now();
+
+        // reset the content_req_record, as it will deemed
+        // as a new request. a local hit will be expected.
+        auto content_req = content_req_record.find(content_name);
+        if (content_req != content_req_record.end())
+          (content_req->second).accessed = false;
+        else
+          content_req_record.insert(
+                  {content_name, 
+                    {false, utility_per_block, current_time, hops, from_id}
+                  });
+
 
         node.log.d("Request content %v (published by %v, %v hops away) with utility %v with ttl %v(ms)", 
                    content_name,

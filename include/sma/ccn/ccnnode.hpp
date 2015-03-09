@@ -8,7 +8,7 @@
 #include <sma/messageheader.hpp>
 
 #include <sma/ccn/ccnfwd.hpp>
-
+#include <sma/neighborhelper.hpp>
 #include <sma/io/log.hpp>
 
 #include <cstdlib>
