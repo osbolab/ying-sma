@@ -9,6 +9,6 @@ class CcnNode;
 
 struct MessageHeader;
 
-class NeighborHelper;
+//class NeighborHelper;
 struct Beacon;
 }

@@ -8,6 +8,7 @@
 #include <sstream>
 #include <iomanip>
 #include <ostream>
+#include <cmath>
 
 
 namespace sma
@@ -29,6 +30,11 @@ struct Vec2d {
   static double distance(Vec2d const& a, Vec2d const& b)
   {
     return std::sqrt((a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y));  
+  }
+
+  static double angle (Vec2d const& a, Vec2d const& b)
+  {
+    return acos ( a.normalized().dot (b.normalized()) ); 
   }
 
 

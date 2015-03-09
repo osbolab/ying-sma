@@ -12,6 +12,9 @@ open my $bytes_sent_fh, '>', $bytes_sent_file or die "Could not open file '$byte
 my $block_event_file = 'blockevent.txt';
 open my $block_event_fh, '>', $block_event_file or die "Could not open file '$bytes_sent_file' $!";
 
+my $meta_stat_file = 'meta.txt';
+open my $meta_stat_file_fh, '>', $meta_stat_file or die "Could not open file '$meta_stat_file' $!";
+
 open my $fh, '<', $file or die "Could not open '$file' $!";
 
 my $line = <$fh>;
@@ -22,8 +25,11 @@ $line =~ /([0-9]+)\:([0-9]+)\.([0-9]+)\sI\s-\s/;
 my $minute = $1;
 my $second = $2;
 my $millisecond = $3;
+my $start = 0;
 
-my $start = ($1 * 60  + $2) * 1000 + $3 * 10;
+#my $start = ($1 * 60  + $2) * 1000 + $3 * 10;
+#my $start = ($1 * 60  + $2) + $3 * 0.001;
+
 my $now;
 my $nnodes;
 
@@ -64,14 +70,22 @@ for (my $i=0; $i<60; $i++) {
 	push (@meta_bytes, %meta_bytes_per_node);
 }
 
+my %meta_received;
+
 while ($line = <$fh>) {
 	if ($line =~ /Created\s(d+)\snodes/) {
 		$nnodes = $1;
 		print $nnodes;
 	} else {
 		$line =~ /([0-9]+)\:([0-9]+)\.([0-9]+)\s/;
-		$now = ($1 * 60  + $2) * 1000 + $3 * 10;
-		if ($now - $start > ($timeslot+1) * 1000) {
+#		$now = ($1 * 60  + $2) * 1000 + $3 * 10;
+		$now = (($1-$minute) * 60  + $2-$second + ($3-$millisecond) * 0.001);
+#		if ($now - $start < 0) {
+#			print "overflow\n";
+#			exit;
+#		}
+#		if ($now - $start > ($timeslot+1) * 1000) {
+		if ($now - $start > ($timeslot+1)) {
 			$timeslot++;
 		} else {
 			if ($line=~ /Send block/) {
@@ -86,7 +100,20 @@ while ($line = <$fh>) {
 			    $interest_bytes[$1]{$timeslot}+=$2;
 		    } elsif ($line=~ /n\(([0-9]+)\)\s+bytes sent on meta\:\s+([0-9]+)/) {
 			    $meta_bytes[$1]{$timeslot}+=$2;
-		    }
+		    } elsif ($line=~ /Receive meta\:\s+publisher\s+([0-9]+)\s+hops\s+([0-9]+)\s+after\s+([0-9]+)/) {
+				if (exists($meta_received{$2})) {
+					if ($3 < 10000) {
+					  push($meta_received{$2}, int($3));
+				    }
+				}
+				else {
+					my @meta_per_hop = ();
+					if ($3 < 10000) {
+					  push(@meta_per_hop, int($3));
+				    }
+					$meta_received{$2} = \@meta_per_hop;
+				}
+		    } 
 		}
 	}
 }
@@ -107,6 +134,17 @@ for(my $i=0; $i<60; $i++) {
 	print $bytes_sent_fh "\n";
 }
 
+for my $hop (sort{$a<=>$b} keys %meta_received) {
+	print $meta_stat_file_fh "hops: $hop\n";
+	my $sz = $#{$meta_received{$hop}} + 1;
+	my @sorted_array = sort { $a<=>$b} @{ $meta_received{$hop} };
+	for my $i ( 0 .. $#{ $meta_received{$hop} } ) {
+		print $meta_stat_file_fh "$sorted_array[$i]\t";
+		my $percentage = $i * 1.0 / $sz;
+		print $meta_stat_file_fh "$percentage\n";
+	}
+	print $meta_stat_file_fh "\n";
+}
 
 #my ($starttime) = ($1);
 #print "$starttime";

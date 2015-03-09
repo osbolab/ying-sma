@@ -19,6 +19,17 @@ class CcnNode;
 
 class BehaviorHelperImpl : public BehaviorHelper
 {
+  using timestamp = sma::chrono::system_clock::time_point;
+  struct Req_Record{
+    bool accessed;
+    float utility;
+    timestamp requested_time;
+    int hops;
+    NodeId from_id;
+    Req_Record(bool acc, float util, timestamp r_time, int hops, NodeId id):
+      accessed(acc), utility(util), requested_time(r_time), hops(hops), from_id(id) {}
+  };
+
 public:
 
   BehaviorHelperImpl (CcnNode& node,
@@ -41,7 +52,7 @@ private:
   std::chrono::milliseconds publish_freq;
   std::chrono::milliseconds request_freq;
 
-  std::unordered_map<Hash, bool> content_req_record;
+  std::unordered_map<Hash, Req_Record> content_req_record;
 
   using clock = sma::chrono::system_clock;
   using time_point = clock::time_point;
