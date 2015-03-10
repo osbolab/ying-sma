@@ -50,12 +50,12 @@ private:
   using time_point = clock::time_point;
   using millis = std::chrono::milliseconds;
 
-  static constexpr unsigned int INITIAL_REFRESH_MS = 5000;
+  static constexpr unsigned int INITIAL_REFRESH_MS = 10000;
 
   //! The time to wait for an expired neighbor to respond to a beacon.
-  millis query_response_delay{100};
+  millis query_response_delay{1000};
 
-  void schedule_beacon(millis delay);
+  void schedule_beacon(millis const& delay);
   //! Broadcast a beacon message to all neighbors.
   void beacon();
   //! Check if any neighbors have not been seen in some minimum interval.

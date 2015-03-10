@@ -9,7 +9,7 @@
 #include <string>
 
 
-#define PORT      9998
+#define PORT 9996
 
 
 std::vector<Client> clients;
@@ -18,7 +18,7 @@ std::vector<Client> clients;
 // Create a socket and start listening on any address at the given port.
 SOCKET listen(int const port)
 {
-  SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
+  SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (sock != INVALID_SOCKET) {
     sockaddr_in sin;
     sin.sin_family = AF_INET;
@@ -127,7 +127,7 @@ int main(int argc, char** argv)
 
   WSAData wsa;
   int error;
-  if ((error = WSAStartup(MAKEWORD(1, 1), &wsa)) != 0) {
+  if ((error = WSAStartup(MAKEWORD(2, 2), &wsa)) != 0) {
     std::cerr << "WSAStartup failed with error code " << error << std::endl;
     return 1;
   }
@@ -138,10 +138,14 @@ int main(int argc, char** argv)
     return 1;
   }
 
+  out_file = std::ofstream("log.txt");
+
   while (1) {
     listen_loop(listener);
     std::cout << "Restarting log server..." << std::endl;
   }
+
+  out_file.close();
 
   WSACleanup();
 

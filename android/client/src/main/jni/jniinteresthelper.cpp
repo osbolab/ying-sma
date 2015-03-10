@@ -20,6 +20,15 @@ JNIEXPORT jboolean JNICALL Java_edu_asu_sma_InterestHelper_create(JNIEnv* env, j
   return true;
 }
 
+JNIEXPORT void JNICALL Java_edu_asu_sma_InterestHelper_delete(JNIEnv* env, jobject thiz, jstring interest)
+{
+  char const* c_sinterest = env->GetStringUTFChars(interest, NULL);
+  std::string sinterest(c_sinterest);
+  env->ReleaseStringUTFChars(interest, c_sinterest);
+
+  sma::interest_helper->delete_local(sma::ContentType(sinterest));
+}
+
 JNIEXPORT jobject JNICALL Java_edu_asu_sma_InterestHelper_local(JNIEnv* env, jobject thiz)
 {
   assert(sma::interest_helper != nullptr);
@@ -29,9 +38,9 @@ JNIEXPORT jobject JNICALL Java_edu_asu_sma_InterestHelper_local(JNIEnv* env, job
 
   auto interests = sma::interest_helper->local();
   for (auto const& interest : interests)
-    env->CallVoidMethod(list_obj,
-                        env->GetMethodID(list_class, "add", "(Ljava/lang/Object;)Z"),
-                        env->NewStringUTF(std::string(interest).c_str()));
+    env->CallBooleanMethod(list_obj,
+                            env->GetMethodID(list_class, "add", "(Ljava/lang/Object;)Z"),
+                            env->NewStringUTF(std::string(interest).c_str()));
 
   env->DeleteLocalRef(list_class);
 
@@ -47,9 +56,9 @@ JNIEXPORT jobject JNICALL Java_edu_asu_sma_InterestHelper_remote(JNIEnv* env, jo
 
   auto interests = sma::interest_helper->remote();
   for (auto const& interest : interests)
-    env->CallVoidMethod(list_obj,
-                        env->GetMethodID(list_class, "add", "(Ljava/lang/Object;)Z"),
-                        env->NewStringUTF(std::string(interest).c_str()));
+    env->CallBooleanMethod(list_obj,
+                            env->GetMethodID(list_class, "add", "(Ljava/lang/Object;)Z"),
+                            env->NewStringUTF(std::string(interest).c_str()));
 
   env->DeleteLocalRef(list_class);
 

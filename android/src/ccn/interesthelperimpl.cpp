@@ -120,6 +120,27 @@ void InterestHelperImpl::receive(MessageHeader header, InterestAnn msg)
   }
 }
 
+void InterestHelperImpl::learn_remote(Interest const& interest)
+{
+  std::size_t idx = 0;
+  for (auto it = interests.begin(); it != interests.end(); ++it, ++idx)
+    if (it->type == interest.type) {
+      if (it->update_with(interest)) {
+        auto i = std::move(*it);
+        interests.erase(it);
+        interests.push_front(std::move(i));
+        // Check if we promoted an already-announced element
+        if (idx >= to_announce)
+          ++to_announce;
+      }
+      return;
+    }
+
+  interests.emplace_front(
+    interest.type, interest.ttl<std::chrono::milliseconds>(), interest.hops);
+  ++to_announce;
+}
+
 void InterestHelperImpl::create_local(ContentType type)
 {
   std::size_t idx = 0;
@@ -160,6 +181,18 @@ void InterestHelperImpl::clear_local()
       ++it;
 }
 
+void InterestHelperImpl::delete_local(ContentType type)
+{
+  auto it = interests.begin();
+  while (it != interests.end()) {
+    if (it->local() && it->type == type) {
+      interests.erase(it);
+      return;
+    } else
+      ++it;
+  }
+}
+
 std::vector<Interest> InterestHelperImpl::all() const
 {
   std::vector<Interest> all;
@@ -195,27 +228,6 @@ bool InterestHelperImpl::interested_in(ContentMetadata const& metadata) const
         if (i.type == type)
           return true;
   return false;
-}
-
-void InterestHelperImpl::learn_remote(Interest const& interest)
-{
-  std::size_t idx = 0;
-  for (auto it = interests.begin(); it != interests.end(); ++it, ++idx)
-    if (it->type == interest.type) {
-      if (it->update_with(interest)) {
-        auto i = std::move(*it);
-        interests.erase(it);
-        interests.push_front(std::move(i));
-        // Check if we promoted an already-announced element
-        if (idx >= to_announce)
-          ++to_announce;
-      }
-      return;
-    }
-
-  interests.emplace_front(
-      interest.type, interest.ttl<std::chrono::milliseconds>(), interest.hops);
-  ++to_announce;
 }
 
 bool InterestHelperImpl::know_remote(ContentType const& type) const

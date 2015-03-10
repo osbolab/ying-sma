@@ -4,6 +4,11 @@
       tools:context=".NavActivity">
 
   <item
+      android:id="@+id/action_upload_logs"
+      android:title="@string/action_upload_logs"
+      app:showAsAction="ifRoom"/>
+
+  <item
       android:id="@+id/action_shutdown"
       android:title="@string/action_shutdown"
       app:showAsAction="never"/>

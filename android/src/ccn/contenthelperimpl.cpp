@@ -26,7 +26,7 @@ constexpr std::chrono::milliseconds ContentHelperImpl::min_announce_interval;
 constexpr std::size_t ContentHelperImpl::fuzz_announce_min_ms;
 constexpr std::size_t ContentHelperImpl::fuzz_announce_max_ms;
 
-constexpr std::chrono::milliseconds ContentHelperImpl::default_initial_ttl;
+constexpr std::chrono::seconds ContentHelperImpl::default_initial_ttl;
 
 
 ContentHelperImpl::ContentHelperImpl(CcnNode& node)
@@ -46,7 +46,7 @@ ContentMetadata ContentHelperImpl::create_new(std::vector<ContentType> types,
                                               void const* src,
                                               std::size_t size)
 {
-  auto hash = cache->store(src, size);
+  auto hash = store->store(src, size);
 
   auto publish_time_ms = std::chrono::duration_cast<millis>(
                              clock::now().time_since_epoch()).count();
@@ -71,8 +71,11 @@ ContentMetadata ContentHelperImpl::create_new(std::vector<ContentType> types,
 
 std::size_t ContentHelperImpl::announce_metadata()
 {
-  if ((lmt.empty() && rmt.empty()))
-    return 0;
+  if ((lmt.empty() && rmt.empty())) {
+    if (auto_announce)
+      asynctask(&ContentHelperImpl::announce_metadata, this)
+        .do_in(min_announce_interval);
+    }
 
   std::vector<ContentMetadata> will_announce;
   will_announce.reserve(lmt.size() + rmt.size());
@@ -92,17 +95,19 @@ std::size_t ContentHelperImpl::announce_metadata()
   // from the original node; every intermediate node decays their TTL so they
   // expire across the entire network at once.
   auto it = rmt.begin();
-  while (it != rmt.end())
-    if (it->data.expired())
+  while (it != rmt.end()) {
+    if (it->data.expired()) {
       it = rmt.erase(it);
-    else {
+    }  else {
       if (node.interests->contains_any(it->data.types)) {
+        log.d("RMT size: %v", rmt.size());
         log.d("Announcing remote metadata about %v", it->data.types[0]);
         will_announce.push_back(it->data);
         it->announced();
       }
       ++it;
     }
+  }
 
   will_announce.shrink_to_fit();
 
@@ -145,12 +150,14 @@ bool ContentHelperImpl::discover(ContentMetadata meta)
         return false;
     }
 
+  log.i("Discovered remote meta: %v", std::string(meta.hash));
   rmt.emplace_back(meta);
 
   if (node.interests->contains_any(meta.types)) {
     interesting_content_event(meta);
 
     if (auto_fetch) {
+      auto_fetch_meta.emplace(meta.hash, meta);
       for (std::size_t i = 0; i < meta.block_count(); ++i)
         auto_fetch_queue.emplace_back(meta.hash, i);
       do_auto_fetch();
@@ -166,22 +173,22 @@ void ContentHelperImpl::do_auto_fetch()
   if (auto_fetch_queue.empty())
     return;
 
+  // Collect the first n blocks from the auto fetch queue into one request message
   std::vector<BlockRequestArgs> reqs;
-
-  for (std::size_t i = 0; i < 4 && !auto_fetch_queue.empty(); ++i) {
+  for (std::size_t i = 0; i < 16 && !auto_fetch_queue.empty(); ++i) {
     auto block = auto_fetch_queue.front();
-    for (auto const& meta : rmt)
-      if (meta.data.hash == block.hash) {
-        reqs.emplace_back(block,
-                          1.0,
-                          default_initial_ttl,
-                          node.id,
-                          node.position(),
-                          meta.data.hops,
-                          true,
-                          true);
-        break;
-      }
+    auto it = auto_fetch_meta.find(block.hash);
+    assert(it != auto_fetch_meta.end());
+    auto const& meta = it->second;
+    // Assign a random utility and add the request
+    reqs.emplace_back(block,
+                      1.0,
+                      default_initial_ttl,
+                      node.id,
+                      node.position(),
+                      meta.hops,
+                      true,
+                      true);
 
     auto_fetch_queue.pop_front();
   }

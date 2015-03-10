@@ -72,7 +72,6 @@ public class NetworkFragment extends BaseFragment implements NativeConsumer {
         });
       }
     });
-
     executor.schedule(new Runnable() {
       @Override
       public void run() {

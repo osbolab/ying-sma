@@ -22,7 +22,7 @@ constexpr unsigned int NeighborHelperImpl::INITIAL_REFRESH_MS;
 NeighborHelperImpl::NeighborHelperImpl(CcnNode& node)
   : NeighborHelper(node)
 {
-  schedule_beacon(std::chrono::milliseconds(100));
+  schedule_beacon(std::chrono::milliseconds(200));
   schedule_refresh();
 }
 
@@ -64,19 +64,20 @@ void NeighborHelperImpl::receive(MessageHeader header, Beacon msg)
     node.post(Beacon(node.position(), true));
 }
 
-using millis = std::chrono::milliseconds;
-void NeighborHelperImpl::schedule_beacon(millis delay)
+void NeighborHelperImpl::schedule_beacon(millis const& delay)
 {
+  /*
   using unit = millis::rep;
   unit min = delay.count() / 2;
   delay = millis(min + rand() % delay.count());
+  */
   asynctask(&NeighborHelperImpl::beacon, this).do_in(delay);
 }
 
 void NeighborHelperImpl::beacon()
 {
   node.post(Beacon(node.position()));
-  schedule_beacon(std::chrono::seconds(2));
+  schedule_beacon(millis(5000));
 }
 
 void NeighborHelperImpl::refresh_neighbors()
@@ -104,16 +105,15 @@ void NeighborHelperImpl::refresh_neighbors()
     }
     ++it;
   }
-  auto refresh_delay = std::chrono::milliseconds(INITIAL_REFRESH_MS);
+  auto refresh_delay = millis(INITIAL_REFRESH_MS);
 
   if (will_beacon) {
-    beacon();
     refresh_delay = query_response_delay;
   }
 
   schedule_refresh(refresh_delay);
 
-  if (not dropped.empty()) {
+  if (!dropped.empty()) {
     log.t("dropping %v neighbors", dropped.size());
     on_departure(std::move(dropped));
   }

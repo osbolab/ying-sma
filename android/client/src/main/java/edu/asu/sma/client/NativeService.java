@@ -13,6 +13,7 @@ import android.os.Looper;
 import android.os.Process;
 import android.util.Log;
 
+import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -62,6 +63,8 @@ public class NativeService extends Service {
   // Native Interface
   //////////////////////////////////////////////////////////////////////////////////////////////////
 
+  public static int nodeId;
+
   private static final String TAG = NativeService.class.getSimpleName();
 
   private Looper looper;
@@ -108,8 +111,14 @@ public class NativeService extends Service {
     WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
     WifiInfo info = wifi.getConnectionInfo();
     String macAddr = info.getMacAddress();
+    if (macAddr != null)
+      nodeId = macAddr.hashCode();
+    else
+      nodeId = (new Random()).nextInt();
 
-    if (NodeContainer.create(macAddr.hashCode())) {
+    StatLogger.log("Created node");
+
+    if (NodeContainer.create(nodeId)) {
       Log.d(TAG, "Created native node on background thread");
       startLinkThread();
     } else {

@@ -23,6 +23,7 @@
     <ClCompile Include="client\src\main\jni\bsdinetlink.cpp" />
     <ClCompile Include="client\src\main\jni\chrono.cpp" />
     <ClCompile Include="client\src\main\jni\jniasynchelper.cpp" />
+    <ClCompile Include="client\src\main\jni\jnicontenthelper.cpp" />
     <ClCompile Include="client\src\main\jni\jniinteresthelper.cpp" />
     <ClCompile Include="client\src\main\jni\jnilinklayer.cpp" />
     <ClCompile Include="client\src\main\jni\jninativeservice.cpp" />
@@ -57,6 +58,7 @@
   <ItemGroup>
     <ClInclude Include="client\include\sma\android\bsdinetlink.hpp" />
     <ClInclude Include="client\include\sma\android\jniasynchelper.hpp" />
+    <ClInclude Include="client\include\sma\android\jnicontenthelper.hpp" />
     <ClInclude Include="client\include\sma\android\jniinteresthelper.hpp" />
     <ClInclude Include="client\include\sma\android\jnilinklayer.hpp" />
     <ClInclude Include="client\include\sma\android\jninativeservice.hpp" />

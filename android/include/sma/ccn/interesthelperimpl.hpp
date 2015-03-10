@@ -45,6 +45,7 @@ public:
   void create_local(ContentType type) override;
   void create_local(std::vector<ContentType> types) override;
   void clear_local() override;
+  void delete_local(ContentType type);
 
   std::vector<Interest> all() const override;
   std::vector<Interest> local() const override;

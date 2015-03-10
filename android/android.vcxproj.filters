@@ -35,6 +35,7 @@
     <ClCompile Include="client\src\main\jni\jnilinklayer.cpp" />
     <ClCompile Include="client\src\main\jni\jninativeservice.cpp" />
     <ClCompile Include="client\src\main\jni\jniinteresthelper.cpp" />
+    <ClCompile Include="client\src\main\jni\jnicontenthelper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="client\include\sma\android\bsdinetlink.hpp" />
@@ -122,5 +123,6 @@
     <ClInclude Include="client\include\sma\android\jnilinklayer.hpp" />
     <ClInclude Include="client\include\sma\android\jninativeservice.hpp" />
     <ClInclude Include="client\include\sma\android\jniinteresthelper.hpp" />
+    <ClInclude Include="client\include\sma\android\jnicontenthelper.hpp" />
   </ItemGroup>
 </Project>

@@ -15,6 +15,8 @@ public final class InterestHelper {
 
   public static native List<String> remote();
 
+  public static native void delete(String text);
+
   static {
     System.loadLibrary(Sma.LIBRARY_NAME);
   }

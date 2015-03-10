@@ -1,12 +1,22 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             tools:context="edu.asu.sma.client.PostFragment">
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="edu.asu.sma.client.PostFragment">
 
-  <TextView
+  <ListView
       android:layout_width="match_parent"
-      android:layout_height="match_parent"
-      android:text="@string/title_post_pane"/>
+      android:layout_height="0dp"
+      android:id="@+id/postItemsList"
+      android:layout_weight="1"
+      android:headerDividersEnabled="false"/>
 
-</FrameLayout>
+  <Button
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:text="Camera"
+      android:id="@+id/cameraButton"
+      />
+</LinearLayout>

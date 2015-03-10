@@ -88,12 +88,14 @@ public class TimeService extends Service {
   public void onCreate() {
     super.onCreate();
 
-    if (!ShellInterface.isSuAvailable())
-      throw new IllegalStateException("Need su shell to set the time");
-    ShellInterface.runCommand("chmod 666 /dev/alarm");
+    if (ShellInterface.isSuAvailable()) {
+      ShellInterface.runCommand("chmod 666 /dev/alarm");
 
-    thread = new ListenerThread();
-    thread.start();
+      thread = new ListenerThread();
+      thread.start();
+    } else {
+      Log.e("TimeService", "Need su shell to synchronize the clock");
+    }
   }
 
   @Override

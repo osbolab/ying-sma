@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -14,6 +15,8 @@
 #endif
 
 #define BUF_SIZE  8192
+
+std::ofstream out_file;
 
 
 struct Client
@@ -56,7 +59,6 @@ struct Client
     char buf[BUF_SIZE];
     int read = recv(sock, buf, BUF_SIZE - inbox.size(), 0);
     if (read == 0) {
-      std::cout << "* " << std::string(*this) << " went away" << std::endl;
       return false;
     }
 
@@ -67,11 +69,8 @@ struct Client
       return err == WSAEWOULDBLOCK;
     }
 
-    inbox.insert(inbox.end(), buf, buf + read);
-    std::cout << std::string(*this) << ": " << std::string(inbox.begin(), inbox.end());
-    if (inbox.back() != '\n')
-      std::cout << std::endl;
-    inbox.clear();
+    out_file.write(buf, read);
+    out_file.flush();
 
     return true;
   }

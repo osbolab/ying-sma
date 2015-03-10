@@ -111,6 +111,9 @@ public class NavActivity extends FragmentActivity
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
+      case R.id.action_upload_logs:
+        StatLogger.upload("192.168.1.1", 9996);
+        return true;
       case R.id.action_shutdown:
         shutdown();
         return true;

@@ -16,9 +16,9 @@ JNIEXPORT jobject JNICALL Java_edu_asu_sma_NeighborHelper_all(JNIEnv* env, jobje
 
   auto neighbors = sma::neighbor_helper->get();
   for (auto const& neighbor : neighbors)
-    env->CallVoidMethod(list_obj,
-                        env->GetMethodID(list_class, "add", "(Ljava/lang/Object;)Z"),
-                        env->NewStringUTF(std::string(neighbor.id).c_str()));
+    env->CallBooleanMethod(list_obj,
+                            env->GetMethodID(list_class, "add", "(Ljava/lang/Object;)Z"),
+                            env->NewStringUTF(std::string(neighbor.id).c_str()));
 
   env->DeleteLocalRef(list_class);
 

@@ -111,7 +111,7 @@ private:
   };
 
 
-  static constexpr auto default_initial_ttl = millis(10000);
+  static constexpr auto default_initial_ttl = std::chrono::seconds(120);
 
   // Add, or update, the given remote metadata in the Remote Metadata Table.
   // Updating involves e.g. reflecting a nearer source for the content in the
@@ -159,11 +159,12 @@ private:
   bool auto_forward_requests = true;
   bool auto_respond = true;
 
+  std::unordered_map<Hash, ContentMetadata> auto_fetch_meta;
   std::deque<BlockRef> auto_fetch_queue;
 
-  static constexpr auto min_announce_interval = millis(1000);
+  static constexpr auto min_announce_interval = std::chrono::milliseconds(5000);
   static constexpr std::size_t fuzz_announce_min_ms = 0;
-  static constexpr std::size_t fuzz_announce_max_ms = 500;
+  static constexpr std::size_t fuzz_announce_max_ms = 2000;
 
   // Detect reentrance to request() so we can warn the caller
   bool already_in_request{false};
