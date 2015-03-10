@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "android-native", "android\a
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "logserv", "logserv\logserv.vcxproj", "{78CEE790-73B4-42AF-AA13-6525CFE7A919}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "timeserv", "timeserv\timeserv.vcxproj", "{4180785D-7356-4CE7-B76B-6A785150B83A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|armeabi-v7a = Debug|armeabi-v7a
@@ -29,6 +31,12 @@ Global
 		{78CEE790-73B4-42AF-AA13-6525CFE7A919}.Release|armeabi-v7a.ActiveCfg = Release|Win32
 		{78CEE790-73B4-42AF-AA13-6525CFE7A919}.Release|x86.ActiveCfg = Release|Win32
 		{78CEE790-73B4-42AF-AA13-6525CFE7A919}.Release|x86.Build.0 = Release|Win32
+		{4180785D-7356-4CE7-B76B-6A785150B83A}.Debug|armeabi-v7a.ActiveCfg = Debug|Win32
+		{4180785D-7356-4CE7-B76B-6A785150B83A}.Debug|x86.ActiveCfg = Debug|Win32
+		{4180785D-7356-4CE7-B76B-6A785150B83A}.Debug|x86.Build.0 = Debug|Win32
+		{4180785D-7356-4CE7-B76B-6A785150B83A}.Release|armeabi-v7a.ActiveCfg = Release|Win32
+		{4180785D-7356-4CE7-B76B-6A785150B83A}.Release|x86.ActiveCfg = Release|Win32
+		{4180785D-7356-4CE7-B76B-6A785150B83A}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

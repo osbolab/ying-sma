@@ -26,8 +26,11 @@
     <service
         android:name=".NativeService"
         android:enabled="true"
-        android:exported="false">
-    </service>
+        android:exported="false"/>
+    <service
+        android:name=".TimeService"
+        android:enabled="true"
+        android:exported="false"/>
   </application>
 
 </manifest>

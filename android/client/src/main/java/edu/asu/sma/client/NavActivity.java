@@ -40,6 +40,7 @@ public class NavActivity extends FragmentActivity
     for (int i = 0; i < tab_icon_res.length; ++i)
       createTab(i);
 
+    startService(new Intent(this, TimeService.class));
     startService(new Intent(this, NativeService.class));
   }
 
@@ -54,6 +55,7 @@ public class NavActivity extends FragmentActivity
   }
 
   private void shutdown() {
+    stopService(new Intent(this, TimeService.class));
     stopService(new Intent(this, NativeService.class));
     finish();
   }
