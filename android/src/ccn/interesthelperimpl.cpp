@@ -167,7 +167,7 @@ void InterestHelperImpl::create_local(ContentType type)
 
 void InterestHelperImpl::create_local(std::vector<ContentType> types)
 {
-  for (auto& type : types)
+  for (auto const& type : types)
     create_local(type);
 }
 
@@ -197,7 +197,7 @@ std::vector<Interest> InterestHelperImpl::all() const
 {
   std::vector<Interest> all;
   all.reserve(interests.size());
-  for (auto& i : interests)
+  for (auto const& i : interests)
     all.emplace_back(i);
   return all;
 }
@@ -205,7 +205,7 @@ std::vector<Interest> InterestHelperImpl::all() const
 std::vector<Interest> InterestHelperImpl::local() const
 {
   std::vector<Interest> locals;
-  for (auto& i : interests)
+  for (auto const& i : interests)
     if (i.local())
       locals.push_back(i);
   return locals;
@@ -214,7 +214,7 @@ std::vector<Interest> InterestHelperImpl::local() const
 std::vector<Interest> InterestHelperImpl::remote() const
 {
   std::vector<Interest> remotes;
-  for (auto& i : interests)
+  for (auto const& i : interests)
     if (i.remote())
       remotes.push_back(i);
   return remotes;
@@ -222,9 +222,9 @@ std::vector<Interest> InterestHelperImpl::remote() const
 
 bool InterestHelperImpl::interested_in(ContentMetadata const& metadata) const
 {
-  for (auto& i : interests)
+  for (auto const& i : interests)
     if (i.local())
-      for (auto& type : metadata.types)
+      for (auto const& type : metadata.types)
         if (i.type == type)
           return true;
   return false;
@@ -232,7 +232,7 @@ bool InterestHelperImpl::interested_in(ContentMetadata const& metadata) const
 
 bool InterestHelperImpl::know_remote(ContentType const& type) const
 {
-  for (auto& i : interests)
+  for (auto const& i : interests)
     if (i.remote() && i.type == type)
       return true;
   return false;
@@ -241,8 +241,8 @@ bool InterestHelperImpl::know_remote(ContentType const& type) const
 bool InterestHelperImpl::contains_any(
     std::vector<ContentType> const& types) const
 {
-  for (auto& i : interests)
-    for (auto& type : types)
+  for (auto const& i : interests)
+    for (auto const& type : types)
       if (i.type == type)
         return true;
   return false;

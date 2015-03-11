@@ -212,6 +212,7 @@ BlockData ContentCache::store(BlockRef ref,
   std::memcpy(slot.data, src, size);
   slot.expected_size = expected_size;
   slot.size = size;
+  slot.block_index = ref.index;
 
   log_utilization();
 

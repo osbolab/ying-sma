@@ -75,10 +75,10 @@ std::size_t ContentHelperImpl::announce_metadata()
     if (auto_announce)
       asynctask(&ContentHelperImpl::announce_metadata, this)
         .do_in(min_announce_interval);
-    }
+    return 0;
+  }
 
   std::vector<ContentMetadata> will_announce;
-  will_announce.reserve(lmt.size() + rmt.size());
 
   auto const now = clock::now();
 
@@ -86,8 +86,8 @@ std::size_t ContentHelperImpl::announce_metadata()
   // We announce them regardless of interests, but our neighbors are discerning.
   for (auto& local : lmt) {
     if (now >= local.next_announce) {
-      will_announce.push_back(local.data);
       local.announced();
+      will_announce.push_back(local.data);
     }
   }
 
@@ -100,20 +100,19 @@ std::size_t ContentHelperImpl::announce_metadata()
       it = rmt.erase(it);
     }  else {
       if (node.interests->contains_any(it->data.types)) {
-        log.d("RMT size: %v", rmt.size());
-        log.d("Announcing remote metadata about %v", it->data.types[0]);
-        will_announce.push_back(it->data);
-        it->announced();
+        if (now >= it->next_announce) {
+          log.d("Announcing remote metadata about %v", it->data.types[0]);
+          will_announce.push_back(it->data);
+          it->announced();
+        }
       }
       ++it;
     }
   }
 
-  will_announce.shrink_to_fit();
-
   auto const announced = will_announce.size();
 
-  if (not will_announce.empty())
+  if (!will_announce.empty())
     node.post(ContentAnn(std::move(will_announce)));
 
   if (auto_announce)
@@ -126,7 +125,7 @@ std::size_t ContentHelperImpl::announce_metadata()
 
 void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
 {
-  for (auto metadata : msg.metadata) {
+  for (auto& metadata : msg.metadata) {
     // Break loops
     if (metadata.publisher == node.id)
       continue;
@@ -141,14 +140,15 @@ void ContentHelperImpl::receive(MessageHeader header, ContentAnn msg)
 
 bool ContentHelperImpl::discover(ContentMetadata meta)
 {
-  for (auto& existing : rmt)
+  for (auto& existing : rmt) {
     if (existing.data.hash == meta.hash) {
       if (meta.hops < existing.data.hops) {
         existing.data.hops = meta.hops;
         return true;
-      } else
-        return false;
+      }
+      return false;
     }
+  }
 
   log.i("Discovered remote meta: %v", std::string(meta.hash));
   rmt.emplace_back(meta);
@@ -158,8 +158,22 @@ bool ContentHelperImpl::discover(ContentMetadata meta)
 
     if (auto_fetch) {
       auto_fetch_meta.emplace(meta.hash, meta);
-      for (std::size_t i = 0; i < meta.block_count(); ++i)
+      for (std::size_t i = 0; i < meta.block_count(); ++i) {
+        auto ref = BlockRef(meta.hash, i);
+        auto stored = store->find(ref);
+        if (stored != store->end())
+          continue;
+        auto cached = cache->find(ref);
+        if (cached != cache->end()) {
+          store->store(cached.cdata(), cached.size());
+          continue;
+        }
+        for (auto const& existing : auto_fetch_queue) {
+          if (existing.hash == meta.hash && existing.index == i)
+            continue;
+        }
         auto_fetch_queue.emplace_back(meta.hash, i);
+      }
       do_auto_fetch();
     }
   }
@@ -217,12 +231,22 @@ void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
   auto req = requests.begin();
   while (req != requests.end()) {
     // Skip a request if we have the block in cache or store.
-    auto cached_block = cache->find(req->block);
-    if (cached_block == cache->end())
-      cached_block = store->find(req->block);
+    bool cancel = false;
+    auto stored_block = store->find(req->block);
+    if (stored_block != store->end()) {
+      cancel = true;
+    } else {
+      auto cached_block = cache->find(req->block);
+      if (cached_block != cache->end()) {
+        // If the request was for permanent storage and the block is 
+        // already cached then copy it to the store.
+        if (req->keep_on_arrival)
+          store->store(cached_block.cdata(), cached_block.size());
+        cancel = true;
+      }
+    }
 
-    if (cached_block != cache->end() && cached_block != store->end()
-        && cached_block.complete()) {
+    if (cancel) {
       prt.erase(req->block);
       already_have.push_back(std::move(req->block));
       req = requests.erase(req);
@@ -488,7 +512,6 @@ void ContentHelperImpl::LocalMetadata::requested()
 
 void ContentHelperImpl::LocalMetadata::announced()
 {
-  // 2^t growth
   auto const min = std::chrono::seconds(1);
   auto const max = std::chrono::seconds(60);
 
