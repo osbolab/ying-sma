@@ -2,7 +2,8 @@ package edu.asu.sma.client;
 
 
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,16 +13,14 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import edu.asu.sma.ContentHelper;
-
 public class PostFragment extends BaseFragment {
+  private static final String TAG = PostFragment.class.getSimpleName();
+
   private List<String> items = new ArrayList<>();
   private ArrayAdapter<String> itemsAdapter;
 
@@ -50,31 +49,18 @@ public class PostFragment extends BaseFragment {
     itemsList.setOnItemClickListener(new OnItemClickListener() {
       @Override
       public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        final ByteArrayOutputStream fileData = new ByteArrayOutputStream();
-
         TextView item = (TextView) adapterView.getChildAt(i - itemsList.getFirstVisiblePosition());
         String fileName = item.getText().toString();
-        try {
-          byte[] buf = new byte[8192];
-          InputStream in = activity.getAssets().open(fileName);
-          int read;
-          while ((read = in.read(buf)) != -1)
-            fileData.write(buf, 0, read);
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
 
-        Log.d("Post", "Read " + fileData.size() + " bytes of file data");
+        FragmentTransaction txn = getFragmentManager().beginTransaction();
+        Fragment prev = getFragmentManager().findFragmentByTag("post_preview");
+        if (prev != null)
+          txn.remove(prev);
+        txn.addToBackStack(null);
 
-        nativeHandler.post(new Runnable() {
-          @Override
-          public void run() {
-            ContentHelper.create(new String[]{ "dogs" },
-                                 "dog.jpg",
-                                 fileData.toByteArray(),
-                                 fileData.size());
-          }
-        });
+        PostPreviewDialog dialog = PostPreviewDialog.newInstance(fileName);
+        dialog.setNativeHandler(nativeHandler);
+        dialog.show(txn, "post_preview");
       }
     });
 
