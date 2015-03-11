@@ -193,8 +193,12 @@ void ContentHelperImpl::do_auto_fetch()
 
   // Collect the first n blocks from the auto fetch queue into one request message
   std::vector<BlockRequestArgs> reqs;
-  for (std::size_t i = 0; i < 16 && !auto_fetch_queue.empty(); ++i) {
+  for (std::size_t i = 0; i < std::min(auto_fetch_queue.size(), std::size_t(16)); ++i) {
     auto block = auto_fetch_queue.front();
+    // Move the block to the end of the requests
+    auto_fetch_queue.pop_front();
+    auto_fetch_queue.push_back(block);
+
     auto it = auto_fetch_meta.find(block.hash);
     assert(it != auto_fetch_meta.end());
     auto const& meta = it->second;
@@ -207,9 +211,10 @@ void ContentHelperImpl::do_auto_fetch()
                       meta.hops,
                       true,
                       true);
-
-    auto_fetch_queue.pop_front();
   }
+
+  if (reqs.empty())
+    return;
 
   log.d("Auto-fetching %v interesting blocks (%v more enqueued)",
         reqs.size(),
@@ -218,7 +223,7 @@ void ContentHelperImpl::do_auto_fetch()
   request(std::move(reqs));
 
   if (not auto_fetch_queue.empty())
-    asynctask(&ContentHelperImpl::do_auto_fetch, this).do_in(std::chrono::seconds(1));
+    asynctask(&ContentHelperImpl::do_auto_fetch, this).do_in(std::chrono::milliseconds(100));
 }
 
 
@@ -375,6 +380,16 @@ bool ContentHelperImpl::broadcast(BlockRef ref)
 
 void ContentHelperImpl::receive(MessageHeader header, BlockResponse msg)
 {
+  // Stop auto-fetching this block if we are
+  auto fetching_it = auto_fetch_queue.begin();
+  while (fetching_it != auto_fetch_queue.end()) {
+    if (*fetching_it == msg.block) {
+      auto_fetch_queue.erase(fetching_it);
+      break;
+    } else
+      ++fetching_it;
+  }
+
   auto stored = store->find(msg.block);
   bool is_stored = stored != store->end();
 
