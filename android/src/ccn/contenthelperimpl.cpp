@@ -22,6 +22,8 @@
 
 namespace sma
 {
+using std::placeholders::_1;
+
 constexpr std::chrono::milliseconds ContentHelperImpl::min_announce_interval;
 constexpr std::size_t ContentHelperImpl::fuzz_announce_min_ms;
 constexpr std::size_t ContentHelperImpl::fuzz_announce_max_ms;
@@ -35,6 +37,8 @@ ContentHelperImpl::ContentHelperImpl(CcnNode& node)
   , store(new ContentCache(node))
   , to_announce(0)
 {
+  block_arrived_event += std::bind(&ContentHelperImpl::check_content_complete, this, _1);
+
   if (auto_announce)
     asynctask(&ContentHelperImpl::announce_metadata, this)
         .do_in(min_announce_interval);
@@ -165,7 +169,7 @@ bool ContentHelperImpl::discover(ContentMetadata meta)
           continue;
         auto cached = cache->find(ref);
         if (cached != cache->end()) {
-          store->store(cached.cdata(), cached.size());
+          store->store(ref, cached.size(), cached.cdata(), cached.size());
           continue;
         }
         for (auto const& existing : auto_fetch_queue) {
@@ -241,7 +245,7 @@ void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
         // If the request was for permanent storage and the block is 
         // already cached then copy it to the store.
         if (req->keep_on_arrival)
-          store->store(cached_block.cdata(), cached_block.size());
+          store->store(req->block, cached_block.size(), cached_block.cdata(), cached_block.size());
         cancel = true;
       }
     }
@@ -265,11 +269,12 @@ void ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
         check_pending_requests(new_expiry);
       }
       pending.keep_on_arrival |= req->keep_on_arrival;
+      pending.local_only &= req->local_only;
     } else {
       // Add a new pending request to facilitate timeout and block storage.
       prt.emplace(
           req->block,
-          PendingRequest{clock::now(), new_expiry, req->keep_on_arrival});
+          PendingRequest{clock::now(), new_expiry, req->keep_on_arrival, req->local_only});
       check_pending_requests(new_expiry);
     }
 
@@ -305,23 +310,49 @@ void ContentHelperImpl::receive(MessageHeader header, BlockRequest msg)
   if (not auto_respond and not auto_forward_requests)
     return;
 
-  for (auto const& req : msg.requests) {
-    if (auto_respond) {
-      broadcast(req.block);
+  std::vector<BlockRequestArgs> to_forward;
 
-    } else if (auto_forward_requests) {
-      auto prt_search = prt.find(req.block);
-      if (prt_search != prt.end()) {
-        auto& pending = prt_search->second;
-        pending.local_only = false;
-        auto new_expiry = clock::now() + req.ttl<millis>();
-        if (pending.expiry < new_expiry) {
-          pending.expiry = new_expiry;
-          check_pending_requests(new_expiry);
+  for (auto const& req : msg.requests) {
+    // If we can fulfill the request then do so
+    if (auto_respond && broadcast(req.block))
+      continue;
+
+    if (!auto_forward_requests)
+      continue;
+
+    // If we've already requested this block then forward
+    // it when it arrives.
+    auto prt_search = prt.find(req.block);
+    if (prt_search != prt.end()) {
+      auto& pending = prt_search->second;
+      pending.local_only = false;
+      auto new_expiry = clock::now() + req.ttl<millis>();
+      if (pending.expiry < new_expiry) {
+        pending.expiry = new_expiry;
+        check_pending_requests(new_expiry);
+      }
+    } else {
+      // We don't have any pending request for this block; we should
+      // forward one if we know a source of the content and are closer to it
+      // than the requester is.
+      for (auto const& known : rmt) {
+        if (known.data.hash == req.block.hash &&
+            known.data.hops <= req.hops_from_block) {
+          to_forward.emplace_back(req.block,
+                                  1.0,
+                                  default_initial_ttl,
+                                  node.id,
+                                  node.position(),
+                                  known.data.hops,
+                                  true,
+                                  true);
         }
       }
     }
   }
+
+  if (!to_forward.empty())
+    request(std::move(to_forward));
 }
 
 
@@ -330,17 +361,13 @@ bool ContentHelperImpl::broadcast(BlockRef ref)
   auto block = cache->find(ref);
   if (block == cache->end()) {
     block = store->find(ref);
-    if (block == store->end()) {
+    if (block == store->end())
       return false;
-    }
   }
 
-  log.d("Send block");
-  log.d("| %v", ref);
-  log.d("| size: %v bytes", block.size());
-  log.d("");
+  log.d("Send %v bytes: %v", block.size(), ref);
 
-  node.post(BlockResponse(ref, block.data(), block.size()));
+  node.post(BlockResponse(ref, block.cdata(), block.size()));
 
   return true;
 }
@@ -348,38 +375,32 @@ bool ContentHelperImpl::broadcast(BlockRef ref)
 
 void ContentHelperImpl::receive(MessageHeader header, BlockResponse msg)
 {
-  log.d("Got block from node %v", header.sender);
-  log.d("| %v", msg.block);
+  auto stored = store->find(msg.block);
+  bool is_stored = stored != store->end();
 
-  bool is_stored = false;
+  // Ignore blocks we have permanently stored
+  if (is_stored)
+    return;
+
+  log.d("Got block from node %v: %v", header.sender, msg.block);
+
   bool will_rebroadcast = false;
 
   // Skip the cache if we're expecting to keep all this content's data.
-  auto pending = prt.find(msg.block);
-  if (pending != prt.end()) {
-    if (pending->second.keep_on_arrival
-        and (store->find(msg.block) == store->end())) {
+  auto const it = prt.find(msg.block);
+  if (it != prt.end()) {
+    auto const& pending = it->second;
+    if (pending.keep_on_arrival) {
       log.d("| I'll store this permanently");
       store->store(msg.block, msg.size, msg.data, msg.size);
-      for (auto const& meta : rmt)
-        if (meta.data.hash == msg.block.hash) {
-          if (store->validate_data(meta.data)) {
-            log.i("Content %v complete at %v",
-                  msg.block.hash,
-                  std::chrono::duration_cast<millis>(
-                      clock::now().time_since_epoch()).count());
-            content_complete_event(msg.block.hash);
-          }
-          break;
-        }
       is_stored = true;
     }
 
-    will_rebroadcast = auto_respond and not pending->second.local_only;
+    will_rebroadcast = auto_respond && !pending.local_only;
   }
 
   // Cache all blocks we come across
-  if (not is_stored and (cache->find(msg.block) == cache->end()))
+  if (!is_stored && (cache->find(msg.block) == cache->end()))
     cache->store(msg.block, msg.size, msg.data, msg.size);
 
   block_arrived_event(msg.block);
@@ -450,6 +471,26 @@ std::vector<ContentMetadata> ContentHelperImpl::metadata()
 
   v.shrink_to_fit();
   return v;
+}
+
+
+bool ContentHelperImpl::check_content_complete(BlockRef ref)
+{
+  // Check if we have the whole content
+  for (auto const& meta : rmt) {
+    if (meta.data.hash == ref.hash) {
+      if (store->validate_data(meta.data)) {
+        log.i("Content %v complete at %v",
+              ref.hash,
+              std::chrono::duration_cast<millis>(
+              clock::now().time_since_epoch()).count());
+        content_complete_event(ref.hash);
+      }
+      return true;
+    }
+  }
+  log.e("Checking if content complete, but don't have any metadata for it");
+  return true;
 }
 
 

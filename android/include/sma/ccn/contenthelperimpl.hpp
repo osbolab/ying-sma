@@ -126,6 +126,8 @@ private:
   // remove them from the table).
   void check_pending_requests(time_point when = time_point());
 
+  bool check_content_complete(BlockRef hash);
+
   void do_auto_fetch();
 
   void log_metadata(NodeId sender, ContentMetadata const& meta);
