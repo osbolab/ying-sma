@@ -238,13 +238,13 @@ bool InterestHelperImpl::know_remote(ContentType const& type) const
   return false;
 }
 
-bool InterestHelperImpl::contains_any(
-    std::vector<ContentType> const& types) const
+bool InterestHelperImpl::contains_any(std::vector<ContentType> const& types) const
 {
   for (auto const& i : interests)
-    for (auto const& type : types)
-      if (i.type == type)
-        return true;
+    if (i.local())
+      for (auto const& type : types)
+        if (i.type == type)
+          return true;
   return false;
 }
 

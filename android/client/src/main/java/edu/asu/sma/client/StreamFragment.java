@@ -20,5 +20,4 @@ public class StreamFragment extends BaseFragment {
                            Bundle savedInstanceState) {
     return inflater.inflate(R.layout.fragment_feed, container, false);
   }
-
 }

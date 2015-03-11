@@ -16,6 +16,7 @@
 
 #include <sma/async.hpp>
 
+#include <cstdio>
 #include <ctime>
 #include <string>
 
@@ -64,6 +65,9 @@ ContentMetadata ContentHelperImpl::create_new(std::vector<ContentType> types,
                                   node.id,
                                   publish_time_ms,
                                   default_initial_ttl);
+
+  auto_fetch_meta.emplace(hash, metadata);
+  check_content_complete(BlockRef(hash, 0));
 
   lmt.push_back(metadata);
   ann_queue.push_back(hash);
@@ -370,11 +374,21 @@ bool ContentHelperImpl::broadcast(BlockRef ref)
       return false;
   }
 
-  log.d("Send %v bytes: %v", block.size(), ref);
-
-  node.post(BlockResponse(ref, block.cdata(), block.size()));
-
+  asynctask(&ContentHelperImpl::do_broadcast, this, ref).do_in(std::chrono::milliseconds(std::rand() % 100));
   return true;
+}
+
+void ContentHelperImpl::do_broadcast(BlockRef ref)
+{
+  auto block = cache->find(ref);
+  if (block == cache->end()) {
+    block = store->find(ref);
+    if (block == store->end())
+      return;
+  }
+
+  log.d("Send %v bytes: %v", block.size(), ref);
+  node.post(BlockResponse(ref, block.cdata(), block.size()));
 }
 
 
@@ -492,14 +506,34 @@ std::vector<ContentMetadata> ContentHelperImpl::metadata()
 bool ContentHelperImpl::check_content_complete(BlockRef ref)
 {
   // Check if we have the whole content
-  for (auto const& meta : rmt) {
-    if (meta.data.hash == ref.hash) {
-      if (store->validate_data(meta.data)) {
+  for (auto const& meta : auto_fetch_meta) {
+    if (meta.second.hash == ref.hash) {
+      if (store->validate_data(meta.second)) {
         log.i("Content %v complete at %v",
               ref.hash,
               std::chrono::duration_cast<millis>(
               clock::now().time_since_epoch()).count());
         content_complete_event(ref.hash);
+
+        std::string path("/storage/emulated/legacy/Download");
+        path.append(std::string(ref.hash));
+        log.d("Writing content file to %v", path);
+        
+        std::size_t wrote = 0;
+
+        FILE* file = fopen(path.c_str(), "wb");
+        if (file != nullptr) {
+          for (std::size_t i = 0; i < meta.second.block_count(); ++i) {
+            auto stored = store->find(BlockRef(ref.hash, i));
+            assert(stored != store->end());
+            wrote += fwrite(stored.cdata(), sizeof(char), stored.size(), file);
+          }
+        } else
+          log.e("Couldn't open content file for writing");
+
+        fclose(file);
+
+        log.d("Wrote %v bytes to file", wrote);
       }
       return true;
     }

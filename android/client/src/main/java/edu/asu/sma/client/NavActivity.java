@@ -28,9 +28,8 @@ public class NavActivity extends FragmentActivity
 
     tab_icon_res = new int[]{
         R.drawable.tab_ic_network
-        , R.drawable.tab_ic_stream
-        , R.drawable.tab_ic_post
         , R.drawable.tab_ic_content
+        , R.drawable.tab_ic_post
     };
 
     tab_host = (TabHost) findViewById(android.R.id.tabhost);
@@ -84,11 +83,9 @@ public class NavActivity extends FragmentActivity
       case 0:
         return new NetworkFragment();
       case 1:
-        return new StreamFragment();
+        return new ContentFragment();
       case 2:
         return new PostFragment();
-      case 3:
-        return new ContentFragment();
     }
     throw new IndexOutOfBoundsException(index + " is not a valid tab index");
   }

@@ -15,6 +15,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 
@@ -28,6 +29,9 @@ import edu.asu.sma.ContentHelper;
  * @author matt@osbolab.com (Matt Barnard)
  */
 public class PostPreviewDialog extends DialogFragment {
+  private EditText nameEdit;
+  private EditText typesEdit;
+
   public static PostPreviewDialog newInstance(String assetPath) {
     PostPreviewDialog d = new PostPreviewDialog();
 
@@ -41,6 +45,27 @@ public class PostPreviewDialog extends DialogFragment {
   private final OnClickListener shareListener = new OnClickListener() {
     @Override
     public void onClick(View view) {
+      boolean valid = true;
+
+      final String name = nameEdit.getText().toString();
+      if (name.length() == 0) {
+        nameEdit.setBackgroundColor(Color.rgb(245, 193, 191));
+        valid = false;
+      }
+
+      final String[] types = typesEdit.getText().toString().split(",\\s*");
+
+      if (types.length == 0) {
+        typesEdit.setBackgroundColor(Color.rgb(245, 193, 191));
+        valid = false;
+      }
+
+      if (!valid)
+        return;
+
+      nameEdit.setBackgroundColor(Color.WHITE);
+      typesEdit.setBackgroundColor(Color.WHITE);
+
       shareData = new ByteArrayOutputStream();
 
       try {
@@ -56,8 +81,8 @@ public class PostPreviewDialog extends DialogFragment {
       nativeHandler.post(new Runnable() {
         @Override
         public void run() {
-          ContentHelper.create(new String[]{ "dogs" },
-                               "dog.jpg",
+          ContentHelper.create(types,
+                               name,
                                shareData.toByteArray(),
                                shareData.size());
         }
@@ -104,6 +129,9 @@ public class PostPreviewDialog extends DialogFragment {
         dismiss();
       }
     });
+
+    nameEdit = (EditText) view.findViewById(R.id.nameEdit);
+    typesEdit = (EditText) view.findViewById(R.id.typesEdit);
 
     Button shareButton = (Button) view.findViewById(R.id.shareButton);
 

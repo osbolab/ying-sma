@@ -128,6 +128,8 @@ private:
 
   bool check_content_complete(BlockRef hash);
 
+  void do_broadcast(BlockRef ref);
+
   void do_auto_fetch();
 
   void log_metadata(NodeId sender, ContentMetadata const& meta);
