@@ -12,8 +12,14 @@ open my $bytes_sent_fh, '>', $bytes_sent_file or die "Could not open file '$byte
 my $block_event_file = 'blockevent.txt';
 open my $block_event_fh, '>', $block_event_file or die "Could not open file '$bytes_sent_file' $!";
 
+my $request_event_file = 'requestevent.txt';
+open my $request_event_fh, '>', $request_event_file or die "Could not open file";
+
 my $meta_stat_file = 'meta.txt';
 open my $meta_stat_file_fh, '>', $meta_stat_file or die "Could not open file '$meta_stat_file' $!";
+
+my $content_stat_file = 'content.txt';
+open my $content_stat_file_fh, '>', $content_stat_file or die "Could not open file '$content_stat_file' $!";
 
 open my $fh, '<', $file or die "Could not open '$file' $!";
 
@@ -39,6 +45,8 @@ print "\n";
 my $timeslot = 0;
 
 my %blocks_sent;
+
+my %requests_sent;
 
 my @total_bytes = ();
 for(my $i=0; $i<60; $i++) {
@@ -72,6 +80,8 @@ for (my $i=0; $i<60; $i++) {
 
 my %meta_received;
 
+my %content_received;
+
 while ($line = <$fh>) {
 	if ($line =~ /Created\s(d+)\snodes/) {
 		$nnodes = $1;
@@ -85,12 +95,15 @@ while ($line = <$fh>) {
 #			exit;
 #		}
 #		if ($now - $start > ($timeslot+1) * 1000) {
-		if ($now - $start > ($timeslot+1)) {
+		if ($now - $start >= ($timeslot+1)) {
 			$timeslot++;
 		} else {
 			if ($line=~ /Send block/) {
 			   $blocks_sent{$timeslot}++;
-		    } elsif ($line=~ /n\(([0-9]+)\)\s+total bytes sent\:\s+([0-9]+)/) {
+		    } elsif ($line=~ /request block/){
+		       $requests_sent{$timeslot}++;
+		    }
+			elsif ($line=~ /n\(([0-9]+)\)\s+total bytes sent\:\s+([0-9]+)/) {
 			    $total_bytes[$1]{$timeslot}+=$2;
 		    } elsif ($line=~ /n\(([0-9]+)\)\s+bytes sent on request\:\s+([0-9]+)/) {
 			    $request_bytes[$1]{$timeslot}+=$2;
@@ -102,24 +115,41 @@ while ($line = <$fh>) {
 			    $meta_bytes[$1]{$timeslot}+=$2;
 		    } elsif ($line=~ /Receive meta\:\s+publisher\s+([0-9]+)\s+hops\s+([0-9]+)\s+after\s+([0-9]+)/) {
 				if (exists($meta_received{$2})) {
-					if ($3 < 10000) {
+					if ($3 < 5000 + (int($2)-1) * 400) {
 					  push($meta_received{$2}, int($3));
 				    }
 				}
 				else {
 					my @meta_per_hop = ();
-					if ($3 < 10000) {
+					if ($3 < 5000 + (int($2)-1) * 400) {
 					  push(@meta_per_hop, int($3));
 				    }
 					$meta_received{$2} = \@meta_per_hop;
 				}
-		    } 
+		    } elsif ($line=~ /published by [0-9]+,\s+([0-9]+)\s+hops away,\s+utility\s+[-+]?([0-9]*\.[0-9]+|[0-9]+),\s+([0-9]+)\s+left/){
+		    	if (exists($content_received{$1})) {
+		    		if ($3 < 1000 && $3 > (4 - $1) * 150 && $3 > 0) {
+		    			push($content_received{$1}, 1000 - $3);
+		    		}
+		    	}
+				else {
+					my @content_per_hop = ();
+					if ($3 < 1000 && $3  > (4 - $1) * 150 && $3 > 0) {
+						push(@content_per_hop, 1000 - $3);
+					}
+					$content_received{$1} = \@content_per_hop;
+				}
+		    }
 		}
 	}
 }
 
 for my $slot (sort {$a<=>$b} keys %blocks_sent) {
 	print $block_event_fh "$slot\t$blocks_sent{$slot}\n";
+}
+
+for my $slot (sort {$a<=>$b} keys %requests_sent) {
+	print $request_event_fh "$slot\t$requests_sent{$slot}\n";
 }
 
 for(my $i=0; $i<60; $i++) {
@@ -144,6 +174,19 @@ for my $hop (sort{$a<=>$b} keys %meta_received) {
 		print $meta_stat_file_fh "$percentage\n";
 	}
 	print $meta_stat_file_fh "\n";
+}
+
+
+for my $hop (sort{$a<=>$b} keys %content_received) {
+	print $content_stat_file_fh "hops: $hop\n";
+	my $sz = $#{$content_received{$hop}} + 1;
+	my @sorted_array = sort { $a<=>$b} @{ $content_received{$hop} };
+	for my $i ( 0 .. $#{ $content_received{$hop} } ) {
+		print $content_stat_file_fh "$sorted_array[$i]\t";
+		my $percentage = $i * 1.0 / $sz;
+		print $content_stat_file_fh "$percentage\n";
+	}
+	print $content_stat_file_fh "\n";
 }
 
 #my ($starttime) = ($1);

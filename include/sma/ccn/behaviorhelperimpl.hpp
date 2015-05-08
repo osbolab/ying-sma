@@ -24,10 +24,16 @@ class BehaviorHelperImpl : public BehaviorHelper
     bool accessed;
     float utility;
     timestamp requested_time;
+    timestamp deadline;
     int hops;
     NodeId from_id;
-    Req_Record(bool acc, float util, timestamp r_time, int hops, NodeId id):
-      accessed(acc), utility(util), requested_time(r_time), hops(hops), from_id(id) {}
+    Req_Record(bool acc, float util, timestamp r_time, timestamp dl, int hops, NodeId id)
+      : accessed(acc)
+      , utility(util)
+      , requested_time(r_time)
+      , deadline(dl)
+      , hops(hops)
+      , from_id(id) {}
   };
 
 public:

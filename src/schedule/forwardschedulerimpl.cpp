@@ -204,7 +204,7 @@ namespace sma
     
     double ForwardSchedulerImpl::get_transmission_range() const
     {
-      return 1000; 
+      return 200; 
     }
 
     Vec2d ForwardSchedulerImpl::get_self_position() const
@@ -324,6 +324,12 @@ namespace sma
         std::vector<BlockRequestDesc> requests = 
             sched_ptr->get_requests_for_block (blockid);
         
+
+        // Anti-conflict
+        
+        block_arrived_buf.insert(blockid);
+        return;
+
         auto reqIt = requests.begin();
         while (reqIt != requests.end()) {
           Vec2d requester_location = sched_ptr->get_node_position(reqIt->from);
@@ -376,24 +382,50 @@ namespace sma
       std::vector<std::vector<float>> utils (num_of_nodes,
               std::vector<float>(num_of_blocks, 0));
 
-
-      //map blockid to seq from 0...n
+	  std::unordered_set<BlockRef> blocks_to_freeze;
+	  std::unordered_set<BlockRef> blocks_to_unfreeze;
+	  std::unordered_set<BlockRef> blocks_to_broadcast;
 
       std::size_t seq = 0;
-
       block_to_seq.clear();
-      auto it = block_to_schedule.begin();
+ 
+      //map blockid to seq from 0...n
+      bool run_lp = true;
+      if (!run_lp ) {
+        float total_utility = 0;
+        int num_of_broadcast = bandwidth;
+
+          auto it = block_to_schedule.begin();
+          while (num_of_broadcast > 0 && it != block_to_schedule.end()) {
+            auto nodesetIt = nodeset.begin();
+            std::size_t i=0; 
+            while (nodesetIt != nodeset.end()) {
+              NodeId node_id = *nodesetIt;
+              utils[i][seq] = sched_ptr->get_utility (node_id,
+                      it->hash, it->index);
+              if (utils[i][seq] > 0) {
+                 total_utility += utils[i][seq];
+                 break;
+              }
+              nodesetIt++;
+            }
+            num_of_broadcast--;
+          }
+
+          block_to_schedule.clear();
+          sched_ptr->get_logger()->i ("| overall utility: %v", total_utility); 
+          return 0;
+      }
+
+     auto it = block_to_schedule.begin();
       while (it != block_to_schedule.end())
       {
         block_to_seq.insert(std::make_pair(*it, seq));
 
-//        std::vector<Neighbor> neighbors = sched_ptr->get_neighbors();
-//        for (std::size_t i=0; i<neighbors.size(); i++) 
         auto nodesetIt = nodeset.begin();
         std::size_t i=0;
         while (nodesetIt != nodeset.end())
         {
-//          NodeId node_id = neighbors[i].id;
           NodeId node_id = *nodesetIt;
           utils[i][seq] = sched_ptr->get_utility (node_id,
                                                  it->hash,
@@ -427,10 +459,6 @@ namespace sma
                        );
 
       sched_ptr->get_logger()->i ("| overall utility: %v", max_util);
-
-	  std::unordered_set<BlockRef> blocks_to_freeze;
-	  std::unordered_set<BlockRef> blocks_to_unfreeze;
-	  std::unordered_set<BlockRef> blocks_to_broadcast;
 
       int bandwidth_reserved = 0;
       for (std::size_t c=0; c<sched_result.size();c++)

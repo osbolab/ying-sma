@@ -118,7 +118,8 @@ int main(int argc, char** argv)
   std::string strategy("friis model");
   std::string input;
   std::string runID;
-  std::string traceFile = "../../traces/trace_60_600";
+//  std::string traceFile = "/Volumes/LaCIE/simulation/trace_60_600_rw";
+  std::string traceFile = "../../traces/trace_1_60_rpg";
   std::string logFile = "ns2traceoutput.txt";
 
   ns3::CommandLine cmd;
@@ -164,8 +165,8 @@ int main(int argc, char** argv)
 
   auto wifiPhy = ns3::YansWifiPhyHelper::Default();
 
-  wifiPhy.Set("TxPowerStart", ns3::DoubleValue(10));
-  wifiPhy.Set("TxPowerEnd", ns3::DoubleValue(10));
+  wifiPhy.Set("TxPowerStart", ns3::DoubleValue(0.05));
+  wifiPhy.Set("TxPowerEnd", ns3::DoubleValue(0.05));
 
   // When using a fixed RSS model this should be zero lest gain be added
   wifiPhy.Set("RxGain", ns3::DoubleValue(0));
@@ -292,7 +293,7 @@ int main(int argc, char** argv)
 
   ns3::AsciiTraceHelper ascii;
 //  wifiPhy.EnableAsciiAll(ascii.CreateFileStream("log/random-walk.tr"));
-  wifiPhy.EnablePcap("/Volumes/FreeAgent/exp_result/log/random-walk", devices);
+//  wifiPhy.EnablePcap("/Volumes/LaCie/simulation/log/trace", devices);
 
   if (enable_olsr) {
     auto routeStream = ns3::Create<ns3::OutputStreamWrapper>(

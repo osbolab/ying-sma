@@ -299,6 +299,7 @@ std::uint16_t ContentHelperImpl::request(std::vector<BlockRequestArgs> requests)
       continue;
     }
 
+
     auto it = prt.find(req->block);
     if (it != prt.end()) {
       // Avoid redudant request forwarding.

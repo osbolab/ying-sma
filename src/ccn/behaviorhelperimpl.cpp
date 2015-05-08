@@ -73,8 +73,8 @@ namespace sma
 */
         auto current_time = sma::chrono::system_clock::now();
         auto before_deadline 
-            = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - (content_req->second).requested_time).count();
-        node.log.i ("Complete download content %v, published by %v, %v hops away,utility %v, %v later",
+            = std::chrono::duration_cast<std::chrono::milliseconds>((content_req->second).deadline - current_time).count();
+        node.log.i ("Complete download content %v, published by %v, %v hops away, utility %v, %v left",
                 hash, 
                 (content_req->second).from_id,
                 (content_req->second).hops,
@@ -144,7 +144,7 @@ namespace sma
     void BehaviorHelperImpl::behave_publish()
     {
       float min_blocks = 1.0;
-      float max_blocks = 20.0;
+      float max_blocks = 1.0;
 
       std::size_t n_blocks  = min_blocks 
             + static_cast <float> (rand()) 
@@ -231,6 +231,9 @@ namespace sma
             + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX)/(max_ttl - min_ttl));
 
         auto current_time = sma::chrono::system_clock::now();
+        auto dl = current_time 
+            + std::chrono::duration_cast<std::chrono::milliseconds>
+            (std::chrono::milliseconds(static_cast<std::uint32_t>(ttl_per_block)));
 
         // reset the content_req_record, as it will deemed
         // as a new request. a local hit will be expected.
@@ -240,7 +243,7 @@ namespace sma
         else
           content_req_record.insert(
                   {content_name, 
-                    {false, utility_per_block, current_time, hops, from_id}
+                    {false, utility_per_block, current_time, dl, hops, from_id}
                   });
 
 

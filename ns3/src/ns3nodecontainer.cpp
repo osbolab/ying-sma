@@ -109,12 +109,12 @@ void Ns3NodeContainer::StartApplication()
   behavior_helper = std::make_unique<BehaviorHelperImpl>(*node, 
            std::chrono::milliseconds(10000), 
            std::chrono::milliseconds(1000),
-           std::chrono::milliseconds(10000));
+           std::chrono::milliseconds(100000));
   else
   behavior_helper = std::make_unique<BehaviorHelperImpl>(*node, 
            std::chrono::milliseconds(10000), 
            std::chrono::milliseconds(1000000),
-           std::chrono::milliseconds(10000));
+           std::chrono::milliseconds(1000));
 
 
   // Send received messages to the node
